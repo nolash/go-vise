@@ -39,12 +39,16 @@ func(st State) WithCacheSize(cacheSize uint32) State {
 	return st
 }
 
-func(st *State) PutArg(input string) {
+func(st *State) PutArg(input string) error {
 	st.Arg = &input
+	return nil
 }
 
-func(st *State) PopArg() string {
-	return *st.Arg
+func(st *State) PopArg() (string, error) {
+	if st.Arg == nil {
+		return "", fmt.Errorf("arg is not set")
+	}
+	return *st.Arg, nil
 }
 
 func(st *State) Down(input string) {

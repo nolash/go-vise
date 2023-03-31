@@ -16,6 +16,7 @@ import (
 var dynVal = "three"
 
 type TestResource struct {
+	state *state.State
 }
 
 func getOne(input []byte, ctx context.Context) (string, error) {
@@ -28,6 +29,15 @@ func getTwo(input []byte, ctx context.Context) (string, error) {
 
 func getDyn(input []byte, ctx context.Context) (string, error) {
 	return dynVal, nil
+}
+
+type TestStatefulResolver struct {
+	state *state.State
+}
+
+
+func (r *TestResource) getEachArg(input []byte, ctx context.Context) (string, error) {
+	return r.state.PopArg()
 }
 
 func (r *TestResource) Get(sym string) (string, error) {
@@ -70,6 +80,8 @@ func (r *TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 		return getTwo, nil
 	case "dyn":
 		return getDyn, nil
+	case "arg":
+		return r.getEachArg, nil
 	}
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
 }
@@ -92,7 +104,7 @@ func TestRun(t *testing.T) {
 	_ = r
 }
 
-func TestRunLoad(t *testing.T) {
+func TestRunLoadRender(t *testing.T) {
 	st := state.NewState(5)
 	st.Down("barbarbar")
 	rs := TestResource{}
