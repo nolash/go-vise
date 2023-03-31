@@ -69,6 +69,10 @@ func TestStateDownUp(t *testing.T) {
 		t.Error(err)
 	}
 	err = st.Up()
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Up()
 	if err == nil {
 		t.Errorf("expected out of top frame error")
 	}

@@ -24,11 +24,13 @@ func NewState(bitSize uint64) State {
 		bitSize += (8 - n)
 	}
 
-	return State{
+	st := State{
 		Flags: make([]byte, bitSize / 8),
 		CacheSize: 0,
 		CacheUseSize: 0,
 	}
+	st.Down("")
+	return st
 }
 
 func(st State) WithCacheSize(cacheSize uint32) State {
@@ -40,6 +42,7 @@ func(st *State) Down(input string) {
 	m := make(map[string]string)
 	st.Cache = append(st.Cache, m)
 	st.CacheMap = make(map[string]string)
+	st.ExecPath = append(st.ExecPath, input)
 }
 
 func(st *State) Add(key string, value string, sizeHint uint32) error {
@@ -110,6 +113,7 @@ func(st *State) Up() error {
 		log.Printf("free frame %v key %v value size %v", l, k, sz)
 	}
 	st.Cache = st.Cache[:l]
+	st.ExecPath = st.ExecPath[:l]
 	return nil
 }
 

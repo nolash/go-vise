@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"context"
+	"log"
 
 	"git.defalsify.org/festive/state"
 	"git.defalsify.org/festive/resource"
@@ -14,6 +15,7 @@ type Runner func(instruction []byte, st state.State, rs resource.Fetcher, ctx co
 func Run(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
 	var err error
 	for len(instruction) > 0 {
+		log.Printf("instruction is now %v", instruction)
 		op := binary.BigEndian.Uint16(instruction[:2])
 		if op > _MAX {
 			return st, instruction, fmt.Errorf("opcode value %v out of range (%v)", op, _MAX)
@@ -21,16 +23,22 @@ func Run(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Co
 		switch op {
 		case CATCH:
 			st, instruction, err = RunCatch(instruction[2:], st, rs, ctx)
+			break
 		case CROAK:
 			st, instruction, err = RunCroak(instruction[2:], st, rs, ctx)
+			break
 		case LOAD:
 			st, instruction, err = RunLoad(instruction[2:], st, rs, ctx)
+			break
 		case RELOAD:
 			st, instruction, err = RunReload(instruction[2:], st, rs, ctx)
+			break
 		case MAP:
 			st, instruction, err = RunMap(instruction[2:], st, rs, ctx)
+			break
 		case SINK:
 			st, instruction, err = RunSink(instruction[2:], st, rs, ctx)
+			break
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
 		}

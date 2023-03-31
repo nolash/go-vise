@@ -128,3 +128,17 @@ func TestRunLoad(t *testing.T) {
 		t.Errorf("Expected %v, got %v", expect, r)
 	}
 }
+
+func TestRunMultiple(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	b := []byte{0x00, LOAD, 0x03}
+	b = append(b, []byte("one")...)
+	b = append(b, []byte{0x00, 0x00, LOAD, 0x03}...)
+	b = append(b, []byte("two")...)
+	b = append(b, 0x00)
+	st, _, err := Run(b, st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+}
