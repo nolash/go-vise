@@ -1,0 +1,196 @@
+Input handler:
+
+Must handle inputs that contain full history aswell as just last input.
+
+- Previous input
+- Current input
+- browse state (stack of all selectors)
+
+
+---
+
+session state:
+
+- session id
+- input stack
+- router
+- user state
+- symbol stack and output cache (need to know whether list or not)
+- current cumulative size of symbol stack
+- sizelimit for symbol stack
+
+debug state:
+
+- each step:
+	* (session)
+	* last input
+	* state
+	* symbol
+
+
+---
+
+Account states:
+
+Should be refreshed before each step.
+
+Interpreted state used to conditionally redirect locations (needs loop detection).
+
+Always part of context. May change asynchronously.
+
+Allow for global state overrides (routes immediately, no state changes)
+
+catch jumps to symbol with back option (e.g. invalid input)
+panic jump to symbol and terminates session
+
+States are defined in VM. The must be REQUIREd before use.
+
+If states are changed, ALL sessions MUST be invalidated.
+
+CATCH <symbol> <[!]state>
+CROAK <symbol> <[!]state> 
+
+
+---
+
+Parameter requires:
+
+Every node should declare zero or more parameter requirements.
+
+Parameter requirements are inherited in a branch.
+
+Compiler should complain about redeclarations in same branch or gosub
+
+Parameter must resolve to a code symbol
+
+include command to refresh (for example reload list render)
+
+parameter symbol may only appear once for all branches (when jumping, a parameter require must originate in same place in tree)
+
+load symbol -> load symbol from this point on up to size.
+reload symbol -> flush symbol before rendering, will fail of not previously required
+
+LOAD <symbol> <size>
+RELOAD <symbol>
+
+
+---
+
+Navigation:
+
+Down - keeps inherited requirements
+Up - invalidates requirements out of scope, (symbol filled automatically in context of previous "down")
+Next - advance content same level (list browsing)
+Previous - go back content same level (list browsing) 
+Goto - jump to other branch clears requirements stack (should still traverse up and down)
+Exit - terminate session
+
+Next and Previous needs to keep an index state.
+
+List content display chunking must be cached. List content cache must have a limited size.
+
+0 = UP (if valid)
+1 = NEXT
+2 = PREVIOUS
+... = GOTO / COND / DOWN
+00 = EXIT
+99 - GOTO top
+
+(selector = input, display is description displayed in menu)
+
+UP <selector> <display> <symbol>
+DOWN <selector> <display> <symbol>
+NEXT <selector> <display>
+PREV <selector> <display>
+GOTO <selector> <display> <symbol>
+EXIT <selector> <display>
+COND <selector> <display> <symbol> <[!]state>
+
+kept in session as a router object:
+
+SELECTORHASH|SYMBOLHASH
+
+
+---
+
+Parameter mapping
+
+Used to render display
+
+Referenced by symbol name.
+
+Must set minsize, maxsize, used by compiler to evaluate display size.
+
+For symbols having data larger than maxsize, data should be lazily split up to each threshold (to enable previous screens same as initial). Can be defined by byte markers (not substring copies).
+
+Total capacity for mapping is cumulative maxsize. Next param in execution has available up to net capacity after consume.
+
+May define ONE sink, which consumes all remaining data.
+
+Compiler must croak if:
+
+- parameter has not been loaded in tree
+- symbol is not handled by any of the translations.
+
+should generate warnings if sink cannot render a single enrry (of list)
+
+MAP <symbol> <maxsize> <minsize>
+SINK <symbol>
+
+
+---
+
+Display
+
+matched with this node id. node ids must be unique. should contain only letters and numbers.
+
+ID <identifier string>
+
+compile displays with menus.
+
+---
+
+Compiler croaks:
+
+- Render larger than display size (using maxsize)
+- Parameter duplicates between branches
+- Parameter mapped outsize context
+- Unhandled parameter mappings
+- Duplicate navigation selectors in a menu
+- Parameter loads exceeding global capacity limit
+
+
+---
+
+All code execution symbols only take state object as input and return it as output.
+
+The output is committed within session.
+
+
+---
+
+Header
+
+Engine version definition file was written for
+
+VERSION
+
+
+---
+
+Debug:
+
+- full input history
+- parameter dump
+- capacities, load capacities, used capacities
+
+
+---
+
+Tool to generate template.
+
+- parent id
+- generate id
+- UP, EXIT, GOTO TOP selector
+- browser? if so, NEXT and PREVIOUS
+- skip top option
