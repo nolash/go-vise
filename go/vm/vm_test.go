@@ -124,6 +124,4 @@ func TestRunMap(t *testing.T) {
 	if r != expect {
 		t.Errorf("Expected %v, got %v", expect, r)
 	}
-
-
 }

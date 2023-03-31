@@ -1,6 +1,7 @@
 package state
 
 import (
+	"fmt"
 )
 
 type State struct {
@@ -40,10 +41,30 @@ func(st *State) Enter(input string) {
 }
 
 func(st *State) Add(k string, v string) error {
+	sz := st.checkCapacity(v)
+	if sz == 0 {
+		return fmt.Errorf("Cache capacity exceeded %v of %v", st.CacheUseSize + sz, st.CacheSize)
+	}
+	fmt.Printf("len %v %v\n", sz, st.CacheUseSize)
 	st.Cache[len(st.Cache)-1][k] = v
+	st.CacheUseSize += sz
 	return nil
 }
 
 func(st *State) Get() (map[string]string, error) {
 	return st.Cache[len(st.Cache)-1], nil
+}
+
+func (st *State) Exit() {
+}
+
+func(st *State) checkCapacity(v string) uint32 {
+	sz := uint32(len(v))
+	if st.CacheSize == 0 {
+		return sz
+	}
+	if st.CacheUseSize + sz > st.CacheSize {
+		return 0	
+	}
+	return sz
 }

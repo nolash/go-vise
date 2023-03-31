@@ -34,6 +34,18 @@ func TestNewStateCache(t *testing.T) {
 
 func TestStateCacheUse(t *testing.T) {
 	st := NewState(17, 0)
+	st = st.WithCacheSize(10)
 	st.Enter("foo")
-	st.Add("bar", "baz")
+	err := st.Add("bar", "baz")
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Add("inky", "pinky")
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Add("blinky", "clyde")
+	if err == nil {
+		t.Errorf("expected capacity error")
+	}
 }
