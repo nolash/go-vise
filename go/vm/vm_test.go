@@ -3,13 +3,13 @@ package vm
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"fmt"
 	"log"
 	"testing"
 	"text/template"
 	
 	"git.defalsify.org/festive/resource"
+	"git.defalsify.org/festive/router"
 	"git.defalsify.org/festive/state"
 )
 
@@ -159,8 +159,8 @@ func TestRunMultiple(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	b := []byte{}
-	b = NewTestOp(b, LOAD, []string{"one"}, nil, []uint8{0})
-	b = NewTestOp(b, LOAD, []string{"two"}, nil, []uint8{42})
+	b = NewLine(b, LOAD, []string{"one"}, nil, []uint8{0})
+	b = NewLine(b, LOAD, []string{"two"}, nil, []uint8{42})
 	st, _, err := Run(b, st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
@@ -171,8 +171,8 @@ func TestRunReload(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	b := []byte{}
-	b = NewTestOp(b, LOAD, []string{"dyn"}, nil, []uint8{0})
-	b = NewTestOp(b, MAP, []string{"dyn"}, nil, nil)
+	b = NewLine(b, LOAD, []string{"dyn"}, nil, []uint8{0})
+	b = NewLine(b, MAP, []string{"dyn"}, nil, nil)
 	st, _, err := Run(b, st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
@@ -186,7 +186,7 @@ func TestRunReload(t *testing.T) {
 	}
 	dynVal = "baz"
 	b = []byte{}
-	b = NewTestOp(b, RELOAD, []string{"dyn"}, nil, nil)
+	b = NewLine(b, RELOAD, []string{"dyn"}, nil, nil)
 	st, _, err = Run(b, st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
@@ -202,19 +202,50 @@ func TestRunReload(t *testing.T) {
 
 }
 
-func NewTestOp(instructionList []byte, instruction uint16, args []string, post []byte, szPost []uint8) []byte {
-	b := []byte{0x00, 0x00}
-	binary.BigEndian.PutUint16(b, instruction)
-	for _, arg := range args {
-		b = append(b, uint8(len(arg)))
-		b = append(b, []byte(arg)...)
+func TestRunArg(t *testing.T) {
+	st := state.NewState(5)
+	rt := router.NewRouter()
+	rt.Add("foo", "bar")
+	rt.Add("baz", "xyzzy")
+	b := []byte{0x03}
+	b = append(b, []byte("baz")...)
+	b = append(b, rt.ToBytes()...)
+	var err error
+	st, b, err = Apply(b, []byte{}, st, nil, context.TODO())
+	if err != nil {
+		t.Error(err)	
 	}
-	if post != nil {
-		b = append(b, uint8(len(post)))
-		b = append(b, post...)
+	l := len(b)
+	if l != 0 {
+		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
-	if szPost != nil {
-		b = append(b, szPost...)
+	r := st.Where()
+	if r != "xyzzy" {
+		t.Errorf("expected where-state baz, got %v", r)
 	}
-	return append(instructionList, b...)
 }
+
+func TestRunArgInvalid(t *testing.T) {
+	st := state.NewState(5)
+	rt := router.NewRouter()
+	rt.Add("foo", "bar")
+	rt.Add("baz", "xyzzy")
+	b := []byte{0x03}
+	b = append(b, []byte("bar")...)
+	b = append(b, rt.ToBytes()...)
+	var err error
+	st, b, err = Apply(b, []byte{}, st, nil, context.TODO())
+	if err != nil {
+		t.Error(err)	
+	}
+	l := len(b)
+	if l != 0 {
+		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+	}
+	r := st.Where()
+	if r != "_catch" {
+		t.Errorf("expected where-state _catch, got %v", r)
+	}
+
+}
+

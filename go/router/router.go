@@ -7,20 +7,17 @@ import (
 type Router struct {
 	selectors []string
 	symbols map[string]string
-	navigable bool
 }
 
 func NewRouter() Router {
 	return Router{
 		symbols: make(map[string]string),
-		navigable: true,
 	}
 }
 
 func NewStaticRouter(symbol string) Router {
 	return Router{
 		symbols: map[string]string{"_": symbol},
-		navigable: false,
 	}
 }
 
@@ -31,6 +28,9 @@ func(r *Router) Add(selector string, symbol string) error {
 	l := len(selector)
 	if (l > 255) {
 		return fmt.Errorf("selector too long (is %v, max 255)", l)
+	}
+	if selector[0] == '_' {
+		return fmt.Errorf("Invalid selector prefix '_'")
 	}
 	l = len(symbol)
 	if (l > 255) {

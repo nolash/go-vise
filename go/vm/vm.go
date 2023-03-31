@@ -13,18 +13,38 @@ import (
 
 type Runner func(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error)
 
+func argFromBytes(input []byte) (string, []byte, error) {
+	if len(input) == 0 {
+		return "", input, fmt.Errorf("zero length input")
+	}
+	sz := input[0]
+	out := input[1:1+sz]
+	return string(out), input[1+sz:], nil
+}
+
 func Apply(input []byte, instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
 	var err error
+
+	arg, input, err := argFromBytes(input)
+	if err != nil {
+		return st, input, err
+	}
+
+	rt := router.FromBytes(input)
+	sym := rt.Get(arg)
+	if sym == "" {
+		sym = rt.Default()
+		st.PutArg(arg)
+	} 
+	if sym == "" {
+		instruction = NewLine([]byte{}, MOVE, []string{"_catch"}, nil , nil)
+	} else {
+		instruction = NewLine(instruction, MOVE, []string{sym}, nil, nil)
+	}
+
 	st, instruction, err = Run(instruction, st, rs, ctx)
 	if err != nil {
 		return st, instruction, err
-	}
-	rt := router.FromBytes(instruction)
-	
-	sym := rt.Get(string(input))
-	if sym == "" {
-		sym = rt.Default()
-		st.PutArg(string(input))
 	}
 	return st, instruction, nil
 }
@@ -55,6 +75,9 @@ func Run(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Co
 			break
 		case SINK:
 			st, instruction, err = RunSink(instruction[2:], st, rs, ctx)
+			break
+		case MOVE:
+			st, instruction, err = RunMove(instruction[2:], st, rs, ctx)
 			break
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
@@ -88,8 +111,9 @@ func RunCatch(instruction []byte, st state.State, rs resource.Fetcher, ctx conte
 	if err != nil {
 		return st, instruction, err
 	}
+	_ = tail
 	st.Add(head, r, uint32(len(r)))
-	return st, tail, nil
+	return st, []byte{}, nil
 }
 
 func RunCroak(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
@@ -98,8 +122,9 @@ func RunCroak(instruction []byte, st state.State, rs resource.Fetcher, ctx conte
 		return st, instruction, err
 	}
 	_ = head
+	_ = tail
 	st.Reset()
-	return st, tail, nil
+	return st, []byte{}, nil
 }
 
 func RunLoad(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
@@ -135,7 +160,12 @@ func RunReload(instruction []byte, st state.State, rs resource.Fetcher, ctx cont
 }
 
 func RunMove(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
-	return st, nil, nil
+	head, tail, err := instructionSplit(instruction)
+	if err != nil {
+		return st, instruction, err
+	}
+	st.Down(head)
+	return st, tail, nil
 }
 
 func refresh(key string, sym []byte, rs resource.Fetcher, ctx context.Context) (string, error) {

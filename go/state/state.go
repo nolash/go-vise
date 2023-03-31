@@ -34,6 +34,14 @@ func NewState(bitSize uint64) State {
 	return st
 }
 
+func(st State) Where() string {
+	if len(st.ExecPath) == 0 {
+		return ""
+	}
+	l := len(st.ExecPath)
+	return st.ExecPath[l-1]
+}
+
 func(st State) WithCacheSize(cacheSize uint32) State {
 	st.CacheSize = cacheSize
 	return st
