@@ -38,6 +38,8 @@ func Apply(input []byte, instruction []byte, st state.State, rs resource.Fetcher
 	} 
 	if sym == "" {
 		instruction = NewLine([]byte{}, MOVE, []string{"_catch"}, nil, nil)
+	} else if sym == "_" {
+		instruction = NewLine([]byte{}, BACK, nil, nil, nil)
 	} else {
 		new_instruction := NewLine([]byte{}, MOVE, []string{sym}, nil, nil)
 		instruction = append(new_instruction, instruction...)
@@ -79,6 +81,9 @@ func Run(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Co
 			break
 		case MOVE:
 			st, instruction, err = RunMove(instruction[2:], st, rs, ctx)
+			break
+		case BACK:
+			st, instruction, err = RunBack(instruction[2:], st, rs, ctx)
 			break
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
@@ -167,6 +172,11 @@ func RunMove(instruction []byte, st state.State, rs resource.Fetcher, ctx contex
 	}
 	st.Down(head)
 	return st, tail, nil
+}
+
+func RunBack(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+	st.Up()
+	return st, instruction, nil
 }
 
 func refresh(key string, sym []byte, rs resource.Fetcher, ctx context.Context) (string, error) {
