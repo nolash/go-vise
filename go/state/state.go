@@ -13,7 +13,8 @@ type State struct {
 	CacheMap map[string]string
 	ExecPath []string
 	Arg *string
-	Idx uint16
+	sizes map[string]uint16
+	idx uint16
 }
 
 func NewState(bitSize uint64) State {
@@ -63,6 +64,7 @@ func(st *State) Down(input string) {
 	m := make(map[string]string)
 	st.Cache = append(st.Cache, m)
 	st.CacheMap = make(map[string]string)
+	st.sizes = make(map[string]uint16)
 	st.ExecPath = append(st.ExecPath, input)
 }
 
@@ -84,10 +86,18 @@ func(st *State) Add(key string, value string, sizeHint uint16) error {
 	log.Printf("add key %s value size %v", key, sz)
 	st.Cache[len(st.Cache)-1][key] = value
 	st.CacheUseSize += sz
+	st.sizes[key] = sizeHint
 	return nil
 }
 
 func(st *State) Update(key string, value string) error {
+	sizeHint := st.sizes[key]
+	if st.sizes[key] > 0 {
+		l := uint16(len(value))
+		if l > sizeHint {
+			return fmt.Errorf("update value length %v exceeds value size limit %v", l, sizeHint)
+		}
+	}
 	checkFrame := st.frameOf(key)
 	if checkFrame == -1 {
 		return fmt.Errorf("key %v not defined", key)
@@ -165,6 +175,16 @@ func(st *State) Reset() {
 
 func(st *State) Check(key string) bool {
 	return st.frameOf(key) == -1
+}
+
+func(st *State) Size() (uint32, uint32) {
+	var l int
+	var c uint16
+	for k, v := range st.CacheMap {
+		l += len(v)
+		c += st.sizes[k]
+	}
+	return uint32(l), uint32(c)
 }
 
 // return 0-indexed frame number where key is defined. -1 if not defined

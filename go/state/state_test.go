@@ -113,3 +113,36 @@ func TestStateLoadDup(t *testing.T) {
 		t.Errorf("expected fail on duplicate load")
 	}
 }
+
+func TestStateCurrentSize(t *testing.T) {
+	st := NewState(17)
+	st.Down("one")
+	err := st.Add("foo", "bar", 0)
+	if err != nil {
+		t.Error(err)
+	}
+	st.Down("two")
+	err = st.Add("bar", "xyzzy", 10)
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Map("bar")
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Add("baz", "inkypinkyblinkyclyde", 40)
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Map("baz")
+	if err != nil {
+		t.Error(err)
+	}
+	l, c := st.Size()
+	if l != 25 {
+		t.Errorf("expected actual length 25, got %v", l)
+	}
+	if c != 50 {
+		t.Errorf("expected actual length 50, got %v", c)
+	}
+}
