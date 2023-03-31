@@ -68,7 +68,7 @@ include command to refresh (for example reload list render)
 parameter symbol may only appear once for all branches (when jumping, a parameter require must originate in same place in tree)
 
 load symbol -> load symbol from this point on up to size.
-reload symbol -> flush symbol before rendering, will fail of not previously required
+reload symbol -> flush symbol before rendering, will fail of not previously required. Will use size from preceding LOAD instruction. 
 
 LOAD <symbol> <size>
 RELOAD <symbol>
@@ -128,7 +128,7 @@ For symbols having data larger than maxsize, data should be lazily split up to e
 
 Total capacity for mapping is cumulative maxsize. Next param in execution has available up to net capacity after consume.
 
-May define ONE sink, which consumes all remaining data.
+May define ONE sink, which consumes all remaining data. A sink is a LOAd with size 0
 
 Compiler must croak if:
 
@@ -137,9 +137,7 @@ Compiler must croak if:
 
 should generate warnings if sink cannot render a single enrry (of list)
 
-MAP <symbol> <maxsize> <minsize>
-SINK <symbol> <maxsize>
-
+MAP <symbol>
 
 ---
 

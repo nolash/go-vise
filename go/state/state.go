@@ -64,10 +64,28 @@ func(st *State) PopArg() (string, error) {
 func(st *State) Down(input string) {
 	m := make(map[string]string)
 	st.Cache = append(st.Cache, m)
-	st.CacheMap = make(map[string]string)
 	st.sizes = make(map[string]uint16)
 	st.ExecPath = append(st.ExecPath, input)
-	st.sink = nil
+	st.resetCurrent()
+}
+
+
+func(st *State) Up() error {
+	l := len(st.Cache)
+	if l == 0 {
+		return fmt.Errorf("exit called beyond top frame")
+	}
+	l -= 1
+	m := st.Cache[l]
+	for k, v := range m {
+		sz := len(v)
+		st.CacheUseSize -= uint32(sz)
+		log.Printf("free frame %v key %v value size %v", l, k, sz)
+	}
+	st.Cache = st.Cache[:l]
+	st.ExecPath = st.ExecPath[:l]
+	st.resetCurrent()
+	return nil
 }
 
 func(st *State) Add(key string, value string, sizeHint uint16) error {
@@ -156,23 +174,6 @@ func(st *State) Val(key string) (string, error) {
 	return r, nil
 }
 
-func(st *State) Up() error {
-	l := len(st.Cache)
-	if l == 0 {
-		return fmt.Errorf("exit called beyond top frame")
-	}
-	l -= 1
-	m := st.Cache[l]
-	for k, v := range m {
-		sz := len(v)
-		st.CacheUseSize -= uint32(sz)
-		log.Printf("free frame %v key %v value size %v", l, k, sz)
-	}
-	st.Cache = st.Cache[:l]
-	st.ExecPath = st.ExecPath[:l]
-	st.sink = nil
-	return nil
-}
 
 func(st *State) Reset() {
 	if len(st.Cache) == 0 {
@@ -223,4 +224,9 @@ func(st *State) checkCapacity(v string) uint32 {
 		return 0	
 	}
 	return sz
+}
+
+func(st *State) resetCurrent() {
+	st.sink = nil
+	st.CacheMap = make(map[string]string)
 }
