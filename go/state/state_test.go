@@ -31,3 +31,9 @@ func TestNewStateCache(t *testing.T) {
 	}
 
 }
+
+func TestStateCacheUse(t *testing.T) {
+	st := NewState(17, 0)
+	st.Enter("foo")
+	st.Add("bar", "baz")
+}

@@ -1,7 +1,6 @@
 package state
 
 import (
-	"io"
 )
 
 type State struct {
@@ -9,7 +8,8 @@ type State struct {
 	OutputSize uint16
 	CacheSize uint32
 	CacheUseSize uint32
-	Cache io.ReadWriteSeeker
+	Cache []map[string]string
+	ExecPath []string
 }
 
 func NewState(bitSize uint64, outputSize uint16) State {
@@ -26,11 +26,24 @@ func NewState(bitSize uint64, outputSize uint16) State {
 		OutputSize: outputSize,
 		CacheSize: 0,
 		CacheUseSize: 0,
-		Cache: nil,
 	}
 }
 
 func(st State) WithCacheSize(cacheSize uint32) State {
 	st.CacheSize = cacheSize
 	return st
+}
+
+func(st *State) Enter(input string) {
+	m := make(map[string]string)
+	st.Cache = append(st.Cache, m)
+}
+
+func(st *State) Add(k string, v string) error {
+	st.Cache[len(st.Cache)-1][k] = v
+	return nil
+}
+
+func(st *State) Get() (map[string]string, error) {
+	return st.Cache[len(st.Cache)-1], nil
 }

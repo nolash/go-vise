@@ -7,5 +7,7 @@ const (
 	CROAK
 	LOAD
 	RELOAD
+	MAP
+	SINK
 	_MAX
 )
