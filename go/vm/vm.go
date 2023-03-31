@@ -118,7 +118,7 @@ func RunCatch(instruction []byte, st state.State, rs resource.Fetcher, ctx conte
 		return st, instruction, err
 	}
 	_ = tail
-	st.Add(head, r, uint32(len(r)))
+	st.Add(head, r, 0)
 	return st, []byte{}, nil
 }
 
@@ -141,15 +141,15 @@ func RunLoad(instruction []byte, st state.State, rs resource.Fetcher, ctx contex
 	if !st.Check(head) {
 		return st, instruction, fmt.Errorf("key %v already loaded", head)
 	}
-	sz := uint32(tail[0])
+	sz := uint16(tail[0])
 	tail = tail[1:]
 
 	r, err := refresh(head, tail, rs, ctx)
 	if err != nil {
 		return st, tail, err
 	}
-	st.Add(head, r, sz)
-	return st, tail, nil
+	err = st.Add(head, r, sz)
+	return st, tail, err
 }
 
 func RunReload(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {

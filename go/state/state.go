@@ -66,7 +66,13 @@ func(st *State) Down(input string) {
 	st.ExecPath = append(st.ExecPath, input)
 }
 
-func(st *State) Add(key string, value string, sizeHint uint32) error {
+func(st *State) Add(key string, value string, sizeHint uint16) error {
+	if sizeHint > 0 {
+		l := uint16(len(value))
+		if l > sizeHint {
+			return fmt.Errorf("value length %v exceeds value size limit %v", l, sizeHint)
+		}
+	}
 	checkFrame := st.frameOf(key)
 	if checkFrame > -1 {
 		return fmt.Errorf("key %v already defined in frame %v", key, checkFrame)
@@ -78,7 +84,6 @@ func(st *State) Add(key string, value string, sizeHint uint32) error {
 	log.Printf("add key %s value size %v", key, sz)
 	st.Cache[len(st.Cache)-1][key] = value
 	st.CacheUseSize += sz
-	_ = sizeHint
 	return nil
 }
 
