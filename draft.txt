@@ -105,10 +105,13 @@ PREV <selector> <display>
 GOTO <selector> <display> <symbol>
 EXIT <selector> <display>
 COND <selector> <display> <symbol> <[!]state>
+VAL <symbol>
 
 kept in session as a router object:
 
 SELECTORHASH|SYMBOLHASH
+
+Selectorhash 0x0 is VAL
 
 
 ---

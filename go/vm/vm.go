@@ -12,6 +12,15 @@ import (
 
 type Runner func(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error)
 
+func Apply(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+	var err error
+	st, instruction, err = Run(instruction, st, rs, ctx)
+	if err != nil {
+		return st, instruction, err
+	}
+	return st, instruction, nil
+}
+
 func Run(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
 	var err error
 	for len(instruction) > 0 {
