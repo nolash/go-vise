@@ -130,7 +130,7 @@ func TestStateCurrentSize(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = st.Add("baz", "inkypinkyblinkyclyde", 40)
+	err = st.Add("baz", "inkypinkyblinkyclyde", 51)
 	if err != nil {
 		t.Error(err)
 	}
@@ -142,7 +142,51 @@ func TestStateCurrentSize(t *testing.T) {
 	if l != 25 {
 		t.Errorf("expected actual length 25, got %v", l)
 	}
-	if c != 50 {
+	if c != 36 {
 		t.Errorf("expected actual length 50, got %v", c)
+	}
+}
+
+func TestStateMapSink(t *testing.T) {
+	st := NewState(17)
+	st.Down("one")
+	err := st.Add("foo", "bar", 0)
+	if err != nil {
+		t.Error(err)
+	}
+	st.Down("two")
+	err = st.Add("bar", "xyzzy", 6)
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Add("baz", "bazbaz", 18)
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Add("xyzzy", "plugh", 0)
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Map("foo")
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Map("xyzzy")
+	if err == nil {
+		t.Errorf("Expected fail on duplicate sink")
+	}
+	err = st.Map("baz")
+	if err != nil {
+		t.Error(err)
+	}
+	st.Down("three")
+	err = st.Map("foo")
+	if err != nil {
+		t.Error(err)
+	}
+	st.Up()
+	err = st.Map("foo")
+	if err != nil {
+		t.Error(err)
 	}
 }

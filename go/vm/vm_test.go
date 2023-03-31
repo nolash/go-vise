@@ -259,7 +259,7 @@ func TestRunArgInstructions(t *testing.T) {
 	b = append(b, rt.ToBytes()...)
 
 	bi := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
-	bi = NewLine(bi, LOAD, []string{"two"}, nil, []uint8{0})
+	bi = NewLine(bi, LOAD, []string{"two"}, nil, []uint8{3})
 	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
 	bi = NewLine(bi, MAP, []string{"two"}, nil, nil)
 	var err error

@@ -11,7 +11,7 @@ import (
 	"git.defalsify.org/festive/state"
 )
 
-type Runner func(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error)
+//type Runner func(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error)
 
 func argFromBytes(input []byte) (string, []byte, error) {
 	if len(input) == 0 {
@@ -76,9 +76,6 @@ func Run(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Co
 		case MAP:
 			st, instruction, err = RunMap(instruction[2:], st, rs, ctx)
 			break
-		case SINK:
-			st, instruction, err = RunSink(instruction[2:], st, rs, ctx)
-			break
 		case MOVE:
 			st, instruction, err = RunMove(instruction[2:], st, rs, ctx)
 			break
@@ -100,12 +97,8 @@ func RunMap(instruction []byte, st state.State, rs resource.Fetcher, ctx context
 	if err != nil {
 		return st, instruction, err
 	}
-	st.Map(head)
-	return st, tail, nil
-}
-
-func RunSink(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
-	return st, nil, nil
+	err = st.Map(head)
+	return st, tail, err
 }
 
 func RunCatch(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {

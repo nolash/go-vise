@@ -138,7 +138,7 @@ Compiler must croak if:
 should generate warnings if sink cannot render a single enrry (of list)
 
 MAP <symbol> <maxsize> <minsize>
-SINK <symbol>
+SINK <symbol> <maxsize>
 
 
 ---

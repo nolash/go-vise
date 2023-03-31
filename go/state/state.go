@@ -14,7 +14,8 @@ type State struct {
 	ExecPath []string
 	Arg *string
 	sizes map[string]uint16
-	idx uint16
+	sink *string
+	//sizeIdx uint16
 }
 
 func NewState(bitSize uint64) State {
@@ -66,6 +67,7 @@ func(st *State) Down(input string) {
 	st.CacheMap = make(map[string]string)
 	st.sizes = make(map[string]uint16)
 	st.ExecPath = append(st.ExecPath, input)
+	st.sink = nil
 }
 
 func(st *State) Add(key string, value string, sizeHint uint16) error {
@@ -119,12 +121,19 @@ func(st *State) Update(key string, value string) error {
 	return nil
 }
 
-func(st *State) Map(k string) error {
+func(st *State) Map(key string) error {
 	m, err := st.Get()
 	if err != nil {
 		return err
 	}
-	st.CacheMap[k] = m[k]
+	l := st.sizes[key]
+	if l == 0 {
+		if st.sink != nil {
+			return fmt.Errorf("sink already set to symbol '%v'", *st.sink)
+		}
+		st.sink = &key
+	}
+	st.CacheMap[key] = m[key]
 	return nil
 }
 
@@ -161,6 +170,7 @@ func(st *State) Up() error {
 	}
 	st.Cache = st.Cache[:l]
 	st.ExecPath = st.ExecPath[:l]
+	st.sink = nil
 	return nil
 }
 
@@ -177,6 +187,7 @@ func(st *State) Check(key string) bool {
 	return st.frameOf(key) == -1
 }
 
+// Returns size used by values, and remaining size available
 func(st *State) Size() (uint32, uint32) {
 	var l int
 	var c uint16
@@ -184,7 +195,8 @@ func(st *State) Size() (uint32, uint32) {
 		l += len(v)
 		c += st.sizes[k]
 	}
-	return uint32(l), uint32(c)
+	r := uint32(l)
+	return r, uint32(c)-r
 }
 
 // return 0-indexed frame number where key is defined. -1 if not defined
