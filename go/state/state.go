@@ -5,19 +5,33 @@ import (
 	"log"
 )
 
+// State holds the command stack, error condition of a unique execution session.
+//
+// It also holds cached values for all results of executed symbols.
+//
+// Cached values are linked to the command stack level it which they were loaded. When they go out of scope they are freed.
+//
+// Values must be mapped to a level in order to be available for retrieval and count towards size
+//
+// It can hold a single argument, which is freed once it is read
+//
+// Symbols are loaded with individual size limitations. The limitations apply if a load symbol is updated. Symbols may be added with a 0-value for limits, called a "sink." If mapped, the sink will consume all net remaining size allowance unused by other symbols. Only one sink may be mapped per level.
+//
+// Symbol keys do not count towards cache size limitations.
 type State struct {
-	Flags []byte
-	CacheSize uint32
-	CacheUseSize uint32
-	Cache []map[string]string
-	CacheMap map[string]string
-	ExecPath []string
-	Arg *string
-	sizes map[string]uint16
-	sink *string
+	Flags []byte // Error state
+	CacheSize uint32 // Total allowed cumulative size of values in cache
+	CacheUseSize uint32 // Currently used bytes by all values in cache
+	Cache []map[string]string // All loaded cache items
+	CacheMap map[string]string // Mapped
+	execPath []string // Command symbols stack
+	arg *string // Optional argument. Nil if not set.
+	sizes map[string]uint16 // Size limits for all loaded symbols.
+	sink *string //
 	//sizeIdx uint16
 }
 
+// NewState creates a new State object with bitSize number of error condition states.
 func NewState(bitSize uint64) State {
 	if bitSize == 0 {
 		panic("bitsize cannot be 0")
@@ -36,40 +50,61 @@ func NewState(bitSize uint64) State {
 	return st
 }
 
-func(st State) Where() string {
-	if len(st.ExecPath) == 0 {
-		return ""
-	}
-	l := len(st.ExecPath)
-	return st.ExecPath[l-1]
-}
-
+// WithCacheSize applies a cumulative cache size limitation for all cached items.
 func(st State) WithCacheSize(cacheSize uint32) State {
 	st.CacheSize = cacheSize
 	return st
 }
 
+// Where returns the current active rendering symbol.
+func(st State) Where() string {
+	if len(st.execPath) == 0 {
+		return ""
+	}
+	l := len(st.execPath)
+	return st.execPath[l-1]
+}
+
+// PutArg adds the optional argument.
+//
+// Fails if arg already set.
 func(st *State) PutArg(input string) error {
-	st.Arg = &input
+	st.arg = &input
+	if st.arg != nil {
+		return fmt.Errorf("arg already set to %s", *st.arg)
+	}
 	return nil
 }
 
+// PopArg retrieves the optional argument. Will be freed upon retrieval.
+//
+// Fails if arg not set (or already freed).
 func(st *State) PopArg() (string, error) {
-	if st.Arg == nil {
+	if st.arg == nil {
 		return "", fmt.Errorf("arg is not set")
 	}
-	return *st.Arg, nil
+	return *st.arg, nil
 }
 
+// Down adds the given symbol to the command stack.
+//
+// Clears mapping and sink.
 func(st *State) Down(input string) {
 	m := make(map[string]string)
 	st.Cache = append(st.Cache, m)
 	st.sizes = make(map[string]uint16)
-	st.ExecPath = append(st.ExecPath, input)
+	st.execPath = append(st.execPath, input)
 	st.resetCurrent()
 }
 
 
+// Up removes the latest symbol to the command stack, and make the previous symbol current.
+//
+// Frees all symbols and associated values loaded at the previous stack level. Cache capacity is increased by the corresponding amount.
+//
+// Clears mapping and sink.
+//
+// Fails if called at top frame.
 func(st *State) Up() error {
 	l := len(st.Cache)
 	if l == 0 {
@@ -83,16 +118,24 @@ func(st *State) Up() error {
 		log.Printf("free frame %v key %v value size %v", l, k, sz)
 	}
 	st.Cache = st.Cache[:l]
-	st.ExecPath = st.ExecPath[:l]
+	st.execPath = st.execPath[:l]
 	st.resetCurrent()
 	return nil
 }
 
-func(st *State) Add(key string, value string, sizeHint uint16) error {
-	if sizeHint > 0 {
+// Add adds a cache value under a cache symbol key.
+//
+// Also stores the size limitation of for key for later updates.
+//
+// Fails if:
+// - key already defined
+// - value is longer than size limit
+// - adding value exceeds cumulative cache capacity
+func(st *State) Add(key string, value string, sizeLimit uint16) error {
+	if sizeLimit > 0 {
 		l := uint16(len(value))
-		if l > sizeHint {
-			return fmt.Errorf("value length %v exceeds value size limit %v", l, sizeHint)
+		if l > sizeLimit {
+			return fmt.Errorf("value length %v exceeds value size limit %v", l, sizeLimit)
 		}
 	}
 	checkFrame := st.frameOf(key)
@@ -106,16 +149,24 @@ func(st *State) Add(key string, value string, sizeHint uint16) error {
 	log.Printf("add key %s value size %v", key, sz)
 	st.Cache[len(st.Cache)-1][key] = value
 	st.CacheUseSize += sz
-	st.sizes[key] = sizeHint
+	st.sizes[key] = sizeLimit
 	return nil
 }
 
+// Update sets a new value for an existing key.
+//
+// Uses the size limitation from when the key was added.
+//
+// Fails if:
+// - key not defined
+// - value is longer than size limit
+// - replacing value exceeds cumulative cache capacity
 func(st *State) Update(key string, value string) error {
-	sizeHint := st.sizes[key]
+	sizeLimit := st.sizes[key]
 	if st.sizes[key] > 0 {
 		l := uint16(len(value))
-		if l > sizeHint {
-			return fmt.Errorf("update value length %v exceeds value size limit %v", l, sizeHint)
+		if l > sizeLimit {
+			return fmt.Errorf("update value length %v exceeds value size limit %v", l, sizeLimit)
 		}
 	}
 	checkFrame := st.frameOf(key)
@@ -139,6 +190,11 @@ func(st *State) Update(key string, value string) error {
 	return nil
 }
 
+// Map marks the given key for retrieval.
+//
+// After this, Val() will return the value for the key, and Size() will include the value size and limitations in its calculations.
+//
+// Only one symbol with no size limitation may be mapped at the current level.
 func(st *State) Map(key string) error {
 	m, err := st.Get()
 	if err != nil {
@@ -155,10 +211,12 @@ func(st *State) Map(key string) error {
 	return nil
 }
 
+// Depth returns the current call stack depth.
 func(st *State) Depth() uint8 {
 	return uint8(len(st.Cache))
 }
 
+// Get returns the full key-value mapping for all mapped keys at the current cache level.
 func(st *State) Get() (map[string]string, error) {
 	if len(st.Cache) == 0 {
 		return nil, fmt.Errorf("get at top frame")
@@ -166,6 +224,9 @@ func(st *State) Get() (map[string]string, error) {
 	return st.Cache[len(st.Cache)-1], nil
 }
 
+// Val returns value for key
+//
+// Fails if key is not mapped.
 func(st *State) Val(key string) (string, error) {
 	r := st.CacheMap[key]
 	if len(r) == 0 {
@@ -174,7 +235,7 @@ func(st *State) Val(key string) (string, error) {
 	return r, nil
 }
 
-
+// Reset flushes all state contents below the top level, and returns to the top level.
 func(st *State) Reset() {
 	if len(st.Cache) == 0 {
 		return
@@ -184,6 +245,7 @@ func(st *State) Reset() {
 	return
 }
 
+// Check returns true if a key already exists in the cache.
 func(st *State) Check(key string) bool {
 	return st.frameOf(key) == -1
 }

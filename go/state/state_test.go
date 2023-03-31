@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// Check creation and testing of state flags
 func TestNewStateFlags(t *testing.T) {
 	st := NewState(5)
 	if len(st.Flags) != 1 {
@@ -20,6 +21,7 @@ func TestNewStateFlags(t *testing.T) {
 	}
 }
 
+//
 func TestNewStateCache(t *testing.T) {
 	st := NewState(17)
 	if st.CacheSize != 0 {

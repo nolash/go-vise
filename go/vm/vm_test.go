@@ -19,15 +19,15 @@ type TestResource struct {
 	state *state.State
 }
 
-func getOne(input []byte, ctx context.Context) (string, error) {
+func getOne(ctx context.Context) (string, error) {
 	return "one", nil
 }
 
-func getTwo(input []byte, ctx context.Context) (string, error) {
+func getTwo(ctx context.Context) (string, error) {
 	return "two", nil
 }
 
-func getDyn(input []byte, ctx context.Context) (string, error) {
+func getDyn(ctx context.Context) (string, error) {
 	return dynVal, nil
 }
 
@@ -36,7 +36,7 @@ type TestStatefulResolver struct {
 }
 
 
-func (r *TestResource) getEachArg(input []byte, ctx context.Context) (string, error) {
+func (r *TestResource) getEachArg(ctx context.Context) (string, error) {
 	return r.state.PopArg()
 }
 

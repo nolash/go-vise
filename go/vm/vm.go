@@ -11,7 +11,7 @@ import (
 	"git.defalsify.org/festive/state"
 )
 
-//type Runner func(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error)
+//type Runner func(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error)
 
 func argFromBytes(input []byte) (string, []byte, error) {
 	if len(input) == 0 {
@@ -22,7 +22,14 @@ func argFromBytes(input []byte) (string, []byte, error) {
 	return string(out), input[1+sz:], nil
 }
 
-func Apply(input []byte, instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+// Apply applies input to router bytecode to resolve the node symbol to execute.
+//
+// The execution byte code is initialized with the appropriate MOVE
+//
+// If the router indicates an argument input, the optional argument is set on the state.
+//
+// TODO: the bytecode load is a separate step so Run should be run separately.
+func Apply(input []byte, instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error) {
 	var err error
 
 	arg, input, err := argFromBytes(input)
@@ -52,7 +59,12 @@ func Apply(input []byte, instruction []byte, st state.State, rs resource.Fetcher
 	return st, instruction, nil
 }
 
-func Run(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+// Run extracts individual op codes and arguments and executes them.
+//
+// Each step may update the state.
+//
+// On error, the remaining instructions will be returned. State will not be rolled back.
+func Run(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error) {
 	var err error
 	for len(instruction) > 0 {
 		log.Printf("instruction is now %v", instruction)
@@ -92,7 +104,8 @@ func Run(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Co
 	return st, instruction, nil
 }
 
-func RunMap(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+// RunMap executes the MAP opcode
+func RunMap(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error) {
 	head, tail, err := instructionSplit(instruction)
 	if err != nil {
 		return st, instruction, err
@@ -101,7 +114,8 @@ func RunMap(instruction []byte, st state.State, rs resource.Fetcher, ctx context
 	return st, tail, err
 }
 
-func RunCatch(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+// RunMap executes the CATCH opcode
+func RunCatch(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error) {
 	head, tail, err := instructionSplit(instruction)
 	if err != nil {
 		return st, instruction, err
@@ -115,7 +129,8 @@ func RunCatch(instruction []byte, st state.State, rs resource.Fetcher, ctx conte
 	return st, []byte{}, nil
 }
 
-func RunCroak(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+// RunMap executes the CROAK opcode
+func RunCroak(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error) {
 	head, tail, err := instructionSplit(instruction)
 	if err != nil {
 		return st, instruction, err
@@ -126,7 +141,8 @@ func RunCroak(instruction []byte, st state.State, rs resource.Fetcher, ctx conte
 	return st, []byte{}, nil
 }
 
-func RunLoad(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+// RunLoad executes the LOAD opcode
+func RunLoad(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error) {
 	head, tail, err := instructionSplit(instruction)
 	if err != nil {
 		return st, instruction, err
@@ -137,7 +153,7 @@ func RunLoad(instruction []byte, st state.State, rs resource.Fetcher, ctx contex
 	sz := uint16(tail[0])
 	tail = tail[1:]
 
-	r, err := refresh(head, tail, rs, ctx)
+	r, err := refresh(head, rs, ctx)
 	if err != nil {
 		return st, tail, err
 	}
@@ -145,12 +161,13 @@ func RunLoad(instruction []byte, st state.State, rs resource.Fetcher, ctx contex
 	return st, tail, err
 }
 
-func RunReload(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+// RunLoad executes the RELOAD opcode
+func RunReload(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error) {
 	head, tail, err := instructionSplit(instruction)
 	if err != nil {
 		return st, instruction, err
 	}
-	r, err := refresh(head, tail, rs, ctx)
+	r, err := refresh(head, rs, ctx)
 	if err != nil {
 		return st, tail, err
 	}
@@ -158,7 +175,8 @@ func RunReload(instruction []byte, st state.State, rs resource.Fetcher, ctx cont
 	return st, tail, nil
 }
 
-func RunMove(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+// RunLoad executes the MOVE opcode
+func RunMove(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error) {
 	head, tail, err := instructionSplit(instruction)
 	if err != nil {
 		return st, instruction, err
@@ -167,19 +185,22 @@ func RunMove(instruction []byte, st state.State, rs resource.Fetcher, ctx contex
 	return st, tail, nil
 }
 
-func RunBack(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+// RunLoad executes the BACK opcode
+func RunBack(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error) {
 	st.Up()
 	return st, instruction, nil
 }
 
-func refresh(key string, sym []byte, rs resource.Fetcher, ctx context.Context) (string, error) {
+// retrieve data for key
+func refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
 	fn, err := rs.FuncFor(key)
 	if err != nil {
 		return "", err
 	}
-	return fn(sym, ctx)
+	return fn(ctx)
 }
 
+// split instruction into symbol and arguments
 func instructionSplit(b []byte) (string, []byte, error) {
 	if len(b) == 0 {
 		return "", nil, fmt.Errorf("argument is empty")
