@@ -2,18 +2,18 @@ package state
 
 import (
 	"fmt"
+	"log"
 )
 
 type State struct {
 	Flags []byte
-	OutputSize uint16
 	CacheSize uint32
 	CacheUseSize uint32
 	Cache []map[string]string
 	ExecPath []string
 }
 
-func NewState(bitSize uint64, outputSize uint16) State {
+func NewState(bitSize uint64) State {
 	if bitSize == 0 {
 		panic("bitsize cannot be 0")
 	}
@@ -24,7 +24,6 @@ func NewState(bitSize uint64, outputSize uint16) State {
 
 	return State{
 		Flags: make([]byte, bitSize / 8),
-		OutputSize: outputSize,
 		CacheSize: 0,
 		CacheUseSize: 0,
 	}
@@ -45,7 +44,7 @@ func(st *State) Add(k string, v string) error {
 	if sz == 0 {
 		return fmt.Errorf("Cache capacity exceeded %v of %v", st.CacheUseSize + sz, st.CacheSize)
 	}
-	fmt.Printf("len %v %v\n", sz, st.CacheUseSize)
+	log.Printf("add key %s value size %v", k, sz)
 	st.Cache[len(st.Cache)-1][k] = v
 	st.CacheUseSize += sz
 	return nil
@@ -55,7 +54,20 @@ func(st *State) Get() (map[string]string, error) {
 	return st.Cache[len(st.Cache)-1], nil
 }
 
-func (st *State) Exit() {
+func (st *State) Exit() error {
+	l := len(st.Cache)
+	if l == 0 {
+		return fmt.Errorf("exit called beyond top frame")
+	}
+	l -= 1
+	m := st.Cache[l]
+	for k, v := range m {
+		sz := len(v)
+		st.CacheUseSize -= uint32(sz)
+		log.Printf("free frame %v key %v value size %v", l, k, sz)
+	}
+	st.Cache = st.Cache[:l]
+	return nil
 }
 
 func(st *State) checkCapacity(v string) uint32 {

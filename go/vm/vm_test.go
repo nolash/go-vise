@@ -61,7 +61,7 @@ func (r *TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 }
 
 func TestRun(t *testing.T) {
-	st := state.NewState(5, 255)
+	st := state.NewState(5)
 	rs := TestResource{}
 	b := []byte{0x00, 0x02}
 	r, err := Run(b, st, &rs, context.TODO())
@@ -78,7 +78,7 @@ func TestRun(t *testing.T) {
 }
 
 func TestRunMap(t *testing.T) {
-	st := state.NewState(5, 255)
+	st := state.NewState(5)
 	st.Enter("barbarbar")
 	rs := TestResource{}
 	sym := "one"

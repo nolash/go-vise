@@ -5,15 +5,15 @@ import (
 )
 
 func TestNewStateFlags(t *testing.T) {
-	st := NewState(5, 0)
+	st := NewState(5)
 	if len(st.Flags) != 1 {
 		t.Errorf("invalid state flag length: %v", len(st.Flags))
 	}
-	st = NewState(8, 0)
+	st = NewState(8)
 	if len(st.Flags) != 1 {
 		t.Errorf("invalid state flag length: %v", len(st.Flags))
 	}
-	st = NewState(17, 0)
+	st = NewState(17)
 	if len(st.Flags) != 3 {
 		t.Errorf("invalid state flag length: %v", len(st.Flags))
 	
@@ -21,7 +21,7 @@ func TestNewStateFlags(t *testing.T) {
 }
 
 func TestNewStateCache(t *testing.T) {
-	st := NewState(17, 0)
+	st := NewState(17)
 	if st.CacheSize != 0 {
 		t.Errorf("cache size not 0")
 	}
@@ -33,7 +33,7 @@ func TestNewStateCache(t *testing.T) {
 }
 
 func TestStateCacheUse(t *testing.T) {
-	st := NewState(17, 0)
+	st := NewState(17)
 	st = st.WithCacheSize(10)
 	st.Enter("foo")
 	err := st.Add("bar", "baz")
@@ -47,5 +47,29 @@ func TestStateCacheUse(t *testing.T) {
 	err = st.Add("blinky", "clyde")
 	if err == nil {
 		t.Errorf("expected capacity error")
+	}
+}
+
+func TestStateEnterExit(t *testing.T) {
+	st := NewState(17)
+	st.Enter("one")
+	err := st.Add("foo", "bar")
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Add("baz", "xyzzy")
+	if err != nil {
+		t.Error(err)
+	}
+	if st.CacheUseSize != 8 {
+		t.Errorf("expected cache use size 8 got %v", st.CacheUseSize)
+	}
+	err = st.Exit()
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Exit()
+	if err == nil {
+		t.Errorf("expected out of top frame error")
 	}
 }
