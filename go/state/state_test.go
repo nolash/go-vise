@@ -35,40 +35,40 @@ func TestNewStateCache(t *testing.T) {
 func TestStateCacheUse(t *testing.T) {
 	st := NewState(17)
 	st = st.WithCacheSize(10)
-	st.Enter("foo")
-	err := st.Add("bar", "baz")
+	st.Down("foo")
+	err := st.Add("bar", "baz", 0)
 	if err != nil {
 		t.Error(err)
 	}
-	err = st.Add("inky", "pinky")
+	err = st.Add("inky", "pinky", 0)
 	if err != nil {
 		t.Error(err)
 	}
-	err = st.Add("blinky", "clyde")
+	err = st.Add("blinky", "clyde", 0)
 	if err == nil {
 		t.Errorf("expected capacity error")
 	}
 }
 
-func TestStateEnterExit(t *testing.T) {
+func TestStateDownUp(t *testing.T) {
 	st := NewState(17)
-	st.Enter("one")
-	err := st.Add("foo", "bar")
+	st.Down("one")
+	err := st.Add("foo", "bar", 0)
 	if err != nil {
 		t.Error(err)
 	}
-	err = st.Add("baz", "xyzzy")
+	err = st.Add("baz", "xyzzy", 0)
 	if err != nil {
 		t.Error(err)
 	}
 	if st.CacheUseSize != 8 {
 		t.Errorf("expected cache use size 8 got %v", st.CacheUseSize)
 	}
-	err = st.Exit()
+	err = st.Up()
 	if err != nil {
 		t.Error(err)
 	}
-	err = st.Exit()
+	err = st.Up()
 	if err == nil {
 		t.Errorf("expected out of top frame error")
 	}
@@ -76,17 +76,17 @@ func TestStateEnterExit(t *testing.T) {
 
 func TestStateReset(t *testing.T) {
 	st := NewState(17)
-	st.Enter("one")
-	err := st.Add("foo", "bar")
+	st.Down("one")
+	err := st.Add("foo", "bar", 0)
 	if err != nil {
 		t.Error(err)
 	}
-	err = st.Add("baz", "xyzzy")
+	err = st.Add("baz", "xyzzy", 0)
 	if err != nil {
 		t.Error(err)
 	}
-	st.Enter("two")
-	st.Enter("three")
+	st.Down("two")
+	st.Down("three")
 	st.Reset()
 	if st.CacheUseSize != 0 {
 		t.Errorf("expected cache use size 0, got %v", st.CacheUseSize)
@@ -98,13 +98,13 @@ func TestStateReset(t *testing.T) {
 
 func TestStateLoadDup(t *testing.T) {
 	st := NewState(17)
-	st.Enter("one")
-	err := st.Add("foo", "bar")
+	st.Down("one")
+	err := st.Add("foo", "bar", 0)
 	if err != nil {
 		t.Error(err)
 	}
-	st.Enter("two")
-	err = st.Add("foo", "baz")
+	st.Down("two")
+	err = st.Add("foo", "baz", 0)
 	if err == nil {
 		t.Errorf("expected fail on duplicate load")
 	}

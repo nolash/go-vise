@@ -63,14 +63,15 @@ func (r *TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 func TestRun(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := []byte{0x00, 0x01}
-	r, err := Run(b, st, &rs, context.TODO())
+	b := []byte{0x00, 0x01, 0x03}
+	b = append(b, []byte("foo")...)
+	r, _, err := Run(b, st, &rs, context.TODO())
 	if err != nil {
 		t.Errorf("error on valid opcode: %v", err)	
 	}
 
 	b = []byte{0x01, 0x02}
-	r, err = Run(b, st, &rs, context.TODO())
+	r, _, err = Run(b, st, &rs, context.TODO())
 	if err == nil {
 		t.Errorf("no error on invalid opcode")	
 	}
@@ -79,12 +80,13 @@ func TestRun(t *testing.T) {
 
 func TestRunLoad(t *testing.T) {
 	st := state.NewState(5)
-	st.Enter("barbarbar")
+	st.Down("barbarbar")
 	rs := TestResource{}
 	sym := "one"
 	ins := append([]byte{uint8(len(sym))}, []byte(sym)...)
+	ins = append(ins, 0x0a)
 	var err error
-	st, err = RunLoad(ins, st, &rs, context.TODO())
+	st, _, err = RunLoad(ins, st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -108,7 +110,8 @@ func TestRunLoad(t *testing.T) {
 
 	sym = "two"
 	ins = append([]byte{uint8(len(sym))}, []byte(sym)...)
-	st, err = RunLoad(ins, st, &rs, context.TODO())
+	ins = append(ins, 0)
+	st, _, err = RunLoad(ins, st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}

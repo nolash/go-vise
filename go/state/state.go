@@ -12,6 +12,7 @@ type State struct {
 	Cache []map[string]string
 	CacheMap map[string]string
 	ExecPath []string
+	Idx uint16
 }
 
 func NewState(bitSize uint64) State {
@@ -35,13 +36,13 @@ func(st State) WithCacheSize(cacheSize uint32) State {
 	return st
 }
 
-func(st *State) Enter(input string) {
+func(st *State) Down(input string) {
 	m := make(map[string]string)
 	st.Cache = append(st.Cache, m)
 	st.CacheMap = make(map[string]string)
 }
 
-func(st *State) Add(key string, value string) error {
+func(st *State) Add(key string, value string, sizeHint uint32) error {
 	checkFrame := st.frameOf(key)
 	if checkFrame > -1 {
 		return fmt.Errorf("key %v already defined in frame %v", key, checkFrame)
@@ -53,6 +54,26 @@ func(st *State) Add(key string, value string) error {
 	log.Printf("add key %s value size %v", key, sz)
 	st.Cache[len(st.Cache)-1][key] = value
 	st.CacheUseSize += sz
+	_ = sizeHint
+	return nil
+}
+
+func(st *State) Update(key string, value string) error {
+	checkFrame := st.frameOf(key)
+	if checkFrame == -1 {
+		return fmt.Errorf("key %v not defined", key)
+	}
+	r := st.Cache[checkFrame][key]
+	l := uint32(len(r))
+	st.Cache[checkFrame][key] = ""
+	st.CacheUseSize -= l
+	sz := st.checkCapacity(value)
+	if sz == 0 {
+		baseUseSize := st.CacheUseSize
+		st.Cache[checkFrame][key] = r
+		st.CacheUseSize += l
+		return fmt.Errorf("Cache capacity exceeded %v of %v", baseUseSize + sz, st.CacheSize)
+	}
 	return nil
 }
 
@@ -76,7 +97,7 @@ func(st *State) Get() (map[string]string, error) {
 	return st.Cache[len(st.Cache)-1], nil
 }
 
-func(st *State) Exit() error {
+func(st *State) Up() error {
 	l := len(st.Cache)
 	if l == 0 {
 		return fmt.Errorf("exit called beyond top frame")
@@ -92,16 +113,20 @@ func(st *State) Exit() error {
 	return nil
 }
 
-func(st *State) Reset() error {
+func(st *State) Reset() {
+	if len(st.Cache) == 0 {
+		return
+	}
 	st.Cache = st.Cache[:1]
 	st.CacheUseSize = 0
-	return nil
+	return
 }
 
 func(st *State) Check(key string) bool {
 	return st.frameOf(key) == -1
 }
 
+// return 0-indexed frame number where key is defined. -1 if not defined
 func(st *State) frameOf(key string) int {
 	log.Printf("--- %s", key)
 	for i, m := range st.Cache {
@@ -114,6 +139,8 @@ func(st *State) frameOf(key string) int {
 	return -1
 }
 
+// bytes that will be added to cache use size for string
+// returns 0 if capacity would be exceeded
 func(st *State) checkCapacity(v string) uint32 {
 	sz := uint32(len(v))
 	if st.CacheSize == 0 {
