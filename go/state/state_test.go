@@ -1,6 +1,7 @@
 package state
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -84,6 +85,17 @@ func TestStateFlags(t *testing.T) {
 	}
 	if v {
 		t.Errorf("Expected change not to be set for bit 10")
+	}
+	v, err = st.SetFlag(2)
+	if err != nil {
+		t.Error(err)
+	}
+	v, err = st.SetFlag(19)
+	if err != nil {
+		t.Error(err)
+	}
+	if !bytes.Equal(st.Flags[:3], []byte{0x04, 0x04, 0x08}) {
+		t.Errorf("Expected 0x020203, got %v", st.Flags[:3])
 	}
 }
 

@@ -52,7 +52,7 @@ func NewState(bitSize uint32) State {
 	return st
 }
 
-// SetFlag sets the flag at the given bit field index.
+// SetFlag sets the flag at the given bit field index
 //
 // Returns true if bit state was changed.
 //
