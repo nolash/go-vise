@@ -10,6 +10,7 @@ type State struct {
 	CacheSize uint32
 	CacheUseSize uint32
 	Cache []map[string]string
+	CacheMap map[string]string
 	ExecPath []string
 }
 
@@ -37,6 +38,7 @@ func(st State) WithCacheSize(cacheSize uint32) State {
 func(st *State) Enter(input string) {
 	m := make(map[string]string)
 	st.Cache = append(st.Cache, m)
+	st.CacheMap = make(map[string]string)
 }
 
 func(st *State) Add(k string, v string) error {
@@ -47,6 +49,15 @@ func(st *State) Add(k string, v string) error {
 	log.Printf("add key %s value size %v", k, sz)
 	st.Cache[len(st.Cache)-1][k] = v
 	st.CacheUseSize += sz
+	return nil
+}
+
+func(st *State) Map(k string) error {
+	m, err := st.Get()
+	if err != nil {
+		return err
+	}
+	st.CacheMap[k] = m[k]
 	return nil
 }
 

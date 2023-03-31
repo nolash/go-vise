@@ -37,13 +37,13 @@ func (r *TestResource) Render(sym string, values map[string]string) (string, err
 	if err != nil {
 		return "", err
 	}
-	t, err := template.New("tester").Option("missingkey=error").Parse(v)
+	tp, err := template.New("tester").Option("missingkey=error").Parse(v)
 	if err != nil {
 		return "", err
 	}
 
 	b := bytes.NewBuffer([]byte{})
-	err = t.Execute(b, values)
+	err = tp.Execute(b, values)
 	if err != nil {
 		return "", err
 	}
@@ -63,7 +63,7 @@ func (r *TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 func TestRun(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := []byte{0x00, 0x02}
+	b := []byte{0x00, 0x01}
 	r, err := Run(b, st, &rs, context.TODO())
 	if err != nil {
 		t.Errorf("error on valid opcode: %v", err)	
@@ -77,14 +77,14 @@ func TestRun(t *testing.T) {
 	_ = r
 }
 
-func TestRunMap(t *testing.T) {
+func TestRunLoad(t *testing.T) {
 	st := state.NewState(5)
 	st.Enter("barbarbar")
 	rs := TestResource{}
 	sym := "one"
 	ins := append([]byte{uint8(len(sym))}, []byte(sym)...)
 	var err error
-	st, err = RunMap(ins, st, &rs, context.TODO())
+	st, err = RunLoad(ins, st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -108,7 +108,7 @@ func TestRunMap(t *testing.T) {
 
 	sym = "two"
 	ins = append([]byte{uint8(len(sym))}, []byte(sym)...)
-	st, err = RunMap(ins, st, &rs, context.TODO())
+	st, err = RunLoad(ins, st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}

@@ -48,15 +48,11 @@ func instructionSplit(b []byte) (string, []byte, error) {
 
 func RunMap(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, error) {
 	head, tail, err := instructionSplit(instruction)
-	fn, err := rs.FuncFor(head)
 	if err != nil {
 		return st, err
 	}
-	r, err := fn(tail, ctx)
-	if err != nil {
-		return st, err
-	}
-	st.Add(head, r)
+	_ = tail
+	st.Map(head)
 	return st, nil
 }
 
@@ -73,11 +69,22 @@ func RunCroak(instruction []byte, st state.State, rs resource.Fetcher, ctx conte
 }
 
 func RunLoad(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, error) {
+	head, tail, err := instructionSplit(instruction)
+	if err != nil {
+		return st, err
+	}
+	fn, err := rs.FuncFor(head)
+	if err != nil {
+		return st, err
+	}
+	r, err := fn(tail, ctx)
+	if err != nil {
+		return st, err
+	}
+	st.Add(head, r)
 	return st, nil
 }
 
 func RunReload(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, error) {
 	return st, nil
 }
-
-
