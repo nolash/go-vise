@@ -37,9 +37,10 @@ func Apply(input []byte, instruction []byte, st state.State, rs resource.Fetcher
 		st.PutArg(arg)
 	} 
 	if sym == "" {
-		instruction = NewLine([]byte{}, MOVE, []string{"_catch"}, nil , nil)
+		instruction = NewLine([]byte{}, MOVE, []string{"_catch"}, nil, nil)
 	} else {
-		instruction = NewLine(instruction, MOVE, []string{sym}, nil, nil)
+		new_instruction := NewLine([]byte{}, MOVE, []string{sym}, nil, nil)
+		instruction = append(new_instruction, instruction...)
 	}
 
 	st, instruction, err = Run(instruction, st, rs, ctx)

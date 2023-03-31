@@ -246,6 +246,41 @@ func TestRunArgInvalid(t *testing.T) {
 	if r != "_catch" {
 		t.Errorf("expected where-state _catch, got %v", r)
 	}
-
 }
 
+func TestRunArgInstructions(t *testing.T) {
+	st := state.NewState(5)
+	rt := router.NewRouter()
+	rt.Add("foo", "bar")
+	rs := TestResource{}
+	b := []byte{0x03}
+	b = append(b, []byte("foo")...)
+	b = append(b, rt.ToBytes()...)
+
+	bi := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
+	bi = NewLine(bi, LOAD, []string{"two"}, nil, []uint8{0})
+	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
+	bi = NewLine(bi, MAP, []string{"two"}, nil, nil)
+	var err error
+	st, b, err = Apply(b, bi, st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)	
+	}
+	l := len(b)
+	if l != 0 {
+		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+	}
+	loc := st.Where()
+	if loc != "bar" {
+		t.Errorf("expected where-state _catch, got %v", loc)
+	}
+	m, err := st.Get()
+	if err != nil {
+		t.Error(err)	
+	}
+	r, err := rs.Render(loc, m)
+	if err != nil {
+		t.Error(err)	
+	}
+	_ = r
+}
