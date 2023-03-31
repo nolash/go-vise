@@ -69,6 +69,9 @@ func(st *State) Update(key string, value string) error {
 	r := st.Cache[checkFrame][key]
 	l := uint32(len(r))
 	st.Cache[checkFrame][key] = ""
+	if st.CacheMap[key] != "" {
+		st.CacheMap[key] = value
+	}
 	st.CacheUseSize -= l
 	sz := st.checkCapacity(value)
 	if sz == 0 {
@@ -98,6 +101,14 @@ func(st *State) Get() (map[string]string, error) {
 		return nil, fmt.Errorf("get at top frame")
 	}
 	return st.Cache[len(st.Cache)-1], nil
+}
+
+func(st *State) Val(key string) (string, error) {
+	r := st.CacheMap[key]
+	if len(r) == 0 {
+		return "", fmt.Errorf("key %v not mapped", key)
+	}
+	return r, nil
 }
 
 func(st *State) Up() error {

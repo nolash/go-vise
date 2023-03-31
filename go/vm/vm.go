@@ -113,7 +113,7 @@ func RunReload(instruction []byte, st state.State, rs resource.Fetcher, ctx cont
 	if err != nil {
 		return st, tail, err
 	}
-	st.Add(head, r, uint32(len(r)))
+	st.Update(head, r)
 	return st, tail, nil
 }
 

@@ -1,15 +1,19 @@
 package vm
 
 import (
+	"bytes"
 	"context"
+	"encoding/binary"
 	"fmt"
+	"log"
 	"testing"
 	"text/template"
-	"bytes"
 	
 	"git.defalsify.org/festive/resource"
 	"git.defalsify.org/festive/state"
 )
+
+var dynVal = "three"
 
 type TestResource struct {
 }
@@ -22,12 +26,20 @@ func getTwo(input []byte, ctx context.Context) (string, error) {
 	return "two", nil
 }
 
+func getDyn(input []byte, ctx context.Context) (string, error) {
+	return dynVal, nil
+}
+
 func (r *TestResource) Get(sym string) (string, error) {
 	switch sym {
 	case "foo":
 		return "inky pinky blinky clyde", nil
 	case "bar":
 		return "inky pinky {{.one}} blinky {{.two}} clyde", nil
+	case "baz":
+		return "inky pinky {{.baz}} blinky clyde", nil
+	case "three":
+		return "{{.one}} inky pinky {{.three}} blinky clyde {{.two}}", nil
 	}
 	return "", fmt.Errorf("unknown symbol %s", sym)
 }
@@ -56,6 +68,8 @@ func (r *TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 		return getOne, nil
 	case "two":
 		return getTwo, nil
+	case "dyn":
+		return getDyn, nil
 	}
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
 }
@@ -132,13 +146,63 @@ func TestRunLoad(t *testing.T) {
 func TestRunMultiple(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := []byte{0x00, LOAD, 0x03}
-	b = append(b, []byte("one")...)
-	b = append(b, []byte{0x00, 0x00, LOAD, 0x03}...)
-	b = append(b, []byte("two")...)
-	b = append(b, 0x00)
+	b := []byte{}
+	b = NewTestOp(b, LOAD, []string{"one"}, nil, []uint8{0})
+	b = NewTestOp(b, LOAD, []string{"two"}, nil, []uint8{42})
 	st, _, err := Run(b, st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func TestRunReload(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	b := []byte{}
+	b = NewTestOp(b, LOAD, []string{"dyn"}, nil, []uint8{0})
+	b = NewTestOp(b, MAP, []string{"dyn"}, nil, nil)
+	st, _, err := Run(b, st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+	r, err := st.Val("dyn")
+	if err != nil {
+		t.Error(err)
+	}
+	if r != "three" {
+		t.Errorf("expected result 'three', got %v", r)
+	}
+	dynVal = "baz"
+	b = []byte{}
+	b = NewTestOp(b, RELOAD, []string{"dyn"}, nil, nil)
+	st, _, err = Run(b, st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+	r, err = st.Val("dyn")
+	if err != nil {
+		t.Error(err)
+	}
+	log.Printf("dun now %s", r)
+	if r != "baz" {
+		t.Errorf("expected result 'baz', got %v", r)
+	}
+
+}
+
+func NewTestOp(instructionList []byte, instruction uint16, args []string, post []byte, szPost []uint8) []byte {
+	b := []byte{0x00, 0x00}
+	binary.BigEndian.PutUint16(b, instruction)
+	for _, arg := range args {
+		b = append(b, uint8(len(arg)))
+		b = append(b, []byte(arg)...)
+	}
+	if post != nil {
+		b = append(b, uint8(len(post)))
+		b = append(b, post...)
+	}
+	if szPost != nil {
+		b = append(b, szPost...)
+	}
+	return append(instructionList, b...)
 }
