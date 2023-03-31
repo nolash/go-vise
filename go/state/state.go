@@ -27,15 +27,16 @@ type State struct {
 	execPath []string // Command symbols stack
 	arg *string // Optional argument. Nil if not set.
 	sizes map[string]uint16 // Size limits for all loaded symbols.
-	sink *string //
+	sink *string // Sink symbol set for level
+	bitSize uint32 // size of (32-bit capacity) bit flag byte array
 	//sizeIdx uint16
 }
 
 // NewState creates a new State object with bitSize number of error condition states.
-func NewState(bitSize uint64) State {
+func NewState(bitSize uint32) State {
 	if bitSize == 0 {
 		panic("bitsize cannot be 0")
-	}
+	} 
 	n := bitSize % 8
 	if n > 0 {
 		bitSize += (8 - n)
@@ -45,9 +46,61 @@ func NewState(bitSize uint64) State {
 		Flags: make([]byte, bitSize / 8),
 		CacheSize: 0,
 		CacheUseSize: 0,
+		bitSize: bitSize,
 	}
 	st.Down("")
 	return st
+}
+
+// SetFlag sets the flag at the given bit field index.
+//
+// Returns true if bit state was changed.
+//
+// Fails if bitindex is out of range.
+func(st *State) SetFlag(bitIndex uint32) (bool, error) {
+	if bitIndex + 1 > st.bitSize {
+		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.bitSize)
+	}
+	r :=st.getFlag(bitIndex)
+	if r {
+		return false, nil
+	}
+	byteIndex := bitIndex / 8
+	localBitIndex := bitIndex % 8
+	b := st.Flags[byteIndex] 
+	st.Flags[byteIndex] = b | (1 << localBitIndex)
+	return true, nil
+}
+
+
+// ResetFlag resets the flag at the given bit field index.
+//
+// Returns true if bit state was changed.
+//
+// Fails if bitindex is out of range.
+func(st *State) ResetFlag(bitIndex uint32) (bool, error) {
+	if bitIndex + 1 > st.bitSize {
+		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.bitSize)
+	}
+	r :=st.getFlag(bitIndex)
+	if !r {
+		return false, nil
+	}
+	byteIndex := bitIndex / 8
+	localBitIndex := bitIndex % 8
+	b := st.Flags[byteIndex] 
+	st.Flags[byteIndex] = b & (^(1 << localBitIndex))
+	return true, nil
+}
+
+// GetFlag returns the state of the flag at the given bit field index.
+//
+// Fails if bit field index is out of range.
+func(st *State) GetFlag(bitIndex uint32) (bool, error) {
+	if bitIndex + 1 > st.bitSize {
+		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.bitSize)
+	}
+	return st.getFlag(bitIndex), nil
 }
 
 // WithCacheSize applies a cumulative cache size limitation for all cached items.
@@ -288,7 +341,16 @@ func(st *State) checkCapacity(v string) uint32 {
 	return sz
 }
 
+// flush relveant properties for level change
 func(st *State) resetCurrent() {
 	st.sink = nil
 	st.CacheMap = make(map[string]string)
+}
+
+// Retrieve the state of a state flag
+func(st *State) getFlag(bitIndex uint32) bool {
+	byteIndex := bitIndex / 8
+	localBitIndex := bitIndex % 8
+	b := st.Flags[byteIndex]
+	return (b & (1 << localBitIndex)) > 0
 }

@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-// Check creation and testing of state flags
-func TestNewStateFlags(t *testing.T) {
+// Check creation 
+func TestNewState(t *testing.T) {
 	st := NewState(5)
 	if len(st.Flags) != 1 {
 		t.Errorf("invalid state flag length: %v", len(st.Flags))
@@ -17,7 +17,73 @@ func TestNewStateFlags(t *testing.T) {
 	st = NewState(17)
 	if len(st.Flags) != 3 {
 		t.Errorf("invalid state flag length: %v", len(st.Flags))
-	
+	}
+}
+
+func TestStateFlags(t *testing.T) {
+	st := NewState(17)
+	v, err := st.GetFlag(2)
+	if err != nil {
+		t.Error(err)
+	}
+	if v {
+		t.Errorf("Expected bit 2 not to be set")
+	}
+	v, err = st.SetFlag(2)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v {
+		t.Errorf("Expected change to be set for bit 2")
+	}
+	v, err = st.GetFlag(2)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v {
+		t.Errorf("Expected bit 2 to be set")
+	}
+	v, err = st.SetFlag(10)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v {
+		t.Errorf("Expected change to be set for bit 10")
+	}
+	v, err = st.GetFlag(10)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v {
+		t.Errorf("Expected bit 10 to be set")
+	}
+	v, err = st.ResetFlag(2)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v {
+		t.Errorf("Expected change to be set for bit 10")
+	}
+	v, err = st.GetFlag(2)
+	if err != nil {
+		t.Error(err)
+	}
+	if v {
+		t.Errorf("Expected bit 2 not to be set")
+	}
+	v, err = st.GetFlag(10)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v {
+		t.Errorf("Expected bit 10 to be set")
+	}
+	v, err = st.SetFlag(10)
+	if err != nil {
+		t.Error(err)
+	}
+	if v {
+		t.Errorf("Expected change not to be set for bit 10")
 	}
 }
 
