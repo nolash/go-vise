@@ -41,13 +41,17 @@ func(st *State) Enter(input string) {
 	st.CacheMap = make(map[string]string)
 }
 
-func(st *State) Add(k string, v string) error {
-	sz := st.checkCapacity(v)
+func(st *State) Add(key string, value string) error {
+	checkFrame := st.frameOf(key)
+	if checkFrame > -1 {
+		return fmt.Errorf("key %v already defined in frame %v", key, checkFrame)
+	}
+	sz := st.checkCapacity(value)
 	if sz == 0 {
 		return fmt.Errorf("Cache capacity exceeded %v of %v", st.CacheUseSize + sz, st.CacheSize)
 	}
-	log.Printf("add key %s value size %v", k, sz)
-	st.Cache[len(st.Cache)-1][k] = v
+	log.Printf("add key %s value size %v", key, sz)
+	st.Cache[len(st.Cache)-1][key] = value
 	st.CacheUseSize += sz
 	return nil
 }
@@ -61,11 +65,18 @@ func(st *State) Map(k string) error {
 	return nil
 }
 
+func(st *State) Depth() uint8 {
+	return uint8(len(st.Cache))
+}
+
 func(st *State) Get() (map[string]string, error) {
+	if len(st.Cache) == 0 {
+		return nil, fmt.Errorf("get at top frame")
+	}
 	return st.Cache[len(st.Cache)-1], nil
 }
 
-func (st *State) Exit() error {
+func(st *State) Exit() error {
 	l := len(st.Cache)
 	if l == 0 {
 		return fmt.Errorf("exit called beyond top frame")
@@ -79,6 +90,28 @@ func (st *State) Exit() error {
 	}
 	st.Cache = st.Cache[:l]
 	return nil
+}
+
+func(st *State) Reset() error {
+	st.Cache = st.Cache[:1]
+	st.CacheUseSize = 0
+	return nil
+}
+
+func(st *State) Check(key string) bool {
+	return st.frameOf(key) == -1
+}
+
+func(st *State) frameOf(key string) int {
+	log.Printf("--- %s", key)
+	for i, m := range st.Cache {
+		for k, _ := range m {
+			if k == key {
+				return i
+			}
+		}
+	}
+	return -1
 }
 
 func(st *State) checkCapacity(v string) uint32 {

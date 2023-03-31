@@ -37,7 +37,13 @@ func Run(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Co
 }
 
 func instructionSplit(b []byte) (string, []byte, error) {
+	if len(b) == 0 {
+		return "", nil, fmt.Errorf("argument is empty")
+	}
 	sz := uint8(b[0])
+	if sz == 0 {
+		return "", nil, fmt.Errorf("zero-length argument")
+	}
 	tailSz := uint8(len(b))
 	if tailSz - 1 < sz {
 		return "", nil, fmt.Errorf("corrupt instruction, len %v less than symbol length: %v", tailSz, sz)
@@ -61,10 +67,27 @@ func RunSink(instruction []byte, st state.State, rs resource.Fetcher, ctx contex
 }
 
 func RunCatch(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, error) {
+	head, tail, err := instructionSplit(instruction)
+	if err != nil {
+		return st, err
+	}
+	r, err := rs.Get(head)
+	if err != nil {
+		return st, err
+	}
+	_ = tail
+	st.Add(head, r)
 	return st, nil
 }
 
 func RunCroak(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, error) {
+	head, tail, err := instructionSplit(instruction)
+	if err != nil {
+		return st, err
+	}
+	_ = head
+	_ = tail
+	st.Reset()
 	return st, nil
 }
 
@@ -72,6 +95,9 @@ func RunLoad(instruction []byte, st state.State, rs resource.Fetcher, ctx contex
 	head, tail, err := instructionSplit(instruction)
 	if err != nil {
 		return st, err
+	}
+	if !st.Check(head) {
+		return st, fmt.Errorf("key %v already loaded", head)
 	}
 	fn, err := rs.FuncFor(head)
 	if err != nil {

@@ -73,3 +73,39 @@ func TestStateEnterExit(t *testing.T) {
 		t.Errorf("expected out of top frame error")
 	}
 }
+
+func TestStateReset(t *testing.T) {
+	st := NewState(17)
+	st.Enter("one")
+	err := st.Add("foo", "bar")
+	if err != nil {
+		t.Error(err)
+	}
+	err = st.Add("baz", "xyzzy")
+	if err != nil {
+		t.Error(err)
+	}
+	st.Enter("two")
+	st.Enter("three")
+	st.Reset()
+	if st.CacheUseSize != 0 {
+		t.Errorf("expected cache use size 0, got %v", st.CacheUseSize)
+	}
+	if st.Depth() != 1 {
+		t.Errorf("expected depth 1, got %v", st.Depth())
+	}
+}
+
+func TestStateLoadDup(t *testing.T) {
+	st := NewState(17)
+	st.Enter("one")
+	err := st.Add("foo", "bar")
+	if err != nil {
+		t.Error(err)
+	}
+	st.Enter("two")
+	err = st.Add("foo", "baz")
+	if err == nil {
+		t.Errorf("expected fail on duplicate load")
+	}
+}
