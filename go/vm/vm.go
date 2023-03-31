@@ -2,21 +2,29 @@ package vm
 
 import (
 	"encoding/binary"
-	"fmt"
 	"context"
+	"fmt"
 	"log"
 
-	"git.defalsify.org/festive/state"
 	"git.defalsify.org/festive/resource"
+	"git.defalsify.org/festive/router"
+	"git.defalsify.org/festive/state"
 )
 
 type Runner func(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error)
 
-func Apply(instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
+func Apply(input []byte, instruction []byte, st state.State, rs resource.Fetcher, ctx context.Context) (state.State, []byte, error) {
 	var err error
 	st, instruction, err = Run(instruction, st, rs, ctx)
 	if err != nil {
 		return st, instruction, err
+	}
+	rt := router.FromBytes(instruction)
+	
+	sym := rt.Get(string(input))
+	if sym == "" {
+		sym = rt.Default()
+		st.PutArg(string(input))
 	}
 	return st, instruction, nil
 }

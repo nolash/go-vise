@@ -7,11 +7,20 @@ import (
 type Router struct {
 	selectors []string
 	symbols map[string]string
+	navigable bool
 }
 
 func NewRouter() Router {
 	return Router{
 		symbols: make(map[string]string),
+		navigable: true,
+	}
+}
+
+func NewStaticRouter(symbol string) Router {
+	return Router{
+		symbols: map[string]string{"_": symbol},
+		navigable: false,
 	}
 }
 
@@ -30,6 +39,14 @@ func(r *Router) Add(selector string, symbol string) error {
 	r.selectors = append(r.selectors, selector)
 	r.symbols[selector] = symbol
 	return nil
+}
+
+func(r *Router) Get(selector string) string {
+	return r.symbols[selector]
+}
+
+func(r *Router) Default() string {
+	return r.symbols["_"]
 }
 
 func(r *Router) Next() []byte {
@@ -67,14 +84,23 @@ func(r *Router) ToBytes() []byte {
 
 func FromBytes(b []byte) Router {
 	rb := NewRouter()
+	navigable := true
 	for len(b) > 0 {
+		var k string
 		l := b[0]
-		k := b[1:1+l]
-		b = b[1+l:]
+		if l == 0 {
+			navigable = false
+		} else {
+			k = string(b[1:1+l])
+			b = b[1+l:]
+		}
 		l = b[0]
-		v := b[1:1+l]
+		v := string(b[1:1+l])
+		if !navigable {
+			return NewStaticRouter(v)
+		}
 		b = b[1+l:]
-		rb.Add(string(k), string(v))
+		rb.Add(k, v)
 	}
 	return rb
 }

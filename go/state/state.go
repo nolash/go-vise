@@ -12,6 +12,7 @@ type State struct {
 	Cache []map[string]string
 	CacheMap map[string]string
 	ExecPath []string
+	Arg *string
 	Idx uint16
 }
 
@@ -36,6 +37,14 @@ func NewState(bitSize uint64) State {
 func(st State) WithCacheSize(cacheSize uint32) State {
 	st.CacheSize = cacheSize
 	return st
+}
+
+func(st *State) PutArg(input string) {
+	st.Arg = &input
+}
+
+func(st *State) PopArg() string {
+	return *st.Arg
 }
 
 func(st *State) Down(input string) {
