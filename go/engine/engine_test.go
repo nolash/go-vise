@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path"
 	"text/template"
 	"testing"
@@ -63,7 +62,6 @@ func(fs FsWrapper) GetCode(sym string) ([]byte, error) {
 	sym += ".bin"
 	fp := path.Join(fs.Path, sym)
 	r, err := ioutil.ReadFile(fp)
-	log.Printf("getcode for %v %v", fp, r)
 	return r, err
 }
 
@@ -87,7 +85,7 @@ func TestEngineInit(t *testing.T) {
 	if !bytes.Equal(b, []byte("hello world")) {
 		t.Fatalf("expected result 'hello world', got %v", b)
 	}
-	input := []byte("foo")
+	input := []byte("bar")
 	err = en.Exec(input, ctx)
 	if err != nil {
 		t.Fatal(err)

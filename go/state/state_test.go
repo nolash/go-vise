@@ -8,21 +8,21 @@ import (
 // Check creation 
 func TestNewState(t *testing.T) {
 	st := NewState(5)
-	if len(st.Flags) != 1 {
+	if len(st.Flags) != 2 {
 		t.Errorf("invalid state flag length: %v", len(st.Flags))
 	}
 	st = NewState(8)
-	if len(st.Flags) != 1 {
+	if len(st.Flags) != 2 {
 		t.Errorf("invalid state flag length: %v", len(st.Flags))
 	}
 	st = NewState(17)
-	if len(st.Flags) != 3 {
+	if len(st.Flags) != 4 {
 		t.Errorf("invalid state flag length: %v", len(st.Flags))
 	}
 }
 
 func TestStateFlags(t *testing.T) {
-	st := NewState(17)
+	st := NewState(9)
 	v, err := st.GetFlag(2)
 	if err != nil {
 		t.Error(err)

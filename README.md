@@ -1,6 +1,6 @@
 # festive: A Constrained Size Output Virtual Machine
 
-An attempt at defining a small VM to create a stack machine for size-constrained clients and servers.
+An attempt at defining a small VM to handle menu interaction for size-constrained clients and servers.
 
 Original motivation was to create a simple templating renderer for USSD clients, combined with an agnostic data-retrieval reference that may conceal any level of complexity.
 
@@ -16,7 +16,7 @@ The VM defines the following opcode symbols:
 * `RELOAD <symbol>` - Execute a code symbol already loaded by `LOAD` and cache the data, constrained to the previously given `size` for the same symbol. 
 * `MAP <symbol>` - Expose a code symbol previously loaded by `LOAD` to the rendering client. Roughly corresponds to the `global` directive in Python.
 * `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls. More detailed: After a `MOVE` call, a `BACK` call will return to the same execution frame, with the same symbols available, but all `MAP` calls will have to be repeated.
-* 'HALT' - Stop execution. The remaining bytecode (typicaly, the routing code for the node) is returned to the invoking function.
+* `HALT` - Stop execution. The remaining bytecode (typically, the routing code for the node) is returned to the invoking function.
 
 
 ### External code
@@ -48,6 +48,7 @@ Signal may be set when executing of external code symbols, and may be used as a 
 
 The signal flag arguments should only set a single flag to be tested. If more than one flag is set, the first flag matched will be used as the trigger.
 
+First 8 flags are reserved and used for internal VM operations.
 
 
 ## Rendering

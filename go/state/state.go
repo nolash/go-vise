@@ -19,13 +19,16 @@ import (
 //
 // Symbol keys do not count towards cache size limitations.
 //
+// 8 first flags are reserved.
+//
 // TODO factor out cache
 type State struct {
 	Flags []byte // Error state
-	CacheSize uint32 // Total allowed cumulative size of values in cache
-	CacheUseSize uint32 // Currently used bytes by all values in cache
+	CacheSize uint32 // Total allowed cumulative size of values (not code) in cache
+	CacheUseSize uint32 // Currently used bytes by all values (not code) in cache
 	Cache []map[string]string // All loaded cache items
 	CacheMap map[string]string // Mapped
+	input []byte // Last input
 	code []byte // Pending bytecode to execute
 	execPath []string // Command symbols stack
 	arg *string // Optional argument. Nil if not set.
@@ -54,14 +57,14 @@ func getFlag(bitIndex uint32, bitField []byte) bool {
 	return (b & (1 << localBitIndex)) > 0
 }
 
-// NewState creates a new State object with bitSize number of error condition states.
+// NewState creates a new State object with bitSize number of error condition states in ADDITION to the 8 builtin flags.
 func NewState(bitSize uint32) State {
 	st := State{
 		CacheSize: 0,
 		CacheUseSize: 0,
-		bitSize: bitSize,
+		bitSize: bitSize + 8,
 	}
-	byteSize := toByteSize(bitSize)
+	byteSize := toByteSize(bitSize + 8)
 	if byteSize > 0 {
 		st.Flags = make([]byte, byteSize) 
 	} else {
@@ -181,26 +184,26 @@ func(st State) Where() string {
 	return st.execPath[l-1]
 }
 
-// PutArg adds the optional argument.
+//// PutArg adds the optional argument.
+////
+//// Fails if arg already set.
+//func(st *State) PutArg(input string) error {
+//	st.arg = &input
+//	if st.arg != nil {
+//		return fmt.Errorf("arg already set to %s", *st.arg)
+//	}
+//	return nil
+//}
 //
-// Fails if arg already set.
-func(st *State) PutArg(input string) error {
-	st.arg = &input
-	if st.arg != nil {
-		return fmt.Errorf("arg already set to %s", *st.arg)
-	}
-	return nil
-}
-
-// PopArg retrieves the optional argument. Will be freed upon retrieval.
-//
-// Fails if arg not set (or already freed).
-func(st *State) PopArg() (string, error) {
-	if st.arg == nil {
-		return "", fmt.Errorf("arg is not set")
-	}
-	return *st.arg, nil
-}
+//// PopArg retrieves the optional argument. Will be freed upon retrieval.
+////
+//// Fails if arg not set (or already freed).
+//func(st *State) PopArg() (string, error) {
+//	if st.arg == nil {
+//		return "", fmt.Errorf("arg is not set")
+//	}
+//	return *st.arg, nil
+//}
 
 // Down adds the given symbol to the command stack.
 //
@@ -391,10 +394,29 @@ func(st *State) SetCode(b []byte) {
 	st.code = b
 }
 
+// Get the remaning cached bytecode
 func(st *State) GetCode() ([]byte, error) {
 	b := st.code
 	st.code = []byte{}
 	return b, nil
+}
+
+// GetInput gets the most recent client input.
+func(st *State) GetInput() ([]byte, error) {
+	if st.input == nil {
+		return nil, fmt.Errorf("no input has been set")
+	}
+	return st.input, nil
+}
+
+// SetInput is used to record the latest client input.
+func(st *State) SetInput(input []byte) error {
+	l := len(input)
+	if l > 255 {
+		return fmt.Errorf("input size %v too large (limit %v)", l, 255)
+	}
+	st.input = input
+	return nil
 }
 
 // return 0-indexed frame number where key is defined. -1 if not defined

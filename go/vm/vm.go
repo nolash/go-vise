@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"git.defalsify.org/festive/resource"
-	"git.defalsify.org/festive/router"
 	"git.defalsify.org/festive/state"
 )
 
@@ -20,52 +19,6 @@ func argFromBytes(input []byte) (string, []byte, error) {
 	sz := input[0]
 	out := input[1:1+sz]
 	return string(out), input[1+sz:], nil
-}
-
-// Apply applies input to router bytecode to resolve the node symbol to execute.
-//
-// The execution byte code is initialized with the appropriate MOVE
-//
-// If the router indicates an argument input, the optional argument is set on the state.
-//
-// TODO: the bytecode load is a separate step so Run should be run separately.
-func Apply(input []byte, instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	var err error
-
-	log.Printf("running input %v against instruction %v", input, instruction)
-	arg, input, err := argFromBytes(input)
-	if err != nil {
-		return input, err
-	}
-
-	rt := router.FromBytes(instruction)
-	sym := rt.Get(arg)
-	if sym == "" {
-		sym = rt.Default()
-		st.PutArg(arg)
-	}
-
-	if sym == "" {
-		instruction = NewLine([]byte{}, MOVE, []string{"_catch"}, nil, nil)
-	} else {
-		instruction, err = rs.GetCode(sym)
-		if err != nil {
-			return instruction, err
-		}
-
-		if sym == "_" {
-			instruction = NewLine([]byte{}, BACK, nil, nil, nil)
-		} else {
-			new_instruction := NewLine([]byte{}, MOVE, []string{sym}, nil, nil)
-			instruction = append(new_instruction, instruction...)
-		}
-	}
-
-	instruction, err = Run(instruction, st, rs, ctx)
-	if err != nil {
-		return instruction, err
-	}
-	return instruction, nil
 }
 
 // Run extracts individual op codes and arguments and executes them.
@@ -96,9 +49,10 @@ func Run(instruction []byte, st *state.State, rs resource.Resource, ctx context.
 			instruction, err = RunMove(instruction[2:], st, rs, ctx)
 		case BACK:
 			instruction, err = RunBack(instruction[2:], st, rs, ctx)
+		case INCMP:
+			instruction, err = RunIncmp(instruction[2:], st, rs, ctx)
 		case HALT:
-			log.Printf("found HALT, stopping")
-			return instruction[2:], err
+			return RunHalt(instruction[2:], st, rs, ctx)
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
 		}
@@ -128,7 +82,18 @@ func RunCatch(instruction []byte, st *state.State, rs resource.Resource, ctx con
 	bitFieldSize := tail[0]
 	bitField := tail[1:1+bitFieldSize]
 	tail = tail[1+bitFieldSize:]
-	if st.GetIndex(bitField) {
+	matchMode := tail[0] // matchmode 1 is match NOT set bit
+	tail = tail[1:]
+	match := false
+	if matchMode > 0 {
+		if !st.GetIndex(bitField) {
+			match = true
+		}
+	} else if st.GetIndex(bitField) {
+		match = true	
+	}
+
+	if match {
 		log.Printf("catch at flag %v, moving to %v", bitField, head)
 		st.Down(head)
 		tail = []byte{}
@@ -197,6 +162,40 @@ func RunBack(instruction []byte, st *state.State, rs resource.Resource, ctx cont
 	st.Up()
 	return instruction, nil
 }
+
+// RunIncmp executes the INCMP opcode
+func RunIncmp(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	head, tail, err := instructionSplit(instruction)
+	if err != nil {
+		return instruction, err
+	}
+	v, err := st.GetFlag(state.FLAG_INMATCH)
+	if err != nil {
+		return tail, err
+	}
+	if v {
+		return tail, nil	
+	}
+	input, err := st.GetInput()
+	if err != nil {
+		return tail, err
+	}
+	log.Printf("checking input %v %v", input, head)
+	if head == string(input) {
+		log.Printf("input match for '%s'", input)
+		_, err = st.SetFlag(state.FLAG_INMATCH)
+		st.Down(head)
+	}
+	return tail, err
+}
+
+// RunHalt executes the HALT opcode
+func RunHalt(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	log.Printf("found HALT, stopping")
+	_, err := st.ResetFlag(state.FLAG_INMATCH)
+	return instruction, err
+}
+
 
 // retrieve data for key
 func refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {

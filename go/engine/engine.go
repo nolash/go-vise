@@ -61,11 +61,10 @@ func(en *Engine) Init(ctx context.Context) error {
 // - no current bytecode is available
 // - input processing against bytcode failed
 func (en *Engine) Exec(input []byte, ctx context.Context) error {
-	l := uint8(len(input))
-	if l > 255 {
-		return fmt.Errorf("input too long (%v)", l)
+	err := en.st.SetInput(input)
+	if err != nil {
+		return err
 	}
-	input = append([]byte{l}, input...)
 	code, err := en.st.GetCode()
 	if err != nil {
 		return err
@@ -73,7 +72,11 @@ func (en *Engine) Exec(input []byte, ctx context.Context) error {
 	if len(code) == 0 {
 		return fmt.Errorf("no code to execute")
 	}
-	code, err = vm.Apply(input, code, en.st, en.rs, ctx)
+	err = en.st.SetInput(input)
+	if err != nil {
+		return err
+	}
+	code, err = vm.Run(code, en.st, en.rs, ctx)
 	en.st.SetCode(code)
 	return err
 }
