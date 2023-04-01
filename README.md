@@ -10,8 +10,8 @@ Original motivation was to create a simple templating renderer for USSD clients,
 The VM defines the following opcode symbols:
 
 * `BACK` - Return to the previous execution frame (will fail if at top frame). It leaves to the state of the execution layer to define what "previous" means.
-* `CATCH <symbol> <signal>` - Jump to symbol if signal is set (see `signal` below).
-* `CROAK <signal>` - Clear state and restart execution from top if signal is set (see `signal` below).
+* `CATCH <symbol> <signal>` - Jump to symbol if signal is set (see `signals` below).
+* `CROAK <signal>` - Clear state and restart execution from top if signal is set (see `signals` below).
 * `LOAD <symbol> <size>` - Execute the code symbol `symbol` and cache the data, constrained to the given `size`. Can be exposed with `MAP` within scope, 
 * `RELOAD <symbol>` - Execute a code symbol already loaded by `LOAD` and cache the data, constrained to the previously given `size` for the same symbol. 
 * `MAP <symbol>` - Expose a code symbol previously loaded by `LOAD` to the rendering client. Roughly corresponds to the `global` directive in Python.
@@ -28,6 +28,7 @@ Loaded symbols are not automatically exposed to the rendering client. To expose 
 
 The associated content of loaded symbols may be refreshed using the `RELOAD` opcode. `RELOAD` only works within the same constraints as `MAP`. However, updated content must be available even if a `MAP` precedes a `RELOAD` within the same frame.
 
+
 ### External symbol optimizations
 
 Only `LOAD` and `RELOAD` should trigger external code side-effects. 
@@ -38,6 +39,14 @@ In an effort to prevent leaks from unnecessary external code executions, the fol
 - All symbols declared in `MAP` **must** be used for all template renderings of a specific node.
 
 Any code compiler or checked **should** generate an error on any orphaned `LOAD` or `MAP` symbols as described above.
+
+
+### Signals
+
+Signal may be set when executing of external code symbols, and may be used as a simple exception mechanism.
+
+The signal flag arguments should only set a single flag to be tested. If more than one flag is set, the first flag matched will be used as the trigger.
+
 
 
 ## Rendering
