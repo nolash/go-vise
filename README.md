@@ -129,8 +129,9 @@ It expects all replacement symbols to be available at time of rendering, and has
 
 ```
 0008 03666f6f 03626172     # INCMP "foo" "bar" - move to node "bar" if input is "FOO"
-0001 0461696565 01 01      # CATCH "aiee" 1 1  - move to node "aiee" (and immediately halt) if input match flag is not set 
-0003 04616263 020104       # LOAD "abc" 2 260  - execute code symbol "abc" with a result size limit of 260
+0001 0461696565 01 01      # CATCH "aiee" 1 1  - move to node "aiee" (and immediately halt) if input match flag (1) is not set (1)
+0003 04616263 020104       # LOAD "abc" 260    - execute code symbol "abc" with a result size limit of 260 (2 byte BE integer, 0x0104)
+0003 04646566 00           # LOAD "def" 0      - execute code symbol "abc" with no size limit (sink)
 0005 04616263              # MAP "abc"         - make "abc" available for renderer
 0007                       # HALT              - stop execution (require new input to continue)
 0006 03313233              # MOVE "123"        - move to node "123" (regardless of input)
