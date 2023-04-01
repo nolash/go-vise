@@ -31,3 +31,45 @@ For example, in this example
 - param `three` is a _sink_.
 
 The renderer may use up to `256 - 120 - 5 - 12 = 119` bytes from the _sink_ when rendering the output.
+
+
+### Multipage support
+
+Multipage outputs, like listings, are handled using the _sink_ output constraints:
+
+- first calculate what the rendered display size is when all symbol results that are _not_ sinks are resolved.
+- split and cache the list data within its semantic context, given the _sink_ limitation after rendering.
+- provide a `next` and `previous` menu item to browse the preparped pagination of the list data.
+
+
+### Virtual machine interface layout
+
+This is the version `0` of the VM. That translates to  _highly experimental_.
+
+Currently the following rules apply for encoding in version `0`:
+
+- A code instruction is a _big-endian_ 2-byte value. See `vm/opcodes.go` for valid opcode values.
+- `symbol` value is encoded as _one byte_ of string length, after which the  byte-value of the string follows.
+- `size` value is encoded as _one byte_ of numeric length, after which the _big-endian_ byte-value of the integer follows.
+- `signal` value is encoded as _one byte_ of byte length, after which a byte-array representing the defined signal follows.
+
+
+## Reference implementation
+
+This repository provides a `golang` reference implementation for the `festive` concept.
+
+In this reference implementation some constraints apply
+
+
+### Template rendering
+
+Template rendering is done using the `text/template` faciilty in the `golang` standard library. 
+
+It expects all replacement symbols to be available at time of rendering, and has no tolerance for missing ones.
+
+
+## Assembly language
+
+**TBD**
+
+An assmebly language will be defined to generate the _routing_ and _execution_ bytecodes for each menu node.
