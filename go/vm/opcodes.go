@@ -5,7 +5,7 @@ import (
 )
 const VERSION = 0
 
-// Opcodes
+// VM Opcodes
 const (
 	BACK = 0
 	CATCH = 1
@@ -16,7 +16,6 @@ const (
 	MOVE = 6
 	HALT = 7
 	INCMP = 8
-	//IN = 9
 	_MAX = 8
 )
 

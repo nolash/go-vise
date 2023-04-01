@@ -184,27 +184,6 @@ func(st State) Where() string {
 	return st.execPath[l-1]
 }
 
-//// PutArg adds the optional argument.
-////
-//// Fails if arg already set.
-//func(st *State) PutArg(input string) error {
-//	st.arg = &input
-//	if st.arg != nil {
-//		return fmt.Errorf("arg already set to %s", *st.arg)
-//	}
-//	return nil
-//}
-//
-//// PopArg retrieves the optional argument. Will be freed upon retrieval.
-////
-//// Fails if arg not set (or already freed).
-//func(st *State) PopArg() (string, error) {
-//	if st.arg == nil {
-//		return "", fmt.Errorf("arg is not set")
-//	}
-//	return *st.arg, nil
-//}
-
 // Down adds the given symbol to the command stack.
 //
 // Clears mapping and sink.
