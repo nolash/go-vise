@@ -68,15 +68,7 @@ func(fs FsWrapper) GetCode(sym string) ([]byte, error) {
 }
 
 func TestEngineInit(t *testing.T) {
-//	cfg := Config{
-//		FlagCount: 12,
-//		CacheSize: 1024,
-//	}	
 	st := state.NewState(17).WithCacheSize(1024)
-//	dir, err := ioutil.TempDir("", "festive_test_")
-//	if err != nil {
-//		t.Fatal(err)
-//	}
 	dir := path.Join(testdataloader.GetBasePath(), "testdata")
 	ctx := context.TODO()
 	rs := NewFsWrapper(dir, &st, ctx)

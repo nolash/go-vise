@@ -16,16 +16,21 @@ import (
 //	CacheSize uint32
 //}
 
+// Engine is an execution engine that handles top-level errors when running user inputs against currently exposed bytecode.
 type Engine struct {
 	st *state.State
 	rs resource.Resource
 }
 
+// NewEngine creates a new Engine
 func NewEngine(st *state.State, rs resource.Resource) Engine {
 	engine := Engine{st, rs}
 	return engine
 }
 
+// Init must be explicitly called before using the Engine instance.
+//
+// It makes sure bootstrapping code has been executed, and that the exposed bytecode is ready for user input.
 func(en *Engine) Init(ctx context.Context) error {
 	b := vm.NewLine([]byte{}, vm.MOVE, []string{"root"}, nil, nil)
 	var err error
@@ -41,6 +46,20 @@ func(en *Engine) Init(ctx context.Context) error {
 	return en.st.AppendCode(code)
 }
 
+// Exec processes user input against the current state of the virtual machine environment.
+//
+// If successfully executed:
+// - output of the last execution is available using the WriteResult(...) call
+// - Exec(...) may be called again with new input
+//
+// This implementation is in alpha state. That means that any error emitted may have left the system in an undefined state.
+//
+// TODO: Disambiguate errors as critical and resumable errors.
+//
+// Fails if:
+// - input is objectively invalid (too long etc)
+// - no current bytecode is available
+// - input processing against bytcode failed
 func (en *Engine) Exec(input []byte, ctx context.Context) error {
 	l := uint8(len(input))
 	if l > 255 {
@@ -59,6 +78,12 @@ func (en *Engine) Exec(input []byte, ctx context.Context) error {
 	return err
 }
 
+// WriteResult writes the output of the last vm execution to the given writer.
+//
+// Fails if
+// - required data inputs to the template are not available.
+// - the template for the given node point is note available for retrieval using the resource.Resource implementer.
+// - the supplied writer fails to process the writes.
 func(en *Engine) WriteResult(w io.Writer) error {
 	location := en.st.Where()
 	v, err := en.st.Get()
