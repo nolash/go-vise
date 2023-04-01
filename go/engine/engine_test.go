@@ -85,7 +85,7 @@ func TestEngineInit(t *testing.T) {
 	if !bytes.Equal(b, []byte("hello world")) {
 		t.Fatalf("expected result 'hello world', got %v", b)
 	}
-	input := []byte("bar")
+	input := []byte("ooo")
 	err = en.Exec(input, ctx)
 	if err != nil {
 		t.Fatal(err)

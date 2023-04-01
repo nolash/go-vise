@@ -17,6 +17,7 @@ The VM defines the following opcode symbols:
 * `MAP <symbol>` - Expose a code symbol previously loaded by `LOAD` to the rendering client. Roughly corresponds to the `global` directive in Python.
 * `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls. More detailed: After a `MOVE` call, a `BACK` call will return to the same execution frame, with the same symbols available, but all `MAP` calls will have to be repeated.
 * `HALT` - Stop execution. The remaining bytecode (typically, the routing code for the node) is returned to the invoking function.
+* `INCMP <arg> <symbol>` - Compare registered input to `arg` and and move to `symbol` node on match. Any consecutive matches will be ignored until `HALT` is called.
 
 
 ### External code

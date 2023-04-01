@@ -169,12 +169,16 @@ func RunIncmp(instruction []byte, st *state.State, rs resource.Resource, ctx con
 	if err != nil {
 		return instruction, err
 	}
+	sym, tail, err := instructionSplit(tail)
+	if err != nil {
+		return instruction, err
+	}
 	v, err := st.GetFlag(state.FLAG_INMATCH)
 	if err != nil {
 		return tail, err
 	}
 	if v {
-		return tail, nil	
+		return tail, nil
 	}
 	input, err := st.GetInput()
 	if err != nil {
@@ -184,7 +188,7 @@ func RunIncmp(instruction []byte, st *state.State, rs resource.Resource, ctx con
 	if head == string(input) {
 		log.Printf("input match for '%s'", input)
 		_, err = st.SetFlag(state.FLAG_INMATCH)
-		st.Down(head)
+		st.Down(sym)
 	}
 	return tail, err
 }

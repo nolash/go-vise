@@ -232,10 +232,10 @@ func TestRunArg(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	
-	input := []byte("baz")
+	input := []byte("bar")
 	_ = st.SetInput(input)
 
-	bi := NewLine([]byte{}, INCMP, []string{"baz"}, nil, nil)
+	bi := NewLine([]byte{}, INCMP, []string{"bar", "baz"}, nil, nil)
 	b, err := Run(bi, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)	
@@ -254,10 +254,10 @@ func TestRunInputHandler(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 
-	_ = st.SetInput([]byte("foo"))
+	_ = st.SetInput([]byte("baz"))
 
-	bi := NewLine([]byte{}, INCMP, []string{"bar"}, nil, nil)
-	bi = NewLine(bi, INCMP, []string{"foo"}, nil, nil)
+	bi := NewLine([]byte{}, INCMP, []string{"bar", "aiee"}, nil, nil)
+	bi = NewLine(bi, INCMP, []string{"baz", "foo"}, nil, nil)
 	bi = NewLine(bi, LOAD, []string{"one"}, nil, []uint8{0})
 	bi = NewLine(bi, LOAD, []string{"two"}, nil, []uint8{3})
 	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
@@ -282,7 +282,7 @@ func TestRunArgInvalid(t *testing.T) {
 
 	var err error
 
-	b := NewLine([]byte{}, INCMP, []string{"bar"}, nil, nil)
+	b := NewLine([]byte{}, INCMP, []string{"bar", "baz"}, nil, nil)
 	b = NewLine(b, CATCH, []string{"_catch"}, []byte{state.FLAG_INMATCH}, []uint8{1})
 
 	b, err = Run(b, &st, &rs, context.TODO())
