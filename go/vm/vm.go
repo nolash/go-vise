@@ -96,6 +96,9 @@ func Run(instruction []byte, st *state.State, rs resource.Resource, ctx context.
 			instruction, err = RunMove(instruction[2:], st, rs, ctx)
 		case BACK:
 			instruction, err = RunBack(instruction[2:], st, rs, ctx)
+		case HALT:
+			log.Printf("found HALT, stopping")
+			return instruction[2:], err
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
 		}

@@ -16,6 +16,7 @@ The VM defines the following opcode symbols:
 * `RELOAD <symbol>` - Execute a code symbol already loaded by `LOAD` and cache the data, constrained to the previously given `size` for the same symbol. 
 * `MAP <symbol>` - Expose a code symbol previously loaded by `LOAD` to the rendering client. Roughly corresponds to the `global` directive in Python.
 * `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls. More detailed: After a `MOVE` call, a `BACK` call will return to the same execution frame, with the same symbols available, but all `MAP` calls will have to be repeated.
+* 'HALT' - Stop execution. The remaining bytecode (typicaly, the routing code for the node) is returned to the invoking function.
 
 
 ### External code

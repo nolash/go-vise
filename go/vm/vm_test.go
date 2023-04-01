@@ -50,6 +50,8 @@ func (r *TestResource) GetTemplate(sym string) (string, error) {
 		return "inky pinky {{.baz}} blinky clyde", nil
 	case "three":
 		return "{{.one}} inky pinky {{.three}} blinky clyde {{.two}}", nil
+	case "_catch":
+		return "aiee", nil
 	}
 	panic(fmt.Sprintf("unknown symbol %s", sym))
 	return "", fmt.Errorf("unknown symbol %s", sym)
@@ -253,108 +255,112 @@ func TestRunArgInvalid(t *testing.T) {
 	}
 }
 
-//func TestRunArgInstructions(t *testing.T) {
-//	st := state.NewState(5)
-//	rs := TestResource{}
-//
-//	rt := router.NewRouter()
-//	rt.Add("foo", "bar")
-//	b := []byte{0x03}
-//	b = append(b, []byte("foo")...)
-//	b = append(b, rt.ToBytes()...)
-//
-//	bi := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
-//	bi = NewLine(bi, LOAD, []string{"two"}, nil, []uint8{3})
-//	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
-//	bi = NewLine(bi, MAP, []string{"two"}, nil, nil)
-//	var err error
-//	b, err = Apply(b, bi, &st, &rs, context.TODO())
-//	if err != nil {
-//		t.Error(err)	
-//	}
-//	l := len(b)
-//	if l != 0 {
-//		t.Errorf("expected empty remainder, got length %v: %v", l, b)
-//	}
-//	loc := st.Where()
-//	if loc != "bar" {
-//		t.Errorf("expected where-state bar, got %v", loc)
-//	}
-//	m, err := st.Get()
-//	if err != nil {
-//		t.Fatal(err)	
-//	}
-//	_, err = rs.RenderTemplate(loc, m)
-//	if err == nil {
-//		t.Fatalf("expected error to generate template")
-//	}
-//	_, err = Run(bi, &st, &rs, context.TODO())
-//	if err != nil {
-//		t.Error(err)	
-//	}
-//	m, err = st.Get()
-//	if err != nil {
-//		t.Fatal(err)	
-//	}
-//	_, err = rs.RenderTemplate(loc, m)
-//	if err != nil {
-//		t.Fatal(err)	
-//	}
-//}
-//
-//func TestRunMoveAndBack(t *testing.T) {
-//	st := state.NewState(5)
-//	rs := TestResource{}
-//	rt := router.NewRouter()
-//	rt.Add("foo", "bar")
-//	b := []byte{0x03}
-//	b = append(b, []byte("foo")...)
-//	//b = append(b, rt.ToBytes()...)
-//	bi := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
-//
-//	var err error
-//	b, err = Apply(b, bi, &st, &rs, context.TODO())
-//	if err != nil {
-//		t.Error(err)
-//	}
-//	l := len(b)
-//	if l != 0 {
-//		t.Errorf("expected empty remainder, got length %v: %v", l, b)
-//	}
-//
-//	rt = router.NewRouter()
-//	rt.Add("foo", "baz")
-//	b = []byte{0x03}
-//	b = append(b, []byte("foo")...)
-//	b = append(b, rt.ToBytes()...)
-//	bi = NewLine([]byte{}, LOAD, []string{"two"}, nil, []uint8{0})
-//	b, err = Apply(b, bi, &st, &rs, context.TODO())
-//	if err != nil {
-//		t.Error(err)
-//	}
-//	l = len(b)
-//	if l != 0 {
-//		t.Errorf("expected empty remainder, got length %v: %v", l, b)
-//	}
-//
-//	rt = router.NewRouter()
-//	rt.Add("foo", "_")
-//	b = []byte{0x03}
-//	b = append(b, []byte("foo")...)
-//	//b = append(b, rt.ToBytes()...)
-//	b, err = Apply(b, rt.ToBytes(), &st, &rs, context.TODO())
-//	if err != nil {
-//		t.Error(err)
-//	}
-//	l = len(b)
-//	if l != 0 {
-//		t.Errorf("expected empty remainder, got length %v: %v", l, b)
-//	}
-//	loc := st.Where()
-//	if loc != "bar" {
-//		t.Errorf("expected where-string 'bar', got %v", loc)
-//	}
-//}
+func TestRunArgInstructions(t *testing.T) {
+	t.Skip("pending fix for separating router code from executing code")
+	st := state.NewState(5)
+	rs := TestResource{}
+
+	rt := router.NewRouter()
+	rt.Add("foo", "bar")
+	b := []byte{0x03}
+	b = append(b, []byte("foo")...)
+
+	bi := NewLine(rt.ToBytes(), LOAD, []string{"one"}, nil, []uint8{0})
+	bi = NewLine(bi, LOAD, []string{"two"}, nil, []uint8{3})
+	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
+	bi = NewLine(bi, MAP, []string{"two"}, nil, nil)
+	var err error
+	b, err = Apply(b, bi, &st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)	
+	}
+	l := len(b)
+	if l != 0 {
+		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+	}
+	loc := st.Where()
+	if loc != "bar" {
+		t.Errorf("expected where-state bar, got %v", loc)
+	}
+	m, err := st.Get()
+	if err != nil {
+		t.Fatal(err)	
+	}
+	r, err := rs.RenderTemplate(loc, m)
+	if err != nil {
+		t.Fatal(err) //f("expected error to generate template")
+	}
+	if r != "aiee" {
+		t.Fatalf("expected result 'aiee', got '%v'", r)
+	}
+	_, err = Run(bi, &st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)	
+	}
+	m, err = st.Get()
+	if err != nil {
+		t.Fatal(err)	
+	}
+	_, err = rs.RenderTemplate(loc, m)
+	if err != nil {
+		t.Fatal(err)	
+	}
+}
+
+func TestRunMoveAndBack(t *testing.T) {
+	t.Skip("pending fix for separating router code from executing code")
+	st := state.NewState(5)
+	rs := TestResource{}
+	rt := router.NewRouter()
+	rt.Add("foo", "bar")
+	b := []byte{0x03}
+	b = append(b, []byte("foo")...)
+	//b = append(b, rt.ToBytes()...)
+	bi := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
+
+	var err error
+	b, err = Apply(b, bi, &st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+	l := len(b)
+	if l != 0 {
+		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+	}
+
+	rt = router.NewRouter()
+	rt.Add("foo", "baz")
+	b = []byte{0x03}
+	b = append(b, []byte("foo")...)
+	b = append(b, rt.ToBytes()...)
+	bi = NewLine([]byte{}, LOAD, []string{"two"}, nil, []uint8{0})
+	b, err = Apply(b, bi, &st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+	l = len(b)
+	if l != 0 {
+		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+	}
+
+	rt = router.NewRouter()
+	rt.Add("foo", "_")
+	b = []byte{0x03}
+	b = append(b, []byte("foo")...)
+	//b = append(b, rt.ToBytes()...)
+	b, err = Apply(b, rt.ToBytes(), &st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+	l = len(b)
+	if l != 0 {
+		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+	}
+	loc := st.Where()
+	if loc != "bar" {
+		t.Errorf("expected where-string 'bar', got %v", loc)
+	}
+}
 
 func TestCatchAndBack(t *testing.T) {
 	st := state.NewState(5)
@@ -394,5 +400,26 @@ func TestCatchAndBack(t *testing.T) {
 	err = st.Map("one")
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+
+func TestHalt(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	b := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
+	b = NewLine(b, HALT, nil, nil, nil)
+	b = NewLine(b, MOVE, []string{"foo"}, nil, nil)
+	var err error
+	b, err = Run(b, &st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+	r := st.Where()
+	if r == "foo" {
+		t.Fatalf("Expected where-symbol not to be 'foo'")
+	}
+	if !bytes.Equal(b[:2], []byte{0x00, MOVE}) {
+		t.Fatalf("Expected MOVE instruction, found '%v'", b)
 	}
 }
