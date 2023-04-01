@@ -39,10 +39,10 @@ Multipage outputs, like listings, are handled using the _sink_ output constraint
 
 - first calculate what the rendered display size is when all symbol results that are _not_ sinks are resolved.
 - split and cache the list data within its semantic context, given the _sink_ limitation after rendering.
-- provide a `next` and `previous` menu item to browse the preparped pagination of the list data.
+- provide a `next` and `previous` menu item to browse the prepared pagination of the list data.
 
 
-### Virtual machine interface layout
+## Virtual machine interface layout
 
 This is the version `0` of the VM. That translates to  _highly experimental_.
 
