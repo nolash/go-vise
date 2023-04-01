@@ -126,6 +126,11 @@ func(st *State) FlagBitSize() uint32 {
 	return st.bitSize
 }
 
+// FlagBitSize reports the amount of bits available in the bit field index.
+func(st *State) FlagByteSize() uint8 {
+	return uint8(len(st.Flags))
+}
+
 // GetIndex scans a byte slice in same order as in storage, and returns the index of the first set bit.
 //
 // If the given byte slice is too small for the bit field bitsize, the check will terminate at end-of-data without error.

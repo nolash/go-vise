@@ -51,6 +51,7 @@ func (r *TestResource) Get(sym string) (string, error) {
 	case "three":
 		return "{{.one}} inky pinky {{.three}} blinky clyde {{.two}}", nil
 	}
+	panic(fmt.Sprintf("unknown symbol %s", sym))
 	return "", fmt.Errorf("unknown symbol %s", sym)
 }
 
@@ -89,7 +90,7 @@ func (r *TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 func TestRun(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := []byte{0x00, 0x01, 0x03}
+	b := []byte{0x00, MOVE, 0x03}
 	b = append(b, []byte("foo")...)
 	r, _, err := Run(b, st, &rs, context.TODO())
 	if err != nil {
@@ -337,5 +338,36 @@ func TestRunMoveAndBack(t *testing.T) {
 	loc := st.Where()
 	if loc != "bar" {
 		t.Errorf("expected where-string 'bar', got %v", loc)
+	}
+}
+
+func TestCatchAndBack(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	rt := router.NewRouter()
+	rt.Add("foo", "bar")
+	b := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
+	b = NewLine(b, CATCH, []string{"bar"}, []byte{0x04}, nil)
+	b = NewLine(b, MOVE, []string{"foo"}, nil, nil)
+	st, _, err := Run(b, st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+	r := st.Where()
+	if r != "foo" {
+		t.Errorf("expected where-symbol 'foo', got %v", r)
+	}
+
+	st.SetFlag(2)
+	b = NewLine([]byte{}, LOAD, []string{"two"}, nil, []uint8{0})
+	b = NewLine(b, CATCH, []string{"bar"}, []byte{0x04}, nil)
+	b = NewLine(b, MOVE, []string{"foo"}, nil, nil)
+	st, _, err = Run(b, st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+	r = st.Where()
+	if r != "bar" {
+		t.Errorf("expected where-symbol 'bar', got %v", r)
 	}
 }
