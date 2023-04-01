@@ -370,4 +370,14 @@ func TestCatchAndBack(t *testing.T) {
 	if r != "bar" {
 		t.Errorf("expected where-symbol 'bar', got %v", r)
 	}
+
+	st.Up()
+	r = st.Where()
+	if r != "foo" {
+		t.Errorf("expected where-symbol 'foo', got %v", r)
+	}
+	err = st.Map("one")
+	if err != nil {
+		t.Error(err)
+	}
 }
