@@ -26,6 +26,7 @@ type State struct {
 	CacheUseSize uint32 // Currently used bytes by all values in cache
 	Cache []map[string]string // All loaded cache items
 	CacheMap map[string]string // Mapped
+	Code []byte // Pending bytecode to execute
 	execPath []string // Command symbols stack
 	arg *string // Optional argument. Nil if not set.
 	sizes map[string]uint16 // Size limits for all loaded symbols.

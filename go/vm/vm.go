@@ -120,18 +120,11 @@ func RunCatch(instruction []byte, st state.State, rs resource.Resource, ctx cont
 	if err != nil {
 		return st, instruction, err
 	}
-	// TODO: perhaps check against the registered byte size
-	//l := st.FlagByteSize()
 	bitFieldSize := tail[0]
 	bitField := tail[1:1+bitFieldSize]
 	tail = tail[1+bitFieldSize:]
 	if st.GetIndex(bitField) {
 		log.Printf("catch at flag %v, moving to %v", bitField, head)
-//		r, err := rs.Get(head)
-//		if err != nil {
-//			return st, instruction, err
-//		}
-		//st.Add(head, r, 0)
 		st.Down(head)
 		tail = []byte{}
 	} 

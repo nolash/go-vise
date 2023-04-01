@@ -40,7 +40,7 @@ func (r *TestResource) getEachArg(ctx context.Context) (string, error) {
 	return r.state.PopArg()
 }
 
-func (r *TestResource) Get(sym string) (string, error) {
+func (r *TestResource) GetTemplate(sym string) (string, error) {
 	switch sym {
 	case "foo":
 		return "inky pinky blinky clyde", nil
@@ -55,8 +55,8 @@ func (r *TestResource) Get(sym string) (string, error) {
 	return "", fmt.Errorf("unknown symbol %s", sym)
 }
 
-func (r *TestResource) Render(sym string, values map[string]string) (string, error) {
-	v, err := r.Get(sym)
+func (r *TestResource) RenderTemplate(sym string, values map[string]string) (string, error) {
+	v, err := r.GetTemplate(sym)
 	if err != nil {
 		return "", err
 	}
@@ -85,6 +85,10 @@ func (r *TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 		return r.getEachArg, nil
 	}
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
+}
+
+func (r *TestResource) GetCode(sym string) ([]byte, error) {
+	return []byte{}, nil
 }
 
 func TestRun(t *testing.T) {
@@ -121,7 +125,7 @@ func TestRunLoadRender(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	r, err := rs.Render("foo", m)
+	r, err := rs.RenderTemplate("foo", m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -130,7 +134,7 @@ func TestRunLoadRender(t *testing.T) {
 		t.Errorf("Expected %v, got %v", []byte(expect), []byte(r))
 	}
 
-	r, err = rs.Render("bar", m)
+	r, err = rs.RenderTemplate("bar", m)
 	if err == nil {
 		t.Errorf("expected error for render of bar: %v" ,err)
 	}
@@ -146,7 +150,7 @@ func TestRunLoadRender(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	r, err = rs.Render("bar", m)
+	r, err = rs.RenderTemplate("bar", m)
 	if err != nil {
 		t.Error(err)
 	}
@@ -280,7 +284,7 @@ func TestRunArgInstructions(t *testing.T) {
 	if err != nil {
 		t.Error(err)	
 	}
-	r, err := rs.Render(loc, m)
+	r, err := rs.RenderTemplate(loc, m)
 	if err != nil {
 		t.Error(err)	
 	}
