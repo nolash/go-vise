@@ -9,7 +9,7 @@ Original motivation was to create a simple templating renderer for USSD clients,
 
 The VM defines the following opcode symbols:
 
-* `BACK` - Return to the previous execution frame (will fail if at top frame).
+* `BACK` - Return to the previous execution frame (will fail if at top frame). It leaves to the state of the execution layer to define what "previous" means.
 * `CATCH <symbol> <signal>` - Jump to symbol if signal is set (see `signal` below).
 * `CROAK <signal>` - Clear state and restart execution from tip if signal is set (see `signal` below).
 * `LOAD <symbol> <size>` - Execute the code symbol `symbol` and cache the data, constrained to the given `size`.
@@ -31,4 +31,3 @@ For example, in this example
 - param `three` is a _sink_.
 
 The renderer may use up to `256 - 120 - 5 - 12 = 119` bytes from the _sink_ when rendering the output.
-

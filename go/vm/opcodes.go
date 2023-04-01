@@ -12,7 +12,6 @@ const (
 	LOAD
 	RELOAD
 	MAP
-	SINK
 	MOVE
 	_MAX
 )
