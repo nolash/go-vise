@@ -72,10 +72,6 @@ func (en *Engine) Exec(input []byte, ctx context.Context) error {
 	if len(code) == 0 {
 		return fmt.Errorf("no code to execute")
 	}
-	err = en.st.SetInput(input)
-	if err != nil {
-		return err
-	}
 	code, err = vm.Run(code, en.st, en.rs, ctx)
 	en.st.SetCode(code)
 	return err
