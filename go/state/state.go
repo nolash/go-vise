@@ -18,6 +18,8 @@ import (
 // Symbols are loaded with individual size limitations. The limitations apply if a load symbol is updated. Symbols may be added with a 0-value for limits, called a "sink." If mapped, the sink will consume all net remaining size allowance unused by other symbols. Only one sink may be mapped per level.
 //
 // Symbol keys do not count towards cache size limitations.
+//
+// TODO factor out cache
 type State struct {
 	Flags []byte // Error state
 	CacheSize uint32 // Total allowed cumulative size of values in cache
@@ -32,21 +34,37 @@ type State struct {
 	//sizeIdx uint16
 }
 
-// NewState creates a new State object with bitSize number of error condition states.
-func NewState(bitSize uint32) State {
+func toByteSize(bitSize uint32) uint8 {
 	if bitSize == 0 {
-		panic("bitsize cannot be 0")
-	} 
+		return 0
+	}
 	n := bitSize % 8
 	if n > 0 {
 		bitSize += (8 - n)
 	}
+	return uint8(bitSize / 8)
+}
 
+// Retrieve the state of a state flag
+func getFlag(bitIndex uint32, bitField []byte) bool {
+	byteIndex := bitIndex / 8
+	localBitIndex := bitIndex % 8
+	b := bitField[byteIndex]
+	return (b & (1 << localBitIndex)) > 0
+}
+
+// NewState creates a new State object with bitSize number of error condition states.
+func NewState(bitSize uint32) State {
 	st := State{
-		Flags: make([]byte, bitSize / 8),
 		CacheSize: 0,
 		CacheUseSize: 0,
 		bitSize: bitSize,
+	}
+	byteSize := toByteSize(bitSize)
+	if byteSize > 0 {
+		st.Flags = make([]byte, byteSize) 
+	} else {
+		st.Flags = []byte{}
 	}
 	st.Down("")
 	return st
@@ -61,7 +79,7 @@ func(st *State) SetFlag(bitIndex uint32) (bool, error) {
 	if bitIndex + 1 > st.bitSize {
 		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.bitSize)
 	}
-	r :=st.getFlag(bitIndex)
+	r := getFlag(bitIndex, st.Flags)
 	if r {
 		return false, nil
 	}
@@ -82,7 +100,7 @@ func(st *State) ResetFlag(bitIndex uint32) (bool, error) {
 	if bitIndex + 1 > st.bitSize {
 		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.bitSize)
 	}
-	r :=st.getFlag(bitIndex)
+	r := getFlag(bitIndex, st.Flags)
 	if !r {
 		return false, nil
 	}
@@ -100,7 +118,46 @@ func(st *State) GetFlag(bitIndex uint32) (bool, error) {
 	if bitIndex + 1 > st.bitSize {
 		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.bitSize)
 	}
-	return st.getFlag(bitIndex), nil
+	return getFlag(bitIndex, st.Flags), nil
+}
+
+// FlagBitSize reports the amount of bits available in the bit field index.
+func(st *State) FlagBitSize() uint32 {
+	return st.bitSize
+}
+
+// GetIndex scans a byte slice in same order as in storage, and returns the index of the first set bit.
+//
+// If the given byte slice is too small for the bit field bitsize, the check will terminate at end-of-data without error.
+func(st *State) GetIndex(flags []byte) bool {
+	var globalIndex uint32
+	if st.bitSize == 0 {
+		return false
+	}
+	if len(flags) == 0 {
+		return false
+	}
+	var byteIndex uint8
+	var localIndex uint8
+	l := uint8(len(flags))
+	var i uint32
+	for i = 0; i < st.bitSize; i++ {
+		testVal := flags[byteIndex] & (1 << localIndex)
+		if (testVal & st.Flags[byteIndex]) > 0 {
+			return true
+		}
+		globalIndex += 1
+		if globalIndex % 8 == 0 {
+			byteIndex += 1
+			localIndex = 0
+			if byteIndex > (l - 1) {
+				return false				
+			}
+		} else {
+			localIndex += 1
+		}
+	}
+	return false
 }
 
 // WithCacheSize applies a cumulative cache size limitation for all cached items.
@@ -317,7 +374,6 @@ func(st *State) Size() (uint32, uint32) {
 
 // return 0-indexed frame number where key is defined. -1 if not defined
 func(st *State) frameOf(key string) int {
-	log.Printf("--- %s", key)
 	for i, m := range st.Cache {
 		for k, _ := range m {
 			if k == key {
@@ -347,10 +403,3 @@ func(st *State) resetCurrent() {
 	st.CacheMap = make(map[string]string)
 }
 
-// Retrieve the state of a state flag
-func(st *State) getFlag(bitIndex uint32) bool {
-	byteIndex := bitIndex / 8
-	localBitIndex := bitIndex % 8
-	b := st.Flags[byteIndex]
-	return (b & (1 << localBitIndex)) > 0
-}

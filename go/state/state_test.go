@@ -90,12 +90,47 @@ func TestStateFlags(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	v, err = st.SetFlag(19)
+	v, err = st.SetFlag(16)
 	if err != nil {
 		t.Error(err)
 	}
-	if !bytes.Equal(st.Flags[:3], []byte{0x04, 0x04, 0x08}) {
-		t.Errorf("Expected 0x020203, got %v", st.Flags[:3])
+	v, err = st.SetFlag(17)
+	if err == nil {
+		t.Errorf("Expected out of range for bit index 17")
+	}
+	if !bytes.Equal(st.Flags[:3], []byte{0x04, 0x04, 0x01}) {
+		t.Errorf("Expected 0x040401, got %v", st.Flags[:3])
+	}
+}
+
+func TestStateFlagFromSlice(t *testing.T) {
+	st := NewState(15)
+	_, _= st.SetFlag(2)
+	v := st.GetIndex([]byte{})
+	if v {
+		t.Errorf("Expected no match on empty compare")
+	}
+	v = st.GetIndex([]byte{0x01})
+	if v {
+		t.Errorf("Expected 0x01 not to match")
+	}
+	v = st.GetIndex([]byte{0x04})
+	if !v {
+		t.Errorf("Expected 0x04 to match")
+	}
+	_, _= st.SetFlag(12)
+	v = st.GetIndex([]byte{0x04})
+	if !v {
+		t.Errorf("Expected 0x04 to match")
+	}
+	v = st.GetIndex([]byte{0x00, 0x10})
+	if !v {
+		t.Errorf("Expected 0x1000 to match")
+	}
+	v, _ = st.ResetFlag(2)
+	v = st.GetIndex([]byte{0x00, 0x10})
+	if !v {
+		t.Errorf("Expected 0x1000 to matck")
 	}
 }
 
