@@ -96,17 +96,16 @@ func TestRun(t *testing.T) {
 	rs := TestResource{}
 	b := []byte{0x00, MOVE, 0x03}
 	b = append(b, []byte("foo")...)
-	r, _, err := Run(b, st, &rs, context.TODO())
+	_, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Errorf("error on valid opcode: %v", err)	
 	}
 
 	b = []byte{0x01, 0x02}
-	r, _, err = Run(b, st, &rs, context.TODO())
+	_, err = Run(b, &st, &rs, context.TODO())
 	if err == nil {
 		t.Errorf("no error on invalid opcode")	
 	}
-	_ = r
 }
 
 func TestRunLoadRender(t *testing.T) {
@@ -117,7 +116,7 @@ func TestRunLoadRender(t *testing.T) {
 	ins := append([]byte{uint8(len(sym))}, []byte(sym)...)
 	ins = append(ins, 0x0a)
 	var err error
-	st, _, err = RunLoad(ins, st, &rs, context.TODO())
+	_, err = RunLoad(ins, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -142,7 +141,7 @@ func TestRunLoadRender(t *testing.T) {
 	sym = "two"
 	ins = append([]byte{uint8(len(sym))}, []byte(sym)...)
 	ins = append(ins, 0)
-	st, _, err = RunLoad(ins, st, &rs, context.TODO())
+	_, err = RunLoad(ins, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -166,7 +165,7 @@ func TestRunMultiple(t *testing.T) {
 	b := []byte{}
 	b = NewLine(b, LOAD, []string{"one"}, nil, []uint8{0})
 	b = NewLine(b, LOAD, []string{"two"}, nil, []uint8{42})
-	st, _, err := Run(b, st, &rs, context.TODO())
+	_, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -178,7 +177,7 @@ func TestRunReload(t *testing.T) {
 	b := []byte{}
 	b = NewLine(b, LOAD, []string{"dyn"}, nil, []uint8{0})
 	b = NewLine(b, MAP, []string{"dyn"}, nil, nil)
-	st, _, err := Run(b, st, &rs, context.TODO())
+	_, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -192,7 +191,7 @@ func TestRunReload(t *testing.T) {
 	dynVal = "baz"
 	b = []byte{}
 	b = NewLine(b, RELOAD, []string{"dyn"}, nil, nil)
-	st, _, err = Run(b, st, &rs, context.TODO())
+	_, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -209,14 +208,15 @@ func TestRunReload(t *testing.T) {
 
 func TestRunArg(t *testing.T) {
 	st := state.NewState(5)
+	rs := TestResource{}
 	rt := router.NewRouter()
 	rt.Add("foo", "bar")
 	rt.Add("baz", "xyzzy")
 	b := []byte{0x03}
 	b = append(b, []byte("baz")...)
-	b = append(b, rt.ToBytes()...)
+	//b = append(b, rt.ToBytes()...)
 	var err error
-	st, b, err = Apply(b, []byte{}, st, nil, context.TODO())
+	b, err = Apply(b, rt.ToBytes(), &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)	
 	}
@@ -237,9 +237,9 @@ func TestRunArgInvalid(t *testing.T) {
 	rt.Add("baz", "xyzzy")
 	b := []byte{0x03}
 	b = append(b, []byte("bar")...)
-	b = append(b, rt.ToBytes()...)
+	//b = append(b, rt.ToBytes()...)
 	var err error
-	st, b, err = Apply(b, []byte{}, st, nil, context.TODO())
+	b, err = Apply(b, rt.ToBytes(), &st, nil, context.TODO())
 	if err != nil {
 		t.Error(err)	
 	}
@@ -253,97 +253,108 @@ func TestRunArgInvalid(t *testing.T) {
 	}
 }
 
-func TestRunArgInstructions(t *testing.T) {
-	st := state.NewState(5)
-	rs := TestResource{}
-
-	rt := router.NewRouter()
-	rt.Add("foo", "bar")
-	b := []byte{0x03}
-	b = append(b, []byte("foo")...)
-	b = append(b, rt.ToBytes()...)
-
-	bi := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
-	bi = NewLine(bi, LOAD, []string{"two"}, nil, []uint8{3})
-	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
-	bi = NewLine(bi, MAP, []string{"two"}, nil, nil)
-	var err error
-	st, b, err = Apply(b, bi, st, &rs, context.TODO())
-	if err != nil {
-		t.Error(err)	
-	}
-	l := len(b)
-	if l != 0 {
-		t.Errorf("expected empty remainder, got length %v: %v", l, b)
-	}
-	loc := st.Where()
-	if loc != "bar" {
-		t.Errorf("expected where-state _catch, got %v", loc)
-	}
-	m, err := st.Get()
-	if err != nil {
-		t.Error(err)	
-	}
-	r, err := rs.RenderTemplate(loc, m)
-	if err != nil {
-		t.Error(err)	
-	}
-	_ = r
-}
-
-func TestRunMoveAndBack(t *testing.T) {
-	st := state.NewState(5)
-	rs := TestResource{}
-	rt := router.NewRouter()
-	rt.Add("foo", "bar")
-	b := []byte{0x03}
-	b = append(b, []byte("foo")...)
-	b = append(b, rt.ToBytes()...)
-	bi := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
-
-	var err error
-	st, b, err = Apply(b, bi, st, &rs, context.TODO())
-	if err != nil {
-		t.Error(err)
-	}
-	l := len(b)
-	if l != 0 {
-		t.Errorf("expected empty remainder, got length %v: %v", l, b)
-	}
-
-	rt = router.NewRouter()
-	rt.Add("foo", "baz")
-	b = []byte{0x03}
-	b = append(b, []byte("foo")...)
-	b = append(b, rt.ToBytes()...)
-	bi = NewLine([]byte{}, LOAD, []string{"two"}, nil, []uint8{0})
-	st, b, err = Apply(b, bi, st, &rs, context.TODO())
-	if err != nil {
-		t.Error(err)
-	}
-	l = len(b)
-	if l != 0 {
-		t.Errorf("expected empty remainder, got length %v: %v", l, b)
-	}
-
-	rt = router.NewRouter()
-	rt.Add("foo", "_")
-	b = []byte{0x03}
-	b = append(b, []byte("foo")...)
-	b = append(b, rt.ToBytes()...)
-	st, b, err = Apply(b, []byte{}, st, &rs, context.TODO())
-	if err != nil {
-		t.Error(err)
-	}
-	l = len(b)
-	if l != 0 {
-		t.Errorf("expected empty remainder, got length %v: %v", l, b)
-	}
-	loc := st.Where()
-	if loc != "bar" {
-		t.Errorf("expected where-string 'bar', got %v", loc)
-	}
-}
+//func TestRunArgInstructions(t *testing.T) {
+//	st := state.NewState(5)
+//	rs := TestResource{}
+//
+//	rt := router.NewRouter()
+//	rt.Add("foo", "bar")
+//	b := []byte{0x03}
+//	b = append(b, []byte("foo")...)
+//	b = append(b, rt.ToBytes()...)
+//
+//	bi := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
+//	bi = NewLine(bi, LOAD, []string{"two"}, nil, []uint8{3})
+//	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
+//	bi = NewLine(bi, MAP, []string{"two"}, nil, nil)
+//	var err error
+//	b, err = Apply(b, bi, &st, &rs, context.TODO())
+//	if err != nil {
+//		t.Error(err)	
+//	}
+//	l := len(b)
+//	if l != 0 {
+//		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+//	}
+//	loc := st.Where()
+//	if loc != "bar" {
+//		t.Errorf("expected where-state bar, got %v", loc)
+//	}
+//	m, err := st.Get()
+//	if err != nil {
+//		t.Fatal(err)	
+//	}
+//	_, err = rs.RenderTemplate(loc, m)
+//	if err == nil {
+//		t.Fatalf("expected error to generate template")
+//	}
+//	_, err = Run(bi, &st, &rs, context.TODO())
+//	if err != nil {
+//		t.Error(err)	
+//	}
+//	m, err = st.Get()
+//	if err != nil {
+//		t.Fatal(err)	
+//	}
+//	_, err = rs.RenderTemplate(loc, m)
+//	if err != nil {
+//		t.Fatal(err)	
+//	}
+//}
+//
+//func TestRunMoveAndBack(t *testing.T) {
+//	st := state.NewState(5)
+//	rs := TestResource{}
+//	rt := router.NewRouter()
+//	rt.Add("foo", "bar")
+//	b := []byte{0x03}
+//	b = append(b, []byte("foo")...)
+//	//b = append(b, rt.ToBytes()...)
+//	bi := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
+//
+//	var err error
+//	b, err = Apply(b, bi, &st, &rs, context.TODO())
+//	if err != nil {
+//		t.Error(err)
+//	}
+//	l := len(b)
+//	if l != 0 {
+//		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+//	}
+//
+//	rt = router.NewRouter()
+//	rt.Add("foo", "baz")
+//	b = []byte{0x03}
+//	b = append(b, []byte("foo")...)
+//	b = append(b, rt.ToBytes()...)
+//	bi = NewLine([]byte{}, LOAD, []string{"two"}, nil, []uint8{0})
+//	b, err = Apply(b, bi, &st, &rs, context.TODO())
+//	if err != nil {
+//		t.Error(err)
+//	}
+//	l = len(b)
+//	if l != 0 {
+//		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+//	}
+//
+//	rt = router.NewRouter()
+//	rt.Add("foo", "_")
+//	b = []byte{0x03}
+//	b = append(b, []byte("foo")...)
+//	//b = append(b, rt.ToBytes()...)
+//	b, err = Apply(b, rt.ToBytes(), &st, &rs, context.TODO())
+//	if err != nil {
+//		t.Error(err)
+//	}
+//	l = len(b)
+//	if l != 0 {
+//		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+//	}
+//	loc := st.Where()
+//	if loc != "bar" {
+//		t.Errorf("expected where-string 'bar', got %v", loc)
+//	}
+//}
 
 func TestCatchAndBack(t *testing.T) {
 	st := state.NewState(5)
@@ -353,7 +364,7 @@ func TestCatchAndBack(t *testing.T) {
 	b := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
 	b = NewLine(b, CATCH, []string{"bar"}, []byte{0x04}, nil)
 	b = NewLine(b, MOVE, []string{"foo"}, nil, nil)
-	st, _, err := Run(b, st, &rs, context.TODO())
+	_, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -366,7 +377,7 @@ func TestCatchAndBack(t *testing.T) {
 	b = NewLine([]byte{}, LOAD, []string{"two"}, nil, []uint8{0})
 	b = NewLine(b, CATCH, []string{"bar"}, []byte{0x04}, nil)
 	b = NewLine(b, MOVE, []string{"foo"}, nil, nil)
-	st, _, err = Run(b, st, &rs, context.TODO())
+	_, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}

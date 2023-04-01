@@ -9,19 +9,19 @@ import (
 )
 
 type FsResource struct {
-	path string
+	Path string
 	ctx context.Context
 }
 
 func NewFsResource(path string, ctx context.Context) (FsResource) {
 	return FsResource{
-		path: path,
+		Path: path,
 		ctx: ctx,
 	}
 }
 
 func(fs FsResource) GetTemplate(sym string) (string, error) {
-	fp := path.Join(fs.path, sym)
+	fp := path.Join(fs.Path, sym)
 	r, err := ioutil.ReadFile(fp)
 	s := string(r)
 	return strings.TrimSpace(s), err

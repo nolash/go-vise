@@ -26,7 +26,7 @@ type State struct {
 	CacheUseSize uint32 // Currently used bytes by all values in cache
 	Cache []map[string]string // All loaded cache items
 	CacheMap map[string]string // Mapped
-	Code []byte // Pending bytecode to execute
+	code []byte // Pending bytecode to execute
 	execPath []string // Command symbols stack
 	arg *string // Optional argument. Nil if not set.
 	sizes map[string]uint16 // Size limits for all loaded symbols.
@@ -366,7 +366,7 @@ func(st *State) Check(key string) bool {
 	return st.frameOf(key) == -1
 }
 
-// Returns size used by values, and remaining size available
+// Size returns size used by values, and remaining size available
 func(st *State) Size() (uint32, uint32) {
 	var l int
 	var c uint16
@@ -376,6 +376,25 @@ func(st *State) Size() (uint32, uint32) {
 	}
 	r := uint32(l)
 	return r, uint32(c)-r
+}
+
+// Appendcode adds the given bytecode to the end of the existing code.
+func(st *State) AppendCode(b []byte) error {
+	st.code = append(st.code, b...)
+	log.Printf("code changed to %v", b)
+	return nil
+}
+
+// SetCode replaces the current bytecode with the given bytecode.
+func(st *State) SetCode(b []byte) {
+	log.Printf("code set to %v", b)
+	st.code = b
+}
+
+func(st *State) GetCode() ([]byte, error) {
+	b := st.code
+	st.code = []byte{}
+	return b, nil
 }
 
 // return 0-indexed frame number where key is defined. -1 if not defined
@@ -408,4 +427,3 @@ func(st *State) resetCurrent() {
 	st.sink = nil
 	st.CacheMap = make(map[string]string)
 }
-
