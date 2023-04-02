@@ -22,7 +22,7 @@ func main() {
 
 	ctx := context.Background()
 	en := engine.NewDefaultEngine(dir)
-	err := en.Init("root", ctx)
+	err := en.Init(root, ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "cannot init: %v\n", err)
 		os.Exit(1)
@@ -33,13 +33,13 @@ func main() {
 		reader := bufio.NewReader(os.Stdin)
 		in, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "cannot read input: %v", err)
+			fmt.Fprintf(os.Stderr, "cannot read input: %v\n", err)
 			os.Exit(1)
 		}
 		in = strings.TrimSpace(in)
 		err = en.Exec([]byte(in), ctx)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "execution terminated: %v", err)
+			fmt.Fprintf(os.Stderr, "execution terminated: %v\n", err)
 			os.Exit(1)
 		}
 		b := bytes.NewBuffer(nil)
