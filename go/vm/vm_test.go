@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"log"
 	"testing"
-	"text/template"
 	
 	"git.defalsify.org/festive/resource"
-//	"git.defalsify.org/festive/router"
 	"git.defalsify.org/festive/state"
 )
 
@@ -53,21 +51,7 @@ func (r *TestResource) GetTemplate(sym string) (string, error) {
 }
 
 func (r *TestResource) RenderTemplate(sym string, values map[string]string) (string, error) {
-	v, err := r.GetTemplate(sym)
-	if err != nil {
-		return "", err
-	}
-	tp, err := template.New("tester").Option("missingkey=error").Parse(v)
-	if err != nil {
-		return "", err
-	}
-
-	b := bytes.NewBuffer([]byte{})
-	err = tp.Execute(b, values)
-	if err != nil {
-		return "", err
-	}
-	return b.String(), err
+	return resource.DefaultRenderTemplate(r, sym, values)
 }
 
 func (r *TestResource) FuncFor(sym string) (resource.EntryFunc, error) {

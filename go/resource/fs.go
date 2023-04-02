@@ -1,22 +1,24 @@
 package resource
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
 type FsResource struct {
 	Path string
-	ctx context.Context
 }
 
-func NewFsResource(path string, ctx context.Context) (FsResource) {
+func NewFsResource(path string) (FsResource) {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		panic(err)
+	}
 	return FsResource{
-		Path: path,
-		ctx: ctx,
+		Path: absPath,
 	}
 }
 
@@ -28,13 +30,19 @@ func(fs FsResource) GetTemplate(sym string) (string, error) {
 }
 
 func(fs FsResource) RenderTemplate(sym string, values map[string]string) (string, error) {
-	return "", nil
+	return DefaultRenderTemplate(&fs, sym, values)
 }
 
 func(fs FsResource) GetCode(sym string) ([]byte, error) {
-	return []byte{}, nil
+	fb := sym + ".bin"
+	fp := path.Join(fs.Path, fb)
+	return ioutil.ReadFile(fp)
 }
 
 func(fs FsResource) FuncFor(sym string) (EntryFunc, error) {
 	return nil, fmt.Errorf("not implemented")
+}
+
+func(rs FsResource) String() string {
+	return fmt.Sprintf("fs resource at path: %s", rs.Path)
 }

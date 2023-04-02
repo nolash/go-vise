@@ -43,6 +43,9 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if len(code) == 0 {
+		return fmt.Errorf("no code found at resource %s", en.rs)
+	}
 	return en.st.AppendCode(code)
 }
 

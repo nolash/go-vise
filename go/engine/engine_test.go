@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
-	"text/template"
 	"testing"
 
 	"git.defalsify.org/festive/resource"
@@ -24,8 +23,8 @@ type FsWrapper struct {
 	st *state.State
 }
 
-func NewFsWrapper(path string, st *state.State, ctx context.Context) FsWrapper {
-	rs := resource.NewFsResource(path, ctx)
+func NewFsWrapper(path string, st *state.State) FsWrapper {
+	rs := resource.NewFsResource(path)
 	return FsWrapper {
 		&rs, 
 		st,
@@ -33,21 +32,7 @@ func NewFsWrapper(path string, st *state.State, ctx context.Context) FsWrapper {
 }
 
 func (r FsWrapper) RenderTemplate(sym string, values map[string]string) (string, error) {
-	v, err := r.GetTemplate(sym)
-	if err != nil {
-		return "", err
-	}
-	tp, err := template.New("tester").Option("missingkey=error").Parse(v)
-	if err != nil {
-		return "", err
-	}
-
-	b := bytes.NewBuffer([]byte{})
-	err = tp.Execute(b, values)
-	if err != nil {
-		return "", err
-	}
-	return b.String(), err
+	return resource.DefaultRenderTemplate(r, sym, values)	
 }
 
 func(fs FsWrapper) one(ctx context.Context) (string, error) {
@@ -84,7 +69,7 @@ func TestEngineInit(t *testing.T) {
 	st := state.NewState(17).WithCacheSize(1024)
 	generateTestData(t)
 	ctx := context.TODO()
-	rs := NewFsWrapper(dataDir, &st, ctx)
+	rs := NewFsWrapper(dataDir, &st)
 	en := NewEngine(&st, &rs)
 	err := en.Init("root", ctx)
 	if err != nil {
