@@ -32,21 +32,25 @@ func NewEngine(st *state.State, rs resource.Resource) Engine {
 //
 // It makes sure bootstrapping code has been executed, and that the exposed bytecode is ready for user input.
 func(en *Engine) Init(sym string, ctx context.Context) error {
-	b := vm.NewLine([]byte{}, vm.MOVE, []string{sym}, nil, nil)
+	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
 	var err error
-	_, err = vm.Run(b, en.st, en.rs, ctx)
+	b, err = vm.Run(b, en.st, en.rs, ctx)
 	if err != nil {
 		return err
 	}
-	location := en.st.Where()
-	code, err := en.rs.GetCode(location)
-	if err != nil {
-		return err
-	}
-	if len(code) == 0 {
-		return fmt.Errorf("no code found at resource %s", en.rs)
-	}
-	return en.st.AppendCode(code)
+//	location := en.st.Where()
+//	code, err := en.rs.GetCode(location)
+//	if err != nil {
+//		return err
+//	}
+//	if len(code) == 0 {
+//		return fmt.Errorf("no code found at resource %s", en.rs)
+//	}
+//
+//	code, err = vm.Run(code, en.st, en.rs, ctx)
+//
+	en.st.SetCode(b)
+	return nil
 }
 
 // Exec processes user input against the current state of the virtual machine environment.
@@ -96,6 +100,13 @@ func(en *Engine) WriteResult(w io.Writer) error {
 	r, err := en.rs.RenderTemplate(location, v)
 	if err != nil {
 		return err
+	}
+	m, err := en.rs.RenderMenu()
+	if err != nil {
+		return err
+	}
+	if len(m) > 0 {
+		r += "\n" + m
 	}
 	c, err := io.WriteString(w, r)
 	log.Printf("%v bytes written as result for %v", c, location)

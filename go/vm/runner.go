@@ -19,6 +19,7 @@ import (
 func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	running := true
 	for running {
+		log.Printf("execute code %x", b)
 		op, bb, err := opSplit(b)
 		if err != nil {
 			return b, err
@@ -39,6 +40,10 @@ func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) (
 			b, err = RunMove(b, st, rs, ctx)
 		case INCMP:
 			b, err = RunInCmp(b, st, rs, ctx)
+		case MSIZE:
+			b, err = RunMSize(b, st, rs, ctx)
+		case MOUT:
+			b, err = RunMOut(b, st, rs, ctx)
 		case HALT:
 			b, err = RunHalt(b, st, rs, ctx)
 			return b, err
@@ -149,6 +154,12 @@ func RunMove(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 		return b, err
 	}
 	st.Down(sym)
+	code, err := rs.GetCode(sym)
+	if err != nil {
+		return b, err
+	}
+	log.Printf("loaded additional code: %x", code)
+	b = append(b, code...)
 	return b, nil
 }
 
@@ -175,7 +186,12 @@ func RunInCmp(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 		_, err = st.SetFlag(state.FLAG_INMATCH)
 		st.Down(target)
 	}
-	log.Printf("b last %v", b)
+	code, err := rs.GetCode(target)
+	if err != nil {
+		return b, err
+	}
+	log.Printf("loaded additional code: %x", code)
+	b = append(b, code...)
 	return b, err
 }
 
@@ -191,6 +207,19 @@ func RunHalt(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 	return b, err
 }
 
+// RunMSize
+func RunMSize(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	return b, nil
+}
+
+func RunMOut(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	choice, title, b, err := ParseMOut(b)
+	if err != nil {
+		return b, err
+	}
+	err = rs.PutMenu(choice, title)
+	return b, err
+}
 
 // retrieve data for key
 func refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {

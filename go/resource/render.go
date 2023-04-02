@@ -22,3 +22,4 @@ func DefaultRenderTemplate(r Resource, sym string, values map[string]string) (st
 	}
 	return b.String(), err
 }
+

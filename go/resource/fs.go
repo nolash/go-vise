@@ -9,6 +9,7 @@ import (
 )
 
 type FsResource struct {
+	MenuResource
 	Path string
 }
 

@@ -15,7 +15,9 @@ const (
 	MOVE = 6
 	HALT = 7
 	INCMP = 8
-	_MAX = 8
+	MSIZE = 9
+	MOUT = 10
+	_MAX = 10
 )
 
 var (
@@ -29,5 +31,7 @@ var (
 		MOVE: "MOVE",
 		HALT: "HALT",
 		INCMP: "INCMP",
+		MSIZE: "MSIZE",
+		MOUT: "MOUT",
 	}
 )

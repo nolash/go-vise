@@ -83,6 +83,20 @@ func ToString(b []byte) (string, error) {
 			if err != nil {
 				return "", err
 			}
+		case MSIZE:
+			r, bb, err := ParseMSize(b)
+			b = bb
+			if err != nil {
+				return "", err
+			}
+			s = fmt.Sprintf("%s %v", s, r)
+		case MOUT:
+			r, v, bb, err := ParseMOut(b)
+			b = bb
+			if err != nil {
+				return "", err
+			}
+			s = fmt.Sprintf("%s %s \"%s\"", s, r, v)
 		}
 		s += "\n"
 		if len(b) == 0 {

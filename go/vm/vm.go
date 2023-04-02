@@ -47,6 +47,19 @@ func ParseInCmp(b []byte) (string, string, []byte, error) {
 	return parseTwoSym(b)
 }
 
+func ParseMSize(b []byte) (uint32, []byte, error) {
+	if len(b) < 1 {
+		return 0, b, fmt.Errorf("zero-length argument")
+	}
+	r := uint32(b[0])
+	b = b[1:]
+	return r, b, nil
+}
+
+func ParseMOut(b []byte) (string, string, []byte, error) {
+	return parseTwoSym(b)
+}
+
 func parseNoArg(b []byte) ([]byte, error) {
 	return b, nil
 }

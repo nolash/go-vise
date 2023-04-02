@@ -39,10 +39,16 @@ func(fs FsWrapper) one(ctx context.Context) (string, error) {
 	return "one", nil
 }
 
+func(fs FsWrapper) inky(ctx context.Context) (string, error) {
+	return "tinkywinky", nil
+}
+
 func(fs FsWrapper) FuncFor(sym string) (resource.EntryFunc, error) {
 	switch sym {
 	case "one":
 		return fs.one, nil
+	case "inky":
+		return fs.inky, nil
 	}
 	return nil, fmt.Errorf("function for %v not found", sym)
 }
@@ -93,6 +99,20 @@ func TestEngineInit(t *testing.T) {
 	}
 	r := st.Where()
 	if r != "foo" {
-		t.Fatalf("expected where-string 'foo', got %v", r)
+		t.Fatalf("expected where-string 'foo', got %s", r)
+	}
+	w = bytes.NewBuffer(nil)
+	err = en.WriteResult(w)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b = w.Bytes()
+	expect := `this is in foo
+
+it has more lines
+0:to foo
+1:go bar`
+	if !bytes.Equal(b, []byte(expect)) {
+		t.Fatalf("expected\n\t%s\ngot:\n\t%s\n", expect, b)
 	}
 }

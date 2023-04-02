@@ -17,8 +17,9 @@ The VM defines the following opcode symbols:
 * `MAP <symbol>` - Expose a code symbol previously loaded by `LOAD` to the rendering client. Roughly corresponds to the `global` directive in Python.
 * `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls. More detailed: After a `MOVE` call, a `BACK` call will return to the same execution frame, with the same symbols available, but all `MAP` calls will have to be repeated.
 * `HALT` - Stop execution. The remaining bytecode (typically, the routing code for the node) is returned to the invoking function.
-* `INCMP <arg> <symbol>` - Compare registered input to `arg` and and move to `symbol` node on match. Any consecutive matches will be ignored until `HALT` is called.
-
+* `INCMP <arg> <symbol>` - Compare registered input to `arg`. If match, it has the same side-effects as `MOVE`. In addition, any consecutive `INCMP` matches will be ignored until `HALT` is called.
+* `MSIZE <num>` - Set max display size of menu part to `num` bytes.
+* `MOUT <choice> <display>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
 
 ### External code
 
@@ -128,14 +129,15 @@ It expects all replacement symbols to be available at time of rendering, and has
 (Minimal, WIP)
 
 ```
-0008 03666f6f 03626172     # INCMP "foo" "bar" - move to node "bar" if input is "FOO"
-0001 0461696565 01 01      # CATCH "aiee" 1 1  - move to node "aiee" (and immediately halt) if input match flag (1) is not set (1)
-0003 04616263 020104       # LOAD "abc" 260    - execute code symbol "abc" with a result size limit of 260 (2 byte BE integer, 0x0104)
-0003 04646566 00           # LOAD "def" 0      - execute code symbol "abc" with no size limit (sink)
-0005 04616263              # MAP "abc"         - make "abc" available for renderer
-0007                       # HALT              - stop execution (require new input to continue)
-0006 03313233              # MOVE "123"        - move to node "123" (regardless of input)
-0007                       # HALT              - stop execution
+000a 03666f6f 06746f20666f6f  # MOUT "foo" "to foo" - display a menu entry for choice "foo", described by "to foo"
+0008 03666f6f 03626172        # INCMP "foo" "bar"   - move to node "bar" if input is "FOO"
+0001 0461696565 01 01         # CATCH "aiee" 1 1    - move to node "aiee" (and immediately halt) if input match flag (1) is not set (1)
+0003 04616263 020104          # LOAD "abc" 260      - execute code symbol "abc" with a result size limit of 260 (2 byte BE integer, 0x0104)
+0003 04646566 00              # LOAD "def" 0        - execute code symbol "abc" with no size limit (sink)
+0005 04616263                 # MAP "abc"           - make "abc" available for renderer
+0007                          # HALT                - stop execution (require new input to continue)
+0006 03313233                 # MOVE "123"          - move to node "123" (regardless of input)
+0007                          # HALT                - stop execution
 ```
 
 ## Development tools
