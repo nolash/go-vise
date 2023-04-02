@@ -9,10 +9,14 @@ import (
 	"text/template"
 	"testing"
 
-	testdataloader "github.com/peteole/testdata-loader"
-
-	"git.defalsify.org/festive/state"
 	"git.defalsify.org/festive/resource"
+	"git.defalsify.org/festive/state"
+	"git.defalsify.org/festive/testdata"
+)
+
+var (
+	dataGenerated bool = false
+	dataDir string = testdata.DataDir
 )
 
 type FsWrapper struct {
@@ -65,13 +69,24 @@ func(fs FsWrapper) GetCode(sym string) ([]byte, error) {
 	return r, err
 }
 
+func generateTestData(t *testing.T) {
+	if dataGenerated {
+		return
+	}
+	var err error
+	dataDir, err = testdata.Generate()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestEngineInit(t *testing.T) {
 	st := state.NewState(17).WithCacheSize(1024)
-	dir := path.Join(testdataloader.GetBasePath(), "testdata")
+	generateTestData(t)
 	ctx := context.TODO()
-	rs := NewFsWrapper(dir, &st, ctx)
+	rs := NewFsWrapper(dataDir, &st, ctx)
 	en := NewEngine(&st, &rs)
-	err := en.Init(ctx)
+	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,13 +100,14 @@ func TestEngineInit(t *testing.T) {
 	if !bytes.Equal(b, []byte("hello world")) {
 		t.Fatalf("expected result 'hello world', got %v", b)
 	}
-	input := []byte("ooo")
+
+	input := []byte("1")
 	err = en.Exec(input, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	r := st.Where()
-	if r != "bar" {
-		t.Fatalf("expected where-string 'bar', got %v", r)
+	if r != "foo" {
+		t.Fatalf("expected where-string 'foo', got %v", r)
 	}
 }

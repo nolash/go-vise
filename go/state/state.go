@@ -363,13 +363,13 @@ func(st *State) Size() (uint32, uint32) {
 // Appendcode adds the given bytecode to the end of the existing code.
 func(st *State) AppendCode(b []byte) error {
 	st.code = append(st.code, b...)
-	log.Printf("code changed to %v", b)
+	log.Printf("code changed to 0x%x", b)
 	return nil
 }
 
 // SetCode replaces the current bytecode with the given bytecode.
 func(st *State) SetCode(b []byte) {
-	log.Printf("code set to %v", b)
+	log.Printf("code set to 0x%x", b)
 	st.code = b
 }
 

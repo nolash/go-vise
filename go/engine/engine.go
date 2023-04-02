@@ -31,8 +31,8 @@ func NewEngine(st *state.State, rs resource.Resource) Engine {
 // Init must be explicitly called before using the Engine instance.
 //
 // It makes sure bootstrapping code has been executed, and that the exposed bytecode is ready for user input.
-func(en *Engine) Init(ctx context.Context) error {
-	b := vm.NewLine([]byte{}, vm.MOVE, []string{"root"}, nil, nil)
+func(en *Engine) Init(sym string, ctx context.Context) error {
+	b := vm.NewLine([]byte{}, vm.MOVE, []string{sym}, nil, nil)
 	var err error
 	_, err = vm.Run(b, en.st, en.rs, ctx)
 	if err != nil {
@@ -65,6 +65,7 @@ func (en *Engine) Exec(input []byte, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("new execution with input 0x%x (%v)", input, len(input))
 	code, err := en.st.GetCode()
 	if err != nil {
 		return err

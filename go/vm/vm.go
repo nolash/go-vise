@@ -29,7 +29,7 @@ func argFromBytes(input []byte) (string, []byte, error) {
 func Run(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	var err error
 	for len(instruction) > 0 {
-		log.Printf("instruction is now %v", instruction)
+		log.Printf("instruction is now 0x%x", instruction)
 		op := binary.BigEndian.Uint16(instruction[:2])
 		if op > _MAX {
 			return instruction, fmt.Errorf("opcode value %v out of range (%v)", op, _MAX)
