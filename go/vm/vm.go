@@ -2,215 +2,147 @@ package vm
 
 import (
 	"encoding/binary"
-	"context"
 	"fmt"
-	"log"
-
-	"git.defalsify.org/festive/resource"
-	"git.defalsify.org/festive/state"
 )
 
-//type Runner func(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error)
 
-func argFromBytes(input []byte) (string, []byte, error) {
-	if len(input) == 0 {
-		return "", input, fmt.Errorf("zero length input")
-	}
-	sz := input[0]
-	out := input[1:1+sz]
-	return string(out), input[1+sz:], nil
+func ParseLoad(b []byte) (string, uint32, []byte, error) {
+	return parseSymLen(b, LOAD)
 }
 
-// Run extracts individual op codes and arguments and executes them.
-//
-// Each step may update the state.
-//
-// On error, the remaining instructions will be returned. State will not be rolled back.
-func Run(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	var err error
-	for len(instruction) > 0 {
-		log.Printf("instruction is now 0x%x", instruction)
-		op := binary.BigEndian.Uint16(instruction[:2])
-		if op > _MAX {
-			return instruction, fmt.Errorf("opcode value %v out of range (%v)", op, _MAX)
-		}
-		switch op {
-		case CATCH:
-			instruction, err = RunCatch(instruction[2:], st, rs, ctx)
-		case CROAK:
-			instruction, err = RunCroak(instruction[2:], st, rs, ctx)
-		case LOAD:
-			instruction, err = RunLoad(instruction[2:], st, rs, ctx)
-		case RELOAD:
-			instruction, err = RunReload(instruction[2:], st, rs, ctx)
-		case MAP:
-			instruction, err = RunMap(instruction[2:], st, rs, ctx)
-		case MOVE:
-			instruction, err = RunMove(instruction[2:], st, rs, ctx)
-		case BACK:
-			instruction, err = RunBack(instruction[2:], st, rs, ctx)
-		case INCMP:
-			instruction, err = RunIncmp(instruction[2:], st, rs, ctx)
-		case HALT:
-			return RunHalt(instruction[2:], st, rs, ctx)
-		default:
-			err = fmt.Errorf("Unhandled state: %v", op)
-		}
-		if err != nil {
-			return instruction, err
-		}
-	}
-	return instruction, nil
+func ParseReload(b []byte) (string, []byte, error) {
+	return parseSym(b, RELOAD)
 }
 
-// RunMap executes the MAP opcode
-func RunMap(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
+func ParseMap(b []byte) (string, []byte, error) {
+	return parseSym(b, MAP)
+}
+
+func ParseMove(b []byte) (string, []byte, error) {
+	return parseSym(b, MOVE)
+}
+
+func ParseHalt(b []byte) ([]byte, error) {
+	return parseNoArg(b, HALT)
+}
+
+func ParseCatch(b []byte) (string, uint8, []byte, error) {
+	return parseSymSig(b, CATCH)
+}
+
+func ParseCroak(b []byte) (string, uint8, []byte, error) {
+	return parseSymSig(b, CROAK)
+}
+
+func ParseInCmp(b []byte) (string, string, []byte, error) {
+	return parseTwoSym(b, INCMP)
+}
+
+func parseNoArg(b []byte, op Opcode) ([]byte, error) {
+	return opCheck(b, op)
+}
+
+func parseSym(b []byte, op Opcode) (string, []byte, error) {
+	b, err := opCheck(b, op)
 	if err != nil {
-		return instruction, err
+		return "", b, err
 	}
-	err = st.Map(head)
-	return tail, err
+	sym, tail, err := instructionSplit(b)
+	if err != nil {
+		return "", b, err
+	}
+	return sym, tail, nil
 }
 
-// RunMap executes the CATCH opcode
-func RunCatch(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
+func parseTwoSym(b []byte, op Opcode) (string, string, []byte, error) {
+	b, err := opCheck(b, op)
 	if err != nil {
-		return instruction, err
+		return "", "", b, err
 	}
-	bitFieldSize := tail[0]
-	bitField := tail[1:1+bitFieldSize]
-	tail = tail[1+bitFieldSize:]
-	matchMode := tail[0] // matchmode 1 is match NOT set bit
+	symOne, tail, err := instructionSplit(b)
+	if err != nil {
+		return "", "", b, err
+	}
+	symTwo, tail, err := instructionSplit(tail)
+	if err != nil {
+		return "", "", tail, err
+	}
+	return symOne, symTwo, tail, nil
+}
+
+func parseSymLen(b []byte, op Opcode) (string, uint32, []byte, error) {
+	b, err := opCheck(b, op)
+	if err != nil {
+		return "", 0, b, err
+	}
+	sym, tail, err := instructionSplit(b)
+	if err != nil {
+		return "", 0, b, err
+	}
+	sz, tail, err := intSplit(tail)
+	if err != nil {
+		return "", 0, b, err
+	}
+	return sym, sz, tail, nil
+}
+
+func parseSymSig(b []byte, op Opcode) (string, uint8, []byte, error) {
+	b, err := opCheck(b, op)
+	if err != nil {
+		return "", 0, b, err
+	}
+	sym, tail, err := instructionSplit(b)
+	if err != nil {
+		return "", 0, b, err
+	}
+	if len(tail) == 0 {
+		return "", 0, b, fmt.Errorf("instruction too short")
+	}
+	n := tail[0]
 	tail = tail[1:]
-	match := false
-	if matchMode > 0 {
-		if !st.GetIndex(bitField) {
-			match = true
+	return sym, n, tail, nil
+}
+
+// NewLine creates a new instruction line for the VM.
+func NewLine(instructionList []byte, instruction uint16, strargs []string, byteargs []byte, numargs []uint8) []byte {
+	if instructionList == nil {
+		instructionList = []byte{}
+	}
+	b := []byte{0x00, 0x00}
+	binary.BigEndian.PutUint16(b, instruction)
+	for _, arg := range strargs {
+		b = append(b, uint8(len(arg)))
+		b = append(b, []byte(arg)...)
+	}
+	if byteargs != nil {
+		b = append(b, uint8(len(byteargs)))
+		b = append(b, byteargs...)
+	}
+	if numargs != nil {
+		b = append(b, numargs...)
+	}
+	return append(instructionList, b...)
+}
+
+func intSplit(b []byte) (uint32, []byte, error) {
+	l := uint8(b[0])
+	sz := uint32(l)
+	b = b[1:]
+	if l > 0 {
+		r := []byte{0, 0, 0, 0}
+		c := 0
+		ll := 4 - l
+		var i uint8
+		for i = 0; i < 4; i++ {
+			if i >= ll {
+				r[i] = b[c]
+				c += 1
+			}
 		}
-	} else if st.GetIndex(bitField) {
-		match = true	
+		sz = binary.BigEndian.Uint32(r)
+		b = b[l:]
 	}
-
-	if match {
-		log.Printf("catch at flag %v, moving to %v", bitField, head)
-		st.Down(head)
-		tail = []byte{}
-	} 
-	return tail, nil
-}
-
-// RunMap executes the CROAK opcode
-func RunCroak(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
-	if err != nil {
-		return instruction, err
-	}
-	_ = head
-	_ = tail
-	st.Reset()
-	return []byte{}, nil
-}
-
-// RunLoad executes the LOAD opcode
-func RunLoad(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
-	if err != nil {
-		return instruction, err
-	}
-	if !st.Check(head) {
-		return instruction, fmt.Errorf("key %v already loaded", head)
-	}
-	sz := uint16(tail[0])
-	tail = tail[1:]
-
-	r, err := refresh(head, rs, ctx)
-	if err != nil {
-		return tail, err
-	}
-	err = st.Add(head, r, sz)
-	return tail, err
-}
-
-// RunLoad executes the RELOAD opcode
-func RunReload(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
-	if err != nil {
-		return instruction, err
-	}
-	r, err := refresh(head, rs, ctx)
-	if err != nil {
-		return tail, err
-	}
-	st.Update(head, r)
-	return tail, nil
-}
-
-// RunLoad executes the MOVE opcode
-func RunMove(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
-	if err != nil {
-		return instruction, err
-	}
-	st.Down(head)
-	return tail, nil
-}
-
-// RunLoad executes the BACK opcode
-func RunBack(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	st.Up()
-	return instruction, nil
-}
-
-// RunIncmp executes the INCMP opcode
-func RunIncmp(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
-	if err != nil {
-		return instruction, err
-	}
-	sym, tail, err := instructionSplit(tail)
-	if err != nil {
-		return instruction, err
-	}
-	v, err := st.GetFlag(state.FLAG_INMATCH)
-	if err != nil {
-		return tail, err
-	}
-	if v {
-		return tail, nil
-	}
-	input, err := st.GetInput()
-	if err != nil {
-		return tail, err
-	}
-	log.Printf("checking input %v %v", input, head)
-	if head == string(input) {
-		log.Printf("input match for '%s'", input)
-		_, err = st.SetFlag(state.FLAG_INMATCH)
-		st.Down(sym)
-	}
-	return tail, err
-}
-
-// RunHalt executes the HALT opcode
-func RunHalt(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	log.Printf("found HALT, stopping")
-	_, err := st.ResetFlag(state.FLAG_INMATCH)
-	return instruction, err
-}
-
-
-// retrieve data for key
-func refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
-	fn, err := rs.FuncFor(key)
-	if err != nil {
-		return "", err
-	}
-	if fn == nil {
-		return "", fmt.Errorf("no retrieve function for external symbol %v", key)
-	}
-	return fn(ctx)
+	return sz, b, nil
 }
 
 // split instruction into symbol and arguments
@@ -228,4 +160,27 @@ func instructionSplit(b []byte) (string, []byte, error) {
 	}
 	r := string(b[1:1+sz])
 	return r, b[1+sz:], nil
+}
+
+func opCheck(b []byte, opIn Opcode) ([]byte, error) {
+	op, b, err := opSplit(b)
+	if err != nil {
+		return b, err
+	}
+	if op != opIn {
+		return b, fmt.Errorf("not a %v instruction", op)
+	}
+	return b, nil
+}
+
+func opSplit(b []byte) (Opcode, []byte, error) {
+	l := len(b)
+	if l < 2 {
+		return 0, b, fmt.Errorf("input size %v too short for opcode", l)
+	}
+	op := binary.BigEndian.Uint16(b)
+	if op > _MAX {
+		return 0, b, fmt.Errorf("invalid opcode %v", op)
+	}
+	return Opcode(op), b[2:], nil
 }
