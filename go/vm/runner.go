@@ -38,8 +38,6 @@ func Run(instruction []byte, st *state.State, rs resource.Resource, ctx context.
 			instruction, err = RunMap(instruction[2:], st, rs, ctx)
 		case MOVE:
 			instruction, err = RunMove(instruction[2:], st, rs, ctx)
-		case BACK:
-			instruction, err = RunBack(instruction[2:], st, rs, ctx)
 		case INCMP:
 			instruction, err = RunIncmp(instruction[2:], st, rs, ctx)
 		case HALT:

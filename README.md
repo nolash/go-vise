@@ -10,7 +10,6 @@ Original motivation was to create a simple templating renderer for USSD clients,
 
 The VM defines the following opcode symbols:
 
-* `BACK` - Return to the previous execution frame (will fail if at top frame). It leaves to the state of the execution layer to define what "previous" means.
 * `CATCH <symbol> <signal>` - Jump to symbol if signal is set (see `signals` below).
 * `CROAK <signal>` - Clear state and restart execution from top if signal is set (see `signals` below).
 * `LOAD <symbol> <size>` - Execute the code symbol `symbol` and cache the data, constrained to the given `size`. Can be exposed with `MAP` within scope, 

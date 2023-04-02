@@ -6,7 +6,7 @@ type Opcode uint16
 
 // VM Opcodes
 const (
-	BACK = 0
+	NOOP = 0
 	CATCH = 1
 	CROAK = 2
 	LOAD = 3
