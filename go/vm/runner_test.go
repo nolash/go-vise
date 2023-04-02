@@ -80,11 +80,13 @@ func(r *TestResource) GetCode(sym string) ([]byte, error) {
 func TestRun(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := []byte{0x00, MOVE, 0x03}
-	b = append(b, []byte("foo")...)
+
+	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
+	//b := []byte{0x00, MOVE, 0x03}
+	//b = append(b, []byte("foo")...)
 	_, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
-		t.Errorf("error on valid opcode: %v", err)	
+		t.Errorf("run error: %v", err)	
 	}
 
 	b = []byte{0x01, 0x02}
@@ -98,11 +100,10 @@ func TestRunLoadRender(t *testing.T) {
 	st := state.NewState(5)
 	st.Down("barbarbar")
 	rs := TestResource{}
-	sym := "one"
-	ins := append([]byte{uint8(len(sym))}, []byte(sym)...)
-	ins = append(ins, 0x0a)
+
 	var err error
-	_, err = RunLoad(ins, &st, &rs, context.TODO())
+	b := NewLine(nil, LOAD, []string{"one"}, []byte{0x0a}, nil)
+	b, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -124,10 +125,13 @@ func TestRunLoadRender(t *testing.T) {
 		t.Errorf("expected error for render of bar: %v" ,err)
 	}
 
-	sym = "two"
-	ins = append([]byte{uint8(len(sym))}, []byte(sym)...)
-	ins = append(ins, 0)
-	_, err = RunLoad(ins, &st, &rs, context.TODO())
+	b = NewLine(nil, LOAD, []string{"two"}, []byte{0x0a}, nil)
+	b, err = Run(b, &st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)
+	}
+	b = NewLine(nil, MAP, []string{"one"}, nil, nil)
+	_, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
@@ -148,20 +152,21 @@ func TestRunLoadRender(t *testing.T) {
 func TestRunMultiple(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := []byte{}
-	b = NewLine(b, LOAD, []string{"one"}, nil, []uint8{0})
-	b = NewLine(b, LOAD, []string{"two"}, nil, []uint8{42})
-	_, err := Run(b, &st, &rs, context.TODO())
+	b := NewLine(nil, LOAD, []string{"one"}, []byte{0x00}, nil)
+	b = NewLine(b, LOAD, []string{"two"}, []byte{42}, nil)
+	b, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
+	}
+	if len(b) > 0 {
+		t.Errorf("expected empty code")
 	}
 }
 
 func TestRunReload(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := []byte{}
-	b = NewLine(b, LOAD, []string{"dyn"}, nil, []uint8{0})
+	b := NewLine(nil, LOAD, []string{"dyn"}, nil, []uint8{0})
 	b = NewLine(b, MAP, []string{"dyn"}, nil, nil)
 	_, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
@@ -242,8 +247,8 @@ func TestRunInputHandler(t *testing.T) {
 
 	bi := NewLine([]byte{}, INCMP, []string{"bar", "aiee"}, nil, nil)
 	bi = NewLine(bi, INCMP, []string{"baz", "foo"}, nil, nil)
-	bi = NewLine(bi, LOAD, []string{"one"}, nil, []uint8{0})
-	bi = NewLine(bi, LOAD, []string{"two"}, nil, []uint8{3})
+	bi = NewLine(bi, LOAD, []string{"one"}, []byte{0x00}, nil)
+	bi = NewLine(bi, LOAD, []string{"two"}, []byte{0x03}, nil)
 	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
 	bi = NewLine(bi, MAP, []string{"two"}, nil, nil)
 

@@ -3,50 +3,55 @@ package vm
 import (
 	"encoding/binary"
 	"fmt"
+
+	"git.defalsify.org/festive/state"
 )
 
+func Parse(b []byte) (Opcode, []byte, error) {
+	op, b, err := opSplit(b)
+	if err != nil {
+		return NOOP, b, err
+	}
+	return op, b, nil
+}
 
 func ParseLoad(b []byte) (string, uint32, []byte, error) {
-	return parseSymLen(b, LOAD)
+	return parseSymLen(b)
 }
 
 func ParseReload(b []byte) (string, []byte, error) {
-	return parseSym(b, RELOAD)
+	return parseSym(b)
 }
 
 func ParseMap(b []byte) (string, []byte, error) {
-	return parseSym(b, MAP)
+	return parseSym(b)
 }
 
 func ParseMove(b []byte) (string, []byte, error) {
-	return parseSym(b, MOVE)
+	return parseSym(b)
 }
 
 func ParseHalt(b []byte) ([]byte, error) {
-	return parseNoArg(b, HALT)
+	return parseNoArg(b)
 }
 
-func ParseCatch(b []byte) (string, uint8, []byte, error) {
-	return parseSymSig(b, CATCH)
+func ParseCatch(b []byte) (string, uint32, bool, []byte, error) {
+	return parseSymSig(b)
 }
 
-func ParseCroak(b []byte) (string, uint8, []byte, error) {
-	return parseSymSig(b, CROAK)
+func ParseCroak(b []byte) (uint32, bool, []byte, error) {
+	return parseSig(b)
 }
 
 func ParseInCmp(b []byte) (string, string, []byte, error) {
-	return parseTwoSym(b, INCMP)
+	return parseTwoSym(b)
 }
 
-func parseNoArg(b []byte, op Opcode) ([]byte, error) {
-	return opCheck(b, op)
+func parseNoArg(b []byte) ([]byte, error) {
+	return b, nil
 }
 
-func parseSym(b []byte, op Opcode) (string, []byte, error) {
-	b, err := opCheck(b, op)
-	if err != nil {
-		return "", b, err
-	}
+func parseSym(b []byte) (string, []byte, error) {
 	sym, tail, err := instructionSplit(b)
 	if err != nil {
 		return "", b, err
@@ -54,11 +59,7 @@ func parseSym(b []byte, op Opcode) (string, []byte, error) {
 	return sym, tail, nil
 }
 
-func parseTwoSym(b []byte, op Opcode) (string, string, []byte, error) {
-	b, err := opCheck(b, op)
-	if err != nil {
-		return "", "", b, err
-	}
+func parseTwoSym(b []byte) (string, string, []byte, error) {
 	symOne, tail, err := instructionSplit(b)
 	if err != nil {
 		return "", "", b, err
@@ -70,11 +71,7 @@ func parseTwoSym(b []byte, op Opcode) (string, string, []byte, error) {
 	return symOne, symTwo, tail, nil
 }
 
-func parseSymLen(b []byte, op Opcode) (string, uint32, []byte, error) {
-	b, err := opCheck(b, op)
-	if err != nil {
-		return "", 0, b, err
-	}
+func parseSymLen(b []byte) (string, uint32, []byte, error) {
 	sym, tail, err := instructionSplit(b)
 	if err != nil {
 		return "", 0, b, err
@@ -86,21 +83,51 @@ func parseSymLen(b []byte, op Opcode) (string, uint32, []byte, error) {
 	return sym, sz, tail, nil
 }
 
-func parseSymSig(b []byte, op Opcode) (string, uint8, []byte, error) {
-	b, err := opCheck(b, op)
-	if err != nil {
-		return "", 0, b, err
-	}
+func parseSymSig(b []byte) (string, uint32, bool, []byte, error) {
 	sym, tail, err := instructionSplit(b)
 	if err != nil {
-		return "", 0, b, err
+		return "", 0, false, b, err
+	}
+	sig, tail, err := intSplit(tail)
+	if err != nil {
+		return "", 0, false, b, err
 	}
 	if len(tail) == 0 {
-		return "", 0, b, fmt.Errorf("instruction too short")
+		return "", 0, false, b, fmt.Errorf("instruction too short")
 	}
-	n := tail[0]
+	matchmode := tail[0] > 0
 	tail = tail[1:]
-	return sym, n, tail, nil
+	
+	return sym, sig, matchmode, tail, nil
+}
+
+func parseSig(b []byte) (uint32, bool, []byte, error) {
+	sig, b, err := intSplit(b)
+	if err != nil {
+		return 0, false, b, err
+	}
+	if len(b) == 0 {
+		return 0, false, b, fmt.Errorf("instruction too short")
+	}
+	matchmode := b[0] > 0
+	b = b[1:]
+	
+	return sig, matchmode, b, nil
+}
+
+func matchFlag(st *state.State, sig uint32, invertMatch bool) (bool, error) {
+	r, err := st.GetFlag(sig)
+	if err != nil {
+		return false, err
+	}
+	if invertMatch {
+		if !r {
+			return true, nil
+		}
+	} else if r {
+		return true, nil
+	}
+	return false, nil
 }
 
 // NewLine creates a new instruction line for the VM.
@@ -122,6 +149,13 @@ func NewLine(instructionList []byte, instruction uint16, strargs []string, bytea
 		b = append(b, numargs...)
 	}
 	return append(instructionList, b...)
+}
+
+func byteSplit(b []byte) ([]byte, []byte, error) {
+	bitFieldSize := b[0]
+	bitField := b[1:1+bitFieldSize]
+	b = b[1+bitFieldSize:]
+	return bitField, b, nil
 }
 
 func intSplit(b []byte) (uint32, []byte, error) {
@@ -163,10 +197,12 @@ func instructionSplit(b []byte) (string, []byte, error) {
 }
 
 func opCheck(b []byte, opIn Opcode) ([]byte, error) {
-	op, b, err := opSplit(b)
+	var bb []byte
+	op, bb, err := opSplit(b)
 	if err != nil {
 		return b, err
 	}
+	b = bb
 	if op != opIn {
 		return b, fmt.Errorf("not a %v instruction", op)
 	}

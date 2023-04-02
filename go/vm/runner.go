@@ -1,7 +1,6 @@
 package vm
 
 import (
-	"encoding/binary"
 	"context"
 	"fmt"
 	"log"
@@ -17,176 +16,183 @@ import (
 // Each step may update the state.
 //
 // On error, the remaining instructions will be returned. State will not be rolled back.
-func Run(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	var err error
-	for len(instruction) > 0 {
-		log.Printf("instruction is now 0x%x", instruction)
-		op := binary.BigEndian.Uint16(instruction[:2])
-		if op > _MAX {
-			return instruction, fmt.Errorf("opcode value %v out of range (%v)", op, _MAX)
+func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	running := true
+	for running {
+		log.Printf("code before 0x%x", b)
+		op, bb, err := opSplit(b)
+		if err != nil {
+			return b, err
 		}
+		b = bb
+		log.Printf("code after 0x%x", b)
 		switch op {
 		case CATCH:
-			instruction, err = RunCatch(instruction[2:], st, rs, ctx)
+			b, err = RunCatch(b, st, rs, ctx)
 		case CROAK:
-			instruction, err = RunCroak(instruction[2:], st, rs, ctx)
+			b, err = RunCroak(b, st, rs, ctx)
 		case LOAD:
-			instruction, err = RunLoad(instruction[2:], st, rs, ctx)
+			b, err = RunLoad(b, st, rs, ctx)
 		case RELOAD:
-			instruction, err = RunReload(instruction[2:], st, rs, ctx)
+			b, err = RunReload(b, st, rs, ctx)
 		case MAP:
-			instruction, err = RunMap(instruction[2:], st, rs, ctx)
+			b, err = RunMap(b, st, rs, ctx)
 		case MOVE:
-			instruction, err = RunMove(instruction[2:], st, rs, ctx)
+			b, err = RunMove(b, st, rs, ctx)
 		case INCMP:
-			instruction, err = RunIncmp(instruction[2:], st, rs, ctx)
+			b, err = RunInCmp(b, st, rs, ctx)
+			log.Printf("bb %v", b)
 		case HALT:
-			return RunHalt(instruction[2:], st, rs, ctx)
+			b, err = RunHalt(b, st, rs, ctx)
+			return b, err
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
 		}
 		if err != nil {
-			return instruction, err
+			return b, err
+		}
+		log.Printf("aa %v", b)
+		if len(b) == 0 {
+			return []byte{}, nil
 		}
 	}
-	return instruction, nil
+	return b, nil
 }
 
 // RunMap executes the MAP opcode
-func RunMap(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
-	if err != nil {
-		return instruction, err
-	}
-	err = st.Map(head)
-	return tail, err
+func RunMap(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	sym, b, err := ParseMap(b)
+	err = st.Map(sym)
+	return b, err
 }
 
 // RunMap executes the CATCH opcode
-func RunCatch(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
+func RunCatch(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	sym, sig, mode, b, err := ParseCatch(b)
 	if err != nil {
-		return instruction, err
+		return b, err
 	}
-	bitFieldSize := tail[0]
-	bitField := tail[1:1+bitFieldSize]
-	tail = tail[1+bitFieldSize:]
-	matchMode := tail[0] // matchmode 1 is match NOT set bit
-	tail = tail[1:]
-	match := false
-	if matchMode > 0 {
-		if !st.GetIndex(bitField) {
-			match = true
-		}
-	} else if st.GetIndex(bitField) {
-		match = true	
+	r, err := matchFlag(st, sig, mode)
+	if err != nil {
+		return b, err
 	}
-
-	if match {
-		log.Printf("catch at flag %v, moving to %v", bitField, head)
-		st.Down(head)
-		tail = []byte{}
+	if r {
+		log.Printf("catch at flag %v, moving to %v", sig, sym) //bitField, d)
+		st.Down(sym)
+		b = []byte{}
 	} 
-	return tail, nil
+	return b, nil
 }
 
 // RunMap executes the CROAK opcode
-func RunCroak(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
+func RunCroak(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	sig, mode, b, err := ParseCroak(b)
 	if err != nil {
-		return instruction, err
+		return b, err
 	}
-	_ = head
-	_ = tail
-	st.Reset()
+	r, err := matchFlag(st, sig, mode)
+	if err != nil {
+		return b, err
+	}
+	if r {
+		log.Printf("croak at flag %v, purging and moving to top", sig)
+		st.Reset()
+		b = []byte{}
+	}
 	return []byte{}, nil
 }
 
 // RunLoad executes the LOAD opcode
-func RunLoad(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
+func RunLoad(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+//	head, tail, err := instructionSplit(b)
+//	if err != nil {
+//		return b, err
+//	}
+//	if !st.Check(head) {
+//		return b, fmt.Errorf("key %v already loaded", head)
+//	}
+//	sz := uint16(tail[0])
+//	tail = tail[1:]
+	sym, sz, b, err := ParseLoad(b)
 	if err != nil {
-		return instruction, err
+		return b, err
 	}
-	if !st.Check(head) {
-		return instruction, fmt.Errorf("key %v already loaded", head)
-	}
-	sz := uint16(tail[0])
-	tail = tail[1:]
 
-	r, err := refresh(head, rs, ctx)
+	r, err := refresh(sym, rs, ctx)
 	if err != nil {
-		return tail, err
+		return b, err
 	}
-	err = st.Add(head, r, sz)
-	return tail, err
+	err = st.Add(sym, r, uint16(sz))
+	return b, err
 }
 
 // RunLoad executes the RELOAD opcode
-func RunReload(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
+func RunReload(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+//	head, tail, err := instructionSplit(b)
+//	if err != nil {
+//		return b, err
+//	}
+	sym, b, err := ParseReload(b)
 	if err != nil {
-		return instruction, err
+		return b, err
 	}
-	r, err := refresh(head, rs, ctx)
+
+	r, err := refresh(sym, rs, ctx)
 	if err != nil {
-		return tail, err
+		return b, err
 	}
-	st.Update(head, r)
-	return tail, nil
+	st.Update(sym, r)
+	return b, nil
 }
 
 // RunLoad executes the MOVE opcode
-func RunMove(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
+func RunMove(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	sym, b, err := ParseMove(b)
+//	head, tail, err := instructionSplit(b)
 	if err != nil {
-		return instruction, err
+		return b, err
 	}
-	st.Down(head)
-	return tail, nil
-}
-
-// RunLoad executes the BACK opcode
-func RunBack(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	st.Up()
-	return instruction, nil
+	st.Down(sym)
+	return b, nil
 }
 
 // RunIncmp executes the INCMP opcode
-func RunIncmp(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	head, tail, err := instructionSplit(instruction)
+func RunInCmp(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	//head, tail, err := instructionSplit(b)
+	sym, target, b, err := ParseInCmp(b)
 	if err != nil {
-		return instruction, err
-	}
-	sym, tail, err := instructionSplit(tail)
-	if err != nil {
-		return instruction, err
+		return b, err
 	}
 	v, err := st.GetFlag(state.FLAG_INMATCH)
 	if err != nil {
-		return tail, err
+		return b, err
 	}
 	if v {
-		return tail, nil
+		return b, nil
 	}
 	input, err := st.GetInput()
 	if err != nil {
-		return tail, err
+		return b, err
 	}
-	log.Printf("checking input %v %v", input, head)
-	if head == string(input) {
+	if sym == string(input) {
 		log.Printf("input match for '%s'", input)
 		_, err = st.SetFlag(state.FLAG_INMATCH)
-		st.Down(sym)
+		st.Down(target)
 	}
-	return tail, err
+	log.Printf("b last %v", b)
+	return b, err
 }
 
 // RunHalt executes the HALT opcode
-func RunHalt(instruction []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func RunHalt(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	var err error
+	b, err = ParseHalt(b)
+	if err != nil {
+		return b, err
+	}
 	log.Printf("found HALT, stopping")
-	_, err := st.ResetFlag(state.FLAG_INMATCH)
-	return instruction, err
+	_, err = st.ResetFlag(state.FLAG_INMATCH)
+	return b, err
 }
 
 
