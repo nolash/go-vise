@@ -17,3 +17,17 @@ const (
 	INCMP = 8
 	_MAX = 8
 )
+
+var (
+	OpcodeString = map[Opcode]string{
+		NOOP: "NOOP",
+		CATCH: "CATCH",
+		CROAK: "CROAK",
+		LOAD: "LOAD",
+		RELOAD: "RELOAD",
+		MAP: "MAP",
+		MOVE: "MOVE",
+		HALT: "HALT",
+		INCMP: "INCMP",
+	}
+)

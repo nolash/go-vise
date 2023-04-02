@@ -7,7 +7,7 @@ import (
 	"git.defalsify.org/festive/state"
 )
 
-func Parse(b []byte) (Opcode, []byte, error) {
+func ParseOp(b []byte) (Opcode, []byte, error) {
 	op, b, err := opSplit(b)
 	if err != nil {
 		return NOOP, b, err

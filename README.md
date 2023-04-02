@@ -163,6 +163,15 @@ If `data_directory` is not set, current directory will be used.
 if `root_symbol` is not set, the symbol `root` will be used.
 
 
+### Disassembler
+
+`go run ./dev/testdata/ <binary_file>`
+
+The output from this tool is to be considered debugging output, as the assembly language isn't formalized yet.
+
+In the meantime, it will at least list all the instructions, and thus validate the file.
+
+
 ### Assembler
 
 **TBD**

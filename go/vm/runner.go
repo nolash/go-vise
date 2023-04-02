@@ -19,13 +19,11 @@ import (
 func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	running := true
 	for running {
-		log.Printf("code before 0x%x", b)
 		op, bb, err := opSplit(b)
 		if err != nil {
 			return b, err
 		}
 		b = bb
-		log.Printf("code after 0x%x", b)
 		switch op {
 		case CATCH:
 			b, err = RunCatch(b, st, rs, ctx)
@@ -41,7 +39,6 @@ func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) (
 			b, err = RunMove(b, st, rs, ctx)
 		case INCMP:
 			b, err = RunInCmp(b, st, rs, ctx)
-			log.Printf("bb %v", b)
 		case HALT:
 			b, err = RunHalt(b, st, rs, ctx)
 			return b, err
@@ -51,7 +48,6 @@ func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) (
 		if err != nil {
 			return b, err
 		}
-		log.Printf("aa %v", b)
 		if len(b) == 0 {
 			return []byte{}, nil
 		}
