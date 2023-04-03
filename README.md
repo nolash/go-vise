@@ -20,7 +20,8 @@ The VM defines the following opcode symbols:
 * `INCMP <arg> <symbol>` - Compare registered input to `arg`. If match, it has the same side-effects as `MOVE`. In addition, any consecutive `INCMP` matches will be ignored until `HALT` is called.
 * `MSIZE <max> <min>` - Set min and max display size of menu part to `num` bytes.
 * `MOUT <choice> <display>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
-* `MSEP <choice> <display> <direction>` - Define how to display a menu separator, when browsing menus that are too long. Direction `0` is forward, `>0` is backward. If a `>0` value is not defined, no previous step will be available.
+* `MNEXT <choice> <display>` - Define how to display the choice for advancing when browsing menu.
+* `MPREV <choice> <display>` - Define how to display the choice for returning when browsing menu.
 
 
 ### External code
@@ -98,6 +99,11 @@ A max size can be set for the menu, which will count towards the space available
 Menus too long for a single screen should be browseable through separate screens. How the browse choice is displayed is defined using the `MSEP` definition. The browse choice counts towards the menu size capacity.
 
 When browsing additional menu pages, the template output should not be included.
+
+
+### Menu defaults
+
+Browsing menu display definitions (`MNEXT`, `MPREV`) as well as size constaints (`MSIZE`) should have sane defaults defined by the assembler if they are missing from the assembly code.
 
 
 ### Multipage support
