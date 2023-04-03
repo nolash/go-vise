@@ -317,3 +317,36 @@ func TestRunMenu(t *testing.T) {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
 }
+
+
+func TestRunMenuBrowse(t *testing.T) {
+	log.Printf("This test is incomplete, it must check the output of a menu browser once one is implemented. For now it only checks whether it can execute the runner endpoints for the instrucitons.")
+	st := state.NewState(5)
+	rs := TestResource{}
+
+	var err error
+
+	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
+	b = NewLine(b, MNEXT, []string{"11", "two"}, nil, nil)
+	b = NewLine(b, MPREV, []string{"22", "two"}, nil, nil)
+	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
+	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
+
+	b, err = Run(b, &st, &rs, context.TODO())
+	if err != nil {
+		t.Error(err)	
+	}
+	l := len(b)
+	if l != 0 {
+		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+	}
+	
+	r, err := rs.RenderMenu()
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect := "0:one\n1:two"
+	if r != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
+	}
+}

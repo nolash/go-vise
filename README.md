@@ -18,8 +18,10 @@ The VM defines the following opcode symbols:
 * `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls. More detailed: After a `MOVE` call, a `BACK` call will return to the same execution frame, with the same symbols available, but all `MAP` calls will have to be repeated.
 * `HALT` - Stop execution. The remaining bytecode (typically, the routing code for the node) is returned to the invoking function.
 * `INCMP <arg> <symbol>` - Compare registered input to `arg`. If match, it has the same side-effects as `MOVE`. In addition, any consecutive `INCMP` matches will be ignored until `HALT` is called.
-* `MSIZE <num>` - Set max display size of menu part to `num` bytes.
+* `MSIZE <max> <min>` - Set min and max display size of menu part to `num` bytes.
 * `MOUT <choice> <display>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
+* `MSEP <choice> <display> <direction>` - Define how to display a menu separator, when browsing menus that are too long. Direction `0` is forward, `>0` is backward. If a `>0` value is not defined, no previous step will be available.
+
 
 ### External code
 
@@ -53,6 +55,25 @@ The signal flag arguments should only set a single flag to be tested. If more th
 First 8 flags are reserved and used for internal VM operations.
 
 
+### Avoid duplicate menu items
+
+The vm execution should overwrite duplicate `MOUT` directives with the last definition between `HALT` instructions.
+
+The assembler should detect duplicate `INCMP` and `MOUT` (or menu batch code) selectors, and fail to compile. `MSEP` should be included in duplication detection.
+
+
+## Menus
+
+A menu has both a display and a input processing part. They are on either side of a `HALT` instruction.
+
+To assist with menu creation, a few batch operation symbols have been made available for use with the assembly language.
+
+* `DOWN <choice> <display> <symbol>` descend to next frame
+* `UP <choice> <display>` return to the previous frame
+* `NEXT <choice> <display>` include pagination advance
+* `PREVIOUS <choice> <display>` include pagination return. If `NEXT` has not been defined this will not be rendered.
+
+
 ## Rendering
 
 The fixed-size output is generated using a templating language, and a combination of one or more _max size_ properties, and an optional _sink_ property that will attempt to consume all remaining capacity of the rendered template.
@@ -66,6 +87,17 @@ For example, in this example
 - param `three` is a _sink_.
 
 The renderer may use up to `256 - 120 - 5 - 12 = 119` bytes from the _sink_ when rendering the output.
+
+
+### Menu rendering
+
+The menu is appended to the template output.
+
+A max size can be set for the menu, which will count towards the space available for the _template sink_.
+
+Menus too long for a single screen should be browseable through separate screens. How the browse choice is displayed is defined using the `MSEP` definition. The browse choice counts towards the menu size capacity.
+
+When browsing additional menu pages, the template output should not be included.
 
 
 ### Multipage support

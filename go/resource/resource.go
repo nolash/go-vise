@@ -13,8 +13,9 @@ type EntryFunc func(ctx context.Context) (string, error)
 type Resource interface {
 	GetTemplate(sym string) (string, error) // Get the template for a given symbol.
 	GetCode(sym string) ([]byte, error) // Get the bytecode for the given symbol.
-	PutMenu(string, string) error // Add a menu item
-	ShiftMenu() (string, string, error)
+	PutMenu(string, string) error // Add a menu item.
+	ShiftMenu() (string, string, error) // Remove and return the first menu item in list.
+	SetMenuBrowse(string, string, bool) error // Set menu browser display details.
 	RenderTemplate(sym string, values map[string]string) (string, error) // Render the given data map using the template of the symbol.
 	RenderMenu() (string, error)
 	FuncFor(sym string) (EntryFunc, error) // Resolve symbol code point for.
@@ -22,6 +23,18 @@ type Resource interface {
 
 type MenuResource struct {
 	menu [][2]string
+	next [2]string
+	prev [2]string
+}
+
+func(m *MenuResource) SetMenuBrowse(selector string, title string, back bool) error {
+	entry := [2]string{selector, title}
+	if back {
+		m.prev = entry
+	} else {
+		m.next = entry
+	}
+	return nil
 }
 
 func(m *MenuResource) PutMenu(selector string, title string) error {
@@ -45,9 +58,6 @@ func(m *MenuResource) RenderMenu() (string, error) {
 		l := len(r)
 		choice, title, err := m.ShiftMenu()
 		if err != nil {
-			//if l == 0 { // TODO: replace with EOF
-			//	return "", err
-			//}
 			break
 		}
 		if l > 0 {

@@ -44,6 +44,10 @@ func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) (
 			b, err = RunMSize(b, st, rs, ctx)
 		case MOUT:
 			b, err = RunMOut(b, st, rs, ctx)
+		case MNEXT:
+			b, err = RunMNext(b, st, rs, ctx)
+		case MPREV:
+			b, err = RunMPrev(b, st, rs, ctx)
 		case HALT:
 			b, err = RunHalt(b, st, rs, ctx)
 			return b, err
@@ -105,15 +109,6 @@ func RunCroak(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 
 // RunLoad executes the LOAD opcode
 func RunLoad(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-//	head, tail, err := instructionSplit(b)
-//	if err != nil {
-//		return b, err
-//	}
-//	if !st.Check(head) {
-//		return b, fmt.Errorf("key %v already loaded", head)
-//	}
-//	sz := uint16(tail[0])
-//	tail = tail[1:]
 	sym, sz, b, err := ParseLoad(b)
 	if err != nil {
 		return b, err
@@ -129,10 +124,6 @@ func RunLoad(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 
 // RunLoad executes the RELOAD opcode
 func RunReload(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-//	head, tail, err := instructionSplit(b)
-//	if err != nil {
-//		return b, err
-//	}
 	sym, b, err := ParseReload(b)
 	if err != nil {
 		return b, err
@@ -149,7 +140,6 @@ func RunReload(b []byte, st *state.State, rs resource.Resource, ctx context.Cont
 // RunLoad executes the MOVE opcode
 func RunMove(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseMove(b)
-//	head, tail, err := instructionSplit(b)
 	if err != nil {
 		return b, err
 	}
@@ -165,7 +155,6 @@ func RunMove(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 
 // RunIncmp executes the INCMP opcode
 func RunInCmp(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-	//head, tail, err := instructionSplit(b)
 	sym, target, b, err := ParseInCmp(b)
 	if err != nil {
 		return b, err
@@ -209,7 +198,28 @@ func RunHalt(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 
 // RunMSize
 func RunMSize(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	log.Printf("WARNING MSIZE not yet implemented")
 	return b, nil
+}
+
+// RunMSize
+func RunMNext(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	selector, display, b, err := ParseMNext(b)
+	if err != nil {
+		return b, err
+	}
+	err = rs.SetMenuBrowse(selector, display, false)
+	return b, err
+}
+
+// RunMSize
+func RunMPrev(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	selector, display, b, err := ParseMPrev(b)
+	if err != nil {
+		return b, err
+	}
+	err = rs.SetMenuBrowse(selector, display, false)
+	return b, err
 }
 
 func RunMOut(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {

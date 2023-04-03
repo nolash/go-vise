@@ -97,6 +97,20 @@ func ToString(b []byte) (string, error) {
 				return "", err
 			}
 			s = fmt.Sprintf("%s %s \"%s\"", s, r, v)
+		case MNEXT:
+			r, v, bb, err := ParseMNext(b)
+			b = bb
+			if err != nil {
+				return "", err
+			}
+			s = fmt.Sprintf("%s %s \"%s\"", s, r, v)
+		case MPREV:
+			r, v, bb, err := ParseMPrev(b)
+			b = bb
+			if err != nil {
+				return "", err
+			}
+			s = fmt.Sprintf("%s %s \"%s\"", s, r, v)
 		}
 		s += "\n"
 		if len(b) == 0 {
