@@ -38,17 +38,6 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-//	location := en.st.Where()
-//	code, err := en.rs.GetCode(location)
-//	if err != nil {
-//		return err
-//	}
-//	if len(code) == 0 {
-//		return fmt.Errorf("no code found at resource %s", en.rs)
-//	}
-//
-//	code, err = vm.Run(code, en.st, en.rs, ctx)
-//
 	en.st.SetCode(b)
 	return nil
 }

@@ -227,6 +227,11 @@ func TestStateLoadDup(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected fail on duplicate load")
 	}
+	st.Up()
+	err = st.Add("foo", "xyzzy", 0)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func TestStateCurrentSize(t *testing.T) {

@@ -238,6 +238,10 @@ func(st *State) Add(key string, value string, sizeLimit uint16) error {
 	}
 	checkFrame := st.frameOf(key)
 	if checkFrame > -1 {
+		if checkFrame == len(st.execPath) - 1 {
+			log.Printf("Ignoring load request on frame that has symbol already loaded")
+			return nil
+		}
 		return fmt.Errorf("key %v already defined in frame %v", key, checkFrame)
 	}
 	sz := st.checkCapacity(value)
