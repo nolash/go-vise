@@ -199,7 +199,8 @@ func RunHalt(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 // RunMSize
 func RunMSize(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	log.Printf("WARNING MSIZE not yet implemented")
-	return b, nil
+	_, _, b, err := ParseMSize(b)
+	return b, err
 }
 
 // RunMSize

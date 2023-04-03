@@ -55,13 +55,14 @@ func ParseMNext(b []byte) (string, string, []byte, error) {
 	return parseTwoSym(b)
 }
 
-func ParseMSize(b []byte) (uint32, []byte, error) {
-	if len(b) < 1 {
-		return 0, b, fmt.Errorf("zero-length argument")
+func ParseMSize(b []byte) (uint32, uint32, []byte, error) {
+	if len(b) < 2 {
+		return 0, 0, b, fmt.Errorf("argument too short")
 	}
 	r := uint32(b[0])
-	b = b[1:]
-	return r, b, nil
+	rr := uint32(b[1])
+	b = b[2:]
+	return r, rr, b, nil
 }
 
 func ParseMOut(b []byte) (string, string, []byte, error) {

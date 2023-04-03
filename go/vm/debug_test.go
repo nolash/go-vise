@@ -121,12 +121,12 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, MSIZE, nil, nil, []uint8{0x42}) 
+	b = NewLine(nil, MSIZE, nil, nil, []uint8{0x42, 0x2a}) 
 	r, err = ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect = "MSIZE 66\n"
+	expect = "MSIZE 66 42\n"
 	if r != expect {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
