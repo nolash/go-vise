@@ -52,7 +52,8 @@ func ParseAll(b []byte, w io.Writer) (int, error) {
 						vv = 1
 					}
 					if w != nil {
-						rs = fmt.Sprintf("%s %s %v %v # invertmatch=%v\n", s, r, n, vv, m)
+						//rs = fmt.Sprintf("%s %s %v %v # invertmatch=%v\n", s, r, n, vv, m)
+						rs = fmt.Sprintf("%s %s %v %v\n", s, r, n, vv)
 					}
 				}
 			}
@@ -65,7 +66,8 @@ func ParseAll(b []byte, w io.Writer) (int, error) {
 					if m {
 						vv = 1
 					}
-					rs = fmt.Sprintf("%s %v %v # invertmatch=%v\n", s, n, vv, m)
+					//rs = fmt.Sprintf("%s %v %v # invertmatch=%v\n", s, n, vv, m)
+					rs = fmt.Sprintf("%s %v %v\n", s, n, vv)
 				}
 			}
 		case LOAD:
@@ -153,7 +155,7 @@ func ParseAll(b []byte, w io.Writer) (int, error) {
 				return rn, err
 			}
 			rn += n
-			log.Printf("wrote %v bytes from instruction %v", n, s)
+			log.Printf("wrote %v bytes for instruction %v", n, s)
 		}
 
 		//rs += "\n"

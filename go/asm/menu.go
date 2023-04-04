@@ -1,7 +1,9 @@
-package vm
+package asm
 
 import (
 	"fmt"
+
+	"git.defalsify.org/festive/vm"
 )
 
 type BatchCode uint16
@@ -61,19 +63,21 @@ func (mp *MenuProcessor) ToLines() []byte {
 	postLines := []byte{}
 
 	for _, v := range mp.items {
-		preLines = NewLine(preLines, MOUT, []string{v.choice, v.display}, nil, nil)
+		preLines = vm.NewLine(preLines, vm.MOUT, []string{v.choice, v.display}, nil, nil)
 		switch v.code {
 		case MENU_UP:
-			postLines = NewLine(postLines, INCMP, []string{v.choice, "_"}, nil, nil)
+			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, "_"}, nil, nil)
 		case MENU_NEXT:
 			_ = postLines
 		case MENU_PREVIOUS:
 			_ = postLines
 		default:
-			postLines = NewLine(postLines, INCMP, []string{v.choice, v.target}, nil, nil)
+			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, v.target}, nil, nil)
 		}
 	}
 
-	preLines = NewLine(preLines, HALT, nil, nil, nil)
+	preLines = vm.NewLine(preLines, vm.HALT, nil, nil, nil)
 	return append(preLines, postLines...)
 }
+
+

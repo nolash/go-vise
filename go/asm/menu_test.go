@@ -1,7 +1,9 @@
-package vm
+package asm
 
 import (
 	"testing"
+
+	"git.defalsify.org/festive/vm"
 )
 
 
@@ -28,7 +30,7 @@ func TestMenuInterpreter(t *testing.T) {
 		t.Errorf("expected error on invalid menu item 'BOGUS'")
 	}
 	b := m.ToLines()
-	r, err := ToString(b)
+	r, err := vm.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
