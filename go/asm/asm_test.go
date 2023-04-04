@@ -39,10 +39,31 @@ func TestParserSized(t *testing.T) {
 		t.Fatal(err)
 	}
 	if n != 8 {
-		t.Fatalf("expected 0 byte write count, got %v", n)
+		t.Fatalf("expected 8 byte write count, got %v", n)
 	}
 	rb := r.Bytes()
 	if !bytes.Equal(rb, []byte{0x00, vm.LOAD, 0x03, 0x66, 0x6f, 0x6f, 0x01, 0x2a}) {
 		t.Fatalf("expected 0x00%x012a, got %v", vm.LOAD, rb)
+	}
+}
+
+func TestParseDisplay(t *testing.T) {
+	var b []byte
+	b = vm.NewLine(b, vm.MOUT, []string{"foo", "baz ba zbaz"}, nil, nil)
+	s, err := vm.ToString(b)
+	log.Printf("parsing:\n%s\n", s)
+
+	r := bytes.NewBuffer(nil)
+	n, err := Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 18 {
+		t.Fatalf("expected 18 byte write count, got %v", n)
+	}
+	rb := r.Bytes()
+	expect := []byte{0x00, vm.MOUT, 0x03, 0x66, 0x6f, 0x6f, 0x0b, 0x62, 0x61, 0x7a, 0x20, 0x62, 0x61, 0x20, 0x7a, 0x62, 0x61, 0x7a}
+	if !bytes.Equal(rb, expect) {
+		t.Fatalf("expected %x, got %x", expect, rb)
 	}
 }

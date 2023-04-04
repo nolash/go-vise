@@ -21,7 +21,8 @@ type Asm struct {
 
 type Display struct {
 	Sym string `@Sym Whitespace`
-	Val string `@Quote @Sym @Quote Whitespace`
+	//Val string `Quote (@Desc @Whitespace?)+ Quote Whitespace`
+	Val string `Quote (@Sym @Whitespace?)+ Quote Whitespace`
 }
 
 func(d Display) String() string {
@@ -135,6 +136,16 @@ func writeSym(s string, w *bytes.Buffer) (int, error) {
 	return w.WriteString(s)
 }
 
+func writeDisplay(s string, w *bytes.Buffer) (int, error) {
+	s = strings.Trim(s, "\"'")
+	sz := len(s)
+	if sz > 255 {
+		return 0, fmt.Errorf("string size %v too big", sz)
+	}
+	w.Write([]byte{byte(sz)})
+	return w.WriteString(s)
+}
+
 func writeSize(n uint32, w *bytes.Buffer) (int, error) {
 	bn := [4]byte{}
 	sz := numSize(n)
@@ -147,6 +158,41 @@ func writeSize(n uint32, w *bytes.Buffer) (int, error) {
 	return w.Write(bn[c:])	
 }
 
+
+func parseDisplay(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
+	var rn int
+
+	v := arg.ArgDisplay
+	if v == nil {
+		return 0, nil
+	}
+
+	b := bytes.NewBuffer(nil)
+
+	n, err := writeOpcode(op, b)
+	rn += n
+	if  err != nil {
+		return rn, err
+	}
+	
+	n, err = writeSym(v.Sym, b)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	n, err = writeDisplay(v.Val, b)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+	if w != nil {
+		rn, err = w.Write(b.Bytes())
+	} else {
+		rn = 0
+	}
+	return rn, err
+}
 
 func parseSized(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 	var rn int
@@ -191,6 +237,15 @@ func Parse(s string, w io.Writer) (int, error) {
 	for _, v := range ast.Instructions {
 		op := vm.OpcodeIndex[v.OpCode]
 		n, err := parseSized(op, v.OpArg, w)
+		if err != nil {
+			return n, err
+		}
+		if n > 0 {
+			rn += n
+			continue
+		}
+
+		n, err = parseDisplay(op, v.OpArg, w)
 		if err != nil {
 			return n, err
 		}

@@ -16,7 +16,7 @@ func TestToString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect = "CATCH xyzzy 13 1 # invertmatch=true\n"
+	expect = "CATCH xyzzy 13 1\n"
 	if r != expect {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
@@ -26,7 +26,7 @@ func TestToString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect = "CROAK 13 1 # invertmatch=true\n"
+	expect = "CROAK 13 1\n"
 	if r != expect {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
@@ -144,7 +144,7 @@ func TestToStringMultiple(t *testing.T) {
 	}
 	expect := `INCMP 1 foo
 INCMP 2 bar
-CATCH aiee 666 0 # invertmatch=false
+CATCH aiee 666 0
 LOAD inky 42
 HALT
 `
