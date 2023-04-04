@@ -152,3 +152,18 @@ HALT
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 }
+
+func TestVerifyMultiple(t *testing.T) {
+	b := NewLine(nil, INCMP, []string{"1", "foo"}, nil, nil)
+	b = NewLine(b, INCMP, []string{"2", "bar"}, nil, nil)
+	b = NewLine(b, CATCH, []string{"aiee"}, []byte{0x02, 0x9a}, []uint8{0})
+	b = NewLine(b, LOAD, []string{"inky"}, []byte{0x2a}, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+	n, err := ParseAll(b, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 0 {
+		t.Fatalf("expected write count to be 0, was %v (how is that possible)", n)
+	}
+}
