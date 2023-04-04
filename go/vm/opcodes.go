@@ -38,4 +38,21 @@ var (
 		MNEXT: "MNEXT",
 		MPREV: "MPREV",
 	}
+
+	OpcodeIndex = map[string]Opcode {
+		"NOOP": NOOP,
+		"CATCH": CATCH,
+		"CROAK": CROAK,
+		"LOAD": LOAD,
+		"RELOAD": RELOAD,
+		"MAP": MAP,
+		"MOVE": MOVE,
+		"HALT": HALT,
+		"INCMP": INCMP,
+		"MSIZE": MSIZE,
+		"MOUT": MOUT,
+		"MNEXT": MNEXT,
+		"MPREV": MPREV,
+	}
+
 )

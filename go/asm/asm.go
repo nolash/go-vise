@@ -7,7 +7,10 @@ import (
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+
+	"git.defalsify.org/festive/vm"
 )
+
 
 type Asm struct {
 	Instructions []*Instruction `@@*`
@@ -112,7 +115,8 @@ func Parse(s string, w io.Writer) (int, error) {
 	rd := strings.NewReader(s)
 	ast, err := asmParser.Parse("file", rd)
 	for i, v := range ast.Instructions {
-		fmt.Printf("%v %v\n", i, v)
+		op := vm.OpcodeIndex[v.OpCode]
+		fmt.Printf("%v (%v) %v\n", i, op, v)
 	}
 	return 0, err
 }
