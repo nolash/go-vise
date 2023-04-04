@@ -7,151 +7,6 @@ import (
 	"git.defalsify.org/festive/state"
 )
 
-func ParseOp(b []byte) (Opcode, []byte, error) {
-	op, b, err := opSplit(b)
-	if err != nil {
-		return NOOP, b, err
-	}
-	return op, b, nil
-}
-
-func ParseLoad(b []byte) (string, uint32, []byte, error) {
-	return parseSymLen(b)
-}
-
-func ParseReload(b []byte) (string, []byte, error) {
-	return parseSym(b)
-}
-
-func ParseMap(b []byte) (string, []byte, error) {
-	return parseSym(b)
-}
-
-func ParseMove(b []byte) (string, []byte, error) {
-	return parseSym(b)
-}
-
-func ParseHalt(b []byte) ([]byte, error) {
-	return parseNoArg(b)
-}
-
-func ParseCatch(b []byte) (string, uint32, bool, []byte, error) {
-	return parseSymSig(b)
-}
-
-func ParseCroak(b []byte) (uint32, bool, []byte, error) {
-	return parseSig(b)
-}
-
-func ParseInCmp(b []byte) (string, string, []byte, error) {
-	return parseTwoSym(b)
-}
-
-func ParseMPrev(b []byte) (string, string, []byte, error) {
-	return parseTwoSym(b)
-}
-
-func ParseMNext(b []byte) (string, string, []byte, error) {
-	return parseTwoSym(b)
-}
-
-func ParseMSize(b []byte) (uint32, uint32, []byte, error) {
-	if len(b) < 2 {
-		return 0, 0, b, fmt.Errorf("argument too short")
-	}
-	r := uint32(b[0])
-	rr := uint32(b[1])
-	b = b[2:]
-	return r, rr, b, nil
-}
-
-func ParseMOut(b []byte) (string, string, []byte, error) {
-	return parseTwoSym(b)
-}
-
-func parseNoArg(b []byte) ([]byte, error) {
-	return b, nil
-}
-
-func parseSym(b []byte) (string, []byte, error) {
-	sym, tail, err := instructionSplit(b)
-	if err != nil {
-		return "", b, err
-	}
-	return sym, tail, nil
-}
-
-func parseTwoSym(b []byte) (string, string, []byte, error) {
-	symOne, tail, err := instructionSplit(b)
-	if err != nil {
-		return "", "", b, err
-	}
-	symTwo, tail, err := instructionSplit(tail)
-	if err != nil {
-		return "", "", tail, err
-	}
-	return symOne, symTwo, tail, nil
-}
-
-func parseSymLen(b []byte) (string, uint32, []byte, error) {
-	sym, tail, err := instructionSplit(b)
-	if err != nil {
-		return "", 0, b, err
-	}
-	sz, tail, err := intSplit(tail)
-	if err != nil {
-		return "", 0, b, err
-	}
-	return sym, sz, tail, nil
-}
-
-func parseSymSig(b []byte) (string, uint32, bool, []byte, error) {
-	sym, tail, err := instructionSplit(b)
-	if err != nil {
-		return "", 0, false, b, err
-	}
-	sig, tail, err := intSplit(tail)
-	if err != nil {
-		return "", 0, false, b, err
-	}
-	if len(tail) == 0 {
-		return "", 0, false, b, fmt.Errorf("instruction too short")
-	}
-	matchmode := tail[0] > 0
-	tail = tail[1:]
-	
-	return sym, sig, matchmode, tail, nil
-}
-
-func parseSig(b []byte) (uint32, bool, []byte, error) {
-	sig, b, err := intSplit(b)
-	if err != nil {
-		return 0, false, b, err
-	}
-	if len(b) == 0 {
-		return 0, false, b, fmt.Errorf("instruction too short")
-	}
-	matchmode := b[0] > 0
-	b = b[1:]
-	
-	return sig, matchmode, b, nil
-}
-
-func matchFlag(st *state.State, sig uint32, invertMatch bool) (bool, error) {
-	r, err := st.GetFlag(sig)
-	if err != nil {
-		return false, err
-	}
-	if invertMatch {
-		if !r {
-			return true, nil
-		}
-	} else if r {
-		return true, nil
-	}
-	return false, nil
-}
-
 // NewLine creates a new instruction line for the VM.
 func NewLine(instructionList []byte, instruction uint16, strargs []string, byteargs []byte, numargs []uint8) []byte {
 	if instructionList == nil {
@@ -173,6 +28,172 @@ func NewLine(instructionList []byte, instruction uint16, strargs []string, bytea
 	return append(instructionList, b...)
 }
 
+// ParseOp verifies and extracts the expected opcode portion of an instruction
+func ParseOp(b []byte) (Opcode, []byte, error) {
+	op, b, err := opSplit(b)
+	if err != nil {
+		return NOOP, b, err
+	}
+	return op, b, nil
+}
+
+// ParseLoad parses and extracts the expected argument portion of a LOAD instruction
+func ParseLoad(b []byte) (string, uint32, []byte, error) {
+	return parseSymLen(b)
+}
+
+// ParseReload parses and extracts the expected argument portion of a RELOAD instruction
+func ParseReload(b []byte) (string, []byte, error) {
+	return parseSym(b)
+}
+
+// ParseMap parses and extracts the expected argument portion of a MAP instruction
+func ParseMap(b []byte) (string, []byte, error) {
+	return parseSym(b)
+}
+
+// ParseMove parses and extracts the expected argument portion of a MOVE instruction
+func ParseMove(b []byte) (string, []byte, error) {
+	return parseSym(b)
+}
+
+// ParseHalt parses and extracts the expected argument portion of a HALT instruction
+func ParseHalt(b []byte) ([]byte, error) {
+	return parseNoArg(b)
+}
+
+// ParseCatch parses and extracts the expected argument portion of a CATCH instruction
+func ParseCatch(b []byte) (string, uint32, bool, []byte, error) {
+	return parseSymSig(b)
+}
+
+// ParseCroak parses and extracts the expected argument portion of a CROAK instruction
+func ParseCroak(b []byte) (uint32, bool, []byte, error) {
+	return parseSig(b)
+}
+
+// ParseInCmp parses and extracts the expected argument portion of a INCMP instruction
+func ParseInCmp(b []byte) (string, string, []byte, error) {
+	return parseTwoSym(b)
+}
+
+// ParseMPrev parses and extracts the expected argument portion of a MPREV instruction
+func ParseMPrev(b []byte) (string, string, []byte, error) {
+	return parseTwoSym(b)
+}
+
+// ParseMNext parses and extracts the expected argument portion of a MNEXT instruction
+func ParseMNext(b []byte) (string, string, []byte, error) {
+	return parseTwoSym(b)
+}
+
+// ParseMSize parses and extracts the expected argument portion of a MSIZE instruction
+func ParseMSize(b []byte) (uint32, uint32, []byte, error) {
+	if len(b) < 2 {
+		return 0, 0, b, fmt.Errorf("argument too short")
+	}
+	r := uint32(b[0])
+	rr := uint32(b[1])
+	b = b[2:]
+	return r, rr, b, nil
+}
+
+// ParseMOut parses and extracts the expected argument portion of a MOUT instruction
+func ParseMOut(b []byte) (string, string, []byte, error) {
+	return parseTwoSym(b)
+}
+
+// noop
+func parseNoArg(b []byte) ([]byte, error) {
+	return b, nil
+}
+
+// parse and extract two length-prefixed string values
+func parseSym(b []byte) (string, []byte, error) {
+	sym, b, err := instructionSplit(b)
+	if err != nil {
+		return "", b, err
+	}
+	return sym, b, nil
+}
+
+// parse and extract two length-prefixed string values
+func parseTwoSym(b []byte) (string, string, []byte, error) {
+	symOne, b, err := instructionSplit(b)
+	if err != nil {
+		return "", "", b, err
+	}
+	symTwo, b, err := instructionSplit(b)
+	if err != nil {
+		return "", "", b, err
+	}
+	return symOne, symTwo, b, nil
+}
+
+// parse and extract one length-prefixed string value, and one length-prefixed integer value
+func parseSymLen(b []byte) (string, uint32, []byte, error) {
+	sym, b, err := instructionSplit(b)
+	if err != nil {
+		return "", 0, b, err
+	}
+	sz, b, err := intSplit(b)
+	if err != nil {
+		return "", 0, b, err
+	}
+	return sym, sz, b, nil
+}
+
+// parse and extract one length-prefixed string value, and one single byte of integer
+func parseSymSig(b []byte) (string, uint32, bool, []byte, error) {
+	sym, b, err := instructionSplit(b)
+	if err != nil {
+		return "", 0, false, b, err
+	}
+	sig, b, err := intSplit(b)
+	if err != nil {
+		return "", 0, false, b, err
+	}
+	if len(b) == 0 {
+		return "", 0, false, b, fmt.Errorf("instruction too short")
+	}
+	matchmode := b[0] > 0
+	b = b[1:]
+	
+	return sym, sig, matchmode, b, nil
+}
+
+// parse and extract one single byte of integer
+func parseSig(b []byte) (uint32, bool, []byte, error) {
+	sig, b, err := intSplit(b)
+	if err != nil {
+		return 0, false, b, err
+	}
+	if len(b) == 0 {
+		return 0, false, b, fmt.Errorf("instruction too short")
+	}
+	matchmode := b[0] > 0
+	b = b[1:]
+	
+	return sig, matchmode, b, nil
+}
+
+// TODO: move to state
+func matchFlag(st *state.State, sig uint32, invertMatch bool) (bool, error) {
+	r, err := st.GetFlag(sig)
+	if err != nil {
+		return false, err
+	}
+	if invertMatch {
+		if !r {
+			return true, nil
+		}
+	} else if r {
+		return true, nil
+	}
+	return false, nil
+}
+
+// split bytecode into head and b using length-prefixed bitfield
 func byteSplit(b []byte) ([]byte, []byte, error) {
 	bitFieldSize := b[0]
 	bitField := b[1:1+bitFieldSize]
@@ -180,6 +201,7 @@ func byteSplit(b []byte) ([]byte, []byte, error) {
 	return bitField, b, nil
 }
 
+// split bytecode into head and b using length-prefixed integer
 func intSplit(b []byte) (uint32, []byte, error) {
 	l := uint8(b[0])
 	sz := uint32(l)
@@ -201,7 +223,7 @@ func intSplit(b []byte) (uint32, []byte, error) {
 	return sz, b, nil
 }
 
-// split instruction into symbol and arguments
+// split bytecode into head and b using length-prefixed string
 func instructionSplit(b []byte) (string, []byte, error) {
 	if len(b) == 0 {
 		return "", nil, fmt.Errorf("argument is empty")
@@ -210,14 +232,15 @@ func instructionSplit(b []byte) (string, []byte, error) {
 	if sz == 0 {
 		return "", nil, fmt.Errorf("zero-length argument")
 	}
-	tailSz := uint8(len(b))
-	if tailSz < sz {
-		return "", nil, fmt.Errorf("corrupt instruction, len %v less than symbol length: %v", tailSz, sz)
+	bSz := uint8(len(b))
+	if bSz < sz {
+		return "", nil, fmt.Errorf("corrupt instruction, len %v less than symbol length: %v", bSz, sz)
 	}
 	r := string(b[1:1+sz])
 	return r, b[1+sz:], nil
 }
 
+// check if the start of the given bytecode contains a valid opcode, extract and return it
 func opCheck(b []byte, opIn Opcode) ([]byte, error) {
 	var bb []byte
 	op, bb, err := opSplit(b)
@@ -231,6 +254,7 @@ func opCheck(b []byte, opIn Opcode) ([]byte, error) {
 	return b, nil
 }
 
+// split bytecode into head and b using opcode
 func opSplit(b []byte) (Opcode, []byte, error) {
 	l := len(b)
 	if l < 2 {

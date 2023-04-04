@@ -196,14 +196,14 @@ func RunHalt(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 	return b, err
 }
 
-// RunMSize
+// RunMSize executes the HALT opcode
 func RunMSize(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	log.Printf("WARNING MSIZE not yet implemented")
 	_, _, b, err := ParseMSize(b)
 	return b, err
 }
 
-// RunMSize
+// RunMNext executes the MNEXT opcode
 func RunMNext(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	selector, display, b, err := ParseMNext(b)
 	if err != nil {
@@ -213,7 +213,7 @@ func RunMNext(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 	return b, err
 }
 
-// RunMSize
+// RunMPrev executes the MPREV opcode
 func RunMPrev(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	selector, display, b, err := ParseMPrev(b)
 	if err != nil {
@@ -223,6 +223,7 @@ func RunMPrev(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 	return b, err
 }
 
+// RunMOut executes the MOUT opcode
 func RunMOut(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	choice, title, b, err := ParseMOut(b)
 	if err != nil {
