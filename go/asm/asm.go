@@ -174,7 +174,7 @@ func parseSingle(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 		return rn, err
 	}
 	
-	n, err = writeSym(v.Sym, b)
+	n, err = writeSym(v.One, b)
 	rn += n
 	if err != nil {
 		return rn, err
