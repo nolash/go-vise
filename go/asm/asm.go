@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/alecthomas/participle/v2"
@@ -20,73 +21,197 @@ type Asm struct {
 	Instructions []*Instruction `@@*`
 }
 
-type Display struct {
-	Sym string `@Sym Whitespace`
-	Val string `Quote (@Sym @Whitespace?)+ Quote`
-}
-
-func(d Display) String() string {
-	return fmt.Sprintf("Display: %v %v", d.Sym, d.Val)
-}
-
-type Single struct {
-	One string `@Sym`
-}
-
-func(s Single) String() string {
-	return fmt.Sprintf("Single: %v", s.One)
-}
-
-type Double struct {
-	One string `@Sym Whitespace`
-	Two string `@Sym`
-}
-
-func(d Double) String() string {
-	return fmt.Sprintf("Double: %v %v", d.One, d.Two)
-}
-
-type Sized struct {
-	Sym string `@Sym Whitespace`
-	Size uint32 `@Size`
-}
-
-func(s Sized) String() string {
-	return fmt.Sprintf("Sized: %v %v", s.Sym, s.Size)
-}
-
 type Arg struct {
-	ArgDisplay *Display `@@?`
-	ArgSized *Sized `@@?`
-	ArgFlag *uint8 `@Size?`
-	ArgDouble *Double `@@?`
-	ArgSingle *Single `@@?`
-	ArgNone string `Whitespace? EOL`
+	Sym *string `(@Sym Whitespace?)?`
+	Size *uint32 `(@Size Whitespace?)?`
+	Flag *uint8 `(@Size Whitespace?)?`
+	Selector *string `(@Sym Whitespace?)?`
+	Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
+}
+
+func flush(b *bytes.Buffer, w io.Writer) (int, error) {
+	if w != nil {
+		return w.Write(b.Bytes())
+	}
+	return 0, nil
+}
+
+func parseDescType(b *bytes.Buffer, arg Arg) (int, error) {
+	var rn int
+	var err error
+	var selector string
+	if arg.Flag != nil {
+		selector = strconv.FormatUint(uint64(*arg.Flag), 10)
+	} else if arg.Selector != nil {
+		selector = *arg.Selector
+	}
+
+	n, err := writeSym(b, *arg.Sym)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	if selector != "" {
+		n, err := writeSym(b, *arg.Sym)
+		rn += n
+		if err != nil {
+			return rn, err
+		}
+	}
+
+	n, err = writeSym(b, *arg.Desc)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	return rn, nil
+}
+
+func parseTwoSym(b *bytes.Buffer, arg Arg) (int, error) {
+	var rn int
+
+	n, err := writeSym(b, *arg.Sym)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	n, err = writeSym(b, *arg.Selector)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	return rn, nil
+}
+
+func parseSig(b *bytes.Buffer, arg Arg) (int, error) {
+	var rn int
+
+	n, err := writeSym(b, *arg.Sym)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	n, err = writeSize(b, *arg.Size)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	n, err = b.Write([]byte{uint8(*arg.Flag)})
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	return rn, nil
+}
+
+func parseSized(b *bytes.Buffer, arg Arg) (int, error) {
+	var rn int
+
+	n, err := writeSym(b, *arg.Sym)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	n, err = writeSize(b, *arg.Size)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	return rn, nil
+}
+
+func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) {
+	a := instruction.OpArg
+	var n_buf int
+	var n_out int
+	
+	b := bytes.NewBuffer(nil)
+
+	n, err := writeOpcode(b, op)
+	n_buf += n
+	if  err != nil {
+		return n_out, err
+	}
+
+	if a.Sym == nil {
+		return flush(b, w)
+	}
+
+	if a.Desc != nil {
+		n, err := parseDescType(b, a)
+		n_buf += n
+		if err != nil {
+			return n_out, err
+		}
+		return flush(b, w)
+	}
+
+	if a.Selector != nil {
+		n, err := parseTwoSym(b, a)
+		n_buf += n
+		if err != nil {
+			return n_out, err
+		}
+		return flush(b, w)
+	}
+
+	if a.Size != nil {
+		if a.Flag != nil {
+			n, err := parseSig(b, a)
+			n_buf += n
+			if err != nil {
+				return n_out, err
+			}
+		} else {
+			n, err := parseSized(b, a)
+			n_buf += n
+			if err != nil {
+				return n_out, err
+			}
+		}
+		return flush(b, w)
+	}
+
+	n, err = writeSym(b, *a.Sym)
+	n_buf += n
+	return flush(b, w)
+
 }
 
 func (a Arg) String() string {
-	if a.ArgDisplay != nil {
-		return fmt.Sprintf("%s", a.ArgDisplay)
+	s := "[Arg]"
+	if a.Sym != nil {
+		s += " Sym: " + *a.Sym
 	}
-	if a.ArgFlag != nil {
-		return fmt.Sprintf("Flag: %v", *a.ArgFlag)
+	if a.Size != nil {
+		s += fmt.Sprintf(" Size: %v", *a.Size)
 	}
-	if a.ArgSized != nil {
-		return fmt.Sprintf("%s", a.ArgSized)
+	if a.Flag != nil {
+		s += fmt.Sprintf(" Flag: %v", *a.Flag)
 	}
-	if a.ArgSingle != nil {
-		return fmt.Sprintf("%s", a.ArgSingle)
+	if a.Selector != nil {
+		s += " Selector: " + *a.Selector
 	}
-	if a.ArgDouble != nil {
-		return fmt.Sprintf("%s", a.ArgDouble)
+	if a.Desc != nil {
+		s += " Description: " + *a.Desc
 	}
-	return ""
+
+	return fmt.Sprintf(s)
 }
 
 type Instruction struct {
 	OpCode string `@Ident`
-	OpArg Arg `@@`
-	Comment string `Comment?`
+	OpArg Arg `(Whitespace @@)?`
+	Comment string `Comment? EOL`
 }
 
 func (i Instruction) String() string {
@@ -95,13 +220,11 @@ func (i Instruction) String() string {
 
 var (
 	asmLexer = lexer.MustSimple([]lexer.SimpleRule{
-		{"Comment", `(?:#)[^\n]*\n?`},
+		{"Comment", `(?:#)[^\n]*`},
 		{"Ident", `^[A-Z]+`},
-		{"SizeSig", `[0-9]+\s+{?:[0-9]}`},
 		{"Size", `[0-9]+`},
-		{"Sym", `[a-zA-Z_][a-zA-Z0-9_]+`},
+		{"Sym", `[a-zA-Z_][a-zA-Z0-9_]*`},
 		{"Whitespace", `[ \t]+`},
-		{"Discard", `^\s+[\n\r]+$`},
 		{"EOL", `[\n\r]+`},
 		{"Quote", `["']`},
 	})
@@ -116,14 +239,14 @@ func numSize(n uint32) int {
 	return int(((v - 1) / 8) + 1)
 }
 
-func writeOpcode(op vm.Opcode, w *bytes.Buffer) (int, error) {
+func writeOpcode(w *bytes.Buffer, op vm.Opcode) (int, error) {
 	bn := [2]byte{}
 	binary.BigEndian.PutUint16(bn[:], uint16(op))
 	n, err := w.Write(bn[:])
 	return n, err
 }
 
-func writeSym(s string, w *bytes.Buffer) (int, error) {
+func writeSym(w *bytes.Buffer, s string) (int, error) {
 	sz := len(s)
 	if sz > 255 {
 		return 0, fmt.Errorf("string size %v too big", sz)
@@ -132,7 +255,7 @@ func writeSym(s string, w *bytes.Buffer) (int, error) {
 	return w.WriteString(s)
 }
 
-func writeDisplay(s string, w *bytes.Buffer) (int, error) {
+func writeDisplay(w *bytes.Buffer, s string) (int, error) {
 	s = strings.Trim(s, "\"'")
 	sz := len(s)
 	if sz > 255 {
@@ -141,8 +264,7 @@ func writeDisplay(s string, w *bytes.Buffer) (int, error) {
 	w.Write([]byte{byte(sz)})
 	return w.WriteString(s)
 }
-
-func writeSize(n uint32, w *bytes.Buffer) (int, error) {
+func writeSize(w *bytes.Buffer, n uint32) (int, error) {
 	bn := [4]byte{}
 	sz := numSize(n)
 	if sz > 4 {
@@ -154,175 +276,37 @@ func writeSize(n uint32, w *bytes.Buffer) (int, error) {
 	return w.Write(bn[c:])
 }
 
-func parseSingle(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
-	var rn int
-
-	v := arg.ArgSingle
-	if v == nil {
-		return 0, nil
-	}
-
-	b := bytes.NewBuffer(nil)
-
-	n, err := writeOpcode(op, b)
-	rn += n
-	if  err != nil {
-		return rn, err
-	}
-	
-	n, err = writeSym(v.One, b)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-	
-	if w != nil {
-		rn, err = w.Write(b.Bytes())
-	} else {
-		rn = 0
-	}
-	return rn, err
+type Batcher struct {
+	menuProcessor MenuProcessor
+	inMenu bool
 }
 
-func parseDisplay(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
-	var rn int
-
-	v := arg.ArgDisplay
-	if v == nil {
-		return 0, nil
+func NewBatcher(mp MenuProcessor) Batcher {
+	return Batcher{
+		menuProcessor: NewMenuProcessor(),
 	}
-
-	b := bytes.NewBuffer(nil)
-
-	n, err := writeOpcode(op, b)
-	rn += n
-	if  err != nil {
-		return rn, err
-	}
-	
-	n, err = writeSym(v.Sym, b)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-
-	n, err = writeDisplay(v.Val, b)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-	if w != nil {
-		rn, err = w.Write(b.Bytes())
-	} else {
-		rn = 0
-	}
-	return rn, err
 }
 
-func parseDouble(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
-	var rn int
-
-	v := arg.ArgDouble
-	if v == nil {
+func(b *Batcher) MenuExit(w io.Writer) (int, error) {
+	if !b.inMenu {
 		return 0, nil
 	}
-
-	b := bytes.NewBuffer(nil)
-
-	n, err := writeOpcode(op, b)
-	rn += n
-	if  err != nil {
-		return rn, err
-	}
-	
-	n, err = writeSym(v.One, b)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-
-	n, err = writeSym(v.Two, b)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-
-	if w != nil {
-		rn, err = w.Write(b.Bytes())
-	} else {
-		rn = 0
-	}
-	return rn, err
+	b.inMenu = false
+	return w.Write(b.menuProcessor.ToLines())
 }
 
-func parseSized(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
-	var rn int
-
-	v := arg.ArgSized
-	if v == nil {
-		return 0, nil
+func(b *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
+	b.inMenu = true
+	selector := ""
+	if arg.Selector != nil {
+		selector = *arg.Selector
 	}
-
-	b := bytes.NewBuffer(nil)
-
-	n, err := writeOpcode(op, b)
-	rn += n
-	if  err != nil {
-		return rn, err
-	}
-	
-	n, err = writeSym(v.Sym, b)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-
-	n, err = writeSize(v.Size, b)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-	if w != nil {
-		rn, err = w.Write(b.Bytes())
-	} else {
-		rn = 0
-	}
-	return rn, err
+	err := b.menuProcessor.Add(code, *arg.Sym, selector, *arg.Desc)
+	return 0, err
 }
 
-func parseNoarg(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
-	var rn int
-
-	b := bytes.NewBuffer(nil)
-
-	n, err := writeOpcode(op, b)
-	rn += n
-	if  err != nil {
-		return rn, err
-	}
-	if w != nil {
-		rn, err = w.Write(b.Bytes())
-	} else {
-		rn = 0
-	}
-	return rn, err
-}
-
-func parseFlag(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
-	var rn int
-	var err error 
-
-	v := arg.ArgFlag
-	if v == nil {
-		return 0, nil
-	}
-	if w != nil {
-		rn, err = w.Write([]byte{*v})
-	} else {
-		rn = 0
-	}
-	return rn, err
-
+func(b *Batcher) Exit(w io.Writer) (int, error) {
+	return b.MenuExit(w)
 }
 
 func Parse(s string, w io.Writer) (int, error) {
@@ -332,56 +316,39 @@ func Parse(s string, w io.Writer) (int, error) {
 		return 0, err
 	}
 
+	batch := Batcher{
+		
+	}
+
 	var rn int
 	for _, v := range ast.Instructions {
 		log.Printf("parsing line %v: %v", v.OpCode, v.OpArg)
-		op := vm.OpcodeIndex[v.OpCode]
-		n, err := parseSized(op, v.OpArg, w)
-		if err != nil {
-			return n, err
-		}
-		if n > 0 {
+		op, ok := vm.OpcodeIndex[v.OpCode]
+		if !ok {
+			n, err := batch.MenuAdd(w, v.OpCode, v.OpArg)
 			rn += n
-			n, err = parseFlag(op, v.OpArg, w)
 			if err != nil {
-				return n, err
+				return rn, err
+			}
+		} else {
+			n, err := batch.MenuExit(w)
+			if err != nil {
+				return rn, err
 			}
 			rn += n
-			continue
-		}
-		n, err = parseDisplay(op, v.OpArg, w)
-		if err != nil {
-			return n, err
-		}
-		if n > 0 {
+			n, err = parseOne(op, v, w)
 			rn += n
-			continue
+			if err != nil {
+				return rn, err
+			}
 		}
-		n, err = parseDouble(op, v.OpArg, w)
-		if err != nil {
-			return n, err
-		}
-		if n > 0 {
-			rn += n
-			continue
-		}
-		n, err = parseSingle(op, v.OpArg, w)
-		if err != nil {
-			return n, err
-		}
-		if n > 0 {
-			rn += n
-			continue
-		}
-		n, err = parseNoarg(op, v.OpArg, w)
-		if err != nil {
-			return n, err
-		}
-		if n > 0 {
-			rn += n
-			continue
-		}
-
 	}
+	n, err := batch.Exit(w)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+	rn += n
+
 	return rn, err
 }

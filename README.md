@@ -69,7 +69,7 @@ A menu has both a display and a input processing part. They are on either side o
 
 To assist with menu creation, a few batch operation symbols have been made available for use with the assembly language.
 
-* `DOWN <choice> <display> <symbol>` descend to next frame
+* `DOWN <symbol> <choice> <display>` descend to next frame and move to `symbol`
 * `UP <choice> <display>` return to the previous frame
 * `NEXT <choice> <display>` include pagination advance
 * `PREVIOUS <choice> <display>` include pagination return. If `NEXT` has not been defined this will not be rendered.

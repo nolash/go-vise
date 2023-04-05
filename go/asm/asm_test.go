@@ -3,6 +3,7 @@ package asm
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"testing"
 
@@ -91,6 +92,36 @@ func TestParseDouble(t *testing.T) {
 	}
 }
 
+func TestParseMenu(t *testing.T) {
+	s := `DOWN foobar 00 "inky pinky"
+UP bazbar s1 "tinkywinky"
+`
+	r := bytes.NewBuffer(nil)
+	n, err := Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("wrote %v bytes", n)
+
+	s = `MOUT foobar 00 "inky pinky"
+MOUT bazbar s1 "tinky winky"
+HALT
+INCMP 00 foobar
+INCMP s1 bazbar
+`
+	r_check := bytes.NewBuffer(nil)
+	n, err = Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("wrote %v bytes", n)
+
+	if !bytes.Equal(r_check.Bytes(), r.Bytes()) {
+		fmt.Errorf("expected:\n\t%xgot:\n\t%x\n", r_check, r)
+	}
+
+}
+
 func TestParseSingle(t *testing.T) {
 	var b []byte
 	b = vm.NewLine(b, vm.MAP, []string{"xyzzy"}, nil, nil)
@@ -173,23 +204,21 @@ func TestParserWriteMultiple(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	n_expect := 2 // halt
-	n_expect += 2 + 6 + 3 + 1 // catch
-	n_expect += 2 + 5 + 6 // incmp
-	n_expect += 2 + 4 + 2 // load
-	n_expect += 2 + 4 + 12 // mout
 	log.Printf("result %x", r.Bytes())
-	if n != n_expect {
-		t.Fatalf("expected total %v bytes output, got %v", n_expect, n)
-	}
+
 	r_expect_hex := "000700010578797a7a7902029a01000804696e6b790570696e6b79000303666f6f012a000a036261720b626172206261726220617a"
 	r_expect, err := hex.DecodeString(r_expect_hex)
 	if err != nil {
 		t.Fatal(err)
 	}
+	n_expect := len(r_expect)
+	if n != n_expect {
+		t.Fatalf("expected total %v bytes output, got %v", n_expect, n)
+	}
+	
 	rb := r.Bytes()
 	if !bytes.Equal(rb, r_expect) {
-		t.Fatalf("expected result %v, got %x", r_expect_hex, rb)
+		t.Fatalf("expected result:\n\t%v, got:\n\t%x", r_expect_hex, rb)
 	}
 
 	_, err = vm.ParseAll(rb, nil)
