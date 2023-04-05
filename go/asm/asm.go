@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"math"
-//	"strconv"
 	"strings"
 
 	"github.com/alecthomas/participle/v2"
@@ -23,49 +22,15 @@ type Asm struct {
 
 type Display struct {
 	Sym string `@Sym Whitespace`
-	//Val string `Quote (@Desc @Whitespace?)+ Quote Whitespace`
-	Val string `Quote (@Sym @Whitespace?)+ Quote Whitespace? EOL`
+	Val string `Quote (@Sym @Whitespace?)+ Quote`
 }
 
 func(d Display) String() string {
 	return fmt.Sprintf("Display: %v %v", d.Sym, d.Val)
 }
 
-type Sig struct {
-	Sym string `@Sym Whitespace`
-	Size uint32 `@Size Whitespace`
-	Val uint8 `@Size Whitespace? EOL`
-}
-//
-//func(s Sig) Capture(v []string) error {
-//	log.Printf("considering capture %v %v", v[0], len(v))
-//	if len(v) < 3 {
-//		return nil
-//	}
-//	s.Sym = v[0]
-//	r, err := strconv.Atoi(v[1])
-//	if err != nil {
-//		return err
-//	}
-//	s.Size = uint32(r)
-//	r, err = strconv.Atoi(v[2])
-//	if err != nil {
-//		return err
-//	}
-//	if r != 0 {
-//		r = 1
-//	}
-//	s.Val = uint8(r)
-//	log.Printf("after considering capture: %v", s)
-//	return nil
-//}
-
-func(s Sig) String() string {
-	return fmt.Sprintf("Sig: %v %v %v", s.Sym, s.Size, s.Val)
-}
-
 type Single struct {
-	One string `@Sym Whitespace? EOL`
+	One string `@Sym`
 }
 
 func(s Single) String() string {
@@ -74,7 +39,7 @@ func(s Single) String() string {
 
 type Double struct {
 	One string `@Sym Whitespace`
-	Two string `@Sym Whitespace? EOL`
+	Two string `@Sym`
 }
 
 func(d Double) String() string {
@@ -83,12 +48,7 @@ func(d Double) String() string {
 
 type Sized struct {
 	Sym string `@Sym Whitespace`
-	Size uint32 `@Size Whitespace? EOL`
-}
-
-func(s Sized) Capture(v []Sized) error {
-	log.Printf("foofofofofo")
-	return fmt.Errorf("foo foo foo")
+	Size uint32 `@Size`
 }
 
 func(s Sized) String() string {
@@ -96,20 +56,20 @@ func(s Sized) String() string {
 }
 
 type Arg struct {
-	ArgNone string "Discard?"
 	ArgDisplay *Display `@@?`
 	ArgSized *Sized `@@?`
-	ArgSig *Sig `@@?`
+	ArgFlag *uint8 `@Size?`
 	ArgDouble *Double `@@?`
 	ArgSingle *Single `@@?`
+	ArgNone string `Whitespace? EOL`
 }
 
 func (a Arg) String() string {
 	if a.ArgDisplay != nil {
 		return fmt.Sprintf("%s", a.ArgDisplay)
 	}
-	if a.ArgSig != nil {
-		return fmt.Sprintf("%s", a.ArgSig)
+	if a.ArgFlag != nil {
+		return fmt.Sprintf("Flag: %v", *a.ArgFlag)
 	}
 	if a.ArgSized != nil {
 		return fmt.Sprintf("%s", a.ArgSized)
@@ -330,53 +290,6 @@ func parseSized(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 	return rn, err
 }
 
-func parseSig(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
-	var rn int
-
-	v := arg.ArgSig
-	if v == nil {
-		return 0, nil
-	}
-
-	b := bytes.NewBuffer(nil)
-
-	n, err := writeOpcode(op, b)
-	rn += n
-	if  err != nil {
-		return rn, err
-	}
-	
-	n, err = writeSym(v.Sym, b)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-
-	n, err = writeSize(v.Size, b)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-
-	if v.Val == 0 {
-		n, err = b.Write([]byte{0x00})
-	} else {
-		n, err = b.Write([]byte{0x01})
-	}
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-
-
-	if w != nil {
-		rn, err = w.Write(b.Bytes())
-	} else {
-		rn = 0
-	}
-	return rn, err
-}
-
 func parseNoarg(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 	var rn int
 
@@ -393,6 +306,23 @@ func parseNoarg(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 		rn = 0
 	}
 	return rn, err
+}
+
+func parseFlag(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
+	var rn int
+	var err error 
+
+	v := arg.ArgFlag
+	if v == nil {
+		return 0, nil
+	}
+	if w != nil {
+		rn, err = w.Write([]byte{*v})
+	} else {
+		rn = 0
+	}
+	return rn, err
+
 }
 
 func Parse(s string, w io.Writer) (int, error) {
@@ -412,17 +342,14 @@ func Parse(s string, w io.Writer) (int, error) {
 		}
 		if n > 0 {
 			rn += n
-			continue
-		}
-		n, err = parseDisplay(op, v.OpArg, w)
-		if err != nil {
-			return n, err
-		}
-		if n > 0 {
+			n, err = parseFlag(op, v.OpArg, w)
+			if err != nil {
+				return n, err
+			}
 			rn += n
 			continue
 		}
-		n, err = parseSig(op, v.OpArg, w)
+		n, err = parseDisplay(op, v.OpArg, w)
 		if err != nil {
 			return n, err
 		}

@@ -182,12 +182,18 @@ func TestParserWriteMultiple(t *testing.T) {
 	if n != n_expect {
 		t.Fatalf("expected total %v bytes output, got %v", n_expect, n)
 	}
-	r_expect_hex := "000700010578797a7a7902029a000804696e6b790570696e6b79000303666f6f023432000a036261720b626172206261726220617a"
+	r_expect_hex := "000700010578797a7a7902029a01000804696e6b790570696e6b79000303666f6f012a000a036261720b626172206261726220617a"
 	r_expect, err := hex.DecodeString(r_expect_hex)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(r.Bytes(), r_expect) {
-		t.Fatalf("expected result %v, got %x", r_expect_hex, r.Bytes())
+	rb := r.Bytes()
+	if !bytes.Equal(rb, r_expect) {
+		t.Fatalf("expected result %v, got %x", r_expect_hex, rb)
+	}
+
+	_, err = vm.ParseAll(rb, nil)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
