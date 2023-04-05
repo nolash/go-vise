@@ -2,6 +2,7 @@ package asm
 
 import (
 	"bytes"
+	"encoding/hex"
 	"log"
 	"testing"
 
@@ -111,6 +112,31 @@ func TestParseSingle(t *testing.T) {
 	}
 }
 
+func TestParseSig(t *testing.T) {
+	var b []byte
+	b = vm.NewLine(b, vm.CATCH, []string{"plugh"}, []byte{0x02, 0x9a}, []uint8{0x2a})
+	s, err := vm.ToString(b)
+	log.Printf("parsing:\n%s\n", s)
+
+	r := bytes.NewBuffer(nil)
+	n, err := Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 12 {
+		t.Fatalf("expected 12 byte write count, got %v", n)
+	}
+	rb := r.Bytes()
+	expect_hex := "000105706c75676802029a01"
+	expect, err := hex.DecodeString(expect_hex)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(rb, expect) {
+		t.Fatalf("expected %v, got %x", expect_hex, rb)
+	}
+}
+
 func TestParseNoarg(t *testing.T) {
 	var b []byte
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
@@ -138,7 +164,7 @@ func TestParserWriteMultiple(t *testing.T) {
 	b = vm.NewLine(b, vm.CATCH, []string{"xyzzy"}, []byte{0x02, 0x9a}, []uint8{1})
 	b = vm.NewLine(b, vm.INCMP, []string{"inky", "pinky"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{42}, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"bar", "barbarbaz"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"bar", "bar barb az"}, nil, nil)
 	s, err := vm.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
@@ -148,11 +174,20 @@ func TestParserWriteMultiple(t *testing.T) {
 		t.Fatal(err)
 	}
 	n_expect := 2 // halt
-	n_expect += 2 + 6 + 2 + 1 // catch
+	n_expect += 2 + 6 + 3 + 1 // catch
 	n_expect += 2 + 5 + 6 // incmp
 	n_expect += 2 + 4 + 2 // load
-	n_expect += 2 + 4 + 10 // mout
+	n_expect += 2 + 4 + 12 // mout
+	log.Printf("result %x", r.Bytes())
 	if n != n_expect {
 		t.Fatalf("expected total %v bytes output, got %v", n_expect, n)
+	}
+	r_expect_hex := "000700010578797a7a7902029a000804696e6b790570696e6b79000303666f6f023432000a036261720b626172206261726220617a"
+	r_expect, err := hex.DecodeString(r_expect_hex)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(r.Bytes(), r_expect) {
+		t.Fatalf("expected result %v, got %x", r_expect_hex, r.Bytes())
 	}
 }

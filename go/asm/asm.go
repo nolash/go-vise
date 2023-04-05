@@ -5,7 +5,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"log"
 	"math"
+//	"strconv"
 	"strings"
 
 	"github.com/alecthomas/participle/v2"
@@ -22,25 +24,48 @@ type Asm struct {
 type Display struct {
 	Sym string `@Sym Whitespace`
 	//Val string `Quote (@Desc @Whitespace?)+ Quote Whitespace`
-	Val string `Quote (@Sym @Whitespace?)+ Quote Whitespace`
+	Val string `Quote (@Sym @Whitespace?)+ Quote Whitespace? EOL`
 }
 
 func(d Display) String() string {
 	return fmt.Sprintf("Display: %v %v", d.Sym, d.Val)
 }
 
-//type Sig struct {
-//	Sym string `@Sym Whitespace`
-//	Size uint32 `@Size Whitespace`
-//	Val uint32 `@Size Whitespace`
-//}
+type Sig struct {
+	Sym string `@Sym Whitespace`
+	Size uint32 `@Size Whitespace`
+	Val uint8 `@Size Whitespace? EOL`
+}
 //
-//func(s Sig) String() string {
-//	return fmt.Sprintf("Sig: %v %v %v", s.Sym, s.Size, s.Val)
+//func(s Sig) Capture(v []string) error {
+//	log.Printf("considering capture %v %v", v[0], len(v))
+//	if len(v) < 3 {
+//		return nil
+//	}
+//	s.Sym = v[0]
+//	r, err := strconv.Atoi(v[1])
+//	if err != nil {
+//		return err
+//	}
+//	s.Size = uint32(r)
+//	r, err = strconv.Atoi(v[2])
+//	if err != nil {
+//		return err
+//	}
+//	if r != 0 {
+//		r = 1
+//	}
+//	s.Val = uint8(r)
+//	log.Printf("after considering capture: %v", s)
+//	return nil
 //}
 
+func(s Sig) String() string {
+	return fmt.Sprintf("Sig: %v %v %v", s.Sym, s.Size, s.Val)
+}
+
 type Single struct {
-	One string `@Sym Whitespace`
+	One string `@Sym Whitespace? EOL`
 }
 
 func(s Single) String() string {
@@ -49,7 +74,7 @@ func(s Single) String() string {
 
 type Double struct {
 	One string `@Sym Whitespace`
-	Two string `@Sym Whitespace`
+	Two string `@Sym Whitespace? EOL`
 }
 
 func(d Double) String() string {
@@ -58,8 +83,12 @@ func(d Double) String() string {
 
 type Sized struct {
 	Sym string `@Sym Whitespace`
-	Size uint32 `@Size Whitespace`
-	X uint32 `(@Size Whitespace)?`
+	Size uint32 `@Size Whitespace? EOL`
+}
+
+func(s Sized) Capture(v []Sized) error {
+	log.Printf("foofofofofo")
+	return fmt.Errorf("foo foo foo")
 }
 
 func(s Sized) String() string {
@@ -67,9 +96,10 @@ func(s Sized) String() string {
 }
 
 type Arg struct {
-	ArgNone string "Whitespace?"
+	ArgNone string "Discard?"
 	ArgDisplay *Display `@@?`
 	ArgSized *Sized `@@?`
+	ArgSig *Sig `@@?`
 	ArgDouble *Double `@@?`
 	ArgSingle *Single `@@?`
 }
@@ -77,6 +107,9 @@ type Arg struct {
 func (a Arg) String() string {
 	if a.ArgDisplay != nil {
 		return fmt.Sprintf("%s", a.ArgDisplay)
+	}
+	if a.ArgSig != nil {
+		return fmt.Sprintf("%s", a.ArgSig)
 	}
 	if a.ArgSized != nil {
 		return fmt.Sprintf("%s", a.ArgSized)
@@ -104,9 +137,12 @@ var (
 	asmLexer = lexer.MustSimple([]lexer.SimpleRule{
 		{"Comment", `(?:#)[^\n]*\n?`},
 		{"Ident", `^[A-Z]+`},
-		{"Sym", `[a-zA-Z0-9_]+`},
+		{"SizeSig", `[0-9]+\s+{?:[0-9]}`},
 		{"Size", `[0-9]+`},
-		{"Whitespace", `[ \t\n\r]+`},
+		{"Sym", `[a-zA-Z_][a-zA-Z0-9_]+`},
+		{"Whitespace", `[ \t]+`},
+		{"Discard", `^\s+[\n\r]+$`},
+		{"EOL", `[\n\r]+`},
 		{"Quote", `["']`},
 	})
 	asmParser = participle.MustBuild[Asm](
@@ -155,7 +191,7 @@ func writeSize(n uint32, w *bytes.Buffer) (int, error) {
 	w.Write([]byte{byte(sz)})
 	binary.BigEndian.PutUint32(bn[:], n)
 	c := 4-sz
-	return w.Write(bn[c:])	
+	return w.Write(bn[c:])
 }
 
 func parseSingle(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
@@ -294,6 +330,53 @@ func parseSized(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 	return rn, err
 }
 
+func parseSig(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
+	var rn int
+
+	v := arg.ArgSig
+	if v == nil {
+		return 0, nil
+	}
+
+	b := bytes.NewBuffer(nil)
+
+	n, err := writeOpcode(op, b)
+	rn += n
+	if  err != nil {
+		return rn, err
+	}
+	
+	n, err = writeSym(v.Sym, b)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	n, err = writeSize(v.Size, b)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	if v.Val == 0 {
+		n, err = b.Write([]byte{0x00})
+	} else {
+		n, err = b.Write([]byte{0x01})
+	}
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+
+	if w != nil {
+		rn, err = w.Write(b.Bytes())
+	} else {
+		rn = 0
+	}
+	return rn, err
+}
+
 func parseNoarg(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 	var rn int
 
@@ -321,6 +404,7 @@ func Parse(s string, w io.Writer) (int, error) {
 
 	var rn int
 	for _, v := range ast.Instructions {
+		log.Printf("parsing line %v: %v", v.OpCode, v.OpArg)
 		op := vm.OpcodeIndex[v.OpCode]
 		n, err := parseSized(op, v.OpArg, w)
 		if err != nil {
@@ -330,8 +414,15 @@ func Parse(s string, w io.Writer) (int, error) {
 			rn += n
 			continue
 		}
-
 		n, err = parseDisplay(op, v.OpArg, w)
+		if err != nil {
+			return n, err
+		}
+		if n > 0 {
+			rn += n
+			continue
+		}
+		n, err = parseSig(op, v.OpArg, w)
 		if err != nil {
 			return n, err
 		}
