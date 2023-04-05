@@ -158,6 +158,35 @@ func writeSize(n uint32, w *bytes.Buffer) (int, error) {
 	return w.Write(bn[c:])	
 }
 
+func parseSingle(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
+	var rn int
+
+	v := arg.ArgSingle
+	if v == nil {
+		return 0, nil
+	}
+
+	b := bytes.NewBuffer(nil)
+
+	n, err := writeOpcode(op, b)
+	rn += n
+	if  err != nil {
+		return rn, err
+	}
+	
+	n, err = writeSym(v.Sym, b)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+	
+	if w != nil {
+		rn, err = w.Write(b.Bytes())
+	} else {
+		rn = 0
+	}
+	return rn, err
+}
 
 func parseDisplay(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 	var rn int
@@ -297,7 +326,14 @@ func Parse(s string, w io.Writer) (int, error) {
 			rn += n
 			continue
 		}
-
+		n, err = parseSingle(op, v.OpArg, w)
+		if err != nil {
+			return n, err
+		}
+		if n > 0 {
+			rn += n
+			continue
+		}
 	}
 	return rn, err
 }

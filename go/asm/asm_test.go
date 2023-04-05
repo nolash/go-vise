@@ -89,3 +89,24 @@ func TestParseDouble(t *testing.T) {
 		t.Fatalf("expected %x, got %x", expect, rb)
 	}
 }
+
+func TestParseSingle(t *testing.T) {
+	var b []byte
+	b = vm.NewLine(b, vm.MAP, []string{"xyzzy"}, nil, nil)
+	s, err := vm.ToString(b)
+	log.Printf("parsing:\n%s\n", s)
+
+	r := bytes.NewBuffer(nil)
+	n, err := Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 8 {
+		t.Fatalf("expected 8 byte write count, got %v", n)
+	}
+	rb := r.Bytes()
+	expect := []byte{0x00, vm.MAP, 0x05, 0x78, 0x79, 0x7a, 0x7a, 0x79}
+	if !bytes.Equal(rb, expect) {
+		t.Fatalf("expected %x, got %x", expect, rb)
+	}
+}
