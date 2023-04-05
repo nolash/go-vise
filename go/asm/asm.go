@@ -70,8 +70,8 @@ type Arg struct {
 	ArgNone string "Whitespace?"
 	ArgDisplay *Display `@@?`
 	ArgSized *Sized `@@?`
-	ArgSingle *Single `@@?`
 	ArgDouble *Double `@@?`
+	ArgSingle *Single `@@?`
 }
 
 func (a Arg) String() string {
@@ -194,6 +194,42 @@ func parseDisplay(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 	return rn, err
 }
 
+func parseDouble(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
+	var rn int
+
+	v := arg.ArgDouble
+	if v == nil {
+		return 0, nil
+	}
+
+	b := bytes.NewBuffer(nil)
+
+	n, err := writeOpcode(op, b)
+	rn += n
+	if  err != nil {
+		return rn, err
+	}
+	
+	n, err = writeSym(v.One, b)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	n, err = writeSym(v.Two, b)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	if w != nil {
+		rn, err = w.Write(b.Bytes())
+	} else {
+		rn = 0
+	}
+	return rn, err
+}
+
 func parseSized(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 	var rn int
 
@@ -253,6 +289,15 @@ func Parse(s string, w io.Writer) (int, error) {
 			rn += n
 			continue
 		}
+		n, err = parseDouble(op, v.OpArg, w)
+		if err != nil {
+			return n, err
+		}
+		if n > 0 {
+			rn += n
+			continue
+		}
+
 	}
 	return rn, err
 }

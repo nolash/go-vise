@@ -13,6 +13,7 @@ func TestParserInit(t *testing.T) {
 	var b []byte
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.CATCH, []string{"xyzzy"}, []byte{0x02, 0x9a}, []uint8{1})
+	b = vm.NewLine(b, vm.INCMP, []string{"inky", "pinky"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{42}, nil)
 	b = vm.NewLine(b, vm.MOUT, []string{"bar", "barbarbaz"}, nil, nil)
 	s, err := vm.ToString(b)
@@ -63,6 +64,27 @@ func TestParseDisplay(t *testing.T) {
 	}
 	rb := r.Bytes()
 	expect := []byte{0x00, vm.MOUT, 0x03, 0x66, 0x6f, 0x6f, 0x0b, 0x62, 0x61, 0x7a, 0x20, 0x62, 0x61, 0x20, 0x7a, 0x62, 0x61, 0x7a}
+	if !bytes.Equal(rb, expect) {
+		t.Fatalf("expected %x, got %x", expect, rb)
+	}
+}
+
+func TestParseDouble(t *testing.T) {
+	var b []byte
+	b = vm.NewLine(b, vm.INCMP, []string{"foo", "bar"}, nil, nil)
+	s, err := vm.ToString(b)
+	log.Printf("parsing:\n%s\n", s)
+
+	r := bytes.NewBuffer(nil)
+	n, err := Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 10 {
+		t.Fatalf("expected 18 byte write count, got %v", n)
+	}
+	rb := r.Bytes()
+	expect := []byte{0x00, vm.INCMP, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72}
 	if !bytes.Equal(rb, expect) {
 		t.Fatalf("expected %x, got %x", expect, rb)
 	}
