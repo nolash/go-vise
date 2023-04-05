@@ -294,6 +294,24 @@ func parseSized(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 	return rn, err
 }
 
+func parseNoarg(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
+	var rn int
+
+	b := bytes.NewBuffer(nil)
+
+	n, err := writeOpcode(op, b)
+	rn += n
+	if  err != nil {
+		return rn, err
+	}
+	if w != nil {
+		rn, err = w.Write(b.Bytes())
+	} else {
+		rn = 0
+	}
+	return rn, err
+}
+
 func Parse(s string, w io.Writer) (int, error) {
 	rd := strings.NewReader(s)
 	ast, err := asmParser.Parse("file", rd)
@@ -334,6 +352,15 @@ func Parse(s string, w io.Writer) (int, error) {
 			rn += n
 			continue
 		}
+		n, err = parseNoarg(op, v.OpArg, w)
+		if err != nil {
+			return n, err
+		}
+		if n > 0 {
+			rn += n
+			continue
+		}
+
 	}
 	return rn, err
 }

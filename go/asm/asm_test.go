@@ -110,3 +110,49 @@ func TestParseSingle(t *testing.T) {
 		t.Fatalf("expected %x, got %x", expect, rb)
 	}
 }
+
+func TestParseNoarg(t *testing.T) {
+	var b []byte
+	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
+	s, err := vm.ToString(b)
+	log.Printf("parsing:\n%s\n", s)
+
+	r := bytes.NewBuffer(nil)
+	n, err := Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 2 {
+		t.Fatalf("expected 8 byte write count, got %v", n)
+	}
+	rb := r.Bytes()
+	expect := []byte{0x00, vm.HALT}
+	if !bytes.Equal(rb, expect) {
+		t.Fatalf("expected %x, got %x", expect, rb)
+	}
+}
+
+func TestParserWriteMultiple(t *testing.T) {
+	var b []byte
+	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
+	b = vm.NewLine(b, vm.CATCH, []string{"xyzzy"}, []byte{0x02, 0x9a}, []uint8{1})
+	b = vm.NewLine(b, vm.INCMP, []string{"inky", "pinky"}, nil, nil)
+	b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{42}, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"bar", "barbarbaz"}, nil, nil)
+	s, err := vm.ToString(b)
+	log.Printf("parsing:\n%s\n", s)
+
+	r := bytes.NewBuffer(nil)
+	n, err := Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n_expect := 2 // halt
+	n_expect += 2 + 6 + 2 + 1 // catch
+	n_expect += 2 + 5 + 6 // incmp
+	n_expect += 2 + 4 + 2 // load
+	n_expect += 2 + 4 + 10 // mout
+	if n != n_expect {
+		t.Fatalf("expected total %v bytes output, got %v", n_expect, n)
+	}
+}
