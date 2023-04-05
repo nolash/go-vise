@@ -104,7 +104,7 @@ var (
 	asmLexer = lexer.MustSimple([]lexer.SimpleRule{
 		{"Comment", `(?:#)[^\n]*\n?`},
 		{"Ident", `^[A-Z]+`},
-		{"Sym", `[a-zA-Z]+`},
+		{"Sym", `[a-zA-Z0-9_]+`},
 		{"Size", `[0-9]+`},
 		{"Whitespace", `[ \t\n\r]+`},
 		{"Quote", `["']`},
@@ -315,8 +315,11 @@ func parseNoarg(op vm.Opcode, arg Arg, w io.Writer) (int, error) {
 func Parse(s string, w io.Writer) (int, error) {
 	rd := strings.NewReader(s)
 	ast, err := asmParser.Parse("file", rd)
-	var rn int
+	if err != nil {
+		return 0, err
+	}
 
+	var rn int
 	for _, v := range ast.Instructions {
 		op := vm.OpcodeIndex[v.OpCode]
 		n, err := parseSized(op, v.OpArg, w)
