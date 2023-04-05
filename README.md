@@ -178,6 +178,11 @@ It expects all replacement symbols to be available at time of rendering, and has
 0007                          # HALT                - stop execution
 ```
 
+## Assembly examples
+
+See `testdata/*.fst`
+
+
 ## Development tools
 
 Located in the `dev/` directory.
@@ -203,17 +208,16 @@ If `data_directory` is not set, current directory will be used.
 if `root_symbol` is not set, the symbol `root` will be used.
 
 
-### Disassembler
-
-`go run ./dev/testdata/ <binary_file>`
-
-The output from this tool is to be considered debugging output, as the assembly language isn't formalized yet.
-
-In the meantime, it will at least list all the instructions, and thus validate the file.
-
-
 ### Assembler
 
-**TBD**
+`go run ./dev/asm <assembly_file>`
 
-An assmebly language will be defined to generate the _routing_ and _execution_ bytecodes for each menu node.
+Will output bytecode on STDOUT generated from a valid assembly file.
+
+
+### Disassembler
+
+`go run ./dev/disasm/ <binary_file>`
+
+Will list all the instructions on STDOUT from a valid binary file.
+
