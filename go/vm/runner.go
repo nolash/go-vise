@@ -58,9 +58,45 @@ func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) (
 			return b, err
 		}
 		if len(b) == 0 {
+			b, err = RunDeadCheck(b, st, rs, ctx)
+			if err != nil {
+				return b, err
+			}
+		}
+		if len(b) == 0 {
 			return []byte{}, nil
 		}
 	}
+	return b, nil
+}
+
+// RunDeadCheck determines whether a state of empty bytecode should result in termination.
+//
+// If there is remaining bytecode, this method is a noop.
+//
+// If input has not been matched, a default invalid input page should be generated aswell as a possiblity of return to last screen (or exit).
+// 
+// If the termination flag has been set but not yet handled, execution is allowed to terminate.
+func RunDeadCheck(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	if len(b) > 0 {
+		return b, nil
+	}
+	log.Printf("no code remaining, let's check if we terminate")
+	r, err := matchFlag(st, state.FLAG_TERMINATE, false)
+	if err != nil {
+		panic(err)
+	}
+	if r {
+		return b, nil
+	}
+	location := st.Where()
+	if location == "" {
+		return b, fmt.Errorf("dead runner with no current location")
+	}
+	b = NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+	b = NewLine(b, MOVE, []string{location}, nil, nil)
+	log.Printf("code is now %x", b)
 	return b, nil
 }
 
@@ -73,6 +109,7 @@ func RunMap(b []byte, st *state.State, rs resource.Resource, ctx context.Context
 
 // RunMap executes the CATCH opcode
 func RunCatch(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+	log.Printf("zzz %x", b)
 	sym, sig, mode, b, err := ParseCatch(b)
 	if err != nil {
 		return b, err

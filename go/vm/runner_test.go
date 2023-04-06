@@ -104,6 +104,7 @@ func TestRunLoadRender(t *testing.T) {
 
 	var err error
 	b := NewLine(nil, LOAD, []string{"one"}, []byte{0x0a}, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 	b, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
@@ -127,11 +128,13 @@ func TestRunLoadRender(t *testing.T) {
 	}
 
 	b = NewLine(nil, LOAD, []string{"two"}, []byte{0x0a}, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 	b, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
 	}
 	b = NewLine(nil, MAP, []string{"one"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 	_, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
@@ -155,6 +158,7 @@ func TestRunMultiple(t *testing.T) {
 	rs := TestResource{}
 	b := NewLine(nil, LOAD, []string{"one"}, []byte{0x00}, nil)
 	b = NewLine(b, LOAD, []string{"two"}, []byte{42}, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 	b, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)
@@ -167,33 +171,35 @@ func TestRunMultiple(t *testing.T) {
 func TestRunReload(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := NewLine(nil, LOAD, []string{"dyn"}, nil, []uint8{0})
+	b := NewLine(nil, MOVE, []string{"root"}, nil, nil)
+	b = NewLine(b, LOAD, []string{"dyn"}, nil, []uint8{0})
 	b = NewLine(b, MAP, []string{"dyn"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 	_, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	r, err := st.Val("dyn")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if r != "three" {
-		t.Errorf("expected result 'three', got %v", r)
+		t.Fatalf("expected result 'three', got %v", r)
 	}
 	dynVal = "baz"
-	b = []byte{}
-	b = NewLine(b, RELOAD, []string{"dyn"}, nil, nil)
+	b = NewLine(nil, RELOAD, []string{"dyn"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 	_, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	r, err = st.Val("dyn")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	log.Printf("dun now %s", r)
 	if r != "baz" {
-		t.Errorf("expected result 'baz', got %v", r)
+		t.Fatalf("expected result 'baz', got %v", r)
 	}
 
 }
@@ -225,7 +231,8 @@ func TestRunArg(t *testing.T) {
 	input := []byte("bar")
 	_ = st.SetInput(input)
 
-	bi := NewLine([]byte{}, INCMP, []string{"bar", "baz"}, nil, nil)
+	bi := NewLine(nil, INCMP, []string{"bar", "baz"}, nil, nil)
+	bi = NewLine(bi, HALT, nil, nil, nil)
 	b, err := Run(bi, &st, &rs, context.TODO())
 	if err != nil {
 		t.Error(err)	
@@ -252,6 +259,7 @@ func TestRunInputHandler(t *testing.T) {
 	bi = NewLine(bi, LOAD, []string{"two"}, []byte{0x03}, nil)
 	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
 	bi = NewLine(bi, MAP, []string{"two"}, nil, nil)
+	bi = NewLine(bi, HALT, nil, nil, nil)
 
 	var err error
 	_, err = Run(bi, &st, &rs, context.TODO())
@@ -271,21 +279,22 @@ func TestRunArgInvalid(t *testing.T) {
 	_ = st.SetInput([]byte("foo"))
 
 	var err error
-
-	b := NewLine([]byte{}, INCMP, []string{"bar", "baz"}, nil, nil)
-	b = NewLine(b, CATCH, []string{"_catch"}, []byte{state.FLAG_INMATCH}, []uint8{1})
+	
+	st.Down("root")
+	b := NewLine(nil, INCMP, []string{"bar", "baz"}, nil, nil)
+	//b = NewLine(b, CATCH, []string{"_catch"}, []byte{state.FLAG_INMATCH}, []uint8{1})
 
 	b, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
-		t.Error(err)	
+		t.Fatal(err)	
 	}
-	l := len(b)
-	if l != 0 {
-		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+	expect := NewLine(nil, MOVE, []string{"root"}, nil, nil)
+	if !bytes.Equal(b, expect) {
+		t.Fatalf("expected:\n\t%x\ngot:\b\t%x\n", expect, b)
 	}
 	r := st.Where()
 	if r != "_catch" {
-		t.Errorf("expected where-state _catch, got %v", r)
+		t.Fatalf("expected where-state _catch, got %v", r)
 	}
 }
 
@@ -298,6 +307,7 @@ func TestRunMenu(t *testing.T) {
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 
 	b, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
@@ -331,6 +341,7 @@ func TestRunMenuBrowse(t *testing.T) {
 	b = NewLine(b, MPREV, []string{"22", "two"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 
 	b, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
@@ -350,3 +361,4 @@ func TestRunMenuBrowse(t *testing.T) {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
 }
+
