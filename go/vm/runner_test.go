@@ -89,8 +89,6 @@ func TestRun(t *testing.T) {
 
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	//b := []byte{0x00, MOVE, 0x03}
-	//b = append(b, []byte("foo")...)
 	_, err := Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Errorf("run error: %v", err)	

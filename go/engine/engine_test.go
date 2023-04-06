@@ -120,3 +120,19 @@ it has more lines
 		t.Fatalf("expected\n\t%s\ngot:\n\t%s\n", expect, b)
 	}
 }
+
+func TestEngineExecInvalidInput(t *testing.T) {
+	st := state.NewState(17).WithCacheSize(1024)
+	generateTestData(t)
+	ctx := context.TODO()
+	rs := NewFsWrapper(dataDir, &st)
+	en := NewEngine(&st, &rs)
+	err := en.Init("root", ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = en.Exec([]byte("_foo"), ctx)
+	if err == nil {
+		t.Fatalf("expected fail on invalid input")
+	}
+}
