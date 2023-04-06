@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	inputRegex = regexp.MustCompile("^[a-zA-Z0-9].*$")
+	inputRegexStr = "^[a-zA-Z0-9].*$"
+	inputRegex = regexp.MustCompile(inputRegexStr)
 )
 //
 //type Config struct {
@@ -50,9 +51,10 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 	return nil
 }
 
+// return descriptive error if client input is invalid
 func checkInput(input []byte) error {
 	if !inputRegex.Match(input) {
-		return fmt.Errorf("Invalid input format: %s", input)
+		return fmt.Errorf("Input '%s' does not match format /%s/", input, inputRegexStr)
 	}
 	return nil
 }
@@ -70,12 +72,13 @@ func checkInput(input []byte) error {
 func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	err := checkInput(input)
 	if err != nil {
-		return false, err
+		return true, err
 	}
 	err = en.st.SetInput(input)
 	if err != nil {
 		return false, err
 	}
+
 	log.Printf("new execution with input '%s' (0x%x)", input, input)
 	code, err := en.st.GetCode()
 	if err != nil {
