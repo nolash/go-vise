@@ -394,6 +394,11 @@ func(st *State) GetInput() ([]byte, error) {
 
 // SetInput is used to record the latest client input.
 func(st *State) SetInput(input []byte) error {
+//	if input == nil {
+//		log.Printf("clearing input")
+//		st.input = nil
+//		return nil
+//	}
 	l := len(input)
 	if l > 255 {
 		return fmt.Errorf("input size %v too large (limit %v)", l, 255)

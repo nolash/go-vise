@@ -19,12 +19,12 @@ import (
 func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
 	running := true
 	for running {
-		log.Printf("execute code %x", b)
 		op, bb, err := opSplit(b)
 		if err != nil {
 			return b, err
 		}
 		b = bb
+		log.Printf("execute code %x (%s) %x", op, OpcodeString[op], b)
 		switch op {
 		case CATCH:
 			b, err = RunCatch(b, st, rs, ctx)
@@ -170,11 +170,13 @@ func RunInCmp(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 	if err != nil {
 		return b, err
 	}
-	if sym == string(input) {
-		log.Printf("input match for '%s'", input)
-		_, err = st.SetFlag(state.FLAG_INMATCH)
-		st.Down(target)
+	if sym != string(input) {
+		return b, nil
 	}
+
+	log.Printf("input match for '%s'", input)
+	_, err = st.SetFlag(state.FLAG_INMATCH)
+	st.Down(target)
 	code, err := rs.GetCode(target)
 	if err != nil {
 		return b, err

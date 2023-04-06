@@ -32,8 +32,11 @@ func NewEngine(st *state.State, rs resource.Resource) Engine {
 //
 // It makes sure bootstrapping code has been executed, and that the exposed bytecode is ready for user input.
 func(en *Engine) Init(sym string, ctx context.Context) error {
+	err := en.st.SetInput([]byte{})
+	if err != nil {
+		return err
+	}
 	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
-	var err error
 	b, err = vm.Run(b, en.st, en.rs, ctx)
 	if err != nil {
 		return err
@@ -61,7 +64,7 @@ func (en *Engine) Exec(input []byte, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("new execution with input 0x%x (%v)", input, len(input))
+	log.Printf("new execution with input '%s' (0x%x)", input, input)
 	code, err := en.st.GetCode()
 	if err != nil {
 		return err

@@ -28,6 +28,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	b := bytes.NewBuffer(nil)
+	en.WriteResult(b)
+	fmt.Println(b.String())
+
 	running := true
 	for running {
 		reader := bufio.NewReader(os.Stdin)

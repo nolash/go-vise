@@ -37,6 +37,8 @@ func out(sym string, b []byte, tpl string) error {
 
 func root() error {
 	b := []byte{}
+	b = vm.NewLine(b, vm.MOUT, []string{"1", "do the foo"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"2", "go to the bar"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"1", "foo"}, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"2", "bar"}, nil, nil)

@@ -88,8 +88,12 @@ func TestEngineInit(t *testing.T) {
 		t.Fatal(err)
 	}
 	b := w.Bytes()
-	if !bytes.Equal(b, []byte("hello world")) {
-		t.Fatalf("expected result 'hello world', got %v", b)
+	expect_str := `hello world
+1:do the foo
+2:go to the bar`
+
+	if !bytes.Equal(b, []byte(expect_str)) {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect_str, b)
 	}
 
 	input := []byte("1")
