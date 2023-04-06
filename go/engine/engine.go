@@ -30,7 +30,7 @@ func NewEngine(st *state.State, rs resource.Resource) Engine {
 
 // Init must be explicitly called before using the Engine instance.
 //
-// It makes sure bootstrapping code has been executed, and that the exposed bytecode is ready for user input.
+// It loads and executes code for the start node.
 func(en *Engine) Init(sym string, ctx context.Context) error {
 	err := en.st.SetInput([]byte{})
 	if err != nil {
@@ -47,16 +47,12 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 
 // Exec processes user input against the current state of the virtual machine environment.
 //
-// If successfully executed:
-// - output of the last execution is available using the WriteResult(...) call
-// - Exec(...) may be called again with new input
-//
-// This implementation is in alpha state. That means that any error emitted may have left the system in an undefined state.
-//
-// TODO: Disambiguate errors as critical and resumable errors.
+// If successfully executed, output of the last execution is available using the WriteResult call.
+// 
+// A bool return valus of false indicates that execution should be terminated. Calling Exec again has undefined effects.
 //
 // Fails if:
-// - input is objectively invalid (too long etc)
+// - input is formally invalid (too long etc)
 // - no current bytecode is available
 // - input processing against bytcode failed
 func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
@@ -89,6 +85,10 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	}
 
 	en.st.SetCode(code)
+	if len(code) == 0 {
+		log.Printf("runner finished with no remaining code")
+		return false, nil
+	}
 
 	return true, nil
 }
