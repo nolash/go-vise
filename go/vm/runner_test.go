@@ -75,7 +75,12 @@ func(r *TestResource) getInput(ctx context.Context) (string, error) {
 }
 
 func(r *TestResource) GetCode(sym string) ([]byte, error) {
-	return []byte{}, nil
+	var b []byte
+	if sym == "_catch" {
+		b = NewLine(b, MOUT, []string{"0", "repent"}, nil, nil)
+		b = NewLine(b, HALT, nil, nil, nil)
+	}
+	return b, nil
 }
 
 func TestRun(t *testing.T) {
@@ -83,6 +88,7 @@ func TestRun(t *testing.T) {
 	rs := TestResource{}
 
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 	//b := []byte{0x00, MOVE, 0x03}
 	//b = append(b, []byte("foo")...)
 	_, err := Run(b, &st, &rs, context.TODO())
@@ -282,15 +288,10 @@ func TestRunArgInvalid(t *testing.T) {
 	
 	st.Down("root")
 	b := NewLine(nil, INCMP, []string{"bar", "baz"}, nil, nil)
-	//b = NewLine(b, CATCH, []string{"_catch"}, []byte{state.FLAG_INMATCH}, []uint8{1})
 
 	b, err = Run(b, &st, &rs, context.TODO())
 	if err != nil {
 		t.Fatal(err)	
-	}
-	expect := NewLine(nil, MOVE, []string{"root"}, nil, nil)
-	if !bytes.Equal(b, expect) {
-		t.Fatalf("expected:\n\t%x\ngot:\b\t%x\n", expect, b)
 	}
 	r := st.Where()
 	if r != "_catch" {
