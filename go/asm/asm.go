@@ -39,6 +39,7 @@ func flush(b *bytes.Buffer, w io.Writer) (int, error) {
 func parseDescType(b *bytes.Buffer, arg Arg) (int, error) {
 	var rn int
 	var err error
+
 	var selector string
 	if arg.Flag != nil {
 		selector = strconv.FormatUint(uint64(*arg.Flag), 10)
@@ -46,13 +47,17 @@ func parseDescType(b *bytes.Buffer, arg Arg) (int, error) {
 		selector = *arg.Selector
 	}
 
-	n, err := writeSym(b, *arg.Sym)
-	rn += n
-	if err != nil {
-		return rn, err
+	var size string
+	if arg.Size != nil {
+		size = strconv.FormatUint(uint64(*arg.Size), 10)
+		n, err := writeSym(b, size)
+		rn += n
+		if err != nil {
+			return rn, err
+		}
 	}
 
-	if selector != "" {
+	if arg.Sym != nil {
 		n, err := writeSym(b, *arg.Sym)
 		rn += n
 		if err != nil {
@@ -60,7 +65,15 @@ func parseDescType(b *bytes.Buffer, arg Arg) (int, error) {
 		}
 	}
 
-	n, err = writeSym(b, *arg.Desc)
+	if selector != "" {
+		n, err := writeSym(b, *arg.Selector)
+		rn += n
+		if err != nil {
+			return rn, err
+		}
+	}
+
+	n, err := writeSym(b, *arg.Desc)
 	rn += n
 	if err != nil {
 		return rn, err
@@ -72,13 +85,23 @@ func parseDescType(b *bytes.Buffer, arg Arg) (int, error) {
 func parseTwoSym(b *bytes.Buffer, arg Arg) (int, error) {
 	var rn int
 
-	n, err := writeSym(b, *arg.Sym)
+	var selector string
+	var sym string
+	if arg.Size != nil {
+		selector = strconv.FormatUint(uint64(*arg.Size), 10)
+		sym = *arg.Selector
+	} else if arg.Selector != nil {
+		sym = *arg.Sym
+		selector = *arg.Selector
+	}
+
+	n, err := writeSym(b, selector)
 	rn += n
 	if err != nil {
 		return rn, err
 	}
 
-	n, err = writeSym(b, *arg.Selector)
+	n, err = writeSym(b, sym)
 	rn += n
 	if err != nil {
 		return rn, err
@@ -142,10 +165,7 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 		return n_out, err
 	}
 
-	if a.Sym == nil {
-		return flush(b, w)
-	}
-
+	// Catch MOUT
 	if a.Desc != nil {
 		n, err := parseDescType(b, a)
 		n_buf += n
@@ -155,7 +175,9 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 		return flush(b, w)
 	}
 
+	// Catch
 	if a.Selector != nil {
+		log.Printf("entering twosym for %v", op)
 		n, err := parseTwoSym(b, a)
 		n_buf += n
 		if err != nil {
@@ -164,6 +186,7 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 		return flush(b, w)
 	}
 
+	// Catch CATCH, LOAD
 	if a.Size != nil {
 		if a.Flag != nil {
 			n, err := parseSig(b, a)
@@ -178,6 +201,11 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 				return n_out, err
 			}
 		}
+		return flush(b, w)
+	}
+
+	// Catch HALT
+	if a.Sym == nil {
 		return flush(b, w)
 	}
 
@@ -236,7 +264,7 @@ var (
 
 func numSize(n uint32) int {
 	v := math.Log2(float64(n))
-	return int(((v - 1) / 8) + 1)
+	return int((v  / 8) + 1)
 }
 
 func writeOpcode(w *bytes.Buffer, op vm.Opcode) (int, error) {
@@ -287,26 +315,31 @@ func NewBatcher(mp MenuProcessor) Batcher {
 	}
 }
 
-func(b *Batcher) MenuExit(w io.Writer) (int, error) {
-	if !b.inMenu {
+func(bt *Batcher) MenuExit(w io.Writer) (int, error) {
+	if !bt.inMenu {
 		return 0, nil
 	}
-	b.inMenu = false
-	return w.Write(b.menuProcessor.ToLines())
+	bt.inMenu = false
+	b := bt.menuProcessor.ToLines()
+	log.Printf("tolines %v", b)
+	return w.Write(b)
 }
 
-func(b *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
-	b.inMenu = true
-	selector := ""
-	if arg.Selector != nil {
+func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
+	bt.inMenu = true
+	var selector string
+	if arg.Size != nil {
+		selector = strconv.FormatUint(uint64(*arg.Size), 10)
+	} else if arg.Selector != nil {
 		selector = *arg.Selector
 	}
-	err := b.menuProcessor.Add(code, *arg.Sym, selector, *arg.Desc)
+	log.Printf("menu processor add %v '%v' '%v' '%v'", code, *arg.Sym, selector, *arg.Desc)
+	err := bt.menuProcessor.Add(code, *arg.Sym, selector, *arg.Desc)
 	return 0, err
 }
 
-func(b *Batcher) Exit(w io.Writer) (int, error) {
-	return b.MenuExit(w)
+func(bt *Batcher) Exit(w io.Writer) (int, error) {
+	return bt.MenuExit(w)
 }
 
 func Parse(s string, w io.Writer) (int, error) {
@@ -341,6 +374,7 @@ func Parse(s string, w io.Writer) (int, error) {
 			if err != nil {
 				return rn, err
 			}
+			log.Printf("wrote %v bytes for %v", n, v.OpArg)
 		}
 	}
 	n, err := batch.Exit(w)

@@ -1,7 +1,8 @@
-MOUT 0 "to foo"
-MOUT 1 "go bar"
+MOUT 1 "to foo"
+MOUT 2 "go bar"
 LOAD inky 20
 HALT
-INCMP 0 _
-INCMP 1 baz
+INCMP 1 _
+INCMP 2 baz
 CATCH _catch 1 1
+DOWN foofoo 1 "go to foo"
