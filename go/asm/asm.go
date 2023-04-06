@@ -328,13 +328,20 @@ func(bt *Batcher) MenuExit(w io.Writer) (int, error) {
 func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 	bt.inMenu = true
 	var selector string
+	var sym string
 	if arg.Size != nil {
 		selector = strconv.FormatUint(uint64(*arg.Size), 10)
 	} else if arg.Selector != nil {
 		selector = *arg.Selector
 	}
-	log.Printf("menu processor add %v '%v' '%v' '%v'", code, *arg.Sym, selector, *arg.Desc)
-	err := bt.menuProcessor.Add(code, *arg.Sym, selector, *arg.Desc)
+
+	if selector == "" {
+		selector = *arg.Sym
+	} else if arg.Sym != nil {
+		sym = *arg.Sym
+	}
+	log.Printf("menu processor add %v '%v' '%v' '%v'", code, selector, *arg.Desc, sym)
+	err := bt.menuProcessor.Add(code, selector, *arg.Desc, sym)
 	return 0, err
 }
 

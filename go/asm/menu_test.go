@@ -13,15 +13,15 @@ func TestMenuInterpreter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = m.Add("NEXT", "1", "pinky", "bar")
+	err = m.Add("NEXT", "1", "pinky", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = m.Add("PREVIOUS", "2", "blinky clyde", "baz")
+	err = m.Add("PREVIOUS", "2", "blinky clyde", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = m.Add("UP", "99", "tinky-winky", "xyzzy")
+	err = m.Add("UP", "99", "tinky-winky", "")
 	if err != nil {
 		t.Fatal(err)
 	}

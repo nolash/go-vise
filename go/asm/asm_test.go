@@ -94,7 +94,7 @@ func TestParseDouble(t *testing.T) {
 
 func TestParseMenu(t *testing.T) {
 	s := `DOWN foobar 00 "inky pinky"
-UP bazbar s1 "tinkywinky"
+UP s1 "tinkywinky"
 `
 	r := bytes.NewBuffer(nil)
 	n, err := Parse(s, r)

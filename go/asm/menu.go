@@ -48,6 +48,9 @@ func(mp *MenuProcessor) Add(bop string, choice string, display string, target st
 	if bopCode == 0 {
 		return fmt.Errorf("unknown menu instruction: %v", bop)
 	}
+	if len(target) > 0 && bopCode != MENU_DOWN {
+		return fmt.Errorf("target is only valid for DOWN")
+	}
 	m := menuItem{
 		code: bopCode,
 		choice: choice,
