@@ -34,7 +34,7 @@ type TestStatefulResolver struct {
 	state *state.State
 }
 
-func (r *TestResource) GetTemplate(sym string) (string, error) {
+func (r *TestResource) GetTemplate(sym string, sizer *resource.Sizer) (string, error) {
 	switch sym {
 	case "foo":
 		return "inky pinky blinky clyde", nil

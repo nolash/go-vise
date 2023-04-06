@@ -16,7 +16,7 @@ var (
 	inputRegexStr = "^[a-zA-Z0-9].*$"
 	inputRegex = regexp.MustCompile(inputRegexStr)
 )
-//
+
 //type Config struct {
 //	FlagCount uint32
 //	CacheSize uint32

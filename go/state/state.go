@@ -28,13 +28,15 @@ type State struct {
 	CacheUseSize uint32 // Currently used bytes by all values (not code) in cache
 	Cache []map[string]string // All loaded cache items
 	CacheMap map[string]string // Mapped
+	menuSize uint16 // Max size of menu
+	outputSize uint32 // Max size of output
 	input []byte // Last input
 	code []byte // Pending bytecode to execute
 	execPath []string // Command symbols stack
 	arg *string // Optional argument. Nil if not set.
 	sizes map[string]uint16 // Size limits for all loaded symbols.
-	sink *string // Sink symbol set for level
 	bitSize uint32 // size of (32-bit capacity) bit flag byte array
+	sink *string
 	//sizeIdx uint16
 }
 
@@ -195,6 +197,12 @@ func(st State) WithCacheSize(cacheSize uint32) State {
 	return st
 }
 
+// WithCacheSize applies a cumulative cache size limitation for all cached items.
+func(st State) WithOutputSize(outputSize uint32) State {
+	st.outputSize = outputSize
+	return st
+}
+
 // Where returns the current active rendering symbol.
 func(st State) Where() string {
 	if len(st.execPath) == 0 {
@@ -268,7 +276,7 @@ func(st *State) Add(key string, value string, sizeLimit uint16) error {
 	if sz == 0 {
 		return fmt.Errorf("Cache capacity exceeded %v of %v", st.CacheUseSize + sz, st.CacheSize)
 	}
-	log.Printf("add key %s value size %v", key, sz)
+	log.Printf("add key %s value size %v limit %v", key, sz, sizeLimit)
 	st.Cache[len(st.Cache)-1][key] = value
 	st.CacheUseSize += sz
 	st.sizes[key] = sizeLimit
@@ -346,6 +354,42 @@ func(st *State) Get() (map[string]string, error) {
 	return st.Cache[len(st.Cache)-1], nil
 }
 
+func(st *State) Sizes() (map[string]uint16, error) {
+	if len(st.Cache) == 0 {
+		return nil, fmt.Errorf("get at top frame")
+	}
+	sizes := make(map[string]uint16)
+	var haveSink bool
+	for k, _ := range st.CacheMap {
+		l, ok := st.sizes[k]
+		if !ok {
+			panic(fmt.Sprintf("missing size for %v", k))
+		}
+		if l == 0 {
+			if haveSink {
+				panic(fmt.Sprintf("duplicate sink for %v", k))
+			}
+			haveSink = true
+		}
+		sizes[k] = l
+	}
+	return sizes, nil
+}
+
+func(st *State) SetMenuSize(size uint16) error {
+	st.menuSize = size
+	log.Printf("menu size changed to %v", st.menuSize)
+	return nil
+}
+
+func(st *State) GetMenuSize() uint16 {
+	return st.menuSize
+}
+
+func(st *State) GetOutputSize() uint32 {
+	return st.outputSize
+}
+
 // Val returns value for key
 //
 // Fails if key is not mapped.
@@ -372,7 +416,7 @@ func(st *State) Check(key string) bool {
 	return st.frameOf(key) == -1
 }
 
-// Size returns size used by values, and remaining size available
+// Size returns size used by values and menu, and remaining size available
 func(st *State) Size() (uint32, uint32) {
 	var l int
 	var c uint16
@@ -381,6 +425,7 @@ func(st *State) Size() (uint32, uint32) {
 		c += st.sizes[k]
 	}
 	r := uint32(l)
+	r += uint32(st.menuSize)
 	return r, uint32(c)-r
 }
 

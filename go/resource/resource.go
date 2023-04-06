@@ -8,16 +8,20 @@ import (
 
 // EntryFunc is a function signature for retrieving value for a key
 type EntryFunc func(ctx context.Context) (string, error)
+type CodeFunc func(sym string) ([]byte, error)
+type TemplateFunc func(sym string, sizer *Sizer) (string, error)
+type FuncForFunc func(sym string) (EntryFunc, error)
 
 // Resource implementation are responsible for retrieving values and templates for symbols, and can render templates from value dictionaries.
 type Resource interface {
-	GetTemplate(sym string) (string, error) // Get the template for a given symbol.
+	GetTemplate(sym string, sizer *Sizer) (string, error) // Get the template for a given symbol.
 	GetCode(sym string) ([]byte, error) // Get the bytecode for the given symbol.
 	PutMenu(string, string) error // Add a menu item.
 	ShiftMenu() (string, string, error) // Remove and return the first menu item in list.
 	SetMenuBrowse(string, string, bool) error // Set menu browser display details.
 	RenderTemplate(sym string, values map[string]string) (string, error) // Render the given data map using the template of the symbol.
 	RenderMenu() (string, error) // Render the current state of menu
+	Render(sym string, values map[string]string, sizer *Sizer) (string, error) // Render full output.
 	FuncFor(sym string) (EntryFunc, error) // Resolve symbol content point for.
 }
 
@@ -25,6 +29,28 @@ type MenuResource struct {
 	menu [][2]string
 	next [2]string
 	prev [2]string
+	codeFunc CodeFunc
+	templateFunc TemplateFunc
+	funcFunc FuncForFunc
+}
+
+func NewMenuResource() *MenuResource {
+	return &MenuResource{}
+}
+
+func(m *MenuResource) WithCodeGetter(codeGetter CodeFunc) *MenuResource {
+	m.codeFunc = codeGetter
+	return m
+}
+
+func(m *MenuResource) WithEntryFuncGetter(entryFuncGetter FuncForFunc) *MenuResource {
+	m.funcFunc = entryFuncGetter
+	return m
+}
+
+func(m *MenuResource) WithTemplateGetter(templateGetter TemplateFunc) *MenuResource {
+	m.templateFunc = templateGetter
+	return m
 }
 
 // SetMenuBrowse defines the how pagination menu options should be displayed.
@@ -76,6 +102,47 @@ func(m *MenuResource) RenderMenu() (string, error) {
 			r += "\n"
 		}
 		r += fmt.Sprintf("%s:%s", choice, title)
+	}
+	return r, nil
+}
+
+func(m *MenuResource) RenderTemplate(sym string, values map[string]string) (string, error) {
+	return DefaultRenderTemplate(m, sym, values)
+}
+
+func(m *MenuResource) FuncFor(sym string) (EntryFunc, error) {
+	return m.funcFunc(sym)
+}
+
+func(m *MenuResource) GetCode(sym string) ([]byte, error) {
+	return m.codeFunc(sym)
+}
+
+func(m *MenuResource) GetTemplate(sym string, sizer *Sizer) (string, error) {
+	return m.templateFunc(sym, sizer)
+}
+
+func(m *MenuResource) Render(sym string, values map[string]string, sizer *Sizer) (string, error) {
+	r := ""
+	s, err := m.RenderTemplate(sym, values)
+	if err != nil {
+		return "", err
+	}
+	log.Printf("rendered %v bytes for template", len(s))
+	r += s
+	l, ok := sizer.Check(r)
+	if !ok {
+		return "", fmt.Errorf("rendered size %v exceeds limits: %v", l, sizer)
+	}
+	s, err = m.RenderMenu()
+	if err != nil {
+		return "", err
+	}
+	log.Printf("rendered %v bytes for menu", len(s))
+	r += s
+	l, ok = sizer.Check(r)
+	if !ok {
+		return "", fmt.Errorf("rendered size %v exceeds limits: %v", l, sizer)
 	}
 	return r, nil
 }

@@ -5,9 +5,10 @@ import (
 	"text/template"
 )
 
+
 // DefaultRenderTemplate is an adapter to implement the builtin golang text template renderer as resource.RenderTemplate.
 func DefaultRenderTemplate(r Resource, sym string, values map[string]string) (string, error) {
-	v, err := r.GetTemplate(sym)
+	v, err := r.GetTemplate(sym, nil)
 	if err != nil {
 		return "", err
 	}
@@ -23,4 +24,3 @@ func DefaultRenderTemplate(r Resource, sym string, values map[string]string) (st
 	}
 	return b.String(), err
 }
-
