@@ -86,13 +86,24 @@ func baz() error {
 	return out("baz", b, tpl)
 }
 
+func defaultCatch() error {
+	b := []byte{}
+	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
+	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
+	b = vm.NewLine(b, vm.MOVE, []string{"_"}, nil, nil)
+
+	tpl := "invalid input"
+
+	return out("_catch", b, tpl)
+}
+
 func generate() error {
 	err := os.MkdirAll(DataDir, 0755)
 	if err != nil {
 		return err
 	}
 
-	fns := []genFunc{root, foo, bar, baz}
+	fns := []genFunc{root, foo, bar, baz, defaultCatch}
 	for _, fn := range fns {
 		err = fn()
 		if err != nil {

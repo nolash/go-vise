@@ -94,8 +94,6 @@ func RunDeadCheck(b []byte, st *state.State, rs resource.Resource, ctx context.C
 		return b, fmt.Errorf("dead runner with no current location")
 	}
 	b = NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
-	b = NewLine(b, HALT, nil, nil, nil)
-	b = NewLine(b, MOVE, []string{location}, nil, nil)
 	log.Printf("code is now %x", b)
 	return b, nil
 }
@@ -180,7 +178,12 @@ func RunMove(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 	if err != nil {
 		return b, err
 	}
-	st.Down(sym)
+	if sym == "_" {
+		st.Up()
+		sym = st.Where()
+	} else {
+		st.Down(sym)
+	}
 	code, err := rs.GetCode(sym)
 	if err != nil {
 		return b, err

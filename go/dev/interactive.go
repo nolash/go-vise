@@ -43,12 +43,11 @@ func main() {
 		in = strings.TrimSpace(in)
 		running, err = en.Exec([]byte(in), ctx)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "execution terminated: %v\n", err)
+			fmt.Fprintf(os.Stderr, "unexpected termination: %v\n", err)
 			os.Exit(1)
 		}
 		b := bytes.NewBuffer(nil)
 		en.WriteResult(b)
 		fmt.Println(b.String())
 	}
-
 }
