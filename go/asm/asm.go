@@ -321,7 +321,6 @@ func(bt *Batcher) MenuExit(w io.Writer) (int, error) {
 	}
 	bt.inMenu = false
 	b := bt.menuProcessor.ToLines()
-	log.Printf("tolines %v", b)
 	return w.Write(b)
 }
 

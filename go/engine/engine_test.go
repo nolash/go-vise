@@ -97,7 +97,7 @@ func TestEngineInit(t *testing.T) {
 	}
 
 	input := []byte("1")
-	err = en.Exec(input, ctx)
+	_, err = en.Exec(input, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

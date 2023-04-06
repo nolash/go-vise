@@ -135,6 +135,26 @@ func(st *State) FlagByteSize() uint8 {
 	return uint8(len(st.Flags))
 }
 
+// MatchFlag matches the current state of the given flag.
+//
+// The flag is specified given its bit index in the bit field.
+//
+// If invertMatch is set, a positive result will be returned if the flag is not set.
+func(st *State) MatchFlag(sig uint32, invertMatch bool) (bool, error) {
+	r, err := st.GetFlag(sig)
+	if err != nil {
+		return false, err
+	}
+	if invertMatch {
+		if !r {
+			return true, nil
+		}
+	} else if r {
+		return true, nil
+	}
+	return false, nil
+}
+
 // GetIndex scans a byte slice in same order as in storage, and returns the index of the first set bit.
 //
 // If the given byte slice is too small for the bit field bitsize, the check will terminate at end-of-data without error.

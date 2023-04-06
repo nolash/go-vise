@@ -3,8 +3,6 @@ package vm
 import (
 	"encoding/binary"
 	"fmt"
-
-	"git.defalsify.org/festive/state"
 )
 
 // NewLine creates a new instruction line for the VM.
@@ -177,21 +175,6 @@ func parseSig(b []byte) (uint32, bool, []byte, error) {
 	return sig, matchmode, b, nil
 }
 
-// TODO: move to state
-func matchFlag(st *state.State, sig uint32, invertMatch bool) (bool, error) {
-	r, err := st.GetFlag(sig)
-	if err != nil {
-		return false, err
-	}
-	if invertMatch {
-		if !r {
-			return true, nil
-		}
-	} else if r {
-		return true, nil
-	}
-	return false, nil
-}
 
 // split bytecode into head and b using length-prefixed bitfield
 func byteSplit(b []byte) ([]byte, []byte, error) {

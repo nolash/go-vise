@@ -41,7 +41,7 @@ func main() {
 			os.Exit(1)
 		}
 		in = strings.TrimSpace(in)
-		err = en.Exec([]byte(in), ctx)
+		running, err = en.Exec([]byte(in), ctx)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "execution terminated: %v\n", err)
 			os.Exit(1)
@@ -50,4 +50,5 @@ func main() {
 		en.WriteResult(b)
 		fmt.Println(b.String())
 	}
+
 }

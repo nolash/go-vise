@@ -59,22 +59,38 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 // - input is objectively invalid (too long etc)
 // - no current bytecode is available
 // - input processing against bytcode failed
-func (en *Engine) Exec(input []byte, ctx context.Context) error {
+func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	err := en.st.SetInput(input)
 	if err != nil {
-		return err
+		return false, err
 	}
 	log.Printf("new execution with input '%s' (0x%x)", input, input)
 	code, err := en.st.GetCode()
 	if err != nil {
-		return err
+		return false, err
 	}
 	if len(code) == 0 {
-		return fmt.Errorf("no code to execute")
+		return false, fmt.Errorf("no code to execute")
 	}
 	code, err = vm.Run(code, en.st, en.rs, ctx)
+	if err != nil {
+		return false, err
+	}
+
+	v, err := en.st.MatchFlag(state.FLAG_TERMINATE, false)
+	if err != nil {
+		return false, err
+	}
+	if v {
+		if len(code) > 0 {
+			log.Printf("terminated with code remaining: %x", code)
+		}
+		return false, nil
+	}
+
 	en.st.SetCode(code)
-	return err
+
+	return true, nil
 }
 
 // WriteResult writes the output of the last vm execution to the given writer.

@@ -82,7 +82,7 @@ func RunDeadCheck(b []byte, st *state.State, rs resource.Resource, ctx context.C
 		return b, nil
 	}
 	log.Printf("no code remaining, let's check if we terminate")
-	r, err := matchFlag(st, state.FLAG_TERMINATE, false)
+	r, err := st.MatchFlag(state.FLAG_TERMINATE, false)
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +114,7 @@ func RunCatch(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 	if err != nil {
 		return b, err
 	}
-	r, err := matchFlag(st, sig, mode)
+	r, err := st.MatchFlag(sig, mode)
 	if err != nil {
 		return b, err
 	}
@@ -132,7 +132,7 @@ func RunCroak(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 	if err != nil {
 		return b, err
 	}
-	r, err := matchFlag(st, sig, mode)
+	r, err := st.MatchFlag(sig, mode)
 	if err != nil {
 		return b, err
 	}
