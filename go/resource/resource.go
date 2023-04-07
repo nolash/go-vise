@@ -20,9 +20,9 @@ type Resource interface {
 	PutMenu(string, string) error // Add a menu item.
 	ShiftMenu() (string, string, error) // Remove and return the first menu item in list.
 	SetMenuBrowse(string, string, bool) error // Set menu browser display details.
-	RenderTemplate(sym string, values map[string]string) (string, error) // Render the given data map using the template of the symbol.
+	RenderTemplate(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) // Render the given data map using the template of the symbol.
 	RenderMenu() (string, error) // Render the current state of menu
-	Render(sym string, values map[string]string, sizer *Sizer) (string, error) // Render full output.
+	Render(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) // Render full output.
 	FuncFor(sym string) (EntryFunc, error) // Resolve symbol content point for.
 }
 
@@ -30,6 +30,7 @@ type MenuResource struct {
 	menu [][2]string
 	next [2]string
 	prev [2]string
+	sinkValues []string
 	codeFunc CodeFunc
 	templateFunc TemplateFunc
 	funcFunc FuncForFunc
@@ -108,8 +109,8 @@ func(m *MenuResource) RenderMenu() (string, error) {
 }
 
 // render menu and all syms except sink, split sink into display chunks
-func(m *MenuResource) prepare(sym string, values map[string]string, sizer *Sizer) (map[string]string, error) {
-	var sink *string
+func(m *MenuResource) prepare(sym string, values map[string]string, idx uint16, sizer *Sizer) (map[string]string, error) {
+	var sink string
 	var sinkValues []string
 	noSinkValues := make(map[string]string)
 	for k, v := range values {
@@ -118,7 +119,7 @@ func(m *MenuResource) prepare(sym string, values map[string]string, sizer *Sizer
 			return nil, err
 		}
 		if sz == 0 {
-			sink = &k
+			sink = k
 			sinkValues = strings.Split(v, "\n")
 			v = ""
 			log.Printf("found sink %s with field count %v", k, len(sinkValues))
@@ -126,12 +127,12 @@ func(m *MenuResource) prepare(sym string, values map[string]string, sizer *Sizer
 		noSinkValues[k] = v
 	}
 	
-	if sink == nil {
+	if sink == "" {
 		log.Printf("no sink found for sym %s", sym)
 		return values, nil
 	}
 
-	s, err := m.render(sym, noSinkValues, sizer)
+	s, err := m.render(sym, noSinkValues, 0, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -141,35 +142,51 @@ func(m *MenuResource) prepare(sym string, values map[string]string, sizer *Sizer
 		return nil, fmt.Errorf("capacity exceeded")
 	}
 
-	l := 0
-	r := ""
-	r_tmp := ""
+	log.Printf("%v bytes available for sink split", remaining)
 
+	l := 0
+	tb := strings.Builder{}
+	rb := strings.Builder{}
+
+	sizer.AddCursor(0)
 	for i, v := range sinkValues {
+		log.Printf("processing sinkvalue %v: %s", i, v)
 		l += len(v)
 		if uint32(l) > remaining {
-			if r_tmp == "" {
+			if tb.Len() == 0 {
 				return nil, fmt.Errorf("capacity insufficient for sink field %v", i)
 			}
-			r += r_tmp + "\n"
-			r_tmp = ""
+			rb.WriteString(tb.String())
+			rb.WriteRune('\n')
+			c := uint32(rb.Len())
+			sizer.AddCursor(c)
+			tb.Reset()
 			l = 0
 		}
-		r_tmp += v
+		if tb.Len() > 0 {
+			tb.WriteByte(byte(0x00))
+		}
+		tb.WriteString(v)
 	}
 
-	r += r_tmp
-
-	if r[len(r)-1] != '\n' {
-		r += "\n"
+	if tb.Len() > 0 {
+		rb.WriteString(tb.String())
 	}
-	noSinkValues[*sink] = r
+
+	r := rb.String()
+	r = strings.TrimRight(r, "\n")
+
+	noSinkValues[sink] = r
+
+	for i, v := range strings.Split(r, "\n") {
+		log.Printf("nosinkvalue %v: %s", i, v)
+	}
 
 	return noSinkValues, nil
 }
 
-func(m *MenuResource) RenderTemplate(sym string, values map[string]string) (string, error) {
-	return DefaultRenderTemplate(m, sym, values)
+func(m *MenuResource) RenderTemplate(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) {
+	return DefaultRenderTemplate(m, sym, values, idx, sizer)
 }
 
 func(m *MenuResource) FuncFor(sym string) (EntryFunc, error) {
@@ -184,18 +201,20 @@ func(m *MenuResource) GetTemplate(sym string, sizer *Sizer) (string, error) {
 	return m.templateFunc(sym, sizer)
 }
 
-func(m *MenuResource) render(sym string, values map[string]string, sizer *Sizer) (string, error) {
+func(m *MenuResource) render(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) {
 	var ok bool
 	r := ""
-	s, err := m.RenderTemplate(sym, values)
+	s, err := m.RenderTemplate(sym, values, idx, sizer)
 	if err != nil {
 		return "", err
 	}
 	log.Printf("rendered %v bytes for template", len(s))
 	r += s
-	_, ok = sizer.Check(r)
-	if !ok {
-		return "", fmt.Errorf("limit exceeded: %v", sizer)
+	if sizer != nil {
+		_, ok = sizer.Check(r)
+		if !ok {
+			return "", fmt.Errorf("limit exceeded: %v", sizer)
+		}
 	}
 	s, err = m.RenderMenu()
 	if err != nil {
@@ -203,20 +222,22 @@ func(m *MenuResource) render(sym string, values map[string]string, sizer *Sizer)
 	}
 	log.Printf("rendered %v bytes for menu", len(s))
 	r += s
-	_, ok = sizer.Check(r)
-	if !ok {
-		return "", fmt.Errorf("limit exceeded: %v", sizer)
+	if sizer != nil {
+		_, ok = sizer.Check(r)
+		if !ok {
+			return "", fmt.Errorf("limit exceeded: %v", sizer)
+		}
 	}
 	return r, nil
 }
 
-func(m *MenuResource) Render(sym string, values map[string]string, sizer *Sizer) (string, error) {
+func(m *MenuResource) Render(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) {
 	var err error
 	
-	values, err = m.prepare(sym, values, sizer)
+	values, err = m.prepare(sym, values, idx, sizer)
 	if err != nil {
 		return "", err
 	}
 
-	return m.render(sym, values, sizer)
+	return m.render(sym, values, idx, sizer)
 }

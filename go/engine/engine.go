@@ -119,12 +119,12 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 // - the template for the given node point is note available for retrieval using the resource.Resource implementer.
 // - the supplied writer fails to process the writes.
 func(en *Engine) WriteResult(w io.Writer) error {
-	location := en.st.Where()
+	location, idx := en.st.Where()
 	v, err := en.st.Get()
 	if err != nil {
 		return err
 	}
-	r, err := en.rs.RenderTemplate(location, v)
+	r, err := en.rs.RenderTemplate(location, v, idx, nil)
 	if err != nil {
 		return err
 	}

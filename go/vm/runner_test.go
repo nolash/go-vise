@@ -51,8 +51,8 @@ func (r *TestResource) GetTemplate(sym string, sizer *resource.Sizer) (string, e
 	return "", fmt.Errorf("unknown symbol %s", sym)
 }
 
-func (r *TestResource) RenderTemplate(sym string, values map[string]string) (string, error) {
-	return resource.DefaultRenderTemplate(r, sym, values)
+func (r *TestResource) RenderTemplate(sym string, values map[string]string, idx uint16, sizer *resource.Sizer) (string, error) {
+	return resource.DefaultRenderTemplate(r, sym, values, idx, sizer)
 }
 
 func (r *TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
@@ -117,7 +117,7 @@ func TestRunLoadRender(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	r, err := rs.RenderTemplate("foo", m)
+	r, err := rs.RenderTemplate("foo", m, 0, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -126,7 +126,7 @@ func TestRunLoadRender(t *testing.T) {
 		t.Errorf("Expected %v, got %v", []byte(expect), []byte(r))
 	}
 
-	r, err = rs.RenderTemplate("bar", m)
+	r, err = rs.RenderTemplate("bar", m, 0, nil)
 	if err == nil {
 		t.Errorf("expected error for render of bar: %v" ,err)
 	}
@@ -147,7 +147,7 @@ func TestRunLoadRender(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	r, err = rs.RenderTemplate("bar", m)
+	r, err = rs.RenderTemplate("bar", m, 0, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -219,7 +219,7 @@ func TestHalt(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	r := st.Where()
+	r, _ := st.Where()
 	if r == "foo" {
 		t.Fatalf("Expected where-symbol not to be 'foo'")
 	}
@@ -245,7 +245,7 @@ func TestRunArg(t *testing.T) {
 	if l != 0 {
 		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
-	r := st.Where()
+	r, _ := st.Where()
 	if r != "baz" {
 		t.Errorf("expected where-state baz, got %v", r)
 	}
@@ -270,7 +270,7 @@ func TestRunInputHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)	
 	}
-	r := st.Where()
+	r, _ := st.Where()
 	if r != "foo" {
 		t.Fatalf("expected where-sym 'foo', got '%v'", r)
 	}
@@ -291,7 +291,7 @@ func TestRunArgInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)	
 	}
-	r := st.Where()
+	r, _ := st.Where()
 	if r != "_catch" {
 		t.Fatalf("expected where-state _catch, got %v", r)
 	}

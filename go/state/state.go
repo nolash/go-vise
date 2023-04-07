@@ -37,7 +37,7 @@ type State struct {
 	sizes map[string]uint16 // Size limits for all loaded symbols.
 	bitSize uint32 // size of (32-bit capacity) bit flag byte array
 	sink *string
-	//sizeIdx uint16
+	sizeIdx uint16
 }
 
 func toByteSize(bitSize uint32) uint8 {
@@ -204,12 +204,12 @@ func(st State) WithOutputSize(outputSize uint32) State {
 }
 
 // Where returns the current active rendering symbol.
-func(st State) Where() string {
+func(st State) Where() (string, uint16) {
 	if len(st.execPath) == 0 {
-		return ""
+		return "", 0
 	}
 	l := len(st.execPath)
-	return st.execPath[l-1]
+	return st.execPath[l-1], st.sizeIdx
 }
 
 // Down adds the given symbol to the command stack.

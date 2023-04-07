@@ -89,7 +89,7 @@ func RunDeadCheck(b []byte, st *state.State, rs resource.Resource, ctx context.C
 	if r {
 		return b, nil
 	}
-	location := st.Where()
+	location, _ := st.Where()
 	if location == "" {
 		return b, fmt.Errorf("dead runner with no current location")
 	}
@@ -180,7 +180,7 @@ func RunMove(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 	}
 	if sym == "_" {
 		st.Up()
-		sym = st.Where()
+		sym, _ = st.Where()
 	} else {
 		st.Down(sym)
 	}

@@ -31,8 +31,8 @@ func NewFsWrapper(path string, st *state.State) FsWrapper {
 	}
 }
 
-func (r FsWrapper) RenderTemplate(sym string, values map[string]string) (string, error) {
-	return resource.DefaultRenderTemplate(r, sym, values)	
+func (r FsWrapper) RenderTemplate(sym string, values map[string]string, idx uint16, sizer *resource.Sizer) (string, error) {
+	return resource.DefaultRenderTemplate(r, sym, values, idx, sizer)
 }
 
 func(fs FsWrapper) one(ctx context.Context) (string, error) {
@@ -101,7 +101,7 @@ func TestEngineInit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r := st.Where()
+	r, _ := st.Where()
 	if r != "foo" {
 		t.Fatalf("expected where-string 'foo', got %s", r)
 	}

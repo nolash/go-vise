@@ -1,8 +1,10 @@
 package resource
 
 import (
+	"bytes"
 	"fmt"
 	"log"
+	"strings"
 
 	"git.defalsify.org/festive/state"
 )
@@ -12,6 +14,7 @@ type Sizer struct {
 	menuSize uint16
 	memberSizes map[string]uint16
 	totalMemberSize uint32
+	crsrs []uint32
 	sink string
 }
 
@@ -21,6 +24,7 @@ func SizerFromState(st *state.State) (Sizer, error){
 		menuSize: st.GetMenuSize(),
 		memberSizes: make(map[string]uint16),
 	}
+
 	sizes, err := st.Sizes()
 	if err != nil {
 		return sz, err
@@ -56,12 +60,39 @@ func(szr *Sizer) String() string {
 }
 
 func(szr *Sizer) Size(s string) (uint16, error) {
-	if szr.sink == s {
-		return 0, nil
-	}
 	r, ok := szr.memberSizes[s]
 	if !ok {
 		return 0, fmt.Errorf("unknown member: %s", s)
 	}
 	return r, nil
+}
+
+func(szr *Sizer) AddCursor(c uint32) {
+	log.Printf("added cursor: %v", c)
+	szr.crsrs = append(szr.crsrs, c)
+}
+
+func(szr *Sizer) GetAt(values map[string]string, idx uint16) (map[string]string, error) {
+	if szr.sink == "" {
+		return values, nil
+	}
+	outValues := make(map[string]string)
+	for k, v := range values {
+		if szr.sink == k {
+			if idx >= uint16(len(szr.crsrs)) {
+				return nil, fmt.Errorf("no more values in index") 
+			}
+			c := szr.crsrs[idx]
+			v = v[c:]
+			nl := strings.Index(v, "\n")
+			log.Printf("k %v v %v c %v nl %v", k, v, c, nl)
+			if nl > 0 {
+				v = v[:nl]
+			}
+			b := bytes.ReplaceAll([]byte(v), []byte{0x00}, []byte{0x0a})
+			v = string(b)
+		}
+		outValues[k] = v
+	}
+	return outValues, nil
 }
