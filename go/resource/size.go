@@ -37,9 +37,12 @@ func SizerFromState(st *state.State) (Sizer, error){
 
 func(szr *Sizer) Check(s string) (uint32, bool) {
 	l := uint32(len(s))
-	if szr.outputSize > 0 && l > szr.outputSize {
-		log.Printf("sizer check fails with length %v: %s", l, szr)
-		return l, false
+	if szr.outputSize > 0 {
+		if l > szr.outputSize {
+			log.Printf("sizer check fails with length %v: %s", l, szr)
+			return 0, false
+		}
+		l = szr.outputSize - l
 	}
 	return l, true
 }
@@ -50,4 +53,15 @@ func(szr *Sizer) String() string {
 		diff = szr.outputSize - szr.totalMemberSize - uint32(szr.menuSize)
 	}
 	return fmt.Sprintf("output: %v, member: %v, menu: %v, diff: %v", szr.outputSize, szr.totalMemberSize, szr.menuSize, diff)
+}
+
+func(szr *Sizer) Size(s string) (uint16, error) {
+	if szr.sink == s {
+		return 0, nil
+	}
+	r, ok := szr.memberSizes[s]
+	if !ok {
+		return 0, fmt.Errorf("unknown member: %s", s)
+	}
+	return r, nil
 }
