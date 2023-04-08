@@ -35,8 +35,8 @@ func TestMenuInterpreter(t *testing.T) {
 		t.Fatal(err)
 	}
 	expect := `MOUT 0 "inky"
-MOUT 1 "pinky"
-MOUT 2 "blinky clyde"
+MNEXT 1 "pinky"
+MPREV 2 "blinky clyde"
 MOUT 99 "tinky-winky"
 HALT
 INCMP 0 foo

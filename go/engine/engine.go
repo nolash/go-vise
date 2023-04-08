@@ -56,7 +56,7 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 // - no current bytecode is available
 // - input processing against bytcode failed
 func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
-	err := vm.CheckInput(input)
+	err := vm.ValidInput(input)
 	if err != nil {
 		return true, err
 	}

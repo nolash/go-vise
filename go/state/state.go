@@ -214,6 +214,9 @@ func(st State) Where() (string, uint16) {
 
 // Next moves to the next sink page index.
 func(st State) Next() (uint16, error) {
+	if len(st.execPath) == 0 {
+		return 0, fmt.Errorf("state root node not yet defined")
+	}
 	st.sizeIdx += 1
 	return st.sizeIdx, nil
 }
@@ -222,6 +225,9 @@ func(st State) Next() (uint16, error) {
 //
 // Fails if try to move beyond index 0.
 func(st *State) Previous() (uint16, error) {
+	if len(st.execPath) == 0 {
+		return 0, fmt.Errorf("state root node not yet defined")
+	}
 	if st.sizeIdx == 0 {
 		return 0, fmt.Errorf("already at first index")
 	}
@@ -233,11 +239,24 @@ func(st *State) Previous() (uint16, error) {
 //
 // Two values are returned, for the "next" and "previous" options in that order. A false value means the option is not available in the current state.
 func(st *State) Sides() (bool, bool) {
+	if len(st.execPath) == 0 {
+		return false, false
+	}
 	next := true
 	if st.sizeIdx == 0 {
 		return next, false	
 	}
 	return next, true
+}
+
+// Top returns true if currently at topmode node.
+//
+// Fails if first Down() was never called.
+func(st *State) Top() (bool, error) {
+	if len(st.execPath) == 0 {
+		return false, fmt.Errorf("state root node not yet defined")
+	}
+	return len(st.execPath) == 1, nil
 }
 
 // Down adds the given symbol to the command stack.
@@ -259,10 +278,10 @@ func(st *State) Down(input string) {
 //
 // Fails if called at top frame.
 func(st *State) Up() (string, error) {
-	l := len(st.Cache)
-	if l == 0 {
+	if len(st.execPath) == 0 {
 		return "", fmt.Errorf("exit called beyond top frame")
 	}
+	l := len(st.Cache)
 	l -= 1
 	m := st.Cache[l]
 	for k, v := range m {

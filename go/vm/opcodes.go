@@ -17,7 +17,9 @@ const (
 	INCMP = 8
 	MSIZE = 9
 	MOUT = 10
-	_MAX = 10
+	MNEXT = 11
+	MPREV = 12
+	_MAX = 12
 )
 
 var (
@@ -33,6 +35,8 @@ var (
 		INCMP: "INCMP",
 		MSIZE: "MSIZE",
 		MOUT: "MOUT",
+		MNEXT: "MNEXT",
+		MPREV: "MPREV",
 	}
 
 	OpcodeIndex = map[string]Opcode {
@@ -47,6 +51,8 @@ var (
 		"INCMP": INCMP,
 		"MSIZE": MSIZE,
 		"MOUT": MOUT,
+		"MNEXT": MNEXT,
+		"MPREV": MPREV,
 	}
 
 )

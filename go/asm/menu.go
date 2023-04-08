@@ -14,7 +14,6 @@ const (
 	MENU_UP = _MENU_OFFSET + 1
 	MENU_NEXT = _MENU_OFFSET + 2
 	MENU_PREVIOUS = _MENU_OFFSET + 3
-	//MENU_BROWSE = _MENU_OFFSET + 4
 )
 
 var (
@@ -23,7 +22,6 @@ var (
 		"UP": MENU_UP,
 		"NEXT": MENU_NEXT,
 		"PREVIOUS": MENU_PREVIOUS,
-		//"BROWSE": MENU_BROWSE, 
 	}
 )
 
@@ -66,15 +64,18 @@ func (mp *MenuProcessor) ToLines() []byte {
 	postLines := []byte{}
 
 	for _, v := range mp.items {
-		preLines = vm.NewLine(preLines, vm.MOUT, []string{v.choice, v.display}, nil, nil)
 		switch v.code {
 		case MENU_UP:
+			preLines = vm.NewLine(preLines, vm.MOUT, []string{v.choice, v.display}, nil, nil)
 			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, "_"}, nil, nil)
 		case MENU_NEXT:
+			preLines = vm.NewLine(preLines, vm.MNEXT, []string{v.choice, v.display}, nil, nil)
 			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, ">"}, nil, nil)
 		case MENU_PREVIOUS:
+			preLines = vm.NewLine(preLines, vm.MPREV, []string{v.choice, v.display}, nil, nil)
 			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, "<"}, nil, nil)
 		default:
+			preLines = vm.NewLine(preLines, vm.MOUT, []string{v.choice, v.display}, nil, nil)
 			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, v.target}, nil, nil)
 		}
 	}

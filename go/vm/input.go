@@ -19,7 +19,7 @@ var (
 )
 
 // CheckInput validates the given byte string as client input.
-func CheckInput(input []byte) error {
+func ValidInput(input []byte) error {
 	if !inputRegex.Match(input) {
 		return fmt.Errorf("Input '%s' does not match input format /%s/", input, inputRegexStr)
 	}
@@ -27,7 +27,7 @@ func CheckInput(input []byte) error {
 }
 
 // control characters for relative navigation.
-func checkControl(input []byte) error {
+func validControl(input []byte) error {
 	if !ctrlRegex.Match(input) {
 		return fmt.Errorf("Input '%s' does not match 'control' format /%s/", input, ctrlRegexStr)
 	}
@@ -35,36 +35,68 @@ func checkControl(input []byte) error {
 }
 
 // CheckSym validates the given byte string as a node symbol.
-func CheckSym(input []byte) error {
+func ValidSym(input []byte) error {
 	if !symRegex.Match(input) {
 		return fmt.Errorf("Input '%s' does not match 'sym' format /%s/", input, symRegexStr)
 	}
 	return nil
 }
 
+// false if target is not valid
+func valid(target []byte) bool {
+	var ok bool
+	if len(target) == 0 {
+		return false
+	}
+
+	err := ValidSym(target)
+	if err == nil {
+		ok = true
+	}
+
+	if !ok {
+		err = validControl(target)
+		if err == nil {
+			ok = true
+		}
+	}
+	return ok 
+}
+
+// CheckTarget tests whether the navigation state transition is available in the current state.
+//
+// Fails if target is formally invalid, or if navigation is unavailable.
+func CheckTarget(target []byte, st *state.State) (bool, error) {
+	ok := valid(target)
+	if !ok {
+		return false, fmt.Errorf("invalid target: %x", target)
+	}
+
+	switch target[0] {
+	case '_':
+		topOk, err := st.Top()
+		if err!= nil {
+			return false, err
+		}
+		return topOk, nil
+	case '<':
+		_, prevOk := st.Sides()
+		return prevOk, nil
+	case '>':
+		nextOk, _ := st.Sides()
+		return nextOk, nil
+	}
+	return true, nil
+}
+
 // route parsed target symbol to navigation state change method,
 func applyTarget(target []byte, st *state.State, ctx context.Context) (string, uint16, error) {
 	var err error
-	var valid bool
 	sym, idx := st.Where()
 
-	err = CheckInput(target)
-	if err == nil {
-		valid = true
-	}
-
-	if !valid {
-		err = CheckSym(target)
-		if err == nil {
-			valid = true
-		}
-	}
-
-	if !valid {
-		err = checkControl(target)
-		if err == nil {
-			valid = true
-		}
+	ok := valid(target)
+	if !ok {
+		return sym, idx, fmt.Errorf("invalid input: %x", target)
 	}
 
 	switch target[0] {
