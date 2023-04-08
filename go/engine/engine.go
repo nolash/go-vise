@@ -114,7 +114,7 @@ func(en *Engine) WriteResult(w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	m, err := en.rs.RenderMenu()
+	m, err := en.rs.RenderMenu(idx)
 	if err != nil {
 		return err
 	}

@@ -319,7 +319,7 @@ func TestRunMenu(t *testing.T) {
 		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
 	
-	r, err := rs.RenderMenu()
+	r, err := rs.RenderMenu(0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -351,7 +351,7 @@ func TestRunMenuBrowse(t *testing.T) {
 		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
 	
-	r, err := rs.RenderMenu()
+	r, err := rs.RenderMenu(0)
 	if err != nil {
 		t.Fatal(err)
 	}

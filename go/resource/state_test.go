@@ -13,7 +13,7 @@ func TestStateResourceInit(t *testing.T) {
 	_ = NewStateResource(&st)
 }
 
-func TestStateBrowse(t *testing.T) {
+func TestStateBrowseNoSink(t *testing.T) {
 	st := state.NewState(0)
 	st.Down("root")
 
@@ -28,7 +28,35 @@ func TestStateBrowse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := rs.RenderMenu()
+	s, err := rs.RenderMenu(0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expect := `1:foo
+2:bar`
+	if s != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, s)
+	}
+}
+
+
+func TestStateBrowseSink(t *testing.T) {
+	st := state.NewState(0)
+	st.Down("root")
+
+	rs := NewStateResource(&st)
+	rs.PutMenu("1", "foo")
+	rs.PutMenu("2", "bar")
+	err := rs.SetMenuBrowse("11", "next", false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = rs.SetMenuBrowse("22", "prev", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := rs.RenderMenu(0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +86,7 @@ func TestStateBrowse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err = rs.RenderMenu()
+	s, err = rs.RenderMenu(idx)
 	if err != nil {
 		t.Fatal(err)
 	}

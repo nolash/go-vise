@@ -20,7 +20,7 @@ type Resource interface {
 	PutMenu(string, string) error // Add a menu item.
 	SetMenuBrowse(string, string, bool) error // Set menu browser display details.
 	RenderTemplate(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) // Render the given data map using the template of the symbol.
-	RenderMenu() (string, error) // Render the current state of menu
+	RenderMenu(idx uint16) (string, error) // Render the current state of menu
 	Render(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) // Render full output.
 	FuncFor(sym string) (EntryFunc, error) // Resolve symbol content point for.
 }
@@ -104,7 +104,17 @@ func(m *MenuResource) shiftMenu() (string, string, error) {
 }
 
 // add available browse options.
-func(m *MenuResource) applyPage() error {
+func(m *MenuResource) applyPage(idx uint16) error {
+	l := uint16(len(m.sinkValues))
+	if l == 0 {
+		return nil
+	}
+	if idx == l - 1 {
+		m.canNext = false
+	}
+	if idx == 0 {
+		m.canPrev = false
+	}
 	if m.canNext {
 		err := m.PutMenu(m.next[0], m.next[1])
 		if err != nil {
@@ -123,8 +133,8 @@ func(m *MenuResource) applyPage() error {
 // RenderMenu returns the full current state of the menu as a string.
 //
 // After this has been executed, the state of the menu will be empty.
-func(m *MenuResource) RenderMenu() (string, error) {
-	err := m.applyPage()
+func(m *MenuResource) RenderMenu(idx uint16) (string, error) {
+	err := m.applyPage(idx)
 	if err != nil {
 		return "", err
 	}
@@ -252,7 +262,7 @@ func(m *MenuResource) render(sym string, values map[string]string, idx uint16, s
 			return "", fmt.Errorf("limit exceeded: %v", sizer)
 		}
 	}
-	s, err = m.RenderMenu()
+	s, err = m.RenderMenu(idx)
 	if err != nil {
 		return "", err
 	}
