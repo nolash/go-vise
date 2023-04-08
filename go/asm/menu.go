@@ -71,9 +71,9 @@ func (mp *MenuProcessor) ToLines() []byte {
 		case MENU_UP:
 			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, "_"}, nil, nil)
 		case MENU_NEXT:
-			_ = postLines
+			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, ">"}, nil, nil)
 		case MENU_PREVIOUS:
-			_ = postLines
+			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, "<"}, nil, nil)
 		default:
 			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, v.target}, nil, nil)
 		}
@@ -82,5 +82,3 @@ func (mp *MenuProcessor) ToLines() []byte {
 	preLines = vm.NewLine(preLines, vm.HALT, nil, nil, nil)
 	return append(preLines, postLines...)
 }
-
-

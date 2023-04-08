@@ -5,16 +5,10 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"regexp"
 
 	"git.defalsify.org/festive/resource"
 	"git.defalsify.org/festive/state"
 	"git.defalsify.org/festive/vm"
-)
-
-var (
-	inputRegexStr = "^[a-zA-Z0-9].*$"
-	inputRegex = regexp.MustCompile(inputRegexStr)
 )
 
 //type Config struct {
@@ -51,14 +45,6 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 	return nil
 }
 
-// return descriptive error if client input is invalid
-func checkInput(input []byte) error {
-	if !inputRegex.Match(input) {
-		return fmt.Errorf("Input '%s' does not match format /%s/", input, inputRegexStr)
-	}
-	return nil
-}
-
 // Exec processes user input against the current state of the virtual machine environment.
 //
 // If successfully executed, output of the last execution is available using the WriteResult call.
@@ -70,7 +56,7 @@ func checkInput(input []byte) error {
 // - no current bytecode is available
 // - input processing against bytcode failed
 func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
-	err := checkInput(input)
+	err := vm.CheckInput(input)
 	if err != nil {
 		return true, err
 	}

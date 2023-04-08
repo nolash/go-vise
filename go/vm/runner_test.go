@@ -160,7 +160,8 @@ func TestRunLoadRender(t *testing.T) {
 func TestRunMultiple(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := NewLine(nil, LOAD, []string{"one"}, []byte{0x00}, nil)
+	b := NewLine(nil, MOVE, []string{"test"}, nil, nil)
+	b = NewLine(b, LOAD, []string{"one"}, []byte{0x00}, nil)
 	b = NewLine(b, LOAD, []string{"two"}, []byte{42}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	b, err := Run(b, &st, &rs, context.TODO())
@@ -211,7 +212,8 @@ func TestRunReload(t *testing.T) {
 func TestHalt(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
-	b := NewLine([]byte{}, LOAD, []string{"one"}, nil, []uint8{0})
+	b := NewLine(nil, MOVE, []string{"root"}, nil, nil)
+	b = NewLine(b, LOAD, []string{"one"}, nil, []uint8{0})
 	b = NewLine(b, HALT, nil, nil, nil)
 	b = NewLine(b, MOVE, []string{"foo"}, nil, nil)
 	var err error
@@ -336,8 +338,6 @@ func TestRunMenuBrowse(t *testing.T) {
 	var err error
 
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
-	b = NewLine(b, MNEXT, []string{"11", "two"}, nil, nil)
-	b = NewLine(b, MPREV, []string{"22", "two"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)

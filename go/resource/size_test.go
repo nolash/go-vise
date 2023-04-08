@@ -61,6 +61,7 @@ func TestSizeLimit(t *testing.T) {
 	rs := TestSizeResource{
 		mrs,	
 	}
+	st.Down("test")
 	st.Add("foo", "inky", 4)
 	st.Add("bar", "pinky", 10)
 	st.Add("baz", "blinky", 0)
@@ -107,6 +108,7 @@ func TestSizePages(t *testing.T) {
 	rs := TestSizeResource{
 		mrs,	
 	}
+	st.Down("test")
 	st.Add("foo", "inky", 4)
 	st.Add("bar", "pinky", 10)
 	st.Add("baz", "blinky", 20)

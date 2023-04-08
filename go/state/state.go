@@ -72,7 +72,7 @@ func NewState(bitSize uint32) State {
 	} else {
 		st.Flags = []byte{}
 	}
-	st.Down("")
+	//st.Down("")
 	return st
 }
 
@@ -223,7 +223,6 @@ func(st *State) Down(input string) {
 	st.resetCurrent()
 }
 
-
 // Up removes the latest symbol to the command stack, and make the previous symbol current.
 //
 // Frees all symbols and associated values loaded at the previous stack level. Cache capacity is increased by the corresponding amount.
@@ -231,10 +230,10 @@ func(st *State) Down(input string) {
 // Clears mapping and sink.
 //
 // Fails if called at top frame.
-func(st *State) Up() error {
+func(st *State) Up() (string, error) {
 	l := len(st.Cache)
 	if l == 0 {
-		return fmt.Errorf("exit called beyond top frame")
+		return "", fmt.Errorf("exit called beyond top frame")
 	}
 	l -= 1
 	m := st.Cache[l]
@@ -245,8 +244,12 @@ func(st *State) Up() error {
 	}
 	st.Cache = st.Cache[:l]
 	st.execPath = st.execPath[:l]
+	sym := ""
+	if len(st.execPath) > 0 {
+		sym = st.execPath[len(st.execPath)-1]
+	}
 	st.resetCurrent()
-	return nil
+	return sym, nil
 }
 
 // Add adds a cache value under a cache symbol key.

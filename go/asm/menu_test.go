@@ -40,6 +40,8 @@ MOUT 2 "blinky clyde"
 MOUT 99 "tinky-winky"
 HALT
 INCMP 0 foo
+INCMP 1 >
+INCMP 2 <
 INCMP 99 _
 `
 	if r != expect {

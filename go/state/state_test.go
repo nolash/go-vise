@@ -168,6 +168,7 @@ func TestStateCacheUse(t *testing.T) {
 func TestStateDownUp(t *testing.T) {
 	st := NewState(17)
 	st.Down("one")
+	st.Down("two")
 	err := st.Add("foo", "bar", 0)
 	if err != nil {
 		t.Error(err)
@@ -179,15 +180,21 @@ func TestStateDownUp(t *testing.T) {
 	if st.CacheUseSize != 8 {
 		t.Errorf("expected cache use size 8 got %v", st.CacheUseSize)
 	}
-	err = st.Up()
+	s, err := st.Up()
 	if err != nil {
 		t.Error(err)
 	}
-	err = st.Up()
+	if s != "one" {
+		t.Errorf("expected sym 'one', got '%s'", s)
+	}
+	s, err = st.Up()
 	if err != nil {
 		t.Error(err)
 	}
-	err = st.Up()
+	if s != "" {
+		t.Errorf("expected sym '', got '%s'", s)
+	}
+	s, err = st.Up()
 	if err == nil {
 		t.Errorf("expected out of top frame error")
 	}
