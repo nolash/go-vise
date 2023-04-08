@@ -18,7 +18,6 @@ type Resource interface {
 	GetTemplate(sym string, sizer *Sizer) (string, error) // Get the template for a given symbol.
 	GetCode(sym string) ([]byte, error) // Get the bytecode for the given symbol.
 	PutMenu(string, string) error // Add a menu item.
-	ShiftMenu() (string, string, error) // Remove and return the first menu item in list.
 	SetMenuBrowse(string, string, bool) error // Set menu browser display details.
 	RenderTemplate(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) // Render the given data map using the template of the symbol.
 	RenderMenu() (string, error) // Render the current state of menu
@@ -30,6 +29,8 @@ type MenuResource struct {
 	menu [][2]string
 	next [2]string
 	prev [2]string
+	canNext bool
+	canPrev bool
 	sinkValues []string
 	codeFunc CodeFunc
 	templateFunc TemplateFunc
@@ -68,11 +69,21 @@ func(m *MenuResource) SetMenuBrowse(selector string, title string, back bool) er
 	entry := [2]string{selector, title}
 	if back {
 		m.prev = entry
+		m.canPrev = true
 	} else {
 		m.next = entry
+		m.canNext = true
 	}
 	return nil
 }
+
+//func(m *MenuResource) putNext() error {
+//	return m.PutMenu(m.next[0], m.next[1])
+//}
+//
+//func(m *MenuResource) putPrevious() error {
+//	return m.PutMenu(m.prev[0], m.prev[1])
+//}
 
 // PutMenu adds a menu option to the menu rendering.
 func(m *MenuResource) PutMenu(selector string, title string) error {
@@ -81,10 +92,9 @@ func(m *MenuResource) PutMenu(selector string, title string) error {
 	return nil
 }
 
-// PutMenu removes and returns the first of remaining menu options.
-//
-// Fails if menu is empty.
-func(m *MenuResource) ShiftMenu() (string, string, error) {
+// removes and returns the first of remaining menu options.
+// fails if menu is empty.
+func(m *MenuResource) shiftMenu() (string, string, error) {
 	if len(m.menu) == 0 {
 		return "", "", fmt.Errorf("menu is empty")
 	}
@@ -93,14 +103,36 @@ func(m *MenuResource) ShiftMenu() (string, string, error) {
 	return r[0], r[1], nil
 }
 
+// add available browse options.
+func(m *MenuResource) applyPage() error {
+	if m.canNext {
+		err := m.PutMenu(m.next[0], m.next[1])
+		if err != nil {
+			return err
+		}
+	}
+	if m.canPrev {
+		err := m.PutMenu(m.prev[0], m.prev[1])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // RenderMenu returns the full current state of the menu as a string.
 //
 // After this has been executed, the state of the menu will be empty.
 func(m *MenuResource) RenderMenu() (string, error) {
+	err := m.applyPage()
+	if err != nil {
+		return "", err
+	}
+
 	r := ""
 	for true {
 		l := len(r)
-		choice, title, err := m.ShiftMenu()
+		choice, title, err := m.shiftMenu()
 		if err != nil {
 			break
 		}

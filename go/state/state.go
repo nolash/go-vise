@@ -204,7 +204,7 @@ func(st State) WithOutputSize(outputSize uint32) State {
 }
 
 // Where returns the current active rendering symbol.
-func(st State) Where() (string, uint16) {
+func(st *State) Where() (string, uint16) {
 	if len(st.execPath) == 0 {
 		return "", 0
 	}
@@ -213,11 +213,13 @@ func(st State) Where() (string, uint16) {
 }
 
 // Next moves to the next sink page index.
-func(st State) Next() (uint16, error) {
+func(st *State) Next() (uint16, error) {
 	if len(st.execPath) == 0 {
 		return 0, fmt.Errorf("state root node not yet defined")
 	}
 	st.sizeIdx += 1
+	s, idx := st.Where()
+	log.Printf("next page for %s: %v", s, idx)
 	return st.sizeIdx, nil
 }
 
@@ -232,6 +234,8 @@ func(st *State) Previous() (uint16, error) {
 		return 0, fmt.Errorf("already at first index")
 	}
 	st.sizeIdx -= 1
+	s, idx := st.Where()
+	log.Printf("previous page for %s: %v", s, idx)
 	return st.sizeIdx, nil
 }
 
@@ -243,6 +247,7 @@ func(st *State) Sides() (bool, bool) {
 		return false, false
 	}
 	next := true
+	log.Printf("sides %v", st.sizeIdx)
 	if st.sizeIdx == 0 {
 		return next, false	
 	}
