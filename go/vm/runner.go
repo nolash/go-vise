@@ -212,7 +212,9 @@ func RunInCmp(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 
 	log.Printf("input match for '%s'", input)
 	_, err = st.SetFlag(state.FLAG_INMATCH)
-	st.Down(target)
+
+	sym, _, err = applyTarget([]byte(target), st, ctx)
+
 	code, err := rs.GetCode(target)
 	if err != nil {
 		return b, err

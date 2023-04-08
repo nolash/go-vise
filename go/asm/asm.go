@@ -212,7 +212,6 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 	n, err = writeSym(b, *a.Sym)
 	n_buf += n
 	return flush(b, w)
-
 }
 
 func (a Arg) String() string {

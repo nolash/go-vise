@@ -212,6 +212,34 @@ func(st State) Where() (string, uint16) {
 	return st.execPath[l-1], st.sizeIdx
 }
 
+// Next moves to the next sink page index.
+func(st State) Next() (uint16, error) {
+	st.sizeIdx += 1
+	return st.sizeIdx, nil
+}
+
+// Previous moves to the next sink page index.
+//
+// Fails if try to move beyond index 0.
+func(st *State) Previous() (uint16, error) {
+	if st.sizeIdx == 0 {
+		return 0, fmt.Errorf("already at first index")
+	}
+	st.sizeIdx -= 1
+	return st.sizeIdx, nil
+}
+
+// Sides informs the caller which index page options will currently succeed.
+//
+// Two values are returned, for the "next" and "previous" options in that order. A false value means the option is not available in the current state.
+func(st *State) Sides() (bool, bool) {
+	next := true
+	if st.sizeIdx == 0 {
+		return next, false	
+	}
+	return next, true
+}
+
 // Down adds the given symbol to the command stack.
 //
 // Clears mapping and sink.
