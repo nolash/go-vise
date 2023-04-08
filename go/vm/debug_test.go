@@ -91,25 +91,25 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, MNEXT, []string{"11", "nextmenu"}, nil, nil) 
-	r, err = ToString(b)
-	if err != nil {
-		t.Fatal(err)
-	}
-	expect = "MNEXT 11 \"nextmenu\"\n"
-	if r != expect {
-		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
-	}
-
-	b = NewLine(nil, MPREV, []string{"222", "previous menu item"}, nil, nil) 
-	r, err = ToString(b)
-	if err != nil {
-		t.Fatal(err)
-	}
-	expect = "MPREV 222 \"previous menu item\"\n"
-	if r != expect {
-		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
-	}
+//	b = NewLine(nil, MNEXT, []string{"11", "nextmenu"}, nil, nil) 
+//	r, err = ToString(b)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	expect = "MNEXT 11 \"nextmenu\"\n"
+//	if r != expect {
+//		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
+//	}
+//
+//	b = NewLine(nil, MPREV, []string{"222", "previous menu item"}, nil, nil) 
+//	r, err = ToString(b)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	expect = "MPREV 222 \"previous menu item\"\n"
+//	if r != expect {
+//		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
+//	}
 
 	b = NewLine(nil, MOUT, []string{"1", "foo"}, nil, nil) 
 	r, err = ToString(b)

@@ -44,10 +44,10 @@ func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) (
 			b, err = RunMSize(b, st, rs, ctx)
 		case MOUT:
 			b, err = RunMOut(b, st, rs, ctx)
-		case MNEXT:
-			b, err = RunMNext(b, st, rs, ctx)
-		case MPREV:
-			b, err = RunMPrev(b, st, rs, ctx)
+//		case MNEXT:
+//			b, err = RunMNext(b, st, rs, ctx)
+//		case MPREV:
+//			b, err = RunMPrev(b, st, rs, ctx)
 		case HALT:
 			b, err = RunHalt(b, st, rs, ctx)
 			return b, err
@@ -257,25 +257,25 @@ func RunMOut(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 	return b, err
 }
 
-// RunMNext executes the MNEXT opcode
-func RunMNext(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-       selector, display, b, err := ParseMNext(b)
-       if err != nil {
-	       return b, err
-       }
-       err = rs.SetMenuBrowse(selector, display, false)
-       return b, err
-}
-	
-// RunMPrev executes the MPREV opcode
-func RunMPrev(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
-       selector, display, b, err := ParseMPrev(b)
-       if err != nil {
-	       return b, err
-       }
-       err = rs.SetMenuBrowse(selector, display, false)
-       return b, err
-}
+//// RunMNext executes the MNEXT opcode
+//func RunMNext(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+//       selector, display, b, err := ParseMNext(b)
+//       if err != nil {
+//	       return b, err
+//       }
+//       err = rs.SetMenuBrowse(selector, display, false)
+//       return b, err
+//}
+//	
+//// RunMPrev executes the MPREV opcode
+//func RunMPrev(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+//       selector, display, b, err := ParseMPrev(b)
+//       if err != nil {
+//	       return b, err
+//       }
+//       err = rs.SetMenuBrowse(selector, display, false)
+//       return b, err
+//}
 
 // retrieve data for key
 func refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {

@@ -75,15 +75,15 @@ func ParseInCmp(b []byte) (string, string, []byte, error) {
 	return parseTwoSym(b)
 }
 
-// ParseMPrev parses and extracts the expected argument portion of a MPREV instruction
-func ParseMPrev(b []byte) (string, string, []byte, error) {
-	return parseTwoSym(b)
-}
-
-// ParseMNext parses and extracts the expected argument portion of a MNEXT instruction
-func ParseMNext(b []byte) (string, string, []byte, error) {
-	return parseTwoSym(b)
-}
+//// ParseMPrev parses and extracts the expected argument portion of a MPREV instruction
+//func ParseMPrev(b []byte) (string, string, []byte, error) {
+//	return parseTwoSym(b)
+//}
+//
+//// ParseMNext parses and extracts the expected argument portion of a MNEXT instruction
+//func ParseMNext(b []byte) (string, string, []byte, error) {
+//	return parseTwoSym(b)
+//}
 
 // ParseMSize parses and extracts the expected argument portion of a MSIZE instruction
 func ParseMSize(b []byte) (uint32, uint32, []byte, error) {
