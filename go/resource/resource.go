@@ -19,7 +19,7 @@ type Resource interface {
 	GetCode(sym string) ([]byte, error) // Get the bytecode for the given symbol.
 	PutMenu(string, string) error // Add a menu item.
 	ShiftMenu() (string, string, error) // Remove and return the first menu item in list.
-//	SetMenuBrowse(string, string, bool) error // Set menu browser display details.
+	SetMenuBrowse(string, string, bool) error // Set menu browser display details.
 	RenderTemplate(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) // Render the given data map using the template of the symbol.
 	RenderMenu() (string, error) // Render the current state of menu
 	Render(sym string, values map[string]string, idx uint16, sizer *Sizer) (string, error) // Render full output.
@@ -55,20 +55,20 @@ func(m *MenuResource) WithTemplateGetter(templateGetter TemplateFunc) *MenuResou
 	return m
 }
 
-//// SetMenuBrowse defines the how pagination menu options should be displayed.
-////
-//// The selector is the expected user input, and the title is the description string.
-////
-//// If back is set, the option will be defined for returning to a previous page.
-//func(m *MenuResource) SetMenuBrowse(selector string, title string, back bool) error {
-//	entry := [2]string{selector, title}
-//	if back {
-//		m.prev = entry
-//	} else {
-//		m.next = entry
-//	}
-//	return nil
-//}
+// SetMenuBrowse defines the how pagination menu options should be displayed.
+//
+// The selector is the expected user input, and the title is the description string.
+//
+// If back is set, the option will be defined for returning to a previous page.
+func(m *MenuResource) SetMenuBrowse(selector string, title string, back bool) error {
+	entry := [2]string{selector, title}
+	if back {
+		m.prev = entry
+	} else {
+		m.next = entry
+	}
+	return nil
+}
 
 // PutMenu adds a menu option to the menu rendering.
 func(m *MenuResource) PutMenu(selector string, title string) error {

@@ -129,22 +129,22 @@ func ParseAll(b []byte, w io.Writer) (int, error) {
 					rs = fmt.Sprintf("%s %s \"%s\"\n", s, r, v)
 				}
 			}
-//		case MNEXT:
-//			r, v, bb, err := ParseMNext(b)
-//			b = bb
-//			if err == nil {
-//				if w != nil {
-//					rs = fmt.Sprintf("%s %s \"%s\"\n", s, r, v)
-//				}
-//			}
-//		case MPREV:
-//			r, v, bb, err := ParseMPrev(b)
-//			b = bb
-//			if err == nil {
-//				if w != nil {
-//					rs = fmt.Sprintf("%s %s \"%s\"\n", s, r, v)
-//				}
-//			}
+		case MNEXT:
+			r, v, bb, err := ParseMNext(b)
+			b = bb
+			if err == nil {
+				if w != nil {
+					rs = fmt.Sprintf("%s %s \"%s\"\n", s, r, v)
+				}
+			}
+		case MPREV:
+			r, v, bb, err := ParseMPrev(b)
+			b = bb
+			if err == nil {
+				if w != nil {
+					rs = fmt.Sprintf("%s %s \"%s\"\n", s, r, v)
+				}
+			}
 		}
 		if err != nil {
 			return rn, err
