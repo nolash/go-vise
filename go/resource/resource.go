@@ -36,20 +36,24 @@ type MenuResource struct {
 	funcFunc FuncForFunc
 }
 
+// NewMenuResource creates a new MenuResource instance.
 func NewMenuResource() *MenuResource {
 	return &MenuResource{}
 }
 
+// WithCodeGetter sets the code symbol resolver method.
 func(m *MenuResource) WithCodeGetter(codeGetter CodeFunc) *MenuResource {
 	m.codeFunc = codeGetter
 	return m
 }
 
+// WithEntryGetter sets the content symbol resolver getter method.
 func(m *MenuResource) WithEntryFuncGetter(entryFuncGetter FuncForFunc) *MenuResource {
 	m.funcFunc = entryFuncGetter
 	return m
 }
 
+// WithTemplateGetter sets the template symbol resolver method.
 func(m *MenuResource) WithTemplateGetter(templateGetter TemplateFunc) *MenuResource {
 	m.templateFunc = templateGetter
 	return m
