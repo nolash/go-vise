@@ -20,26 +20,17 @@ import (
 // Symbol keys do not count towards cache size limitations.
 //
 // 8 first flags are reserved.
-//
-// TODO factor out cache
 type State struct {
 	Flags []byte // Error state
-	CacheSize uint32 // Total allowed cumulative size of values (not code) in cache
-	CacheUseSize uint32 // Currently used bytes by all values (not code) in cache
-	Cache []map[string]string // All loaded cache items
-	CacheMap map[string]string // Mapped
-	menuSize uint16 // Max size of menu
-	outputSize uint32 // Max size of output
 	input []byte // Last input
 	code []byte // Pending bytecode to execute
 	execPath []string // Command symbols stack
 	arg *string // Optional argument. Nil if not set.
-	sizes map[string]uint16 // Size limits for all loaded symbols.
 	bitSize uint32 // size of (32-bit capacity) bit flag byte array
-	sink *string
 	sizeIdx uint16
 }
 
+// number of bytes necessary to represent a bitfield of the given size.
 func toByteSize(bitSize uint32) uint8 {
 	if bitSize == 0 {
 		return 0
@@ -62,8 +53,6 @@ func getFlag(bitIndex uint32, bitField []byte) bool {
 // NewState creates a new State object with bitSize number of error condition states in ADDITION to the 8 builtin flags.
 func NewState(bitSize uint32) State {
 	st := State{
-		CacheSize: 0,
-		CacheUseSize: 0,
 		bitSize: bitSize + 8,
 	}
 	byteSize := toByteSize(bitSize + 8)
@@ -72,7 +61,6 @@ func NewState(bitSize uint32) State {
 	} else {
 		st.Flags = []byte{}
 	}
-	//st.Down("")
 	return st
 }
 
@@ -191,18 +179,6 @@ func(st *State) GetIndex(flags []byte) bool {
 	return false
 }
 
-// WithCacheSize applies a cumulative cache size limitation for all cached items.
-func(st State) WithCacheSize(cacheSize uint32) State {
-	st.CacheSize = cacheSize
-	return st
-}
-
-// WithCacheSize applies a cumulative cache size limitation for all cached items.
-func(st State) WithOutputSize(outputSize uint32) State {
-	st.outputSize = outputSize
-	return st
-}
-
 // Where returns the current active rendering symbol.
 func(st *State) Where() (string, uint16) {
 	if len(st.execPath) == 0 {
@@ -267,12 +243,10 @@ func(st *State) Top() (bool, error) {
 // Down adds the given symbol to the command stack.
 //
 // Clears mapping and sink.
-func(st *State) Down(input string) {
-	m := make(map[string]string)
-	st.Cache = append(st.Cache, m)
-	st.sizes = make(map[string]uint16)
+func(st *State) Down(input string) error {
 	st.execPath = append(st.execPath, input)
-	st.resetCurrent()
+	st.sizeIdx = 0
+	return nil
 }
 
 // Up removes the latest symbol to the command stack, and make the previous symbol current.
@@ -283,206 +257,38 @@ func(st *State) Down(input string) {
 //
 // Fails if called at top frame.
 func(st *State) Up() (string, error) {
-	if len(st.execPath) == 0 {
+	l := len(st.execPath)
+	if l == 0 {
 		return "", fmt.Errorf("exit called beyond top frame")
 	}
-	l := len(st.Cache)
-	l -= 1
-	m := st.Cache[l]
-	for k, v := range m {
-		sz := len(v)
-		st.CacheUseSize -= uint32(sz)
-		log.Printf("free frame %v key %v value size %v", l, k, sz)
-	}
-	st.Cache = st.Cache[:l]
-	st.execPath = st.execPath[:l]
+	st.execPath = st.execPath[:l-1]
 	sym := ""
 	if len(st.execPath) > 0 {
 		sym = st.execPath[len(st.execPath)-1]
 	}
-	st.resetCurrent()
+	st.sizeIdx = 0
 	return sym, nil
-}
-
-// Add adds a cache value under a cache symbol key.
-//
-// Also stores the size limitation of for key for later updates.
-//
-// Fails if:
-// - key already defined
-// - value is longer than size limit
-// - adding value exceeds cumulative cache capacity
-func(st *State) Add(key string, value string, sizeLimit uint16) error {
-	if sizeLimit > 0 {
-		l := uint16(len(value))
-		if l > sizeLimit {
-			return fmt.Errorf("value length %v exceeds value size limit %v", l, sizeLimit)
-		}
-	}
-	checkFrame := st.frameOf(key)
-	if checkFrame > -1 {
-		if checkFrame == len(st.execPath) - 1 {
-			log.Printf("Ignoring load request on frame that has symbol already loaded")
-			return nil
-		}
-		return fmt.Errorf("key %v already defined in frame %v", key, checkFrame)
-	}
-	sz := st.checkCapacity(value)
-	if sz == 0 {
-		return fmt.Errorf("Cache capacity exceeded %v of %v", st.CacheUseSize + sz, st.CacheSize)
-	}
-	log.Printf("add key %s value size %v limit %v", key, sz, sizeLimit)
-	st.Cache[len(st.Cache)-1][key] = value
-	st.CacheUseSize += sz
-	st.sizes[key] = sizeLimit
-	return nil
-}
-
-// Update sets a new value for an existing key.
-//
-// Uses the size limitation from when the key was added.
-//
-// Fails if:
-// - key not defined
-// - value is longer than size limit
-// - replacing value exceeds cumulative cache capacity
-func(st *State) Update(key string, value string) error {
-	sizeLimit := st.sizes[key]
-	if st.sizes[key] > 0 {
-		l := uint16(len(value))
-		if l > sizeLimit {
-			return fmt.Errorf("update value length %v exceeds value size limit %v", l, sizeLimit)
-		}
-	}
-	checkFrame := st.frameOf(key)
-	if checkFrame == -1 {
-		return fmt.Errorf("key %v not defined", key)
-	}
-	r := st.Cache[checkFrame][key]
-	l := uint32(len(r))
-	st.Cache[checkFrame][key] = ""
-	if st.CacheMap[key] != "" {
-		st.CacheMap[key] = value
-	}
-	st.CacheUseSize -= l
-	sz := st.checkCapacity(value)
-	if sz == 0 {
-		baseUseSize := st.CacheUseSize
-		st.Cache[checkFrame][key] = r
-		st.CacheUseSize += l
-		return fmt.Errorf("Cache capacity exceeded %v of %v", baseUseSize + sz, st.CacheSize)
-	}
-	return nil
-}
-
-// Map marks the given key for retrieval.
-//
-// After this, Val() will return the value for the key, and Size() will include the value size and limitations in its calculations.
-//
-// Only one symbol with no size limitation may be mapped at the current level.
-func(st *State) Map(key string) error {
-	m, err := st.Get()
-	if err != nil {
-		return err
-	}
-	l := st.sizes[key]
-	if l == 0 {
-		if st.sink != nil {
-			return fmt.Errorf("sink already set to symbol '%v'", *st.sink)
-		}
-		st.sink = &key
-	}
-	st.CacheMap[key] = m[key]
-	return nil
 }
 
 // Depth returns the current call stack depth.
 func(st *State) Depth() uint8 {
-	return uint8(len(st.Cache))
+	return uint8(len(st.execPath)-1)
 }
 
-// Get returns the full key-value mapping for all mapped keys at the current cache level.
-func(st *State) Get() (map[string]string, error) {
-	if len(st.Cache) == 0 {
-		return nil, fmt.Errorf("get at top frame")
-	}
-	return st.Cache[len(st.Cache)-1], nil
-}
-
-func(st *State) Sizes() (map[string]uint16, error) {
-	if len(st.Cache) == 0 {
-		return nil, fmt.Errorf("get at top frame")
-	}
-	sizes := make(map[string]uint16)
-	var haveSink bool
-	for k, _ := range st.CacheMap {
-		l, ok := st.sizes[k]
-		if !ok {
-			panic(fmt.Sprintf("missing size for %v", k))
-		}
-		if l == 0 {
-			if haveSink {
-				panic(fmt.Sprintf("duplicate sink for %v", k))
-			}
-			haveSink = true
-		}
-		sizes[k] = l
-	}
-	return sizes, nil
-}
-
-func(st *State) SetMenuSize(size uint16) error {
-	st.menuSize = size
-	log.Printf("menu size changed to %v", st.menuSize)
-	return nil
-}
-
-func(st *State) GetMenuSize() uint16 {
-	return st.menuSize
-}
-
-func(st *State) GetOutputSize() uint32 {
-	return st.outputSize
-}
-
-// Val returns value for key
+//func(st *State) SetMenuSize(size uint16) error {
+//	st.menuSize = size
+//	log.Printf("menu size changed to %v", st.menuSize)
+//	return nil
+//}
 //
-// Fails if key is not mapped.
-func(st *State) Val(key string) (string, error) {
-	r := st.CacheMap[key]
-	if len(r) == 0 {
-		return "", fmt.Errorf("key %v not mapped", key)
-	}
-	return r, nil
-}
+//func(st *State) GetMenuSize() uint16 {
+//	return st.menuSize
+//}
+//
+//func(st *State) GetOutputSize() uint32 {
+//	return st.outputSize
+//}
 
-// Reset flushes all state contents below the top level, and returns to the top level.
-func(st *State) Reset() {
-	if len(st.Cache) == 0 {
-		return
-	}
-	st.Cache = st.Cache[:1]
-	st.CacheUseSize = 0
-	return
-}
-
-// Check returns true if a key already exists in the cache.
-func(st *State) Check(key string) bool {
-	return st.frameOf(key) == -1
-}
-
-// Size returns size used by values and menu, and remaining size available
-func(st *State) Size() (uint32, uint32) {
-	var l int
-	var c uint16
-	for k, v := range st.CacheMap {
-		l += len(v)
-		c += st.sizes[k]
-	}
-	r := uint32(l)
-	r += uint32(st.menuSize)
-	return r, uint32(c)-r
-}
 
 // Appendcode adds the given bytecode to the end of the existing code.
 func(st *State) AppendCode(b []byte) error {
@@ -514,11 +320,6 @@ func(st *State) GetInput() ([]byte, error) {
 
 // SetInput is used to record the latest client input.
 func(st *State) SetInput(input []byte) error {
-//	if input == nil {
-//		log.Printf("clearing input")
-//		st.input = nil
-//		return nil
-//	}
 	l := len(input)
 	if l > 255 {
 		return fmt.Errorf("input size %v too large (limit %v)", l, 255)
@@ -527,33 +328,3 @@ func(st *State) SetInput(input []byte) error {
 	return nil
 }
 
-// return 0-indexed frame number where key is defined. -1 if not defined
-func(st *State) frameOf(key string) int {
-	for i, m := range st.Cache {
-		for k, _ := range m {
-			if k == key {
-				return i
-			}
-		}
-	}
-	return -1
-}
-
-// bytes that will be added to cache use size for string
-// returns 0 if capacity would be exceeded
-func(st *State) checkCapacity(v string) uint32 {
-	sz := uint32(len(v))
-	if st.CacheSize == 0 {
-		return sz
-	}
-	if st.CacheUseSize + sz > st.CacheSize {
-		return 0	
-	}
-	return sz
-}
-
-// flush relveant properties for level change
-func(st *State) resetCurrent() {
-	st.sink = nil
-	st.CacheMap = make(map[string]string)
-}
