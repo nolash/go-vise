@@ -9,11 +9,10 @@ type Cache struct {
 	CacheSize uint32 // Total allowed cumulative size of values (not code) in cache
 	CacheUseSize uint32 // Currently used bytes by all values (not code) in cache
 	Cache []map[string]string // All loaded cache items
-	CacheMap map[string]string // Mapped
-	menuSize uint16 // Max size of menu
-	outputSize uint32 // Max size of output
+	//CacheMap map[string]string // Mapped
+	//outputSize uint32 // Max size of output
 	sizes map[string]uint16 // Size limits for all loaded symbols.
-	sink *string
+	//sink *string
 }
 
 // NewCache creates a new ready-to-use cache object
@@ -22,19 +21,13 @@ func NewCache() *Cache {
 		Cache: []map[string]string{make(map[string]string)},
 		sizes: make(map[string]uint16),
 	}
-	ca.resetCurrent()
+	//ca.resetCurrent()
 	return ca
 }
 
 // WithCacheSize applies a cumulative cache size limitation for all cached items.
 func(ca *Cache) WithCacheSize(cacheSize uint32) *Cache {
 	ca.CacheSize = cacheSize
-	return ca
-}
-
-// WithCacheSize applies a cumulative cache size limitation for all cached items.
-func(ca *Cache) WithOutputSize(outputSize uint32) *Cache {
-	ca.outputSize = outputSize
 	return ca
 }
 
@@ -72,6 +65,15 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	return nil
 }
 
+// ReservedSize returns the maximum byte size available for the given symbol.
+func(ca *Cache) ReservedSize(key string) (uint16, error) {
+	v, ok := ca.sizes[key]
+	if !ok {
+		return 0, fmt.Errorf("unknown symbol: %s", key)
+	}
+	return v, nil
+}
+
 // Update sets a new value for an existing key.
 //
 // Uses the size limitation from when the key was added.
@@ -95,9 +97,9 @@ func(ca *Cache) Update(key string, value string) error {
 	r := ca.Cache[checkFrame][key]
 	l := uint32(len(r))
 	ca.Cache[checkFrame][key] = ""
-	if ca.CacheMap[key] != "" {
-		ca.CacheMap[key] = value
-	}
+	//if ca.CacheMap[key] != "" {
+	//	ca.CacheMap[key] = value
+	//}
 	ca.CacheUseSize -= l
 	sz := ca.checkCapacity(value)
 	if sz == 0 {
@@ -117,58 +119,6 @@ func(ca *Cache) Get() (map[string]string, error) {
 	return ca.Cache[len(ca.Cache)-1], nil
 }
 
-func(ca *Cache) Sizes() (map[string]uint16, error) {
-	if len(ca.Cache) == 0 {
-		return nil, fmt.Errorf("get at top frame")
-	}
-	sizes := make(map[string]uint16)
-	var haveSink bool
-	for k, _ := range ca.CacheMap {
-		l, ok := ca.sizes[k]
-		if !ok {
-			panic(fmt.Sprintf("missing size for %v", k))
-		}
-		if l == 0 {
-			if haveSink {
-				panic(fmt.Sprintf("duplicate sink for %v", k))
-			}
-			haveSink = true
-		}
-		sizes[k] = l
-	}
-	return sizes, nil
-}
-
-// Map marks the given key for retrieval.
-//
-// After this, Val() will return the value for the key, and Size() will include the value size and limitations in its calculations.
-//
-// Only one symbol with no size limitation may be mapped at the current level.
-func(ca *Cache) Map(key string) error {
-	m, err := ca.Get()
-	if err != nil {
-		return err
-	}
-	l := ca.sizes[key]
-	if l == 0 {
-		if ca.sink != nil {
-			return fmt.Errorf("sink already set to symbol '%v'", *ca.sink)
-		}
-		ca.sink = &key
-	}
-	ca.CacheMap[key] = m[key]
-	return nil
-}
-
-// Fails if key is not mapped.
-func(ca *Cache) Val(key string) (string, error) {
-	r := ca.CacheMap[key]
-	if len(r) == 0 {
-		return "", fmt.Errorf("key %v not mapped", key)
-	}
-	return r, nil
-}
-
 // Reset flushes all state contents below the top level.
 func(ca *Cache) Reset() {
 	if len(ca.Cache) == 0 {
@@ -179,36 +129,11 @@ func(ca *Cache) Reset() {
 	return
 }
 
-// Size returns size used by values and menu, and remaining size available
-func(ca *Cache) Usage() (uint32, uint32) {
-	var l int
-	var c uint16
-	for k, v := range ca.CacheMap {
-		l += len(v)
-		c += ca.sizes[k]
-	}
-	r := uint32(l)
-	r += uint32(ca.menuSize)
-	return r, uint32(c)-r
-}
-
-// return 0-indexed frame number where key is defined. -1 if not defined
-func(ca *Cache) frameOf(key string) int {
-	for i, m := range ca.Cache {
-		for k, _ := range m {
-			if k == key {
-				return i
-			}
-		}
-	}
-	return -1
-}
-
 // Push adds a new level to the cache.
 func (ca *Cache) Push() error {
 	m := make(map[string]string)
 	ca.Cache = append(ca.Cache, m)
-	ca.resetCurrent()
+	//ca.resetCurrent()
 	return nil
 }
 
@@ -228,7 +153,7 @@ func (ca *Cache) Pop() error {
 		log.Printf("free frame %v key %v value size %v", l, k, sz)
 	}
 	ca.Cache = ca.Cache[:l]
-	ca.resetCurrent()
+	//ca.resetCurrent()
 	return nil
 }
 
@@ -238,10 +163,10 @@ func(ca *Cache) Check(key string) bool {
 }
 
 // flush relveant properties for level change
-func(ca *Cache) resetCurrent() {
-	ca.sink = nil
-	ca.CacheMap = make(map[string]string)
-}
+//func(ca *Cache) resetCurrent() {
+//	ca.sink = nil
+//	ca.CacheMap = make(map[string]string)
+//}
 
 // bytes that will be added to cache use size for string
 // returns 0 if capacity would be exceeded
@@ -254,4 +179,16 @@ func(ca *Cache) checkCapacity(v string) uint32 {
 		return 0	
 	}
 	return sz
+}
+
+// return 0-indexed frame number where key is defined. -1 if not defined
+func(ca *Cache) frameOf(key string) int {
+	for i, m := range ca.Cache {
+		for k, _ := range m {
+			if k == key {
+				return i
+			}
+		}
+	}
+	return -1
 }

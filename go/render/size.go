@@ -1,12 +1,10 @@
-package resource
+package render
 
 import (
 	"bytes"
 	"fmt"
 	"log"
 	"strings"
-
-	"git.defalsify.org/festive/state"
 )
 
 type Sizer struct {
@@ -18,28 +16,34 @@ type Sizer struct {
 	sink string
 }
 
-func SizerFromState(st *state.State) (Sizer, error){
-	sz := Sizer{
-		outputSize: st.GetOutputSize(),
-		menuSize: st.GetMenuSize(),
+func NewSizer(outputSize uint32) *Sizer {
+	return &Sizer{
+		outputSize: outputSize,
 		memberSizes: make(map[string]uint16),
 	}
+}
 
-	sizes, err := st.Sizes()
-	if err != nil {
-		return sz, err
+func(szr *Sizer) WithMenuSize(menuSize uint16) *Sizer {
+	szr.menuSize = menuSize
+	return szr
+}
+
+func(szr *Sizer) Set(key string, size uint16) error {
+	var ok bool 
+	_, ok = szr.memberSizes[key]
+	if ok {
+		return fmt.Errorf("already have key %s", key)
 	}
-	for k, v := range sizes {
-		if v == 0 {
-			sz.sink = k
-		}
-		sz.memberSizes[k] = v
-		sz.totalMemberSize += uint32(v)
+	szr.memberSizes[key] = size
+	if size == 0 {
+		szr.sink = key
 	}
-	return sz, nil
+	szr.totalMemberSize += uint32(size)
+	return nil
 }
 
 func(szr *Sizer) Check(s string) (uint32, bool) {
+	log.Printf("sizercheck %s", s)
 	l := uint32(len(s))
 	if szr.outputSize > 0 {
 		if l > szr.outputSize {

@@ -1,4 +1,4 @@
-package menu
+package render
 
 import (
 	"testing"
@@ -23,6 +23,12 @@ func TestMenuInit(t *testing.T) {
 	if r != expect {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
+
+	r, err = m.Render(1)
+	if err == nil {
+		t.Fatalf("expected render fail")
+	}
+
 }
 
 func TestMenuBrowse(t *testing.T) {
@@ -48,14 +54,6 @@ func TestMenuBrowse(t *testing.T) {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
 
-	err = m.Put("1", "foo")
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = m.Put("2", "bar")
-	if err != nil {
-		t.Fatal(err)
-	}
 	r, err = m.Render(1)
 	if err != nil {
 		t.Fatal(err)
@@ -68,14 +66,6 @@ func TestMenuBrowse(t *testing.T) {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
 
-	err = m.Put("1", "foo")
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = m.Put("2", "bar")
-	if err != nil {
-		t.Fatal(err)
-	}
 	r, err = m.Render(2)
 	if err != nil {
 		t.Fatal(err)

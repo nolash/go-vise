@@ -1,8 +1,7 @@
-package menu
+package render
 
 import (
 	"fmt"
-	"log"
 )
 
 // BrowseConfig defines the availability and display parameters for page browsing.
@@ -33,6 +32,7 @@ type Menu struct {
 	pageCount uint16
 	canNext bool
 	canPrevious bool
+	outputSize uint16
 }
 
 // NewMenu creates a new Menu with an explicit page count.
@@ -46,17 +46,21 @@ func(m *Menu) WithPageCount(pageCount uint16) *Menu {
 	return m
 }
 
+// WithSize defines the maximum byte size of the rendered menu.
+func(m *Menu) WithOutputSize(outputSize uint16) *Menu {
+	m.outputSize = outputSize
+	return m
+}
+
 // WithBrowseConfig defines the criteria for page browsing.
 func(m *Menu) WithBrowseConfig(cfg BrowseConfig) *Menu {
 	m.browse = cfg
-	
 	return m
 }
 
 // Put adds a menu option to the menu rendering.
 func(m *Menu) Put(selector string, title string) error {
 	m.menu = append(m.menu, [2]string{selector, title})
-	log.Printf("menu %v", m.menu)
 	return nil
 }
 
@@ -64,6 +68,11 @@ func(m *Menu) Put(selector string, title string) error {
 //
 // After this has been executed, the state of the menu will be empty.
 func(m *Menu) Render(idx uint16) (string, error) {
+	var menuCopy [][2]string
+	for _, v := range m.menu {
+		menuCopy = append(menuCopy, v)
+	}
+
 	err := m.applyPage(idx)
 	if err != nil {
 		return "", err
@@ -81,28 +90,30 @@ func(m *Menu) Render(idx uint16) (string, error) {
 		}
 		r += fmt.Sprintf("%s:%s", choice, title)
 	}
+	m.menu = menuCopy
 	return r, nil
 }
 
 // add available browse options.
 func(m *Menu) applyPage(idx uint16) error {
 	if m.pageCount == 0 {
+		if idx > 0 {
+			return fmt.Errorf("index %v > 0 for non-paged menu", idx)
+		}
 		return nil
 	} else if idx >= m.pageCount {
 		return fmt.Errorf("index %v out of bounds (%v)", idx, m.pageCount)
 	}
-	if m.browse.NextAvailable {
-		m.canNext = true
-	}
-	if m.browse.PreviousAvailable {
-		m.canPrevious = true
-	}
+	
+	m.reset()
+
 	if idx == m.pageCount - 1 {
 		m.canNext = false
 	}
 	if idx == 0 {
 		m.canPrevious = false
 	}
+
 	if m.canNext {
 		err := m.Put(m.browse.NextSelector, m.browse.NextTitle)
 		if err != nil {
@@ -129,4 +140,15 @@ func(m *Menu) shiftMenu() (string, string, error) {
 	return r[0], r[1], nil
 }
 
+func(m *Menu) reset() {
+	if m.browse.NextAvailable {
+		m.canNext = true
+	}
+	if m.browse.PreviousAvailable {
+		m.canPrevious = true
+	}
+}
 
+func(m *Menu) ReservedSize() uint16 {
+	return m.outputSize
+}

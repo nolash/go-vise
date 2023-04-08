@@ -10,7 +10,7 @@ type TestSizeResource struct {
 	*MenuResource
 }
 
-func getTemplate(sym string, sizer *Sizer) (string, error) {
+func getTemplate(sym string) (string, error) {
 	var tpl string
 	switch sym {
 	case "small":

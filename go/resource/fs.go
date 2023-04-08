@@ -23,7 +23,7 @@ func NewFsResource(path string) (FsResource) {
 	}
 }
 
-func(fs FsResource) GetTemplate(sym string, sizer *Sizer) (string, error) {
+func(fs FsResource) GetTemplate(sym string) (string, error) {
 	fp := path.Join(fs.Path, sym)
 	r, err := ioutil.ReadFile(fp)
 	s := string(r)
