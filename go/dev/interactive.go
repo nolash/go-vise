@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"flag"
 	"fmt"
-	"strings"
 	"os"
 
 	"git.defalsify.org/festive/engine"
@@ -22,32 +19,9 @@ func main() {
 
 	ctx := context.Background()
 	en := engine.NewDefaultEngine(dir)
-	err := en.Init(root, ctx)
+	err := engine.Loop(root, &en, ctx)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot init: %v\n", err)
+		fmt.Fprintf(os.Stderr, "loop exited with error: %v", err)
 		os.Exit(1)
-	}
-
-	b := bytes.NewBuffer(nil)
-	en.WriteResult(b)
-	fmt.Println(b.String())
-
-	running := true
-	for running {
-		reader := bufio.NewReader(os.Stdin)
-		in, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "cannot read input: %v\n", err)
-			os.Exit(1)
-		}
-		in = strings.TrimSpace(in)
-		running, err = en.Exec([]byte(in), ctx)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "unexpected termination: %v\n", err)
-			os.Exit(1)
-		}
-		b := bytes.NewBuffer(nil)
-		en.WriteResult(b)
-		fmt.Println(b.String())
 	}
 }
