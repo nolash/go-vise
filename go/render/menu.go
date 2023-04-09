@@ -154,6 +154,7 @@ func(m *Menu) reset() {
 	}
 }
 
+
 func(m *Menu) ReservedSize() uint16 {
 	return m.outputSize
 }

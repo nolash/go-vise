@@ -8,6 +8,7 @@ import (
 	"path"
 	"testing"
 
+	"git.defalsify.org/festive/cache"
 	"git.defalsify.org/festive/resource"
 	"git.defalsify.org/festive/state"
 	"git.defalsify.org/festive/testdata"
@@ -29,10 +30,6 @@ func NewFsWrapper(path string, st *state.State) FsWrapper {
 		&rs, 
 		st,
 	}
-}
-
-func (r FsWrapper) RenderTemplate(sym string, values map[string]string, idx uint16, sizer *resource.Sizer) (string, error) {
-	return resource.DefaultRenderTemplate(r, sym, values, idx, sizer)
 }
 
 func(fs FsWrapper) one(ctx context.Context) (string, error) {
@@ -72,11 +69,13 @@ func generateTestData(t *testing.T) {
 }
 
 func TestEngineInit(t *testing.T) {
-	st := state.NewState(17).WithCacheSize(1024)
 	generateTestData(t)
 	ctx := context.TODO()
+	st := state.NewState(17)
 	rs := NewFsWrapper(dataDir, &st)
-	en := NewEngine(&st, &rs)
+	ca := cache.NewCache().WithCacheSize(1024)
+	
+	en := NewEngine(&st, &rs, ca)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -122,11 +121,13 @@ it has more lines
 }
 
 func TestEngineExecInvalidInput(t *testing.T) {
-	st := state.NewState(17).WithCacheSize(1024)
 	generateTestData(t)
 	ctx := context.TODO()
+	st := state.NewState(17)
 	rs := NewFsWrapper(dataDir, &st)
-	en := NewEngine(&st, &rs)
+	ca := cache.NewCache().WithCacheSize(1024)
+
+	en := NewEngine(&st, &rs, ca)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)

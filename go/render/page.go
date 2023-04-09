@@ -13,7 +13,7 @@ import (
 
 type Page struct {
 	cacheMap map[string]string // Mapped
-	cache *cache.Cache
+	cache cache.Memory
 	resource resource.Resource
 	menu *Menu
 	sink *string
@@ -22,7 +22,7 @@ type Page struct {
 	sinkProcessed bool
 }
 
-func NewPage(cache *cache.Cache, rs resource.Resource) *Page {
+func NewPage(cache cache.Memory, rs resource.Resource) *Page {
 	return &Page{
 		cache: cache,
 		cacheMap: make(map[string]string),
