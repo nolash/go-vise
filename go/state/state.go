@@ -275,21 +275,6 @@ func(st *State) Depth() uint8 {
 	return uint8(len(st.execPath)-1)
 }
 
-//func(st *State) SetMenuSize(size uint16) error {
-//	st.menuSize = size
-//	log.Printf("menu size changed to %v", st.menuSize)
-//	return nil
-//}
-//
-//func(st *State) GetMenuSize() uint16 {
-//	return st.menuSize
-//}
-//
-//func(st *State) GetOutputSize() uint32 {
-//	return st.outputSize
-//}
-
-
 // Appendcode adds the given bytecode to the end of the existing code.
 func(st *State) AppendCode(b []byte) error {
 	st.code = append(st.code, b...)
@@ -328,3 +313,6 @@ func(st *State) SetInput(input []byte) error {
 	return nil
 }
 
+// Reset to initial state (start navigation over).
+func(st *State) Reset() {
+}

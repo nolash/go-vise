@@ -58,6 +58,11 @@ func(m *Menu) WithBrowseConfig(cfg BrowseConfig) *Menu {
 	return m
 }
 
+// GetBrowseConfig returns a copy of the current state of the browse configuration.
+func(m *Menu) GetBrowseConfig() BrowseConfig {
+	return m.browse
+}
+
 // Put adds a menu option to the menu rendering.
 func(m *Menu) Put(selector string, title string) error {
 	m.menu = append(m.menu, [2]string{selector, title})

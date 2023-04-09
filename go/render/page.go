@@ -80,7 +80,7 @@ func(pg *Page) Map(key string) error {
 		return err
 	}
 	if l == 0 {
-		if pg.sink != nil {
+		if pg.sink != nil && *pg.sink != key {
 			return fmt.Errorf("sink already set to symbol '%v'", *pg.sink)
 		}
 		pg.sink = &key

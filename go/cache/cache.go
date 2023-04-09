@@ -108,6 +108,8 @@ func(ca *Cache) Update(key string, value string) error {
 		ca.CacheUseSize += l
 		return fmt.Errorf("Cache capacity exceeded %v of %v", baseUseSize + sz, ca.CacheSize)
 	}
+	ca.Cache[checkFrame][key] = value
+	ca.CacheUseSize += uint32(len(value))
 	return nil
 }
 
@@ -161,12 +163,6 @@ func (ca *Cache) Pop() error {
 func(ca *Cache) Check(key string) bool {
 	return ca.frameOf(key) == -1
 }
-
-// flush relveant properties for level change
-//func(ca *Cache) resetCurrent() {
-//	ca.sink = nil
-//	ca.CacheMap = make(map[string]string)
-//}
 
 // bytes that will be added to cache use size for string
 // returns 0 if capacity would be exceeded

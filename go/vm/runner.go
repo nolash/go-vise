@@ -5,9 +5,30 @@ import (
 	"fmt"
 	"log"
 
+	"git.defalsify.org/festive/cache"
+	"git.defalsify.org/festive/render"
 	"git.defalsify.org/festive/resource"
 	"git.defalsify.org/festive/state"
 )
+
+type Vm struct {
+	st *state.State
+	rs resource.Resource
+	pg render.Renderer
+	ca cache.Memory
+	mn *render.Menu
+}
+
+
+func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, mn *render.Menu, pg render.Renderer) *Vm {
+	return &Vm{
+		st: st,
+		rs: rs,
+		pg: pg,
+		ca: ca,
+		mn: mn,
+	}
+}
 
 //type Runner func(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error)
 
@@ -16,7 +37,7 @@ import (
 // Each step may update the state.
 //
 // On error, the remaining instructions will be returned. State will not be rolled back.
-func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 	running := true
 	for running {
 		op, bb, err := opSplit(b)
@@ -27,29 +48,29 @@ func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) (
 		log.Printf("execute code %x (%s) %x", op, OpcodeString[op], b)
 		switch op {
 		case CATCH:
-			b, err = RunCatch(b, st, rs, ctx)
+			b, err = vm.RunCatch(b, ctx)
 		case CROAK:
-			b, err = RunCroak(b, st, rs, ctx)
+			b, err = vm.RunCroak(b, ctx)
 		case LOAD:
-			b, err = RunLoad(b, st, rs, ctx)
+			b, err = vm.RunLoad(b, ctx)
 		case RELOAD:
-			b, err = RunReload(b, st, rs, ctx)
+			b, err = vm.RunReload(b, ctx)
 		case MAP:
-			b, err = RunMap(b, st, rs, ctx)
+			b, err = vm.RunMap(b, ctx)
 		case MOVE:
-			b, err = RunMove(b, st, rs, ctx)
+			b, err = vm.RunMove(b, ctx)
 		case INCMP:
-			b, err = RunInCmp(b, st, rs, ctx)
+			b, err = vm.RunInCmp(b, ctx)
 		case MSIZE:
-			b, err = RunMSize(b, st, rs, ctx)
+			b, err = vm.RunMSize(b, ctx)
 		case MOUT:
-			b, err = RunMOut(b, st, rs, ctx)
+			b, err = vm.RunMOut(b, ctx)
 		case MNEXT:
-			b, err = RunMNext(b, st, rs, ctx)
+			b, err = vm.RunMNext(b, ctx)
 		case MPREV:
-			b, err = RunMPrev(b, st, rs, ctx)
+			b, err = vm.RunMPrev(b, ctx)
 		case HALT:
-			b, err = RunHalt(b, st, rs, ctx)
+			b, err = vm.RunHalt(b, ctx)
 			return b, err
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
@@ -58,7 +79,7 @@ func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) (
 			return b, err
 		}
 		if len(b) == 0 {
-			b, err = RunDeadCheck(b, st, rs, ctx)
+			b, err = vm.RunDeadCheck(b, ctx)
 			if err != nil {
 				return b, err
 			}
@@ -77,19 +98,19 @@ func Run(b []byte, st *state.State, rs resource.Resource, ctx context.Context) (
 // If input has not been matched, a default invalid input page should be generated aswell as a possiblity of return to last screen (or exit).
 // 
 // If the termination flag has been set but not yet handled, execution is allowed to terminate.
-func RunDeadCheck(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 	if len(b) > 0 {
 		return b, nil
 	}
 	log.Printf("no code remaining, let's check if we terminate")
-	r, err := st.MatchFlag(state.FLAG_TERMINATE, false)
+	r, err := vm.st.MatchFlag(state.FLAG_TERMINATE, false)
 	if err != nil {
 		panic(err)
 	}
 	if r {
 		return b, nil
 	}
-	location, _ := st.Where()
+	location, _ := vm.st.Where()
 	if location == "" {
 		return b, fmt.Errorf("dead runner with no current location")
 	}
@@ -99,92 +120,102 @@ func RunDeadCheck(b []byte, st *state.State, rs resource.Resource, ctx context.C
 }
 
 // RunMap executes the MAP opcode
-func RunMap(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunMap(b []byte, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseMap(b)
-	err = st.Map(sym)
+	err = vm.pg.Map(sym)
 	return b, err
 }
 
 // RunMap executes the CATCH opcode
-func RunCatch(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 	log.Printf("zzz %x", b)
 	sym, sig, mode, b, err := ParseCatch(b)
 	if err != nil {
 		return b, err
 	}
-	r, err := st.MatchFlag(sig, mode)
+	r, err := vm.st.MatchFlag(sig, mode)
 	if err != nil {
 		return b, err
 	}
 	if r {
 		log.Printf("catch at flag %v, moving to %v", sig, sym) //bitField, d)
-		st.Down(sym)
+		vm.st.Down(sym)
 		b = []byte{}
 	} 
 	return b, nil
 }
 
 // RunMap executes the CROAK opcode
-func RunCroak(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunCroak(b []byte, ctx context.Context) ([]byte, error) {
 	sig, mode, b, err := ParseCroak(b)
 	if err != nil {
 		return b, err
 	}
-	r, err := st.MatchFlag(sig, mode)
+	r, err := vm.st.MatchFlag(sig, mode)
 	if err != nil {
 		return b, err
 	}
 	if r {
 		log.Printf("croak at flag %v, purging and moving to top", sig)
-		st.Reset()
+		vm.st.Reset()
+		vm.pg.Reset()
+		vm.ca.Reset()
 		b = []byte{}
 	}
 	return []byte{}, nil
 }
 
 // RunLoad executes the LOAD opcode
-func RunLoad(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunLoad(b []byte, ctx context.Context) ([]byte, error) {
 	sym, sz, b, err := ParseLoad(b)
 	if err != nil {
 		return b, err
 	}
 
-	r, err := refresh(sym, rs, ctx)
+	r, err := refresh(sym, vm.rs, ctx)
 	if err != nil {
 		return b, err
 	}
-	err = st.Add(sym, r, uint16(sz))
+	err = vm.ca.Add(sym, r, uint16(sz))
 	return b, err
 }
 
 // RunLoad executes the RELOAD opcode
-func RunReload(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunReload(b []byte, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseReload(b)
 	if err != nil {
 		return b, err
 	}
 
-	r, err := refresh(sym, rs, ctx)
+	r, err := refresh(sym, vm.rs, ctx)
 	if err != nil {
 		return b, err
 	}
-	st.Update(sym, r)
+	vm.ca.Update(sym, r)
+	if vm.pg != nil {
+		err := vm.pg.Map(sym)
+		if err != nil {
+			return b, err
+		}
+	}
 	return b, nil
 }
 
 // RunLoad executes the MOVE opcode
-func RunMove(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunMove(b []byte, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseMove(b)
 	if err != nil {
 		return b, err
 	}
 	if sym == "_" {
-		st.Up()
-		sym, _ = st.Where()
+		vm.st.Up()
+		vm.ca.Pop()
+		sym, _ = vm.st.Where()
 	} else {
-		st.Down(sym)
+		vm.st.Down(sym)
+		vm.ca.Push()
 	}
-	code, err := rs.GetCode(sym)
+	code, err := vm.rs.GetCode(sym)
 	if err != nil {
 		return b, err
 	}
@@ -194,19 +225,19 @@ func RunMove(b []byte, st *state.State, rs resource.Resource, ctx context.Contex
 }
 
 // RunIncmp executes the INCMP opcode
-func RunInCmp(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	sym, target, b, err := ParseInCmp(b)
 	if err != nil {
 		return b, err
 	}
-	v, err := st.GetFlag(state.FLAG_INMATCH)
+	v, err := vm.st.GetFlag(state.FLAG_INMATCH)
 	if err != nil {
 		return b, err
 	}
 	if v {
 		return b, nil
 	}
-	input, err := st.GetInput()
+	input, err := vm.st.GetInput()
 	if err != nil {
 		return b, err
 	}
@@ -215,11 +246,11 @@ func RunInCmp(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 	}
 
 	log.Printf("input match for '%s'", input)
-	_, err = st.SetFlag(state.FLAG_INMATCH)
+	_, err = vm.st.SetFlag(state.FLAG_INMATCH)
 
-	sym, _, err = applyTarget([]byte(target), st, ctx)
+	sym, _, err = applyTarget([]byte(target), vm.st, ctx)
 
-	code, err := rs.GetCode(target)
+	code, err := vm.rs.GetCode(target)
 	if err != nil {
 		return b, err
 	}
@@ -229,52 +260,60 @@ func RunInCmp(b []byte, st *state.State, rs resource.Resource, ctx context.Conte
 }
 
 // RunHalt executes the HALT opcode
-func RunHalt(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunHalt(b []byte, ctx context.Context) ([]byte, error) {
 	var err error
 	b, err = ParseHalt(b)
 	if err != nil {
 		return b, err
 	}
 	log.Printf("found HALT, stopping")
-	_, err = st.ResetFlag(state.FLAG_INMATCH)
+	_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
 	return b, err
 }
 
-// RunMSize executes the HALT opcode
-func RunMSize(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+// RunMSize executes the MSIZE opcode
+func(vm *Vm) RunMSize(b []byte, ctx context.Context) ([]byte, error) {
 	log.Printf("WARNING MSIZE not yet implemented")
 	_, _, b, err := ParseMSize(b)
 	return b, err
 }
 
 // RunMOut executes the MOUT opcode
-func RunMOut(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunMOut(b []byte, ctx context.Context) ([]byte, error) {
 	choice, title, b, err := ParseMOut(b)
 	if err != nil {
 		return b, err
 	}
-	err = rs.PutMenu(choice, title)
+	err = vm.mn.Put(choice, title)
 	return b, err
 }
 
 // RunMNext executes the MNEXT opcode
-func RunMNext(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunMNext(b []byte, ctx context.Context) ([]byte, error) {
        selector, display, b, err := ParseMNext(b)
        if err != nil {
 	       return b, err
        }
-       err = rs.SetMenuBrowse(selector, display, false)
-       return b, err
+       cfg := vm.mn.GetBrowseConfig()
+       cfg.NextSelector = selector
+       cfg.NextTitle = display
+       cfg.NextAvailable = true
+       vm.mn = vm.mn.WithBrowseConfig(cfg)
+       return b, nil
 }
 	
 // RunMPrev executes the MPREV opcode
-func RunMPrev(b []byte, st *state.State, rs resource.Resource, ctx context.Context) ([]byte, error) {
+func(vm *Vm) RunMPrev(b []byte, ctx context.Context) ([]byte, error) {
        selector, display, b, err := ParseMPrev(b)
        if err != nil {
 	       return b, err
        }
-       err = rs.SetMenuBrowse(selector, display, false)
-       return b, err
+       cfg := vm.mn.GetBrowseConfig()
+       cfg.PreviousSelector = selector
+       cfg.PreviousTitle = display
+       cfg.PreviousAvailable = true
+       vm.mn = vm.mn.WithBrowseConfig(cfg)
+       return b, nil
 }
 
 // retrieve data for key
