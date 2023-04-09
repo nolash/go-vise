@@ -14,19 +14,29 @@ import (
 type Vm struct {
 	st *state.State
 	rs resource.Resource
-	pg render.Renderer
+	pg *render.Page
 	ca cache.Memory
 	mn *render.Menu
+	sizer *render.Sizer
 }
 
 
-func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, mn *render.Menu, pg render.Renderer) *Vm {
-	return &Vm{
+func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render.Sizer) *Vm {
+	vmi := &Vm{
 		st: st,
 		rs: rs,
-		pg: pg,
 		ca: ca,
-		mn: mn,
+		sizer: sizer,
+	}
+	vmi.Reset()
+	return vmi
+}
+
+func(vmi *Vm) Reset() {
+	vmi.mn = render.NewMenu()
+	vmi.pg = render.NewPage(vmi.ca, vmi.rs).WithMenu(vmi.mn)
+	if vmi.sizer != nil {
+		vmi.pg = vmi.pg.WithSizer(vmi.sizer)	
 	}
 }
 
@@ -316,6 +326,16 @@ func(vm *Vm) RunMPrev(b []byte, ctx context.Context) ([]byte, error) {
        return b, nil
 }
 
+func(vm *Vm) Render() (string, error) {
+	sym, idx := vm.st.Where()
+	r, err := vm.pg.Render(sym, idx)
+	if err != nil {
+		return "", err
+	}
+	vm.Reset()
+	return r, nil
+}
+
 // retrieve data for key
 func refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
 	fn, err := rs.FuncFor(key)
@@ -327,3 +347,4 @@ func refresh(key string, rs resource.Resource, ctx context.Context) (string, err
 	}
 	return fn(ctx)
 }
+

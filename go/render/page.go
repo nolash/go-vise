@@ -257,7 +257,9 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 		return "", err
 	}
 	log.Printf("rendered %v bytes for menu", len(s))
-	r += "\n" + s
+	if len(s) > 0 {
+		r += "\n" + s
+	}
 	if pg.sizer != nil {
 		_, ok = pg.sizer.Check(r)
 		if !ok {
@@ -267,8 +269,13 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 	return r, nil
 }
 
-func(pg *Page) Render(sym string, values map[string]string, idx uint16) (string, error) {
+func(pg *Page) Render(sym string, idx uint16) (string, error) {
 	var err error
+
+	values, err := pg.cache.Get()
+	if err != nil {
+		return "", err
+	}
 	
 	values, err = pg.prepare(sym, values, idx)
 	if err != nil {

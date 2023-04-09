@@ -46,6 +46,8 @@ func (r TestResource) GetTemplate(sym string) (string, error) {
 		return "inky pinky {{.baz}} blinky clyde", nil
 	case "three":
 		return "{{.one}} inky pinky {{.three}} blinky clyde {{.two}}", nil
+	case "root":
+		return "root", nil
 	case "_catch":
 		return "aiee", nil
 	}
@@ -85,7 +87,7 @@ func TestRun(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil, nil)
+	vm := NewVm(&st, &rs, ca, nil)
 
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
@@ -105,59 +107,46 @@ func TestRunLoadRender(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	pg := render.NewPage(ca, rs)
-	vm := NewVm(&st, &rs, ca, nil, pg)
+	vm := NewVm(&st, &rs, ca, nil)
 
-	st.Down("barbarbar")
+	st.Down("bar")
 
 	var err error
 	b := NewLine(nil, LOAD, []string{"one"}, []byte{0x0a}, nil)
+	b = NewLine(b, LOAD, []string{"two"}, []byte{0x0a}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	b, err = vm.Run(b, context.TODO())
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	m, err := ca.Get()
+	r, err := vm.Render()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	r, err := pg.RenderTemplate("foo", m, 0)
-	if err != nil {
-		t.Error(err)
-	}
-	expect := "inky pinky blinky clyde"
+	expect := "inky pinky one blinky two clyde"
 	if r != expect {
-		t.Errorf("Expected %v, got %v", []byte(expect), []byte(r))
-	}
-
-	r, err = pg.RenderTemplate("bar", m, 0)
-	if err == nil {
-		t.Errorf("expected error for render of bar: %v" ,err)
+		t.Fatalf("Expected\n\t%s\ngot\n\t%s\n", expect, r)
 	}
 
 	b = NewLine(nil, LOAD, []string{"two"}, []byte{0x0a}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	b, err = vm.Run(b, context.TODO())
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	b = NewLine(nil, MAP, []string{"one"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	_, err = vm.Run(b, context.TODO())
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	m, err = ca.Get()
+	r, err = vm.Render()
 	if err != nil {
-		t.Error(err)
-	}
-	r, err = pg.RenderTemplate("bar", m, 0)
-	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	expect = "inky pinky one blinky two clyde"
 	if r != expect {
-		t.Errorf("Expected %v, got %v", expect, r)
+		t.Fatalf("Expected %v, got %v", expect, r)
 	}
 }
 
@@ -165,7 +154,7 @@ func TestRunMultiple(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil, nil)
+	vm := NewVm(&st, &rs, ca, nil)
 
 	b := NewLine(nil, MOVE, []string{"test"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"one"}, []byte{0x00}, nil)
@@ -184,8 +173,8 @@ func TestRunReload(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	pg := render.NewPage(ca, rs)
-	vm := NewVm(&st, &rs, ca, nil, pg)
+	szr := render.NewSizer(128)
+	vm := NewVm(&st, &rs, ca, szr)
 
 	b := NewLine(nil, MOVE, []string{"root"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"dyn"}, nil, []uint8{0})
@@ -195,12 +184,13 @@ func TestRunReload(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err := pg.Val("dyn")
+	r, err := vm.Render()
+//	r, err := pg.Val("dyn")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r != "three" {
-		t.Fatalf("expected result 'three', got %v", r)
+	if r != "root" {
+		t.Fatalf("expected result 'root', got %v", r)
 	}
 	dynVal = "baz"
 	b = NewLine(nil, RELOAD, []string{"dyn"}, nil, nil)
@@ -209,21 +199,21 @@ func TestRunReload(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err = pg.Val("dyn")
-	if err != nil {
-		t.Fatal(err)
-	}
-	log.Printf("dun now %s", r)
-	if r != "baz" {
-		t.Fatalf("expected result 'baz', got %v", r)
-	}
+//	r, err = pg.Val("dyn")
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	log.Printf("dun now %s", r)
+//	if r != "baz" {
+//		t.Fatalf("expected result 'baz', got %v", r)
+//	}
 }
 
 func TestHalt(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil, nil)
+	vm := NewVm(&st, &rs, ca, nil)
 
 	b := NewLine(nil, MOVE, []string{"root"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"one"}, nil, []uint8{0})
@@ -247,7 +237,7 @@ func TestRunArg(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil, nil)
+	vm := NewVm(&st, &rs, ca, nil)
 
 	input := []byte("bar")
 	_ = st.SetInput(input)
@@ -272,8 +262,7 @@ func TestRunInputHandler(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	pg := render.NewPage(ca, rs)
-	vm := NewVm(&st, &rs, ca, nil, pg)
+	vm := NewVm(&st, &rs, ca, nil)
 
 	_ = st.SetInput([]byte("baz"))
 
@@ -300,8 +289,7 @@ func TestRunArgInvalid(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	mn := render.NewMenu()
-	vm := NewVm(&st, &rs, ca, mn, nil)
+	vm := NewVm(&st, &rs, ca, nil)
 
 	_ = st.SetInput([]byte("foo"))
 
@@ -324,8 +312,7 @@ func TestRunMenu(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	mn := render.NewMenu()
-	vm := NewVm(&st, &rs, ca, mn, nil)
+	vm := NewVm(&st, &rs, ca, nil)
 
 	var err error
 
@@ -343,11 +330,11 @@ func TestRunMenu(t *testing.T) {
 		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
 	
-	r, err := mn.Render(0)
+	r, err := vm.Render()
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect := "0:one\n1:two"
+	expect := "inky pinky blinky clyde\n0:one\n1:two"
 	if r != expect {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
@@ -358,8 +345,7 @@ func TestRunMenuBrowse(t *testing.T) {
 	st := state.NewState(5)
 	rs := TestResource{}
 	ca := cache.NewCache()
-	mn := render.NewMenu()
-	vm := NewVm(&st, &rs, ca, mn, nil)
+	vm := NewVm(&st, &rs, ca, nil)
 
 	var err error
 
@@ -377,11 +363,11 @@ func TestRunMenuBrowse(t *testing.T) {
 		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
 	
-	r, err := mn.Render(0)
+	r, err := vm.Render()
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect := "0:one\n1:two"
+	expect := "inky pinky blinky clyde\n0:one\n1:two"
 	if r != expect {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}

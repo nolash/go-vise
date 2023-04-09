@@ -29,11 +29,6 @@ func(szr *Sizer) WithMenuSize(menuSize uint16) *Sizer {
 }
 
 func(szr *Sizer) Set(key string, size uint16) error {
-	var ok bool 
-	_, ok = szr.memberSizes[key]
-	if ok {
-		return fmt.Errorf("already have key %s", key)
-	}
 	szr.memberSizes[key] = size
 	if size == 0 {
 		szr.sink = key

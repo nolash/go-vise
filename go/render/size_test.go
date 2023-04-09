@@ -98,20 +98,13 @@ func TestSizeLimit(t *testing.T) {
 	mn.Put("1", "foo the foo")
 	mn.Put("2", "go to bar")
 
-	vals, err := ca.Get()
+	var err error
+	_, err = pg.Render("small", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = pg.Render("small", vals, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	mn.Put("1", "foo the foo")
-	mn.Put("2", "go to bar")
-
-	_, err = pg.Render("toobig", vals, 0)
+	_, err = pg.Render("toobig", 0)
 	if err == nil {
 		t.Fatalf("expected size exceeded")
 	}
@@ -138,15 +131,10 @@ func TestSizePages(t *testing.T) {
 	pg.Map("baz")
 	pg.Map("xyzzy")
 
-	vals, err := ca.Get()
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	mn.Put("1", "foo the foo")
 	mn.Put("2", "go to bar")
 
-	r, err := pg.Render("pages", vals, 0)
+	r, err := pg.Render("pages",  0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +151,7 @@ lala poo
 	if r != expect {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
-	r, err = pg.Render("pages", vals, 1)
+	r, err = pg.Render("pages", 1)
 	if err != nil {
 		t.Fatal(err)
 	}
