@@ -50,12 +50,25 @@ func(vmi *Vm) Reset() {
 func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 	running := true
 	for running {
+		r, err := vm.st.MatchFlag(state.FLAG_TERMINATE, false)
+		if err != nil {
+			panic(err)
+		}
+		if r {
+			log.Printf("terminate set! bailing!")
+			return []byte{}, nil
+		}
+		_, err = vm.st.SetFlag(state.FLAG_DIRTY)
+		if err != nil {
+			panic(err)
+		}
 		op, bb, err := opSplit(b)
 		if err != nil {
 			return b, err
 		}
 		b = bb
 		log.Printf("execute code %x (%s) %x", op, OpcodeString[op], b)
+		log.Printf("state: %v", vm.st)
 		switch op {
 		case CATCH:
 			b, err = vm.RunCatch(b, ctx)
@@ -112,20 +125,20 @@ func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 	if len(b) > 0 {
 		return b, nil
 	}
-	log.Printf("no code remaining, let's check if we terminate")
 	r, err := vm.st.MatchFlag(state.FLAG_TERMINATE, false)
 	if err != nil {
 		panic(err)
 	}
 	if r {
+		log.Printf("Terminate found!!")
 		return b, nil
 	}
+	log.Printf("no code remaining but not terminating")
 	location, _ := vm.st.Where()
 	if location == "" {
 		return b, fmt.Errorf("dead runner with no current location")
 	}
 	b = NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
-	log.Printf("code is now %x", b)
 	return b, nil
 }
 
@@ -138,7 +151,6 @@ func(vm *Vm) RunMap(b []byte, ctx context.Context) ([]byte, error) {
 
 // RunMap executes the CATCH opcode
 func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
-	log.Printf("zzz %x", b)
 	sym, sig, mode, b, err := ParseCatch(b)
 	if err != nil {
 		return b, err
@@ -251,14 +263,22 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	if sym != string(input) {
-		return b, nil
+	log.Printf("sym is %s", sym)
+	if sym == "*" {
+		log.Printf("input wildcard match ('%s'), target '%s'", input, target)
+	} else {
+		if sym != string(input) {
+			return b, nil
+		}
+		log.Printf("input match for '%s', target '%s'", input, target)
 	}
 
-	log.Printf("input match for '%s', target '%s'", input, target)
 	_, err = vm.st.SetFlag(state.FLAG_INMATCH)
+	if err != nil {
+		return b, err
+	}
 
-	target, _, err = applyTarget([]byte(target), vm.st, ctx)
+	target, _, err = applyTarget([]byte(target), vm.st, vm.ca, ctx)
 	if err != nil {
 		return b, err
 	}
@@ -330,6 +350,13 @@ func(vm *Vm) RunMPrev(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 func(vm *Vm) Render() (string, error) {
+	changed, err := vm.st.ResetFlag(state.FLAG_DIRTY)
+	if err != nil {
+		panic(err)	
+	}
+	if !changed {
+		log.Printf("Render called when not dirty, please investigate.")
+	}
 	sym, idx := vm.st.Where()
 	r, err := vm.pg.Render(sym, idx)
 	if err != nil {

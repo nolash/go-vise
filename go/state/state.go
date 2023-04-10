@@ -3,6 +3,7 @@ package state
 import (
 	"fmt"
 	"log"
+	"strings"
 )
 
 // State holds the command stack, error condition of a unique execution session.
@@ -261,12 +262,14 @@ func(st *State) Up() (string, error) {
 	if l == 0 {
 		return "", fmt.Errorf("exit called beyond top frame")
 	}
+	log.Printf("execpath before %v", st.execPath)
 	st.execPath = st.execPath[:l-1]
 	sym := ""
 	if len(st.execPath) > 0 {
 		sym = st.execPath[len(st.execPath)-1]
 	}
 	st.sizeIdx = 0
+	log.Printf("execpath after %v", st.execPath)
 	return sym, nil
 }
 
@@ -315,4 +318,8 @@ func(st *State) SetInput(input []byte) error {
 
 // Reset to initial state (start navigation over).
 func(st *State) Reset() {
+}
+
+func(st State) String() string {
+	return fmt.Sprintf("path: %s", strings.Join(st.execPath, "/"))
 }

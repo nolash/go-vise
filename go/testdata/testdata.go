@@ -70,7 +70,7 @@ func foo() error {
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"0", "_"}, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"1", "baz"}, nil, nil)
-	b = vm.NewLine(b, vm.CATCH, []string{"_catch"}, []byte{1}, []uint8{1})
+	//b = vm.NewLine(b, vm.CATCH, []string{"_catch"}, []byte{1}, []uint8{1})
 
 	data := make(map[string]string)
 	data["inky"] = "one"
@@ -86,7 +86,7 @@ func bar() error {
 	b := []byte{}
 	b = vm.NewLine(b, vm.LOAD, []string{"pinky"}, []byte{0}, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"0", "_home"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"*", "^"}, nil, nil)
 
 	tpl := "this is bar - an end node"
 
@@ -110,7 +110,7 @@ func defaultCatch() error {
 	b := []byte{}
 	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.MOVE, []string{"_"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"*", "_"}, nil, nil)
 
 	tpl := "invalid input"
 

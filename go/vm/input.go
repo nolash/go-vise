@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"regexp"
 
+	"git.defalsify.org/festive/cache"
 	"git.defalsify.org/festive/state"
 )
 
 var (
 	inputRegexStr = "^[a-zA-Z0-9].*$"
 	inputRegex = regexp.MustCompile(inputRegexStr)
-	ctrlRegexStr = "^[><_]$"
+	ctrlRegexStr = "^[><_^]$"
 	ctrlRegex = regexp.MustCompile(ctrlRegexStr)
 	symRegexStr = "^[a-zA-Z0-9][a-zA-Z0-9_]+$"
 	symRegex = regexp.MustCompile(symRegexStr)
@@ -90,7 +91,7 @@ func CheckTarget(target []byte, st *state.State) (bool, error) {
 }
 
 // route parsed target symbol to navigation state change method,
-func applyTarget(target []byte, st *state.State, ctx context.Context) (string, uint16, error) {
+func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Context) (string, uint16, error) {
 	var err error
 	sym, idx := st.Where()
 
@@ -102,6 +103,7 @@ func applyTarget(target []byte, st *state.State, ctx context.Context) (string, u
 	switch target[0] {
 	case '_':
 		sym, err = st.Up()
+		ca.Pop()
 		if err != nil {
 			return sym, idx, err
 		}
@@ -115,9 +117,15 @@ func applyTarget(target []byte, st *state.State, ctx context.Context) (string, u
 		if err != nil {
 			return sym, idx, err
 		}
+	case '^':
+		_, err := st.SetFlag(state.FLAG_TERMINATE)
+		if err != nil {
+			return sym, idx, err
+		}
 	default:
 		sym = string(target)
 		st.Down(sym)
+		ca.Push()
 		idx = 0
 	}
 	return sym, idx, nil
