@@ -19,7 +19,7 @@ var (
 	dirLock = false	
 )
 
-func out(sym string, b []byte, tpl string) error {
+func out(sym string, b []byte, tpl string, data map[string]string) error {
 	fp := path.Join(DataDir, sym)
 	err := ioutil.WriteFile(fp, []byte(tpl), 0644)
 	if err != nil {
@@ -32,6 +32,20 @@ func out(sym string, b []byte, tpl string) error {
 	if err != nil {
 		return err
 	}
+
+	if data == nil {
+		return nil
+	}
+
+	for k, v := range data {
+		fb := k + ".txt"
+		fp = path.Join(DataDir, fb)
+		err = ioutil.WriteFile(fp, []byte(v), 0644)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -45,7 +59,7 @@ func root() error {
 
 	tpl := "hello world"
 
-	return out("root", b, tpl)
+	return out("root", b, tpl, nil)
 }
 
 func foo() error {
@@ -58,11 +72,14 @@ func foo() error {
 	b = vm.NewLine(b, vm.INCMP, []string{"1", "baz"}, nil, nil)
 	b = vm.NewLine(b, vm.CATCH, []string{"_catch"}, []byte{1}, []uint8{1})
 
+	data := make(map[string]string)
+	data["inky"] = "one"
+
 	tpl := `this is in foo
 
 it has more lines`
 
-	return out("foo", b, tpl)
+	return out("foo", b, tpl, data)
 }
 
 func bar() error {
@@ -73,7 +90,10 @@ func bar() error {
 
 	tpl := "this is bar - an end node"
 
-	return out("bar", b, tpl)
+	data := make(map[string]string)
+	data["pinky"] = "two"
+
+	return out("bar", b, tpl, data)
 }
 
 func baz() error {
@@ -83,7 +103,7 @@ func baz() error {
 
 	tpl := "this is baz which uses the var {{.inky}} in the template."
 
-	return out("baz", b, tpl)
+	return out("baz", b, tpl, nil)
 }
 
 func defaultCatch() error {
@@ -94,7 +114,7 @@ func defaultCatch() error {
 
 	tpl := "invalid input"
 
-	return out("_catch", b, tpl)
+	return out("_catch", b, tpl, nil)
 }
 
 func generate() error {

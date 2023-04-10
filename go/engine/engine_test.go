@@ -32,11 +32,11 @@ func NewFsWrapper(path string, st *state.State) FsWrapper {
 	}
 }
 
-func(fs FsWrapper) one(ctx context.Context) (string, error) {
+func(fs FsWrapper) one(sym string, ctx context.Context) (string, error) {
 	return "one", nil
 }
 
-func(fs FsWrapper) inky(ctx context.Context) (string, error) {
+func(fs FsWrapper) inky(sym string, ctx context.Context) (string, error) {
 	return "tinkywinky", nil
 }
 

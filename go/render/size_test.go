@@ -41,19 +41,19 @@ func funcFor(sym string) (resource.EntryFunc, error) {
 	return nil, fmt.Errorf("unknown func: %s", sym)
 }
 
-func getFoo(ctx context.Context) (string, error) {
+func getFoo(sym string, ctx context.Context) (string, error) {
 	return "inky", nil
 }
 
-func getBar(ctx context.Context) (string, error) {
+func getBar(sym string, ctx context.Context) (string, error) {
 	return "pinky", nil
 }
 
-func getBaz(ctx context.Context) (string, error) {
+func getBaz(sym string, ctx context.Context) (string, error) {
 	return "blinky", nil
 }
 
-func getXyzzy(ctx context.Context) (string, error) {
+func getXyzzy(sym string, ctx context.Context) (string, error) {
 	return "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve", nil
 }
 

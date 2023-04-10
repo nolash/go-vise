@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -11,6 +12,7 @@ import (
 type FsResource struct {
 	MenuResource
 	Path string
+	fns map[string]EntryFunc
 }
 
 func NewFsResource(path string) (FsResource) {
@@ -37,9 +39,32 @@ func(fs FsResource) GetCode(sym string) ([]byte, error) {
 }
 
 func(fs FsResource) FuncFor(sym string) (EntryFunc, error) {
-	return nil, fmt.Errorf("not implemented")
+	fn, ok := fs.fns[sym]
+	if ok {
+		return fn, nil
+	}
+	_, err := fs.getFuncNoCtx(sym)
+	if err != nil {
+		return nil, fmt.Errorf("unknown sym: %s", sym)
+	}
+	return fs.getFunc, nil
 }
 
-func(rs FsResource) String() string {
-	return fmt.Sprintf("fs resource at path: %s", rs.Path)
+func(fs FsResource) String() string {
+	return fmt.Sprintf("fs resource at path: %s", fs.Path)
+}
+
+func(fs FsResource) getFunc(sym string, ctx context.Context) (string, error) {
+	return fs.getFuncNoCtx(sym)
+}
+
+func(fs FsResource) getFuncNoCtx(sym string) (string, error) {
+	fb := sym + ".txt"
+	fp := path.Join(fs.Path, fb)
+	r, err := ioutil.ReadFile(fp)
+	if err != nil {
+		return "", fmt.Errorf("failed getting data for sym '%s': %v", sym, err)
+	}
+	s := string(r)
+	return strings.TrimSpace(s), err
 }

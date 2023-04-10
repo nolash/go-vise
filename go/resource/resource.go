@@ -5,7 +5,7 @@ import (
 )
 
 // EntryFunc is a function signature for retrieving value for a key
-type EntryFunc func(ctx context.Context) (string, error)
+type EntryFunc func(sym string, ctx context.Context) (string, error)
 type CodeFunc func(sym string) ([]byte, error)
 type TemplateFunc func(sym string) (string, error)
 type FuncForFunc func(sym string) (EntryFunc, error)

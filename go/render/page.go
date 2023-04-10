@@ -156,6 +156,11 @@ func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16) 
 // render menu and all syms except sink, split sink into display chunks
 func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[string]string, error) {
 	var sink string
+
+	if pg.sizer == nil {
+		return values, nil
+	}
+
 	var sinkValues []string
 	noSinkValues := make(map[string]string)
 	for k, v := range values {

@@ -26,29 +26,29 @@ func getTemplate(sym string) (string, error) {
 func funcFor(sym string) (EntryFunc, error) {
 	switch sym {
 	case "foo":
-		return getFoo, nil
+		return get, nil
 	case "bar":
-		return getBar, nil
+		return get, nil
 	case "baz":
-		return getBaz, nil
+		return get, nil
 	case "xyzzy":
 		return getXyzzy, nil
 	}
 	return nil, fmt.Errorf("unknown func: %s", sym)
 }
 
-func getFoo(ctx context.Context) (string, error) {
-	return "inky", nil
+func get(sym string, ctx context.Context) (string, error) {
+	switch sym {
+	case "foo":
+		return "inky", nil
+	case "bar":
+		return "pinky", nil
+	case "baz":
+		return "blinky", nil
+	}
+	return "", fmt.Errorf("unknown sym: %s", sym)
 }
 
-func getBar(ctx context.Context) (string, error) {
-	return "pinky", nil
-}
-
-func getBaz(ctx context.Context) (string, error) {
-	return "blinky", nil
-}
-
-func getXyzzy(ctx context.Context) (string, error) {
+func getXyzzy(sym string, ctx context.Context) (string, error) {
 	return "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve", nil
 }

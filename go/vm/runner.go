@@ -345,6 +345,6 @@ func refresh(key string, rs resource.Resource, ctx context.Context) (string, err
 	if fn == nil {
 		return "", fmt.Errorf("no retrieve function for external symbol %v", key)
 	}
-	return fn(ctx)
+	return fn(key, ctx)
 }
 
