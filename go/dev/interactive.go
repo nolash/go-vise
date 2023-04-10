@@ -19,7 +19,7 @@ func main() {
 
 	ctx := context.Background()
 	en := engine.NewDefaultEngine(dir)
-	err := engine.Loop(root, &en, ctx)
+	err := engine.Loop(&en, root, ctx, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v", err)
 		os.Exit(1)

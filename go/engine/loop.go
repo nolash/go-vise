@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 )
 
@@ -23,6 +24,10 @@ func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, wr
 	bufReader := bufio.NewReader(reader)
 	for running {
 		in, err := bufReader.ReadString('\n')
+		if err == io.EOF {
+			log.Printf("EOF found, that's all folks")
+			return nil
+		}
 		if err != nil {
 			return fmt.Errorf("cannot read input: %v\n", err)
 		}
@@ -33,7 +38,6 @@ func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, wr
 		}
 		b := bytes.NewBuffer(nil)
 		en.WriteResult(b)
-		//fmt.Println(b.String())
 		writer.Write(b.Bytes())
 		writer.Write([]byte{0x0a})
 	}

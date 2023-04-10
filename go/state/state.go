@@ -266,7 +266,6 @@ func(st *State) Up() (string, error) {
 	if len(st.execPath) > 0 {
 		sym = st.execPath[len(st.execPath)-1]
 	}
-	log.Printf("execpath %v", st.execPath)
 	st.sizeIdx = 0
 	return sym, nil
 }

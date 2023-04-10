@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"path"
 	"path/filepath"
 	"strings"
@@ -44,7 +45,7 @@ func(fs FsResource) FuncFor(sym string) (EntryFunc, error) {
 		return fn, nil
 	}
 	_, err := fs.getFuncNoCtx(sym)
-	if err == nil {
+	if err != nil {
 		return nil, fmt.Errorf("unknown sym: %s", sym)
 	}
 	return fs.getFunc, nil
@@ -61,10 +62,11 @@ func(fs FsResource) getFunc(sym string, ctx context.Context) (string, error) {
 func(fs FsResource) getFuncNoCtx(sym string) (string, error) {
 	fb := sym + ".txt"
 	fp := path.Join(fs.Path, fb)
+	log.Printf("getfunc search dir %s %s for %s", fs.Path, fp, sym)
 	r, err := ioutil.ReadFile(fp)
 	if err != nil {
 		return "", fmt.Errorf("failed getting data for sym '%s': %v", sym, err)
 	}
 	s := string(r)
-	return strings.TrimSpace(s), err
+	return strings.TrimSpace(s), nil
 }
