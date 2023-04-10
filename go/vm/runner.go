@@ -125,7 +125,19 @@ func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 	if len(b) > 0 {
 		return b, nil
 	}
-	r, err := vm.st.MatchFlag(state.FLAG_TERMINATE, false)
+	r, err := vm.st.MatchFlag(state.FLAG_READIN, true)
+	if err != nil {
+		panic(err)
+	}
+	if r {
+		log.Printf("Not processing input. Setting terminate")
+		_, err := vm.st.SetFlag(state.FLAG_TERMINATE)
+		if err != nil {
+			panic(err)
+		}
+		return b, nil
+	}
+	r, err = vm.st.MatchFlag(state.FLAG_TERMINATE, false)
 	if err != nil {
 		panic(err)
 	}
@@ -133,6 +145,8 @@ func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 		log.Printf("Terminate found!!")
 		return b, nil
 	}
+
+
 	log.Printf("no code remaining but not terminating")
 	location, _ := vm.st.Where()
 	if location == "" {
@@ -252,12 +266,24 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	v, err := vm.st.GetFlag(state.FLAG_INMATCH)
+
+	change, err := vm.st.SetFlag(state.FLAG_READIN)
 	if err != nil {
-		return b, err
+		panic(err)
 	}
-	if v {
-		return b, nil
+	have, err := vm.st.GetFlag(state.FLAG_INMATCH)
+	if err != nil {
+		panic(err)
+	}
+	if have {
+		if change {
+			_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			return b, nil
+		}
 	}
 	input, err := vm.st.GetInput()
 	if err != nil {
@@ -275,7 +301,11 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 
 	_, err = vm.st.SetFlag(state.FLAG_INMATCH)
 	if err != nil {
-		return b, err
+		panic(err)
+	}
+	_, err = vm.st.ResetFlag(state.FLAG_READIN)
+	if err != nil {
+		panic(err)
 	}
 
 	target, _, err = applyTarget([]byte(target), vm.st, vm.ca, ctx)
@@ -300,7 +330,6 @@ func(vm *Vm) RunHalt(b []byte, ctx context.Context) ([]byte, error) {
 		return b, err
 	}
 	log.Printf("found HALT, stopping")
-	_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
 	return b, err
 }
 

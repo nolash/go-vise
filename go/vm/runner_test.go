@@ -396,6 +396,6 @@ func TestRunReturn(t *testing.T) {
 	}
 	location, _ = st.Where()
 	if location != "root" {
-		t.Fatalf("expected location 'foo', got '%s'", location)
+		t.Fatalf("expected location 'root', got '%s'", location)
 	}
 }
