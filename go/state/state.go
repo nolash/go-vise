@@ -316,8 +316,8 @@ func(st *State) SetInput(input []byte) error {
 	return nil
 }
 
-// Reset to initial state (start navigation over).
-func(st *State) Reset() {
+func(st *State) Reset() error {
+	return nil
 }
 
 func(st State) String() string {

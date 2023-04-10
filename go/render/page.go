@@ -19,7 +19,6 @@ type Page struct {
 	sink *string
 	sinkSize uint16
 	sizer *Sizer
-	sinkProcessed bool
 }
 
 func NewPage(cache cache.Memory, rs resource.Resource) *Page {
@@ -57,12 +56,16 @@ func(pg *Page) Usage() (uint32, uint32, error) {
 			return 0, 0, err
 		}
 		c += sz
+		log.Printf("v %x %v %v %v %v", []byte(v), len(v), l, sz, c)
 	}
 	r := uint32(l)
+	rsv := uint32(c)-r
+	log.Printf("size before %v %v", r, c)
 	if pg.menu != nil {
 		r += uint32(pg.menu.ReservedSize())
 	}
-	return r, uint32(c)-r, nil
+	log.Printf("size after %v %v", r, c)
+	return r, rsv, nil
 }
 
 // Map marks the given key for retrieval.
@@ -71,7 +74,7 @@ func(pg *Page) Usage() (uint32, uint32, error) {
 //
 // Only one symbol with no size limitation may be mapped at the current level.
 func(pg *Page) Map(key string) error {
-	m, err := pg.cache.Get()
+	v, err := pg.cache.Get(key)
 	if err != nil {
 		return err
 	}
@@ -85,13 +88,14 @@ func(pg *Page) Map(key string) error {
 		}
 		pg.sink = &key
 	}
-	pg.cacheMap[key] = m[key]
+	pg.cacheMap[key] = v
 	if pg.sizer != nil {
 		err := pg.sizer.Set(key, l)
 		if err != nil {
 			return err
 		}
 	}
+	log.Printf("page map is now: %v", pg.cacheMap)
 	return nil
 }
 
@@ -277,12 +281,7 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 func(pg *Page) Render(sym string, idx uint16) (string, error) {
 	var err error
 
-	values, err := pg.cache.Get()
-	if err != nil {
-		return "", err
-	}
-	
-	values, err = pg.prepare(sym, values, idx)
+	values, err := pg.prepare(sym, pg.cacheMap, idx)
 	if err != nil {
 		return "", err
 	}
@@ -294,8 +293,5 @@ func(pg *Page) Render(sym string, idx uint16) (string, error) {
 func(pg *Page) Reset() {
 	pg.sink = nil
 	pg.sinkSize = 0
-	pg.sinkProcessed = false
-	pg.cacheMap = make(map[string]string)
+	//pg.cacheMap = make(map[string]string)
 }
-
-

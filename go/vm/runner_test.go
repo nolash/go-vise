@@ -113,7 +113,9 @@ func TestRunLoadRender(t *testing.T) {
 
 	var err error
 	b := NewLine(nil, LOAD, []string{"one"}, []byte{0x0a}, nil)
+	b = NewLine(b, MAP, []string{"one"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"two"}, []byte{0x0a}, nil)
+	b = NewLine(b, MAP, []string{"two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	b, err = vm.Run(b, context.TODO())
 	if err != nil {
@@ -129,6 +131,7 @@ func TestRunLoadRender(t *testing.T) {
 	}
 
 	b = NewLine(nil, LOAD, []string{"two"}, []byte{0x0a}, nil)
+	b = NewLine(b, MAP, []string{"two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	b, err = vm.Run(b, context.TODO())
 	if err != nil {

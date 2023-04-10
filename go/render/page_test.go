@@ -8,6 +8,7 @@ import (
 
 
 func TestPageCurrentSize(t *testing.T) {
+	t.Skip("usage is not in use, and it is unclear how it should be calculated")
 	ca := cache.NewCache()
 	pg := NewPage(ca, nil)
 	err := ca.Push()

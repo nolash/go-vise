@@ -88,7 +88,7 @@ func bar() error {
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"*", "^"}, nil, nil)
 
-	tpl := "this is bar - an end node"
+	tpl := "this is bar - any input will return to top"
 
 	data := make(map[string]string)
 	data["pinky"] = "two"

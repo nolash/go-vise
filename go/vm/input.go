@@ -103,10 +103,14 @@ func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Co
 	switch target[0] {
 	case '_':
 		sym, err = st.Up()
-		ca.Pop()
 		if err != nil {
 			return sym, idx, err
 		}
+		err = ca.Pop()
+		if err != nil {
+			return sym, idx, err
+		}
+
 	case '>':
 		idx, err = st.Next()
 		if err != nil {
@@ -118,14 +122,31 @@ func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Co
 			return sym, idx, err
 		}
 	case '^':
-		_, err := st.SetFlag(state.FLAG_TERMINATE)
-		if err != nil {
-			return sym, idx, err
+		notTop := true
+		for notTop {
+			notTop, err := st.Top()
+			if notTop {
+				break
+			}
+			sym, err = st.Up()
+			if err != nil {
+				return sym, idx, err
+			}
+			err = ca.Pop()
+			if err != nil {
+				return sym, idx, err
+			}
 		}
 	default:
 		sym = string(target)
-		st.Down(sym)
-		ca.Push()
+		err := st.Down(sym)
+		if err != nil {
+			return sym, idx, err
+		}
+		err = ca.Push()
+		if err != nil {
+			return sym, idx, err
+		}
 		idx = 0
 	}
 	return sym, idx, nil

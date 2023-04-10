@@ -26,6 +26,7 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 		st: st,
 		rs: rs,
 		ca: ca,
+		pg: render.NewPage(ca, rs),
 		sizer: sizer,
 	}
 	vmi.Reset()
@@ -34,7 +35,8 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 
 func(vmi *Vm) Reset() {
 	vmi.mn = render.NewMenu()
-	vmi.pg = render.NewPage(vmi.ca, vmi.rs).WithMenu(vmi.mn)
+	vmi.pg.Reset()
+	vmi.pg = vmi.pg.WithMenu(vmi.mn) //render.NewPage(vmi.ca, vmi.rs).WithMenu(vmi.mn)
 	if vmi.sizer != nil {
 		vmi.pg = vmi.pg.WithSizer(vmi.sizer)	
 	}

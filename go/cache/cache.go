@@ -113,12 +113,13 @@ func(ca *Cache) Update(key string, value string) error {
 	return nil
 }
 
-// Get returns the full key-value mapping for all mapped keys at the current cache level.
-func(ca *Cache) Get() (map[string]string, error) {
-	if len(ca.Cache) == 0 {
-		return nil, fmt.Errorf("get at top frame")
+func(ca *Cache) Get(key string) (string, error) {
+	i := ca.frameOf(key)
+	r, ok := ca.Cache[i][key]
+	if !ok {
+		return "", fmt.Errorf("unknown key: %s", key)
 	}
-	return ca.Cache[len(ca.Cache)-1], nil
+	return r, nil
 }
 
 // Reset flushes all state contents below the top level.

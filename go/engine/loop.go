@@ -36,9 +36,11 @@ func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, wr
 		if err != nil {
 			return fmt.Errorf("unexpected termination: %v\n", err)
 		}
-		b := bytes.NewBuffer(nil)
-		en.WriteResult(b)
-		writer.Write(b.Bytes())
+		//b := bytes.NewBuffer(nil)
+		err = en.WriteResult(writer)
+		if err != nil {
+			return err
+		}
 		writer.Write([]byte{0x0a})
 	}
 	return nil
