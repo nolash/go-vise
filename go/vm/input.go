@@ -11,10 +11,10 @@ import (
 var (
 	inputRegexStr = "^[a-zA-Z0-9].*$"
 	inputRegex = regexp.MustCompile(inputRegexStr)
-	ctrlRegexStr = "^[<>_]$"
-	ctrlRegex = regexp.MustCompile(inputRegexStr)
+	ctrlRegexStr = "^[><_]$"
+	ctrlRegex = regexp.MustCompile(ctrlRegexStr)
 	symRegexStr = "^[a-zA-Z0-9][a-zA-Z0-9_]+$"
-	symRegex = regexp.MustCompile(inputRegexStr)
+	symRegex = regexp.MustCompile(symRegexStr)
 
 )
 

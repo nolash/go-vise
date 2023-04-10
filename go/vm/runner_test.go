@@ -185,7 +185,6 @@ func TestRunReload(t *testing.T) {
 		t.Fatal(err)
 	}
 	r, err := vm.Render()
-//	r, err := pg.Val("dyn")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,14 +198,6 @@ func TestRunReload(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-//	r, err = pg.Val("dyn")
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	log.Printf("dun now %s", r)
-//	if r != "baz" {
-//		t.Fatalf("expected result 'baz', got %v", r)
-//	}
 }
 
 func TestHalt(t *testing.T) {
@@ -373,3 +364,38 @@ func TestRunMenuBrowse(t *testing.T) {
 	}
 }
 
+func TestRunReturn(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	ca := cache.NewCache()
+	vm := NewVm(&st, &rs, ca, nil)
+
+	var err error
+
+	st.Down("root")
+	st.SetInput([]byte("0"))
+	b := NewLine(nil, INCMP, []string{"0", "bar"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+	b = NewLine(b, INCMP, []string{"1", "_"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+
+	ctx := context.TODO()
+
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	location, _ := st.Where()
+	if location != "bar" {
+		t.Fatalf("expected location 'bar', got '%s'", location)
+	}
+	st.SetInput([]byte("1"))
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	location, _ = st.Where()
+	if location != "root" {
+		t.Fatalf("expected location 'foo', got '%s'", location)
+	}
+}

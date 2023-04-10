@@ -255,16 +255,19 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 		return b, nil
 	}
 
-	log.Printf("input match for '%s'", input)
+	log.Printf("input match for '%s', target '%s'", input, target)
 	_, err = vm.st.SetFlag(state.FLAG_INMATCH)
 
-	sym, _, err = applyTarget([]byte(target), vm.st, ctx)
+	target, _, err = applyTarget([]byte(target), vm.st, ctx)
+	if err != nil {
+		return b, err
+	}
 
 	code, err := vm.rs.GetCode(target)
 	if err != nil {
 		return b, err
 	}
-	log.Printf("loaded additional code: %x", code)
+	log.Printf("loaded additional code for target '%s': %x", target, code)
 	b = append(b, code...)
 	return b, err
 }

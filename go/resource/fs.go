@@ -44,7 +44,7 @@ func(fs FsResource) FuncFor(sym string) (EntryFunc, error) {
 		return fn, nil
 	}
 	_, err := fs.getFuncNoCtx(sym)
-	if err != nil {
+	if err == nil {
 		return nil, fmt.Errorf("unknown sym: %s", sym)
 	}
 	return fs.getFunc, nil

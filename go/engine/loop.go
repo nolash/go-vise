@@ -5,11 +5,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
+	"io"
 	"strings"
 )
 
-func Loop(startSym string, en *Engine, ctx context.Context) error {
+func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, writer io.Writer) error {
 	err := en.Init(startSym, ctx)
 	if err != nil {
 		return fmt.Errorf("cannot init: %v\n", err)
@@ -20,9 +20,9 @@ func Loop(startSym string, en *Engine, ctx context.Context) error {
 	fmt.Println(b.String())
 
 	running := true
+	bufReader := bufio.NewReader(reader)
 	for running {
-		reader := bufio.NewReader(os.Stdin)
-		in, err := reader.ReadString('\n')
+		in, err := bufReader.ReadString('\n')
 		if err != nil {
 			return fmt.Errorf("cannot read input: %v\n", err)
 		}
@@ -33,7 +33,9 @@ func Loop(startSym string, en *Engine, ctx context.Context) error {
 		}
 		b := bytes.NewBuffer(nil)
 		en.WriteResult(b)
-		fmt.Println(b.String())
+		//fmt.Println(b.String())
+		writer.Write(b.Bytes())
+		writer.Write([]byte{0x0a})
 	}
 	return nil
 }
