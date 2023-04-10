@@ -178,6 +178,7 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 	if r {
 		log.Printf("catch at flag %v, moving to %v", sig, sym) //bitField, d)
 		vm.st.Down(sym)
+		vm.Reset()
 		b = []byte{}
 	} 
 	return b, nil
@@ -195,6 +196,7 @@ func(vm *Vm) RunCroak(b []byte, ctx context.Context) ([]byte, error) {
 	}
 	if r {
 		log.Printf("croak at flag %v, purging and moving to top", sig)
+		vm.Reset()
 		vm.st.Reset()
 		vm.pg.Reset()
 		vm.ca.Reset()
@@ -258,6 +260,7 @@ func(vm *Vm) RunMove(b []byte, ctx context.Context) ([]byte, error) {
 	}
 	log.Printf("loaded additional code: %x", code)
 	b = append(b, code...)
+	vm.Reset()
 	return b, nil
 }
 
@@ -313,6 +316,7 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
+	vm.Reset()
 
 	code, err := vm.rs.GetCode(target)
 	if err != nil {
@@ -392,7 +396,6 @@ func(vm *Vm) Render() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	vm.Reset()
 	return r, nil
 }
 

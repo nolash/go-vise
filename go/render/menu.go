@@ -52,6 +52,11 @@ func(m *Menu) WithOutputSize(outputSize uint16) *Menu {
 	return m
 }
 
+// GetOutputSize returns the defined heuristic menu size.
+func(m *Menu) GetOutputSize() uint32 {
+	return uint32(m.outputSize)
+}
+
 // WithBrowseConfig defines the criteria for page browsing.
 func(m *Menu) WithBrowseConfig(cfg BrowseConfig) *Menu {
 	m.browse = cfg

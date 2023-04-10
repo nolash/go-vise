@@ -95,7 +95,7 @@ func(pg *Page) Map(key string) error {
 			return err
 		}
 	}
-	log.Printf("page map is now: %v", pg.cacheMap)
+	log.Printf("mapped %s", key)
 	return nil
 }
 
@@ -192,6 +192,15 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 		return nil, err
 	}
 
+	if pg.menu != nil {
+		r, err := pg.menu.Render(idx)
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("appending %s for menu", r)
+		s += r
+	}
+
 	remaining, ok := pg.sizer.Check(s)
 	if !ok {
 		return nil, fmt.Errorf("capacity exceeded")
@@ -255,12 +264,6 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 	}
 	log.Printf("rendered %v bytes for template", len(s))
 	r += s
-	if pg.sizer != nil {
-		_, ok = pg.sizer.Check(r)
-		if !ok {
-			return "", fmt.Errorf("limit exceeded: %v", pg.sizer)
-		}
-	}
 	s, err = pg.menu.Render(idx)
 	if err != nil {
 		return "", err
@@ -275,6 +278,20 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 			return "", fmt.Errorf("limit exceeded: %v", pg.sizer)
 		}
 	}
+//	s, err = pg.menu.Render(idx)
+//	if err != nil {
+//		return "", err
+//	}
+//	log.Printf("rendered %v bytes for menu", len(s))
+//	if len(s) > 0 {
+//		r += "\n" + s
+//	}
+//	if pg.sizer != nil {
+//		_, ok = pg.sizer.Check(r)
+//		if !ok {
+//			return "", fmt.Errorf("limit exceeded: %v", pg.sizer)
+//		}
+//	}
 	return r, nil
 }
 

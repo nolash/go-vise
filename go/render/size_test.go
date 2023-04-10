@@ -88,17 +88,34 @@ func TestSizeLimit(t *testing.T) {
 	pg := NewPage(ca, rs).WithMenu(mn).WithSizer(szr)
 	ca.Push()
 	st.Down("test")
-	ca.Add("foo", "inky", 4)
-	ca.Add("bar", "pinky", 10)
-	ca.Add("baz", "blinky", 0)
-	pg.Map("foo")
-	pg.Map("bar")
-	pg.Map("baz")
+	err := ca.Add("foo", "inky", 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = ca.Add("bar", "pinky", 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = ca.Add("baz", "blinky", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = pg.Map("foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = pg.Map("bar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = pg.Map("baz")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	mn.Put("1", "foo the foo")
 	mn.Put("2", "go to bar")
 
-	var err error
 	_, err = pg.Render("small", 0)
 	if err != nil {
 		t.Fatal(err)

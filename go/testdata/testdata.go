@@ -110,11 +110,11 @@ func baz() error {
 
 func long() error {
 	b := []byte{}
-	b = vm.NewLine(b, vm.LOAD, []string{"longdata"}, []byte{0x00}, nil)
-	b = vm.NewLine(b, vm.MAP, []string{"longdata"}, nil, nil)
 	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
 	b = vm.NewLine(b, vm.MNEXT, []string{"00", "nexxt"}, nil, nil)
 	b = vm.NewLine(b, vm.MPREV, []string{"11", "prevv"}, nil, nil)
+	b = vm.NewLine(b, vm.LOAD, []string{"longdata"}, []byte{0x00}, nil)
+	b = vm.NewLine(b, vm.MAP, []string{"longdata"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"0", "_"}, nil, nil)
 
