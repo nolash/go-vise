@@ -209,7 +209,6 @@ func(vm *Vm) RunLoad(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-
 	r, err := refresh(sym, vm.rs, ctx)
 	if err != nil {
 		return b, err

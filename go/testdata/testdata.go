@@ -66,10 +66,12 @@ func foo() error {
 	b := []byte{}
 	b = vm.NewLine(b, vm.MOUT, []string{"0", "to foo"}, nil, nil)
 	b = vm.NewLine(b, vm.MOUT, []string{"1", "go bar"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"2", "see long"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"inky"}, []byte{20}, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"0", "_"}, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"1", "baz"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"2", "long"}, nil, nil)
 	//b = vm.NewLine(b, vm.CATCH, []string{"_catch"}, []byte{1}, []uint8{1})
 
 	data := make(map[string]string)
@@ -106,6 +108,33 @@ func baz() error {
 	return out("baz", b, tpl, nil)
 }
 
+func long() error {
+	b := []byte{}
+	b = vm.NewLine(b, vm.LOAD, []string{"longdata"}, []byte{0x00}, nil)
+	b = vm.NewLine(b, vm.MAP, []string{"longdata"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
+	b = vm.NewLine(b, vm.MNEXT, []string{"00", "nexxt"}, nil, nil)
+	b = vm.NewLine(b, vm.MPREV, []string{"11", "prevv"}, nil, nil)
+	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"0", "_"}, nil, nil)
+
+	tpl := `data
+{{.longdata}}`
+
+	data := make(map[string]string)
+	data["longdata"] = `INKY 12
+PINKY 5555
+BLINKY 3t7
+CLYDE 11
+TINKYWINKY 22
+DIPSY 666
+LALA 111
+POO 222
+`
+
+	return out("long", b, tpl, data)
+}
+
 func defaultCatch() error {
 	b := []byte{}
 	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
@@ -123,7 +152,7 @@ func generate() error {
 		return err
 	}
 
-	fns := []genFunc{root, foo, bar, baz, defaultCatch}
+	fns := []genFunc{root, foo, bar, baz, long, defaultCatch}
 	for _, fn := range fns {
 		err = fn()
 		if err != nil {

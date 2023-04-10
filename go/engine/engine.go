@@ -7,15 +7,17 @@ import (
 	"log"
 
 	"git.defalsify.org/festive/cache"
+	"git.defalsify.org/festive/render"
 	"git.defalsify.org/festive/resource"
 	"git.defalsify.org/festive/state"
 	"git.defalsify.org/festive/vm"
 )
 
-//type Config struct {
+type Config struct {
+	OutputSize uint32
 //	FlagCount uint32
 //	CacheSize uint32
-//}
+}
 
 // Engine is an execution engine that handles top-level errors when running user inputs against currently exposed bytecode.
 type Engine struct {
@@ -26,12 +28,16 @@ type Engine struct {
 }
 
 // NewEngine creates a new Engine
-func NewEngine(st *state.State, rs resource.Resource, ca cache.Memory) Engine {
+func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memory) Engine {
+	var szr *render.Sizer
+	if cfg.OutputSize > 0 {
+		szr = render.NewSizer(cfg.OutputSize)
+	}
 	engine := Engine{
 		st: st,
 		rs: rs,
 		ca: ca,
-		vm: vm.NewVm(st, rs, ca, nil),
+		vm: vm.NewVm(st, rs, ca, szr),
 	}
 	return engine
 }

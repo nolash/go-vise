@@ -38,7 +38,6 @@ func(szr *Sizer) Set(key string, size uint16) error {
 }
 
 func(szr *Sizer) Check(s string) (uint32, bool) {
-	log.Printf("sizercheck %s", s)
 	l := uint32(len(s))
 	if szr.outputSize > 0 {
 		if l > szr.outputSize {
@@ -84,7 +83,6 @@ func(szr *Sizer) GetAt(values map[string]string, idx uint16) (map[string]string,
 			c := szr.crsrs[idx]
 			v = v[c:]
 			nl := strings.Index(v, "\n")
-			log.Printf("k %v v %v c %v nl %v", k, v, c, nl)
 			if nl > 0 {
 				v = v[:nl]
 			}

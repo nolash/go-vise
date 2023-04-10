@@ -20,7 +20,7 @@ func TestLoopCorrect(t *testing.T) {
 	rs := resource.NewFsResource(dataDir)
 	ca := cache.NewCache().WithCacheSize(1024)
 	
-	en := NewEngine(&st, &rs, ca)
+	en := NewEngine(Config{}, &st, &rs, ca)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)

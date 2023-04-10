@@ -75,7 +75,7 @@ func TestEngineInit(t *testing.T) {
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 	
-	en := NewEngine(&st, &rs, ca)
+	en := NewEngine(Config{}, &st, &rs, ca)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -114,7 +114,9 @@ func TestEngineInit(t *testing.T) {
 
 it has more lines
 0:to foo
-1:go bar`
+1:go bar
+2:see long`
+
 	if !bytes.Equal(b, []byte(expect)) {
 		t.Fatalf("expected\n\t%s\ngot:\n\t%s\n", expect, b)
 	}
@@ -127,7 +129,7 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
-	en := NewEngine(&st, &rs, ca)
+	en := NewEngine(Config{}, &st, &rs, ca)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
