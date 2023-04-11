@@ -158,6 +158,7 @@ func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16) 
 }
 
 // render menu and all syms except sink, split sink into display chunks
+// TODO: Function too long, split up
 func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[string]string, error) {
 	var sink string
 
@@ -191,32 +192,51 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 	if err != nil {
 		return nil, err
 	}
-
-	if pg.menu != nil {
-		r, err := pg.menu.Render(idx)
-		if err != nil {
-			return nil, err
-		}
-		log.Printf("appending %s for menu", r)
-		s += r
-	}
-
+	// remaining includes core menu
 	remaining, ok := pg.sizer.Check(s)
 	if !ok {
 		return nil, fmt.Errorf("capacity exceeded")
 	}
 
-	log.Printf("%v bytes available for sink split", remaining)
+	var menuSizes [4]uint32 // mainSize, prevsize, nextsize, nextsize+prevsize
+	if pg.menu != nil {
+		cfg := pg.menu.GetBrowseConfig()
+		tmpm := NewMenu().WithBrowseConfig(cfg)
+		v, err := tmpm.Render(0)
+		if err != nil {
+			return nil, err
+		}
+		menuSizes[0] = uint32(len(v))
+		tmpm = tmpm.WithPageCount(2)
+		v, err = tmpm.Render(0)
+		if err != nil {
+			return nil, err
+		}
+		menuSizes[1] = uint32(len(v)) - menuSizes[0]
+		v, err = tmpm.Render(1)
+		if err != nil {
+			return nil, err
+		}
+		menuSizes[2] = uint32(len(v)) - menuSizes[0]
+		menuSizes[3] = menuSizes[1] + menuSizes[2]
+	}
+
+	log.Printf("%v bytes available for sink split before navigation", remaining)
 
 	l := 0
 	var count uint16
 	tb := strings.Builder{}
 	rb := strings.Builder{}
 
+	netRemaining := remaining
+	if len(sinkValues) > 1 {
+		netRemaining -= menuSizes[1]
+	}
+
 	for i, v := range sinkValues {
 		log.Printf("processing sinkvalue %v: %s", i, v)
 		l += len(v)
-		if uint32(l) > remaining {
+		if uint32(l) > netRemaining {
 			if tb.Len() == 0 {
 				return nil, fmt.Errorf("capacity insufficient for sink field %v", i)
 			}
@@ -226,6 +246,9 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 			pg.sizer.AddCursor(c)
 			tb.Reset()
 			l = 0
+			if count == 0 {
+				netRemaining -= menuSizes[2]
+			}
 			count += 1
 		}
 		if tb.Len() > 0 {
@@ -264,14 +287,18 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 	}
 	log.Printf("rendered %v bytes for template", len(s))
 	r += s
-	s, err = pg.menu.Render(idx)
-	if err != nil {
-		return "", err
+
+	if pg.menu != nil {
+		s, err = pg.menu.Render(idx)
+		if err != nil {
+			return "", err
+		}
+		log.Printf("rendered %v bytes for menu", len(s))
+		if len(s) > 0 {
+			r += "\n" + s
+		}
 	}
-	log.Printf("rendered %v bytes for menu", len(s))
-	if len(s) > 0 {
-		r += "\n" + s
-	}
+
 	if pg.sizer != nil {
 		_, ok = pg.sizer.Check(r)
 		if !ok {

@@ -166,7 +166,7 @@ lala poo
 
 
 	if r != expect {
-		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
+		t.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, r)
 	}
 	r, err = pg.Render("pages", 1)
 	if err != nil {

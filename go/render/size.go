@@ -65,6 +65,10 @@ func(szr *Sizer) Size(s string) (uint16, error) {
 	return r, nil
 }
 
+func(szr *Sizer) MenuSize() uint16 {
+	return szr.menuSize
+}
+
 func(szr *Sizer) AddCursor(c uint32) {
 	log.Printf("added cursor: %v", c)
 	szr.crsrs = append(szr.crsrs, c)
