@@ -60,11 +60,9 @@ func(pg *Page) Usage() (uint32, uint32, error) {
 	}
 	r := uint32(l)
 	rsv := uint32(c)-r
-	log.Printf("size before %v %v", r, c)
 	if pg.menu != nil {
 		r += uint32(pg.menu.ReservedSize())
 	}
-	log.Printf("size after %v %v", r, c)
 	return r, rsv, nil
 }
 
@@ -148,6 +146,7 @@ func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16) 
 	if err != nil {
 		return "", err
 	}
+
 
 	b := bytes.NewBuffer([]byte{})
 	err = tp.Execute(b, values)

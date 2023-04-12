@@ -13,6 +13,39 @@ import (
 	"git.defalsify.org/festive/state"
 )
 
+func TestLoopTop(t *testing.T) {
+	generateTestData(t)
+	ctx := context.TODO()
+	st := state.NewState(0)
+	rs := resource.NewFsResource(dataDir)
+	ca := cache.NewCache().WithCacheSize(1024)
+	
+	en := NewEngine(Config{}, &st, &rs, ca)
+	err := en.Init("root", ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	input := []string{
+		"2",
+		"j",
+		"1",
+		}		
+	inputStr := strings.Join(input, "\n")
+	inputBuf := bytes.NewBuffer(append([]byte(inputStr), 0x0a))
+	outputBuf := bytes.NewBuffer(nil)
+	log.Printf("running with input: %s", inputBuf.Bytes())
+
+	err = Loop(&en, "root", ctx, inputBuf, outputBuf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	location, _ := st.Where()
+	if location != "foo" {
+		fmt.Errorf("expected location 'foo', got %s", location)
+	}
+}
+
 func TestLoopBackForth(t *testing.T) {
 	generateTestData(t)
 	ctx := context.TODO()

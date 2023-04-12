@@ -2,7 +2,7 @@ package engine
 
 import (
 	"bufio"
-	"bytes"
+//	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -16,9 +16,11 @@ func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, wr
 		return fmt.Errorf("cannot init: %v\n", err)
 	}
 
-	b := bytes.NewBuffer(nil)
-	en.WriteResult(b, ctx)
-	fmt.Println(b.String())
+	//b := bytes.NewBuffer(nil)
+	//en.WriteResult(b, ctx)
+	en.WriteResult(writer, ctx)
+	writer.Write([]byte{0x0a})
+	//fmt.Println(b.String())
 
 	running := true
 	bufReader := bufio.NewReader(reader)
@@ -36,12 +38,12 @@ func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, wr
 		if err != nil {
 			return fmt.Errorf("unexpected termination: %v\n", err)
 		}
-		//b := bytes.NewBuffer(nil)
 		err = en.WriteResult(writer, ctx)
 		if err != nil {
 			return err
 		}
 		writer.Write([]byte{0x0a})
+
 	}
 	return nil
 }
