@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"context"
+
 	"git.defalsify.org/festive/cache"
 	"git.defalsify.org/festive/resource"
 	"git.defalsify.org/festive/state"
@@ -11,7 +13,11 @@ func NewDefaultEngine(dir string) Engine {
 	st := state.NewState(0)
 	rs := resource.NewFsResource(dir)
 	ca := cache.NewCache()
-	return NewEngine(Config{}, &st, &rs, ca)
+	cfg := Config{
+		Root: "root",
+	}
+	ctx := context.TODO()
+	return NewEngine(cfg, &st, &rs, ca, ctx)
 }
 
 // NewSizedEngine is a convenience function to instantiate a filesystem-backed engine with a specified output constraint.
@@ -21,6 +27,8 @@ func NewSizedEngine(dir string, size uint32) Engine {
 	ca := cache.NewCache()
 	cfg := Config{
 		OutputSize: size,
+		Root: "root",
 	}
-	return NewEngine(cfg, &st, &rs, ca)
+	ctx := context.TODO()
+	return NewEngine(cfg, &st, &rs, ca, ctx)
 }

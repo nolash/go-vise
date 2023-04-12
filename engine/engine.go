@@ -16,6 +16,10 @@ import (
 // Config globally defines behavior of all components driven by the engine.
 type Config struct {
 	OutputSize uint32 // Maximum size of output from a single rendered page
+	SessionId string
+	Root string
+	FlagCount uint32
+	CacheSize uint32
 }
 
 // Engine is an execution engine that handles top-level errors when running client inputs against code in the bytecode buffer.
@@ -24,10 +28,11 @@ type Engine struct {
 	rs resource.Resource
 	ca cache.Memory
 	vm *vm.Vm
+	initd bool
 }
 
 // NewEngine creates a new Engine
-func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memory) Engine {
+func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memory, ctx context.Context) Engine {
 	var szr *render.Sizer
 	if cfg.OutputSize > 0 {
 		szr = render.NewSizer(cfg.OutputSize)
@@ -38,6 +43,9 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 		ca: ca,
 		vm: vm.NewVm(st, rs, ca, szr),
 	}
+	if cfg.Root != "" {
+		engine.Init(cfg.Root, ctx)
+	}
 	return engine
 }
 
@@ -45,6 +53,13 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 //
 // It loads and executes code for the start node.
 func(en *Engine) Init(sym string, ctx context.Context) error {
+	if en.initd {
+		log.Printf("already initialized")
+		return nil
+	}
+	if sym == "" {
+		return fmt.Errorf("start sym empty")
+	}
 	err := en.st.SetInput([]byte{})
 	if err != nil {
 		return err
@@ -55,6 +70,7 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 		return err
 	}
 	en.st.SetCode(b)
+	en.initd = true
 	return nil
 }
 

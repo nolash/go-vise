@@ -40,12 +40,18 @@ func(fs FsWrapper) inky(sym string, ctx context.Context) (string, error) {
 	return "tinkywinky", nil
 }
 
+func(fs FsWrapper) pinky(sym string, ctx context.Context) (string, error) {
+	return "xyzzy", nil
+}
+
 func(fs FsWrapper) FuncFor(sym string) (resource.EntryFunc, error) {
 	switch sym {
 	case "one":
 		return fs.one, nil
 	case "inky":
 		return fs.inky, nil
+	case "pinky":
+		return fs.pinky, nil
 	}
 	return nil, fmt.Errorf("function for %v not found", sym)
 }
@@ -75,7 +81,7 @@ func TestEngineInit(t *testing.T) {
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 	
-	en := NewEngine(Config{}, &st, &rs, ca)
+	en := NewEngine(Config{}, &st, &rs, ca, ctx)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -129,7 +135,7 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
-	en := NewEngine(Config{}, &st, &rs, ca)
+	en := NewEngine(Config{}, &st, &rs, ca, ctx)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)

@@ -21,7 +21,7 @@ func main() {
 
 	ctx := context.Background()
 	en := engine.NewSizedEngine(dir, uint32(size))
-	err := engine.Loop(&en, root, ctx, os.Stdin, os.Stdout)
+	err := engine.Loop(&en, os.Stdin, os.Stdout, ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v", err)
 		os.Exit(1)

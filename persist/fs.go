@@ -2,6 +2,7 @@ package persist
 
 import (
 	"io/ioutil"
+	"log"
 	"path"
 	"path/filepath"
 	"github.com/fxamacker/cbor/v2"
@@ -32,6 +33,14 @@ func(p *FsPersister) WithContent(st *state.State, ca *cache.Cache) *FsPersister 
 	return p
 }
 
+func(p *FsPersister) GetState() *state.State {
+	return p.State
+}
+
+func(p *FsPersister) GetMemory() cache.Memory {
+	return p.Memory
+}
+
 func(p *FsPersister) Serialize() ([]byte, error) {
 	return cbor.Marshal(p)
 }
@@ -47,6 +56,7 @@ func(p *FsPersister) Save(key string) error {
 		return err
 	}
 	fp := path.Join(p.dir, key)
+	log.Printf("saved key %v", key)
 	return ioutil.WriteFile(fp, b, 0600)
 }
 
@@ -57,5 +67,6 @@ func(p *FsPersister) Load(key string) error {
 		return err
 	}
 	err = p.Deserialize(b)
+	log.Printf("loaded key %v", key)
 	return err
 }

@@ -18,13 +18,8 @@ import (
 // Any error not handled by the engine will terminate the oop and return an error.
 //
 // Rendered output is written to the provided writer.
-func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, writer io.Writer) error {
-	err := en.Init(startSym, ctx)
-	if err != nil {
-		return fmt.Errorf("cannot init: %v\n", err)
-	}
-
-	err = en.WriteResult(writer, ctx)
+func Loop(en *Engine, reader io.Reader, writer io.Writer, ctx context.Context) error {
+	err := en.WriteResult(writer, ctx)
 	if err != nil {
 		return err
 	}

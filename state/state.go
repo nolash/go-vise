@@ -33,7 +33,7 @@ type State struct {
 	ExecPath []string // Command symbols stack
 	BitSize uint32 // size of (32-bit capacity) bit flag byte array
 	SizeIdx uint16
-	flags []byte // Error state
+	Flags []byte // Error state
 	input []byte // Last input
 }
 
@@ -64,9 +64,9 @@ func NewState(BitSize uint32) State {
 	}
 	byteSize := toByteSize(BitSize + 8)
 	if byteSize > 0 {
-		st.flags = make([]byte, byteSize) 
+		st.Flags = make([]byte, byteSize) 
 	} else {
-		st.flags = []byte{}
+		st.Flags = []byte{}
 	}
 	return st
 }
@@ -80,14 +80,14 @@ func(st *State) SetFlag(bitIndex uint32) (bool, error) {
 	if bitIndex + 1 > st.BitSize {
 		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.BitSize)
 	}
-	r := getFlag(bitIndex, st.flags)
+	r := getFlag(bitIndex, st.Flags)
 	if r {
 		return false, nil
 	}
 	byteIndex := bitIndex / 8
 	localBitIndex := bitIndex % 8
-	b := st.flags[byteIndex] 
-	st.flags[byteIndex] = b | (1 << localBitIndex)
+	b := st.Flags[byteIndex] 
+	st.Flags[byteIndex] = b | (1 << localBitIndex)
 	return true, nil
 }
 
@@ -101,14 +101,14 @@ func(st *State) ResetFlag(bitIndex uint32) (bool, error) {
 	if bitIndex + 1 > st.BitSize {
 		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.BitSize)
 	}
-	r := getFlag(bitIndex, st.flags)
+	r := getFlag(bitIndex, st.Flags)
 	if !r {
 		return false, nil
 	}
 	byteIndex := bitIndex / 8
 	localBitIndex := bitIndex % 8
-	b := st.flags[byteIndex] 
-	st.flags[byteIndex] = b & (^(1 << localBitIndex))
+	b := st.Flags[byteIndex] 
+	st.Flags[byteIndex] = b & (^(1 << localBitIndex))
 	return true, nil
 }
 
@@ -119,7 +119,7 @@ func(st *State) GetFlag(bitIndex uint32) (bool, error) {
 	if bitIndex + 1 > st.BitSize {
 		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.BitSize)
 	}
-	return getFlag(bitIndex, st.flags), nil
+	return getFlag(bitIndex, st.Flags), nil
 }
 
 // FlagBitSize reports the amount of bits available in the bit field index.
@@ -129,7 +129,7 @@ func(st *State) FlagBitSize() uint32 {
 
 // FlagBitSize reports the amount of bits available in the bit field index.
 func(st *State) FlagByteSize() uint8 {
-	return uint8(len(st.flags))
+	return uint8(len(st.Flags))
 }
 
 // MatchFlag matches the current state of the given flag.
@@ -169,7 +169,7 @@ func(st *State) GetIndex(flags []byte) bool {
 	var i uint32
 	for i = 0; i < st.BitSize; i++ {
 		testVal := flags[byteIndex] & (1 << localIndex)
-		if (testVal & st.flags[byteIndex]) > 0 {
+		if (testVal & st.Flags[byteIndex]) > 0 {
 			return true
 		}
 		globalIndex += 1

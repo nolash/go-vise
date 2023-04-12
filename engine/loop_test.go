@@ -19,8 +19,11 @@ func TestLoopTop(t *testing.T) {
 	st := state.NewState(0)
 	rs := resource.NewFsResource(dataDir)
 	ca := cache.NewCache().WithCacheSize(1024)
-	
-	en := NewEngine(Config{}, &st, &rs, ca)
+
+	cfg := Config{
+		Root: "root",
+	}
+	en := NewEngine(cfg, &st, &rs, ca, ctx)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -36,7 +39,7 @@ func TestLoopTop(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(&en, "root", ctx, inputBuf, outputBuf)
+	err = Loop(&en, inputBuf, outputBuf, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +56,10 @@ func TestLoopBackForth(t *testing.T) {
 	rs := resource.NewFsResource(dataDir)
 	ca := cache.NewCache().WithCacheSize(1024)
 	
-	en := NewEngine(Config{}, &st, &rs, ca)
+	cfg := Config{
+		Root: "root",
+	}
+	en := NewEngine(cfg, &st, &rs, ca, ctx)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -70,7 +76,7 @@ func TestLoopBackForth(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(&en, "root", ctx, inputBuf, outputBuf)
+	err = Loop(&en, inputBuf, outputBuf, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,8 +91,9 @@ func TestLoopBrowse(t *testing.T) {
 
 	cfg := Config{
 		OutputSize: 68,
+		Root: "root",
 	}
-	en := NewEngine(cfg, &st, &rs, ca)
+	en := NewEngine(cfg, &st, &rs, ca, ctx)
 	err := en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -104,7 +111,7 @@ func TestLoopBrowse(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(&en, "root", ctx, inputBuf, outputBuf)
+	err = Loop(&en, inputBuf, outputBuf, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
