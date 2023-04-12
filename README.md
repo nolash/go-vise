@@ -22,6 +22,7 @@ The VM defines the following opcode symbols:
 * `MOUT <choice> <display>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
 * `MNEXT <choice> <display>` - Define how to display the choice for advancing when browsing menu.
 * `MPREV <choice> <display>` - Define how to display the choice for returning when browsing menu.
+* `MSEP` -  **Not yet implemented**. Marker for menu page separation. Incompatible with browseable nodes.
 
 
 ### External code
@@ -79,20 +80,19 @@ To assist with menu creation, a few batch operation symbols have been made avail
 
 The fixed-size output is generated using a templating language, and a combination of one or more _max size_ properties, and an optional _sink_ property that will attempt to consume all remaining capacity of the rendered template.
 
-For example, in this example
+In this example
 
 - `maxOutputSize` is 256 bytes long.
 - `template` is 120 bytes long.
 - param `one` has max size 10 but uses 5.
 - param `two` has max size 20 but uses 12.
 - param `three` is a _sink_.
+- rendered menu is 15 bytes long.
 
-The renderer may use up to `256 - 120 - 5 - 12 = 119` bytes from the _sink_ when rendering the output.
+The renderer may use up to `256 - 120 - 5 - 12 - 15 = 104` bytes from the _sink_ when rendering the output.
 
 
-### Menu rendering
-
-The menu is appended to the template output.
+### Menu browsing
 
 A max size can be set for the menu, which will count towards the space available for the _template sink_.
 
@@ -116,6 +116,8 @@ Multipage outputs, like listings, are handled using the _sink_ output constraint
 
 
 ### Languages support
+
+**Not yet implemeennted**
 
 Language for rendering is determined at the top-level state.
 
@@ -147,11 +149,11 @@ In this reference implementation some constraints apply
 
 ### Structure
 
-_TODO_: `state` will be separated into `cache` and `session`.
-
 - `vm`: Defines instructions, and applies transformations according to the instructions.
-- `state`: Holds the code cache, contents cache aswell as error tates from code execution.
-- `resource`: Retrieves data and bytecode from external symbols, and retrieves and renders templates.
+- `state`: Holds the bytecode buffer, error states and navigation states.
+- `cache`: Holds and manages all loaded content.
+- `resource`: Retrieves data and bytecode from external symbols, and retrieves templates.
+- `render`: Renders menu and templates, and enforces output size constraints.
 - `engine`: Outermost interface. Orchestrates execution of bytecode against input. 
 
 
