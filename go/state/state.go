@@ -6,6 +6,13 @@ import (
 	"strings"
 )
 
+type IndexError struct {
+}
+
+func(err *IndexError) Error() string {
+	return fmt.Sprintf("already at first index")
+}
+
 // State holds the command stack, error condition of a unique execution session.
 //
 // It also holds cached values for all results of executed symbols.
@@ -208,7 +215,7 @@ func(st *State) Previous() (uint16, error) {
 		return 0, fmt.Errorf("state root node not yet defined")
 	}
 	if st.sizeIdx == 0 {
-		return 0, fmt.Errorf("already at first index")
+		return 0, &IndexError{} // ("already at first index")
 	}
 	st.sizeIdx -= 1
 	s, idx := st.Where()

@@ -313,7 +313,18 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	}
 
 	target, _, err = applyTarget([]byte(target), vm.st, vm.ca, ctx)
-	if err != nil {
+	_, ok := err.(*state.IndexError)
+	if ok {
+		_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
+		if err != nil {
+			panic(err)
+		}
+		_, err = vm.st.SetFlag(state.FLAG_READIN)
+		if err != nil {
+			panic(err)
+		}
+		return b, nil
+	} else if err != nil {
 		return b, err
 	}
 	vm.Reset()
