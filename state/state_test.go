@@ -8,20 +8,20 @@ import (
 // Check creation 
 func TestNewState(t *testing.T) {
 	st := NewState(5)
-	if len(st.Flags) != 2 {
-		t.Fatalf("invalid state flag length: %v", len(st.Flags))
+	if len(st.flags) != 2 {
+		t.Fatalf("invalid state flag length: %v", len(st.flags))
 	}
 	st = NewState(8)
-	if len(st.Flags) != 2 {
-		t.Fatalf("invalid state flag length: %v", len(st.Flags))
+	if len(st.flags) != 2 {
+		t.Fatalf("invalid state flag length: %v", len(st.flags))
 	}
 	st = NewState(17)
-	if len(st.Flags) != 4 {
-		t.Fatalf("invalid state flag length: %v", len(st.Flags))
+	if len(st.flags) != 4 {
+		t.Fatalf("invalid state flag length: %v", len(st.flags))
 	}
 }
 
-func TestStateFlags(t *testing.T) {
+func TestStateflags(t *testing.T) {
 	st := NewState(9)
 	v, err := st.GetFlag(2)
 	if err != nil {
@@ -98,8 +98,8 @@ func TestStateFlags(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Expected out of range for bit index 17")
 	}
-	if !bytes.Equal(st.Flags[:3], []byte{0x04, 0x04, 0x01}) {
-		t.Fatalf("Expected 0x040401, got %v", st.Flags[:3])
+	if !bytes.Equal(st.flags[:3], []byte{0x04, 0x04, 0x01}) {
+		t.Fatalf("Expected 0x040401, got %v", st.flags[:3])
 	}
 }
 

@@ -10,14 +10,14 @@ type Cache struct {
 	CacheSize uint32 // Total allowed cumulative size of values (not code) in cache
 	CacheUseSize uint32 // Currently used bytes by all values (not code) in cache
 	Cache []map[string]string // All loaded cache items
-	sizes map[string]uint16 // Size limits for all loaded symbols.
+	Sizes map[string]uint16 // Size limits for all loaded symbols.
 }
 
 // NewCache creates a new ready-to-use cache object
 func NewCache() *Cache {
 	ca := &Cache{
 		Cache: []map[string]string{make(map[string]string)},
-		sizes: make(map[string]uint16),
+		Sizes: make(map[string]uint16),
 	}
 	return ca
 }
@@ -58,13 +58,13 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	log.Printf("add key %s value size %v limit %v", key, sz, sizeLimit)
 	ca.Cache[len(ca.Cache)-1][key] = value
 	ca.CacheUseSize += sz
-	ca.sizes[key] = sizeLimit
+	ca.Sizes[key] = sizeLimit
 	return nil
 }
 
 // ReservedSize returns the maximum byte size available for the given symbol.
 func(ca *Cache) ReservedSize(key string) (uint16, error) {
-	v, ok := ca.sizes[key]
+	v, ok := ca.Sizes[key]
 	if !ok {
 		return 0, fmt.Errorf("unknown symbol: %s", key)
 	}
@@ -80,8 +80,8 @@ func(ca *Cache) ReservedSize(key string) (uint16, error) {
 // - value is longer than size limit
 // - replacing value exceeds cumulative cache capacity
 func(ca *Cache) Update(key string, value string) error {
-	sizeLimit := ca.sizes[key]
-	if ca.sizes[key] > 0 {
+	sizeLimit := ca.Sizes[key]
+	if ca.Sizes[key] > 0 {
 		l := uint16(len(value))
 		if l > sizeLimit {
 			return fmt.Errorf("update value length %v exceeds value size limit %v", l, sizeLimit)
