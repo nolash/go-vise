@@ -17,7 +17,7 @@ func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, wr
 	}
 
 	b := bytes.NewBuffer(nil)
-	en.WriteResult(b)
+	en.WriteResult(b, ctx)
 	fmt.Println(b.String())
 
 	running := true
@@ -37,7 +37,7 @@ func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, wr
 			return fmt.Errorf("unexpected termination: %v\n", err)
 		}
 		//b := bytes.NewBuffer(nil)
-		err = en.WriteResult(writer)
+		err = en.WriteResult(writer, ctx)
 		if err != nil {
 			return err
 		}

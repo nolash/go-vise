@@ -136,7 +136,6 @@ func(ca *Cache) Reset() {
 func (ca *Cache) Push() error {
 	m := make(map[string]string)
 	ca.Cache = append(ca.Cache, m)
-	//ca.resetCurrent()
 	return nil
 }
 

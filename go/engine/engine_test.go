@@ -82,7 +82,7 @@ func TestEngineInit(t *testing.T) {
 	}
 
 	w := bytes.NewBuffer(nil)
-	err = en.WriteResult(w)
+	err = en.WriteResult(w, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestEngineInit(t *testing.T) {
 		t.Fatalf("expected where-string 'foo', got %s", r)
 	}
 	w = bytes.NewBuffer(nil)
-	err = en.WriteResult(w)
+	err = en.WriteResult(w, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

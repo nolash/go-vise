@@ -112,16 +112,17 @@ func TestRunLoadRender(t *testing.T) {
 	st.Down("bar")
 
 	var err error
+	ctx := context.TODO()
 	b := NewLine(nil, LOAD, []string{"one"}, []byte{0x0a}, nil)
 	b = NewLine(b, MAP, []string{"one"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"two"}, []byte{0x0a}, nil)
 	b = NewLine(b, MAP, []string{"two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	b, err = vm.Run(b, context.TODO())
+	b, err = vm.Run(b, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err := vm.Render()
+	r, err := vm.Render(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,17 +134,17 @@ func TestRunLoadRender(t *testing.T) {
 	b = NewLine(nil, LOAD, []string{"two"}, []byte{0x0a}, nil)
 	b = NewLine(b, MAP, []string{"two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	b, err = vm.Run(b, context.TODO())
+	b, err = vm.Run(b, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	b = NewLine(nil, MAP, []string{"one"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	_, err = vm.Run(b, context.TODO())
+	_, err = vm.Run(b, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err = vm.Render()
+	r, err = vm.Render(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,11 +160,12 @@ func TestRunMultiple(t *testing.T) {
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
+	ctx := context.TODO()
 	b := NewLine(nil, MOVE, []string{"test"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"one"}, []byte{0x00}, nil)
 	b = NewLine(b, LOAD, []string{"two"}, []byte{42}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	b, err := vm.Run(b, context.TODO())
+	b, err := vm.Run(b, ctx)
 	if err != nil {
 		t.Error(err)
 	}
@@ -179,15 +181,16 @@ func TestRunReload(t *testing.T) {
 	szr := render.NewSizer(128)
 	vm := NewVm(&st, &rs, ca, szr)
 
+	ctx := context.TODO()
 	b := NewLine(nil, MOVE, []string{"root"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"dyn"}, nil, []uint8{0})
 	b = NewLine(b, MAP, []string{"dyn"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	_, err := vm.Run(b, context.TODO())
+	_, err := vm.Run(b, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err := vm.Render()
+	r, err := vm.Render(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,7 +200,7 @@ func TestRunReload(t *testing.T) {
 	dynVal = "baz"
 	b = NewLine(nil, RELOAD, []string{"dyn"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	_, err = vm.Run(b, context.TODO())
+	_, err = vm.Run(b, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -310,12 +313,14 @@ func TestRunMenu(t *testing.T) {
 
 	var err error
 
+	ctx := context.TODO()
+
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
-	b, err = vm.Run(b, context.TODO())
+	b, err = vm.Run(b, ctx)
 	if err != nil {
 		t.Error(err)	
 	}
@@ -324,7 +329,7 @@ func TestRunMenu(t *testing.T) {
 		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
 	
-	r, err := vm.Render()
+	r, err := vm.Render(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -343,12 +348,14 @@ func TestRunMenuBrowse(t *testing.T) {
 
 	var err error
 
+	ctx := context.TODO()
+
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
-	b, err = vm.Run(b, context.TODO())
+	b, err = vm.Run(b, ctx)
 	if err != nil {
 		t.Error(err)	
 	}
@@ -357,7 +364,7 @@ func TestRunMenuBrowse(t *testing.T) {
 		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
 	
-	r, err := vm.Render()
+	r, err := vm.Render(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

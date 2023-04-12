@@ -118,8 +118,8 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 // - required data inputs to the template are not available.
 // - the template for the given node point is note available for retrieval using the resource.Resource implementer.
 // - the supplied writer fails to process the writes.
-func(en *Engine) WriteResult(w io.Writer) error {
-	r, err := en.vm.Render()
+func(en *Engine) WriteResult(w io.Writer, ctx context.Context) error {
+	r, err := en.vm.Render(ctx)
 	if err != nil {
 		return err
 	}

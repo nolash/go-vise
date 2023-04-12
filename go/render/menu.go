@@ -4,6 +4,15 @@ import (
 	"fmt"
 )
 
+type BrowseError struct {
+	Idx uint16
+	PageCount uint16
+}
+
+func(err *BrowseError) Error() string {
+	return fmt.Sprintf("index is out of bounds: %v", err.Idx)
+}
+
 // BrowseConfig defines the availability and display parameters for page browsing.
 type BrowseConfig struct {
 	NextAvailable bool
@@ -112,7 +121,8 @@ func(m *Menu) applyPage(idx uint16) error {
 		}
 		return nil
 	} else if idx >= m.pageCount {
-		return fmt.Errorf("index %v out of bounds (%v)", idx, m.pageCount)
+		return &BrowseError{Idx: idx, PageCount: m.pageCount}
+		//return fmt.Errorf("index %v out of bounds (%v)", idx, m.pageCount)
 	}
 	
 	m.reset()

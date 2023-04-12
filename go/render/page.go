@@ -307,20 +307,6 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 			return "", fmt.Errorf("limit exceeded: %v", pg.sizer)
 		}
 	}
-//	s, err = pg.menu.Render(idx)
-//	if err != nil {
-//		return "", err
-//	}
-//	log.Printf("rendered %v bytes for menu", len(s))
-//	if len(s) > 0 {
-//		r += "\n" + s
-//	}
-//	if pg.sizer != nil {
-//		_, ok = pg.sizer.Check(r)
-//		if !ok {
-//			return "", fmt.Errorf("limit exceeded: %v", pg.sizer)
-//		}
-//	}
 	return r, nil
 }
 
@@ -332,12 +318,11 @@ func(pg *Page) Render(sym string, idx uint16) (string, error) {
 		return "", err
 	}
 
-	log.Printf("nosink %v", values)
 	return pg.render(sym, values, idx)
 }
 
 func(pg *Page) Reset() {
 	pg.sink = nil
 	pg.sinkSize = 0
-	//pg.cacheMap = make(map[string]string)
+	pg.cacheMap = make(map[string]string)
 }

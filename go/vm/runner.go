@@ -383,7 +383,7 @@ func(vm *Vm) RunMPrev(b []byte, ctx context.Context) ([]byte, error) {
        return b, nil
 }
 
-func(vm *Vm) Render() (string, error) {
+func(vm *Vm) Render(ctx context.Context) (string, error) {
 	changed, err := vm.st.ResetFlag(state.FLAG_DIRTY)
 	if err != nil {
 		panic(err)	
@@ -393,6 +393,15 @@ func(vm *Vm) Render() (string, error) {
 	}
 	sym, idx := vm.st.Where()
 	r, err := vm.pg.Render(sym, idx)
+	var ok bool
+	_, ok = err.(*render.BrowseError)
+	if ok {
+		vm.Reset()
+		b := NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
+		vm.Run(b, ctx)
+		sym, idx := vm.st.Where()
+		r, err = vm.pg.Render(sym, idx)
+	}
 	if err != nil {
 		return "", err
 	}
