@@ -192,14 +192,14 @@ Located in the `dev/` directory.
 
 ### Test data generation
 
-`go run ./dev/testdata/ <directory>`
+`go run ./dev/gendata/ <directory>`
 
 Outputs bytecodes and templates for test data scenarios used in `engine` unit tests.
 
 
 ### Interactive runner
 
-`go run ./dev [-d <data_directory>] [--root <root_symbol>]`
+`go run ./dev/interactive [-d <data_directory>] [--root <root_symbol>]`
 
 Creates a new interactive session using `engine.DefaultEngine`, starting execution at symbol `root_symbol`
 
