@@ -72,7 +72,6 @@ func foo() error {
 	b = vm.NewLine(b, vm.INCMP, []string{"0", "_"}, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"1", "baz"}, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"2", "long"}, nil, nil)
-	//b = vm.NewLine(b, vm.CATCH, []string{"_catch"}, []byte{1}, []uint8{1})
 
 	data := make(map[string]string)
 	data["inky"] = "one"
@@ -164,6 +163,9 @@ func generate() error {
 	return nil
 }
 
+// Generate outputs bytecode, templates and content symbols to a temporary directory.
+//
+// This directory can in turn be used as data source for the the resource.FsResource object.
 func Generate() (string, error) {
 	dir, err := ioutil.TempDir("", "festive_testdata_")
 	if err != nil {
@@ -175,6 +177,12 @@ func Generate() (string, error) {
 	return dir, err
 }
 
+
+// Generate outputs bytecode, templates and content symbols to a specified directory.
+//
+// The directory must exist, and must not have been used already in the same code execution.
+//
+// This directory can in turn be used as data source for the the resource.FsResource object.
 func GenerateTo(dir string) error {
 	if dirLock {
 		return fmt.Errorf("directory already overridden")

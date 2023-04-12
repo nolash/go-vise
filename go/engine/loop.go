@@ -2,7 +2,6 @@ package engine
 
 import (
 	"bufio"
-//	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -10,17 +9,26 @@ import (
 	"strings"
 )
 
+// Loop starts an engine execution loop with the given symbol as the starting node.
+//
+// The root reads inputs from the provided reader, one line at a time.
+//
+// It will execute until running out of bytecode in the buffer.
+//
+// Any error not handled by the engine will terminate the oop and return an error.
+//
+// Rendered output is written to the provided writer.
 func Loop(en *Engine, startSym string, ctx context.Context, reader io.Reader, writer io.Writer) error {
 	err := en.Init(startSym, ctx)
 	if err != nil {
 		return fmt.Errorf("cannot init: %v\n", err)
 	}
 
-	//b := bytes.NewBuffer(nil)
-	//en.WriteResult(b, ctx)
-	en.WriteResult(writer, ctx)
+	err = en.WriteResult(writer, ctx)
+	if err != nil {
+		return err
+	}
 	writer.Write([]byte{0x0a})
-	//fmt.Println(b.String())
 
 	running := true
 	bufReader := bufio.NewReader(reader)

@@ -4,11 +4,13 @@ import (
 	"fmt"
 )
 
+// BrowseError is raised when browsing outside the page range of a rendered node.
 type BrowseError struct {
 	Idx uint16
 	PageCount uint16
 }
 
+// Error implements the Error interface.
 func(err *BrowseError) Error() string {
 	return fmt.Sprintf("index is out of bounds: %v", err.Idx)
 }
@@ -35,13 +37,14 @@ func DefaultBrowseConfig() BrowseConfig {
 	}
 }
 
+// Menu renders menus. May be included in a Page object to render menus for pages.
 type Menu struct {
-	menu [][2]string
-	browse BrowseConfig
-	pageCount uint16
-	canNext bool
-	canPrevious bool
-	outputSize uint16
+	menu [][2]string // selector and title for menu items.
+	browse BrowseConfig // browse definitions.
+	pageCount uint16 // number of pages the menu should represent.
+	canNext bool // availability flag for the "next" browse option.
+	canPrevious bool // availability flag for the "previous" browse option.
+	outputSize uint16 // maximum size constraint for the menu.
 }
 
 // NewMenu creates a new Menu with an explicit page count.
@@ -81,6 +84,11 @@ func(m *Menu) GetBrowseConfig() BrowseConfig {
 func(m *Menu) Put(selector string, title string) error {
 	m.menu = append(m.menu, [2]string{selector, title})
 	return nil
+}
+
+// ReservedSize returns the maximum render byte size of the menu.
+func(m *Menu) ReservedSize() uint16 {
+	return m.outputSize
 }
 
 // Render returns the full current state of the menu as a string.
@@ -160,6 +168,7 @@ func(m *Menu) shiftMenu() (string, string, error) {
 	return r[0], r[1], nil
 }
 
+// prepare menu object for re-use.
 func(m *Menu) reset() {
 	if m.browse.NextAvailable {
 		m.canNext = true
@@ -170,6 +179,3 @@ func(m *Menu) reset() {
 }
 
 
-func(m *Menu) ReservedSize() uint16 {
-	return m.outputSize
-}

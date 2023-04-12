@@ -13,13 +13,12 @@ import (
 	"git.defalsify.org/festive/vm"
 )
 
+// Config globally defines behavior of all components driven by the engine.
 type Config struct {
-	OutputSize uint32
-//	FlagCount uint32
-//	CacheSize uint32
+	OutputSize uint32 // Maximum size of output from a single rendered page
 }
 
-// Engine is an execution engine that handles top-level errors when running user inputs against currently exposed bytecode.
+// Engine is an execution engine that handles top-level errors when running client inputs against code in the bytecode buffer.
 type Engine struct {
 	st *state.State
 	rs resource.Resource

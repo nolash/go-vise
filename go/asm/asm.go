@@ -17,10 +17,12 @@ import (
 )
 
 
+// Asm assembles bytecode from the festive assembly mini-language.
 type Asm struct {
 	Instructions []*Instruction `@@*`
 }
 
+// Arg holds all parsed argument elements of a single line of assembly code.
 type Arg struct {
 	Sym *string `(@Sym Whitespace?)?`
 	Size *uint32 `(@Size Whitespace?)?`
@@ -214,6 +216,7 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 	return flush(b, w)
 }
 
+// String implements the String interface.
 func (a Arg) String() string {
 	s := "[Arg]"
 	if a.Sym != nil {
@@ -235,12 +238,14 @@ func (a Arg) String() string {
 	return fmt.Sprintf(s)
 }
 
+// Instruction represents one full line of assembly code.
 type Instruction struct {
 	OpCode string `@Ident`
 	OpArg Arg `(Whitespace @@)?`
 	Comment string `Comment? EOL`
 }
 
+// String implement the String interface.
 func (i Instruction) String() string {
 	return fmt.Sprintf("%s %s", i.OpCode, i.OpArg)
 }
@@ -303,17 +308,20 @@ func writeSize(w *bytes.Buffer, n uint32) (int, error) {
 	return w.Write(bn[c:])
 }
 
+// Batcher handles assembly commands that generates multiple instructions, such as menu navigation commands.
 type Batcher struct {
 	menuProcessor MenuProcessor
 	inMenu bool
 }
 
+// NewBatcher creates a new Batcher objcet.
 func NewBatcher(mp MenuProcessor) Batcher {
 	return Batcher{
 		menuProcessor: NewMenuProcessor(),
 	}
 }
 
+// MenuExit generates the instructions for the batch and writes them to the given io.Writer.
 func(bt *Batcher) MenuExit(w io.Writer) (int, error) {
 	if !bt.inMenu {
 		return 0, nil
@@ -323,6 +331,7 @@ func(bt *Batcher) MenuExit(w io.Writer) (int, error) {
 	return w.Write(b)
 }
 
+// MenuAdd adds a new menu instruction to the batcher.
 func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 	bt.inMenu = true
 	var selector string
@@ -343,10 +352,12 @@ func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 	return 0, err
 }
 
+// Exit is a synonym for MenuExit
 func(bt *Batcher) Exit(w io.Writer) (int, error) {
 	return bt.MenuExit(w)
 }
 
+// Parse one or more lines of assembly code, and write assembled bytecode to the provided writer.
 func Parse(s string, w io.Writer) (int, error) {
 	rd := strings.NewReader(s)
 	ast, err := asmParser.Parse("file", rd)

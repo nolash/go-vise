@@ -6,6 +6,7 @@ import (
 	"git.defalsify.org/festive/state"
 )
 
+// NewDefaultEngine is a convenience function to instantiate a filesystem-backed engine with no output constraints.
 func NewDefaultEngine(dir string) Engine {
 	st := state.NewState(0)
 	rs := resource.NewFsResource(dir)
@@ -13,6 +14,7 @@ func NewDefaultEngine(dir string) Engine {
 	return NewEngine(Config{}, &st, &rs, ca)
 }
 
+// NewSizedEngine is a convenience function to instantiate a filesystem-backed engine with a specified output constraint.
 func NewSizedEngine(dir string, size uint32) Engine {
 	st := state.NewState(0)
 	rs := resource.NewFsResource(dir)

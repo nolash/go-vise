@@ -11,16 +11,17 @@ import (
 	"git.defalsify.org/festive/state"
 )
 
+// Vm holds sub-components mutated by the vm execution.
 type Vm struct {
-	st *state.State
-	rs resource.Resource
-	pg *render.Page
-	ca cache.Memory
-	mn *render.Menu
-	sizer *render.Sizer
+	st *state.State // Navigation and error states.
+	rs resource.Resource // Retrieves content, code, and templates for symbols.
+	ca cache.Memory // Loaded content.
+	mn *render.Menu // Menu component of page.
+	sizer *render.Sizer // Apply size constraints to output.
+	pg *render.Page // Render outputs with menues to size constraints.
 }
 
-
+// NewVm creates a new Vm.
 func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render.Sizer) *Vm {
 	vmi := &Vm{
 		st: st,
@@ -33,16 +34,15 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 	return vmi
 }
 
+// Reset re-initializes sub-components for output rendering.
 func(vmi *Vm) Reset() {
 	vmi.mn = render.NewMenu()
 	vmi.pg.Reset()
-	vmi.pg = vmi.pg.WithMenu(vmi.mn) //render.NewPage(vmi.ca, vmi.rs).WithMenu(vmi.mn)
+	vmi.pg = vmi.pg.WithMenu(vmi.mn)
 	if vmi.sizer != nil {
 		vmi.pg = vmi.pg.WithSizer(vmi.sizer)	
 	}
 }
-
-//type Runner func(instruction []byte, st state.State, rs resource.Resource, ctx context.Context) (state.State, []byte, error)
 
 // Run extracts individual op codes and arguments and executes them.
 //
@@ -394,6 +394,7 @@ func(vm *Vm) RunMPrev(b []byte, ctx context.Context) ([]byte, error) {
        return b, nil
 }
 
+// Render wraps output rendering, and handles error when attempting to browse beyond the rendered page count.
 func(vm *Vm) Render(ctx context.Context) (string, error) {
 	changed, err := vm.st.ResetFlag(state.FLAG_DIRTY)
 	if err != nil {

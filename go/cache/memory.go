@@ -1,5 +1,6 @@
 package cache
 
+// Memory defines the interface for store of a symbol mapped content store.
 type Memory interface {
 	Add(key string, val string, sizeLimit uint16) error
 	Update(key string, val string) error

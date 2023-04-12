@@ -11,16 +11,17 @@ import (
 	"git.defalsify.org/festive/resource"
 )
 
+// Page exectues output rendering into pages constrained by size.
 type Page struct {
-	cacheMap map[string]string // Mapped
-	cache cache.Memory
-	resource resource.Resource
-	menu *Menu
-	sink *string
-	sinkSize uint16
-	sizer *Sizer
+	cacheMap map[string]string // Mapped content symbols
+	cache cache.Memory // Content store.
+	resource resource.Resource // Symbol resolver.
+	menu *Menu // Menu rendererer.
+	sink *string // Content symbol rendered by dynamic size.
+	sizer *Sizer // Process size constraints.
 }
 
+// NewPage creates a new Page object.
 func NewPage(cache cache.Memory, rs resource.Resource) *Page {
 	return &Page{
 		cache: cache,
@@ -29,6 +30,7 @@ func NewPage(cache cache.Memory, rs resource.Resource) *Page {
 	}
 }
 
+// WithMenu sets a menu renderer for the page.
 func(pg *Page) WithMenu(menu *Menu) *Page {
 	pg.menu = menu
 	if pg.sizer != nil {
@@ -37,6 +39,7 @@ func(pg *Page) WithMenu(menu *Menu) *Page {
 	return pg
 }
 
+// WithSizer sets a size constraints definition for the page.
 func(pg *Page) WithSizer(sizer *Sizer) *Page {
 	pg.sizer = sizer
 	if pg.menu != nil {
@@ -45,7 +48,7 @@ func(pg *Page) WithSizer(sizer *Sizer) *Page {
 	return pg
 }
 
-// Size returns size used by values and menu, and remaining size available
+// Usage returns size used by values and menu, and remaining size available
 func(pg *Page) Usage() (uint32, uint32, error) {
 	var l int
 	var c uint16
@@ -97,6 +100,8 @@ func(pg *Page) Map(key string) error {
 	return nil
 }
 
+// Val gets the mapped content for the given symbol.
+//
 // Fails if key is not mapped.
 func(pg *Page) Val(key string) (string, error) {
 	r := pg.cacheMap[key]
@@ -106,7 +111,7 @@ func(pg *Page) Val(key string) (string, error) {
 	return r, nil
 }
 
-// Moved from cache, MAP should hook to this object
+// Sizes returned the actual used bytes by each mapped symbol.
 func(pg *Page) Sizes() (map[string]uint16, error) {
 	sizes := make(map[string]uint16)
 	var haveSink bool
@@ -121,12 +126,11 @@ func(pg *Page) Sizes() (map[string]uint16, error) {
 			}
 			haveSink = true
 		}
-		pg.sinkSize = l
 	}
 	return sizes, nil
 }
 
-// DefaultRenderTemplate is an adapter to implement the builtin golang text template renderer as resource.RenderTemplate.
+// RenderTemplate is an adapter to implement the builtin golang text template renderer as resource.RenderTemplate.
 func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16) (string, error) {
 	tpl, err := pg.resource.GetTemplate(sym)
 	if err != nil {
@@ -154,6 +158,26 @@ func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16) 
 		return "", err
 	}
 	return b.String(), err
+}
+
+// Render renders the current mapped content and menu state against the template associated with the symbol.
+func(pg *Page) Render(sym string, idx uint16) (string, error) {
+	var err error
+
+	values, err := pg.prepare(sym, pg.cacheMap, idx)
+	if err != nil {
+		return "", err
+	}
+
+	return pg.render(sym, values, idx)
+}
+
+// Reset prepared the Page object for re-use.
+//
+// It clears mappings and removes the sink definition.
+func(pg *Page) Reset() {
+	pg.sink = nil
+	pg.cacheMap = make(map[string]string)
 }
 
 // render menu and all syms except sink, split sink into display chunks
@@ -279,6 +303,7 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 	return noSinkValues, nil
 }
 
+// render template, menu (if it exists), and audit size constraint (if it exists).
 func(pg *Page) render(sym string, values map[string]string, idx uint16) (string, error) {
 	var ok bool
 	r := ""
@@ -309,19 +334,3 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 	return r, nil
 }
 
-func(pg *Page) Render(sym string, idx uint16) (string, error) {
-	var err error
-
-	values, err := pg.prepare(sym, pg.cacheMap, idx)
-	if err != nil {
-		return "", err
-	}
-
-	return pg.render(sym, values, idx)
-}
-
-func(pg *Page) Reset() {
-	pg.sink = nil
-	pg.sinkSize = 0
-	pg.cacheMap = make(map[string]string)
-}

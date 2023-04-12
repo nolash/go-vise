@@ -5,14 +5,12 @@ import (
 	"log"
 )
 
+// Cache stores loaded content, enforcing size limits and keeping track of size usage.
 type Cache struct {
 	CacheSize uint32 // Total allowed cumulative size of values (not code) in cache
 	CacheUseSize uint32 // Currently used bytes by all values (not code) in cache
 	Cache []map[string]string // All loaded cache items
-	//CacheMap map[string]string // Mapped
-	//outputSize uint32 // Max size of output
 	sizes map[string]uint16 // Size limits for all loaded symbols.
-	//sink *string
 }
 
 // NewCache creates a new ready-to-use cache object
@@ -21,7 +19,6 @@ func NewCache() *Cache {
 		Cache: []map[string]string{make(map[string]string)},
 		sizes: make(map[string]uint16),
 	}
-	//ca.resetCurrent()
 	return ca
 }
 
@@ -97,9 +94,6 @@ func(ca *Cache) Update(key string, value string) error {
 	r := ca.Cache[checkFrame][key]
 	l := uint32(len(r))
 	ca.Cache[checkFrame][key] = ""
-	//if ca.CacheMap[key] != "" {
-	//	ca.CacheMap[key] = value
-	//}
 	ca.CacheUseSize -= l
 	sz := ca.checkCapacity(value)
 	if sz == 0 {
@@ -113,6 +107,9 @@ func(ca *Cache) Update(key string, value string) error {
 	return nil
 }
 
+// Get the content currently loaded for a single key, loaded at any level.
+//
+// Fails if key has not been loaded.
 func(ca *Cache) Get(key string) (string, error) {
 	i := ca.frameOf(key)
 	r, ok := ca.Cache[i][key]
