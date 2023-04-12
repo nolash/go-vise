@@ -117,6 +117,8 @@ func long() error {
 	b = vm.NewLine(b, vm.MAP, []string{"longdata"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"0", "_"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"00", ">"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"11", "<"}, nil, nil)
 
 	tpl := `data
 {{.longdata}}`
