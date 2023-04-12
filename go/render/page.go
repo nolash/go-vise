@@ -230,7 +230,8 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 
 	netRemaining := remaining
 	if len(sinkValues) > 1 {
-		netRemaining -= menuSizes[1]
+		log.Printf("menusizes %v", menuSizes)
+		netRemaining -= menuSizes[1] - 1
 	}
 
 	for i, v := range sinkValues {
@@ -253,6 +254,7 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 		}
 		if tb.Len() > 0 {
 			tb.WriteByte(byte(0x00))
+			l += 1
 		}
 		tb.WriteString(v)
 	}
