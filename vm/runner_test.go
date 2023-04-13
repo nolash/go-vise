@@ -20,15 +20,15 @@ type TestResource struct {
 	state *state.State
 }
 
-func getOne(sym string, ctx context.Context) (string, error) {
+func getOne(sym string, input []byte, ctx context.Context) (string, error) {
 	return "one", nil
 }
 
-func getTwo(sym string, ctx context.Context) (string, error) {
+func getTwo(sym string, input []byte, ctx context.Context) (string, error) {
 	return "two", nil
 }
 
-func getDyn(sym string, ctx context.Context) (string, error) {
+func getDyn(sym string, input []byte, ctx context.Context) (string, error) {
 	return dynVal, nil
 }
 
@@ -69,7 +69,7 @@ func (r TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
 }
 
-func(r TestResource) getInput(sym string, ctx context.Context) (string, error) {
+func(r TestResource) getInput(sym string, input []byte, ctx context.Context) (string, error) {
 	v, err := r.state.GetInput()
 	return string(v), err
 }

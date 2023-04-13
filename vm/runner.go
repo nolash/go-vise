@@ -211,7 +211,7 @@ func(vm *Vm) RunLoad(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	r, err := refresh(sym, vm.rs, ctx)
+	r, err := vm.refresh(sym, vm.rs, ctx)
 	if err != nil {
 		return b, err
 	}
@@ -226,7 +226,7 @@ func(vm *Vm) RunReload(b []byte, ctx context.Context) ([]byte, error) {
 		return b, err
 	}
 
-	r, err := refresh(sym, vm.rs, ctx)
+	r, err := vm.refresh(sym, vm.rs, ctx)
 	if err != nil {
 		return b, err
 	}
@@ -421,7 +421,7 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 }
 
 // retrieve data for key
-func refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
+func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
 	fn, err := rs.FuncFor(key)
 	if err != nil {
 		return "", err
@@ -429,6 +429,7 @@ func refresh(key string, rs resource.Resource, ctx context.Context) (string, err
 	if fn == nil {
 		return "", fmt.Errorf("no retrieve function for external symbol %v", key)
 	}
-	return fn(key, ctx)
+	input, _ := vm.st.GetInput()
+	return fn(key, input, ctx)
 }
 

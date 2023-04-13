@@ -44,7 +44,7 @@ func(fs FsResource) FuncFor(sym string) (EntryFunc, error) {
 	if ok {
 		return fn, nil
 	}
-	_, err := fs.getFuncNoCtx(sym)
+	_, err := fs.getFuncNoCtx(sym, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unknown sym: %s", sym)
 	}
@@ -55,11 +55,11 @@ func(fs FsResource) String() string {
 	return fmt.Sprintf("fs resource at path: %s", fs.Path)
 }
 
-func(fs FsResource) getFunc(sym string, ctx context.Context) (string, error) {
-	return fs.getFuncNoCtx(sym)
+func(fs FsResource) getFunc(sym string, input []byte, ctx context.Context) (string, error) {
+	return fs.getFuncNoCtx(sym, input)
 }
 
-func(fs FsResource) getFuncNoCtx(sym string) (string, error) {
+func(fs FsResource) getFuncNoCtx(sym string, input []byte) (string, error) {
 	fb := sym + ".txt"
 	fp := path.Join(fs.Path, fb)
 	log.Printf("getfunc search dir %s %s for %s", fs.Path, fp, sym)
