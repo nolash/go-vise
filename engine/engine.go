@@ -43,7 +43,8 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 		ca: ca,
 		vm: vm.NewVm(st, rs, ca, szr),
 	}
-	if cfg.Root != "" {
+	//if cfg.Root != "" {
+	if st.Moves == 0 {
 		engine.Init(cfg.Root, ctx)
 	}
 	return engine
@@ -65,10 +66,12 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 		return err
 	}
 	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
+	log.Printf("start new init VM run with code %x", b)
 	b, err = en.vm.Run(b, ctx)
 	if err != nil {
 		return err
 	}
+	log.Printf("ended init VM run with code %x", b)
 	en.st.SetCode(b)
 	en.initd = true
 	return nil
@@ -102,10 +105,12 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	if len(code) == 0 {
 		return false, fmt.Errorf("no code to execute")
 	}
+	log.Printf("start new VM run with code %x", code)
 	code, err = en.vm.Run(code, ctx)
 	if err != nil {
 		return false, err
 	}
+	log.Printf("ended VM run with code %x", code)
 
 	v, err := en.st.MatchFlag(state.FLAG_TERMINATE, false)
 	if err != nil {
@@ -133,11 +138,10 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 // - required data inputs to the template are not available.
 // - the template for the given node point is note available for retrieval using the resource.Resource implementer.
 // - the supplied writer fails to process the writes.
-func(en *Engine) WriteResult(w io.Writer, ctx context.Context) error {
+func(en *Engine) WriteResult(w io.Writer, ctx context.Context) (int, error) {
 	r, err := en.vm.Render(ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	_, err = io.WriteString(w, r)
-	return err
+	return io.WriteString(w, r)
 }

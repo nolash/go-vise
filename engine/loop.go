@@ -19,7 +19,8 @@ import (
 //
 // Rendered output is written to the provided writer.
 func Loop(en *Engine, reader io.Reader, writer io.Writer, ctx context.Context) error {
-	err := en.WriteResult(writer, ctx)
+	var err error
+	_, err = en.WriteResult(writer, ctx)
 	if err != nil {
 		return err
 	}
@@ -41,7 +42,7 @@ func Loop(en *Engine, reader io.Reader, writer io.Writer, ctx context.Context) e
 		if err != nil {
 			return fmt.Errorf("unexpected termination: %v\n", err)
 		}
-		err = en.WriteResult(writer, ctx)
+		_, err = en.WriteResult(writer, ctx)
 		if err != nil {
 			return err
 		}

@@ -25,14 +25,43 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 		return err
 	}
 	st := pr.GetState()
-	log.Printf("st %v", st)
+	location, idx := st.Where()
+	if location != "" {
+		cfg.Root = location
+	}
+
+	log.Printf("run persisted with state %v %x input %s", st, st.Code, input)
 	en := NewEngine(cfg, pr.GetState(), rs, pr.GetMemory(), ctx)
 
-	if len(input) > 0 {
-		_, err = en.Exec(input, ctx)
-		if err != nil {
-			return err
-		}
+	log.Printf("location %s", location)
+
+//	if len(input) == 0 {
+//		log.Printf("init")
+//		err = en.Init(location, ctx)
+//		if err != nil {
+//			return err
+//		}
+	c, err := en.WriteResult(w, ctx)
+	if err != nil {
+		return err
 	}
-	return en.WriteResult(w, ctx)
+	err = pr.Save(cfg.SessionId)
+	if err != nil {
+		return err
+	}
+	log.Printf("engine init write %v flags %v", c, st.Flags)
+	if c > 0 {
+		return err
+	}
+	_ = idx
+
+	_, err = en.Exec(input, ctx)
+	if err != nil {
+		return err
+	}
+	_, err = en.WriteResult(w, ctx)
+	if err != nil {
+		return err
+	}
+	return pr.Save(cfg.SessionId)
 }

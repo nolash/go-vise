@@ -39,6 +39,13 @@ func(fs FsResource) GetCode(sym string) ([]byte, error) {
 	return ioutil.ReadFile(fp)
 }
 
+func(fs *FsResource) AddLocalFunc(sym string, fn EntryFunc) {
+	if fs.fns == nil {
+		fs.fns = make(map[string]EntryFunc)
+	}
+	fs.fns[sym] = fn
+}
+
 func(fs FsResource) FuncFor(sym string) (EntryFunc, error) {
 	fn, ok := fs.fns[sym]
 	if ok {

@@ -26,10 +26,14 @@ type FsWrapper struct {
 
 func NewFsWrapper(path string, st *state.State) FsWrapper {
 	rs := resource.NewFsResource(path)
-	return FsWrapper {
+	wr := FsWrapper {
 		&rs, 
 		st,
 	}
+	wr.AddLocalFunc("one", wr.one)
+	wr.AddLocalFunc("inky", wr.inky)
+	wr.AddLocalFunc("pinky", wr.pinky)
+	return wr
 }
 
 func(fs FsWrapper) one(sym string, input []byte, ctx context.Context) (resource.Result, error) {
@@ -51,18 +55,6 @@ func(fs FsWrapper) pinky(sym string, input []byte, ctx context.Context) (resourc
 	}, nil
 }
 
-func(fs FsWrapper) FuncFor(sym string) (resource.EntryFunc, error) {
-	switch sym {
-	case "one":
-		return fs.one, nil
-	case "inky":
-		return fs.inky, nil
-	case "pinky":
-		return fs.pinky, nil
-	}
-	return nil, fmt.Errorf("function for %v not found", sym)
-}
-
 func(fs FsWrapper) GetCode(sym string) ([]byte, error) {
 	sym += ".bin"
 	fp := path.Join(fs.Path, sym)
@@ -82,20 +74,19 @@ func generateTestData(t *testing.T) {
 }
 
 func TestEngineInit(t *testing.T) {
+	var err error
 	generateTestData(t)
 	ctx := context.TODO()
 	st := state.NewState(17)
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 	
-	en := NewEngine(Config{}, &st, &rs, ca, ctx)
-	err := en.Init("root", ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	en := NewEngine(Config{
+		Root: "root",
+	}, &st, &rs, ca, ctx)
+//
 	w := bytes.NewBuffer(nil)
-	err = en.WriteResult(w, ctx)
+	_, err = en.WriteResult(w, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +109,7 @@ func TestEngineInit(t *testing.T) {
 		t.Fatalf("expected where-string 'foo', got %s", r)
 	}
 	w = bytes.NewBuffer(nil)
-	err = en.WriteResult(w, ctx)
+	_, err = en.WriteResult(w, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

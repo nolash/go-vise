@@ -34,6 +34,7 @@ type State struct {
 	BitSize uint32 // size of (32-bit capacity) bit flag byte array
 	SizeIdx uint16
 	Flags []byte // Error state
+	Moves uint32 // Number of times navigation has been performed
 	input []byte // Last input
 }
 
@@ -208,6 +209,7 @@ func(st *State) Next() (uint16, error) {
 	st.SizeIdx += 1
 	s, idx := st.Where()
 	log.Printf("next page for %s: %v", s, idx)
+	st.Moves += 1
 	return st.SizeIdx, nil
 }
 
@@ -224,6 +226,7 @@ func(st *State) Previous() (uint16, error) {
 	st.SizeIdx -= 1
 	s, idx := st.Where()
 	log.Printf("previous page for %s: %v", s, idx)
+	st.Moves += 1
 	return st.SizeIdx, nil
 }
 
@@ -258,6 +261,7 @@ func(st *State) Top() (bool, error) {
 func(st *State) Down(input string) error {
 	st.ExecPath = append(st.ExecPath, input)
 	st.SizeIdx = 0
+	st.Moves += 1
 	return nil
 }
 
@@ -281,6 +285,7 @@ func(st *State) Up() (string, error) {
 	}
 	st.SizeIdx = 0
 	log.Printf("execpath after %v", st.ExecPath)
+	st.Moves += 1
 	return sym, nil
 }
 
@@ -332,5 +337,5 @@ func(st *State) Reset() error {
 }
 
 func(st State) String() string {
-	return fmt.Sprintf("idx %v path: %s", st.SizeIdx, strings.Join(st.ExecPath, "/"))
+	return fmt.Sprintf("moves %v idx %v path: %s", st.Moves, st.SizeIdx, strings.Join(st.ExecPath, "/"))
 }

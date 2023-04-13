@@ -182,10 +182,10 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 		if err != nil {
 			return b, err
 		}
+		b = append(bh, b...)
 		vm.st.Down(sym)
 		vm.ca.Push()
 		vm.Reset()
-		b = append(bh, b...)
 	} 
 	return b, nil
 }
@@ -292,6 +292,7 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 				panic(err)
 			}
 		} else {
+			log.Printf("ignoring input %s, already have match", sym)
 			return b, nil
 		}
 	}
@@ -407,7 +408,7 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 		panic(err)	
 	}
 	if !changed {
-		log.Printf("Render called when not dirty, please investigate.")
+		return "", nil
 	}
 	sym, idx := vm.st.Where()
 	r, err := vm.pg.Render(sym, idx)

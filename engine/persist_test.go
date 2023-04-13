@@ -1,9 +1,9 @@
 package engine
 
 import (
-	"bytes"
+//	"bytes"
 	"context"
-	"errors"
+//	"errors"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -16,7 +16,7 @@ import (
 func TestPersist(t *testing.T) {
 	generateTestData(t)
 	cfg := Config{
-		OutputSize: 128,
+		OutputSize: 83,
 		SessionId: "xyzzy",
 		Root: "root",
 	}
@@ -31,27 +31,19 @@ func TestPersist(t *testing.T) {
 	ca := cache.NewCache().WithCacheSize(1024)
 	pr := persist.NewFsPersister(persistDir).WithContent(&st, ca)
 
-	w := bytes.NewBuffer(nil)
+	//w := bytes.NewBuffer(nil)
+	w := os.Stdout
 	ctx := context.TODO()
 
-	
-	err = RunPersisted(cfg, rs, pr, []byte{}, w, ctx)
+	st = state.NewState(cfg.FlagCount)
+	ca = cache.NewCache()
+	ca = ca.WithCacheSize(cfg.CacheSize)
+	pr = persist.NewFsPersister(persistDir).WithContent(&st, ca)
+	err = pr.Save(cfg.SessionId)
 	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			t.Fatal(err)
-		}
-		st := state.NewState(cfg.FlagCount)
-		ca := cache.NewCache()
-		if cfg.CacheSize > 0 {
-			ca = ca.WithCacheSize(cfg.CacheSize)
-		}
-		pr = persist.NewFsPersister(persistDir).WithContent(&st, ca)
-		err = pr.Save(cfg.SessionId)
-		if err != nil {
-			t.Fatal(err)
-		}
+		t.Fatal(err)
 	}
-
+	
 	pr = persist.NewFsPersister(persistDir)
 	inputs := []string{
 		"",
@@ -65,4 +57,20 @@ func TestPersist(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	pr = persist.NewFsPersister(persistDir)
+	err = pr.Load(cfg.SessionId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	stAfter := pr.GetState()
+	location, idx := stAfter.Where()
+	if location != "long" {
+		t.Fatalf("expected 'long', got %s", location)
+	}
+	if idx != 1 {
+		t.Fatalf("expected '1', got %v", idx)
+	}
+
 }
