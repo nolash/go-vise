@@ -4,8 +4,14 @@ import (
 	"context"
 )
 
+type Result struct {
+	Content string
+	FlagSet []uint32
+	FlagReset []uint32
+}
+
 // EntryFunc is a function signature for retrieving value for a key
-type EntryFunc func(sym string, input []byte, ctx context.Context) (string, error)
+type EntryFunc func(sym string, input []byte, ctx context.Context) (Result, error)
 type CodeFunc func(sym string) ([]byte, error)
 type TemplateFunc func(sym string) (string, error)
 type FuncForFunc func(sym string) (EntryFunc, error)

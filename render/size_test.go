@@ -41,20 +41,28 @@ func funcFor(sym string) (resource.EntryFunc, error) {
 	return nil, fmt.Errorf("unknown func: %s", sym)
 }
 
-func getFoo(sym string, input []byte, ctx context.Context) (string, error) {
-	return "inky", nil
+func getFoo(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: "inky",
+	}, nil
 }
 
-func getBar(sym string, input []byte, ctx context.Context) (string, error) {
-	return "pinky", nil
+func getBar(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: "pinky",
+	}, nil
 }
 
-func getBaz(sym string, input []byte, ctx context.Context) (string, error) {
-	return "blinky", nil
+func getBaz(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: "blinky",
+	}, nil
 }
 
-func getXyzzy(sym string, input []byte, ctx context.Context) (string, error) {
-	return "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve", nil
+func getXyzzy(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve",
+	}, nil
 }
 
 func TestSizeCheck(t *testing.T) {

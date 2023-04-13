@@ -60,6 +60,7 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 			log.Printf("terminate set! bailing!")
 			return []byte{}, nil
 		}
+		vm.st.ResetBaseFlags()
 		_, err = vm.st.SetFlag(state.FLAG_DIRTY)
 		if err != nil {
 			panic(err)
@@ -179,7 +180,8 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 		log.Printf("catch at flag %v, moving to %v", sig, sym) //bitField, d)
 		vm.st.Down(sym)
 		vm.Reset()
-		b = []byte{}
+		bh := NewLine(nil, HALT, nil, nil, nil)
+		b = append(bh, b...)
 	} 
 	return b, nil
 }
@@ -430,6 +432,33 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 		return "", fmt.Errorf("no retrieve function for external symbol %v", key)
 	}
 	input, _ := vm.st.GetInput()
-	return fn(key, input, ctx)
-}
+	r, err := fn(key, input, ctx)
+	if err != nil {
+		var perr error
+		_, perr = vm.st.SetFlag(state.FLAG_LOADFAIL)
+		if perr != nil {
+			panic(err)
+		}
+		return "", err
+	}
+	for _, flag := range r.FlagSet {
+		if !state.IsWriteableFlag(flag) {
+			continue
+		}
+		_, err = vm.st.SetFlag(flag)
+		if err != nil {
+			panic(err)
+		}
+	}
+	for _, flag := range r.FlagReset {
+		if !state.IsWriteableFlag(flag) {
+			continue
+		}
+		_, err = vm.st.ResetFlag(flag)
+		if err != nil {
+			panic(err)
+		}
+	}
 
+	return r.Content, err
+}

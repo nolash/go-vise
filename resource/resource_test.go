@@ -37,18 +37,27 @@ func funcFor(sym string) (EntryFunc, error) {
 	return nil, fmt.Errorf("unknown func: %s", sym)
 }
 
-func get(sym string, input []byte, ctx context.Context) (string, error) {
+func get(sym string, input []byte, ctx context.Context) (Result, error) {
 	switch sym {
 	case "foo":
-		return "inky", nil
+		return Result{
+			Content: "inky",
+		}, nil
 	case "bar":
-		return "pinky", nil
+		return Result{
+			Content: "pinky",
+		}, nil
 	case "baz":
-		return "blinky", nil
+		return Result{
+			Content: "blinky",
+		}, nil
 	}
-	return "", fmt.Errorf("unknown sym: %s", sym)
+	return Result{}, fmt.Errorf("unknown sym: %s", sym)
 }
 
-func getXyzzy(sym string, input []byte, ctx context.Context) (string, error) {
-	return "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve", nil
+func getXyzzy(sym string, input []byte, ctx context.Context) (Result, error) {
+	r := "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve"
+	return Result{
+		Content: r,
+	}, nil
 }

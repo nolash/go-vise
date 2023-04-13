@@ -20,16 +20,45 @@ type TestResource struct {
 	state *state.State
 }
 
-func getOne(sym string, input []byte, ctx context.Context) (string, error) {
-	return "one", nil
+func getOne(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: "one",
+	}, nil
 }
 
-func getTwo(sym string, input []byte, ctx context.Context) (string, error) {
-	return "two", nil
+func getTwo(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: "two",
+	}, nil
 }
 
-func getDyn(sym string, input []byte, ctx context.Context) (string, error) {
-	return dynVal, nil
+func getDyn(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: dynVal,
+	}, nil
+}
+
+func getEcho(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	r := fmt.Sprintf("echo: %s", input)
+	return resource.Result{
+		Content: r,
+	}, nil
+}
+
+func setFlag(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	s := fmt.Sprintf("ping")
+	r := resource.Result{
+		Content: s,
+	}
+	if len(input) > 0 {
+		r.FlagSet = append(r.FlagSet, uint32(input[0]))
+	}
+	if len(input) > 1 {
+		r.FlagReset = append(r.FlagReset, uint32(input[1]))
+	}
+	log.Printf("setflag %v", r)
+	return r, nil 
+
 }
 
 type TestStatefulResolver struct {
@@ -50,6 +79,8 @@ func (r TestResource) GetTemplate(sym string) (string, error) {
 		return "root", nil
 	case "_catch":
 		return "aiee", nil
+	case "flagCatch":
+		return "flagiee", nil
 	}
 	panic(fmt.Sprintf("unknown symbol %s", sym))
 	return "", fmt.Errorf("unknown symbol %s", sym)
@@ -65,21 +96,32 @@ func (r TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 		return getDyn, nil
 	case "arg":
 		return r.getInput, nil
+	case "echo":
+		return getEcho, nil
+	case "setFlagOne":
+		return setFlag, nil
 	}
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
 }
 
-func(r TestResource) getInput(sym string, input []byte, ctx context.Context) (string, error) {
+func(r TestResource) getInput(sym string, input []byte, ctx context.Context) (resource.Result, error) {
 	v, err := r.state.GetInput()
-	return string(v), err
+	return resource.Result{
+		Content: string(v),
+	}, err
 }
 
 func(r TestResource) GetCode(sym string) ([]byte, error) {
 	var b []byte
-	if sym == "_catch" {
+	switch sym {
+	case "_catch":
+		b = NewLine(b, MOUT, []string{"0", "repent"}, nil, nil)
+		b = NewLine(b, HALT, nil, nil, nil)
+	case "flagCatch":
 		b = NewLine(b, MOUT, []string{"0", "repent"}, nil, nil)
 		b = NewLine(b, HALT, nil, nil, nil)
 	}
+
 	return b, nil
 }
 
@@ -407,5 +449,75 @@ func TestRunReturn(t *testing.T) {
 	location, _ = st.Where()
 	if location != "root" {
 		t.Fatalf("expected location 'root', got '%s'", location)
+	}
+}
+
+
+func TestRunLoadInput(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	ca := cache.NewCache()
+	vm := NewVm(&st, &rs, ca, nil)
+
+	var err error
+
+	st.Down("root")
+	st.SetInput([]byte("foobar"))
+
+	b := NewLine(nil, LOAD, []string{"echo"}, []byte{0x00}, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+
+	ctx := context.TODO()
+
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r, err := ca.Get("echo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r != "echo: foobar" {
+		t.Fatalf("expected 'echo: foobar', got %s", r)
+	}
+}
+
+func TestInputBranch(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	ca := cache.NewCache()
+	vm := NewVm(&st, &rs, ca, nil)
+
+	var err error
+
+	st.Down("root")
+
+	b := NewLine(nil, LOAD, []string{"setFlagOne"}, []byte{0x00}, nil)
+	b = NewLine(b, CATCH, []string{"flagCatch"}, []byte{8}, []uint8{0})
+	b = NewLine(b, RELOAD, []string{"setFlagOne"}, nil, nil)
+	b = NewLine(b, CATCH, []string{"flagCatch"}, []byte{8}, []uint8{0})
+	b = NewLine(b, CATCH, []string{"one"}, []byte{9}, []uint8{0})
+
+	ctx := context.TODO()
+
+	st.SetInput([]byte{0x08})
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	location, _ := st.Where()
+	if location != "flagCatch" {
+		t.Fatalf("expected 'flagCatch', got %s", location)
+	}
+
+	st.SetInput([]byte{0x09, 0x08})
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	location, _ = st.Where()
+	if location != "one" {
+		t.Fatalf("expected 'one', got %s", location)
 	}
 }

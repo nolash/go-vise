@@ -55,18 +55,20 @@ func(fs FsResource) String() string {
 	return fmt.Sprintf("fs resource at path: %s", fs.Path)
 }
 
-func(fs FsResource) getFunc(sym string, input []byte, ctx context.Context) (string, error) {
+func(fs FsResource) getFunc(sym string, input []byte, ctx context.Context) (Result, error) {
 	return fs.getFuncNoCtx(sym, input)
 }
 
-func(fs FsResource) getFuncNoCtx(sym string, input []byte) (string, error) {
+func(fs FsResource) getFuncNoCtx(sym string, input []byte) (Result, error) {
 	fb := sym + ".txt"
 	fp := path.Join(fs.Path, fb)
 	log.Printf("getfunc search dir %s %s for %s", fs.Path, fp, sym)
 	r, err := ioutil.ReadFile(fp)
 	if err != nil {
-		return "", fmt.Errorf("failed getting data for sym '%s': %v", sym, err)
+		return Result{}, fmt.Errorf("failed getting data for sym '%s': %v", sym, err)
 	}
 	s := string(r)
-	return strings.TrimSpace(s), nil
+	return Result{
+		Content: strings.TrimSpace(s),
+	}, nil
 }

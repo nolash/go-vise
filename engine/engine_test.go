@@ -32,16 +32,23 @@ func NewFsWrapper(path string, st *state.State) FsWrapper {
 	}
 }
 
-func(fs FsWrapper) one(sym string, input []byte, ctx context.Context) (string, error) {
-	return "one", nil
+func(fs FsWrapper) one(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: "one",
+	}, nil
 }
 
-func(fs FsWrapper) inky(sym string, input []byte, ctx context.Context) (string, error) {
-	return "tinkywinky", nil
+func(fs FsWrapper) inky(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: "tinkywinky",
+	}, nil
 }
 
-func(fs FsWrapper) pinky(sym string, input []byte, ctx context.Context) (string, error) {
-	return fmt.Sprintf("xyzzy: %x", input), nil
+func(fs FsWrapper) pinky(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	r := fmt.Sprintf("xyzzy: %x", input)
+	return resource.Result{
+		Content: r,
+	}, nil
 }
 
 func(fs FsWrapper) FuncFor(sym string) (resource.EntryFunc, error) {
