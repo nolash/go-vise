@@ -4,10 +4,11 @@ import (
 	"context"
 )
 
+// Result contains the results of an external code operation.
 type Result struct {
-	Content string
-	FlagSet []uint32
-	FlagReset []uint32
+	Content string // content value for symbol after execution.
+	FlagSet []uint32 // request caller to set error flags at given indices.
+	FlagReset []uint32 // request caller to reset error flags at given indices.
 }
 
 // EntryFunc is a function signature for retrieving value for a key
@@ -23,6 +24,9 @@ type Resource interface {
 	FuncFor(sym string) (EntryFunc, error) // Resolve symbol content point for.
 }
 
+// MenuResource contains the base definition for building Resource implementations.
+//
+// TODO: Rename to BaseResource
 type MenuResource struct {
 	sinkValues []string
 	codeFunc CodeFunc
@@ -53,14 +57,17 @@ func(m *MenuResource) WithTemplateGetter(templateGetter TemplateFunc) *MenuResou
 	return m
 }
 
+// FuncFor implements Resource interface
 func(m *MenuResource) FuncFor(sym string) (EntryFunc, error) {
 	return m.funcFunc(sym)
 }
 
+// GetCode implements Resource interface
 func(m *MenuResource) GetCode(sym string) ([]byte, error) {
 	return m.codeFunc(sym)
 }
 
+// GetTemplate implements Resource interface
 func(m *MenuResource) GetTemplate(sym string) (string, error) {
 	return m.templateFunc(sym)
 }
