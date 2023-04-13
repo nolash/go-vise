@@ -120,6 +120,7 @@ func(r TestResource) GetCode(sym string) ([]byte, error) {
 	case "flagCatch":
 		b = NewLine(b, MOUT, []string{"0", "repent"}, nil, nil)
 		b = NewLine(b, HALT, nil, nil, nil)
+		b = NewLine(b, MOVE, []string{"_"}, nil, nil)
 	}
 
 	return b, nil

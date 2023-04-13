@@ -178,9 +178,13 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 	}
 	if r {
 		log.Printf("catch at flag %v, moving to %v", sig, sym) //bitField, d)
+		bh, err := vm.rs.GetCode(sym)
+		if err != nil {
+			return b, err
+		}
 		vm.st.Down(sym)
+		vm.ca.Push()
 		vm.Reset()
-		bh := NewLine(nil, HALT, nil, nil, nil)
 		b = append(bh, b...)
 	} 
 	return b, nil
