@@ -194,7 +194,7 @@ eleven twelve
 }
 
 func TestManySizes(t *testing.T) {
-	for i := 50; i < 128; i++ {
+	for i := 60; i < 160; i++ {
 		st := state.NewState(0)
 		ca := cache.NewCache()
 		mn := NewMenu().WithOutputSize(32)
@@ -222,7 +222,7 @@ func TestManySizes(t *testing.T) {
 }
 
 func TestManySizesMenued(t *testing.T) {
-	for i := 60; i < 128; i++ {
+	for i := 60; i < 160; i++ {
 		st := state.NewState(0)
 		ca := cache.NewCache()
 		mn := NewMenu().WithOutputSize(32)
