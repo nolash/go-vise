@@ -23,11 +23,6 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 	if err != nil {
 		return err
 	}
-	st := pr.GetState()
-	location, idx := st.Where()
-	if location != "" {
-		cfg.Root = location
-	}
 
 	en := NewEngine(cfg, pr.GetState(), rs, pr.GetMemory(), ctx)
 
@@ -42,7 +37,6 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 	if c > 0 {
 		return err
 	}
-	_ = idx
 
 	_, err = en.Exec(input, ctx)
 	if err != nil {
