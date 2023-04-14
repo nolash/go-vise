@@ -3,7 +3,6 @@ package engine
 import (
 	"context"
 	"io"
-	"log"
 
 	"git.defalsify.org/festive/persist"
 	"git.defalsify.org/festive/resource"
@@ -30,17 +29,8 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 		cfg.Root = location
 	}
 
-	log.Printf("run persisted with state %v %x input %s", st, st.Code, input)
 	en := NewEngine(cfg, pr.GetState(), rs, pr.GetMemory(), ctx)
 
-	log.Printf("location %s", location)
-
-//	if len(input) == 0 {
-//		log.Printf("init")
-//		err = en.Init(location, ctx)
-//		if err != nil {
-//			return err
-//		}
 	c, err := en.WriteResult(w, ctx)
 	if err != nil {
 		return err
@@ -49,7 +39,6 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 	if err != nil {
 		return err
 	}
-	log.Printf("engine init write %v flags %v", c, st.Flags)
 	if c > 0 {
 		return err
 	}

@@ -31,7 +31,6 @@ func TestPersist(t *testing.T) {
 	ca := cache.NewCache().WithCacheSize(1024)
 	pr := persist.NewFsPersister(persistDir).WithContent(&st, ca)
 
-	//w := bytes.NewBuffer(nil)
 	w := os.Stdout
 	ctx := context.TODO()
 
@@ -46,7 +45,7 @@ func TestPersist(t *testing.T) {
 	
 	pr = persist.NewFsPersister(persistDir)
 	inputs := []string{
-		"",
+		"", // trigger init, will not exec
 		"1",
 		"2",
 		"00",

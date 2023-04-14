@@ -47,6 +47,7 @@ func(szr *Sizer) Check(s string) (uint32, bool) {
 	if szr.outputSize > 0 {
 		if l > szr.outputSize {
 			log.Printf("sizer check fails with length %v: %s", l, szr)
+			log.Printf("sizer contents:\n%s", s)
 			return 0, false
 		}
 		l = szr.outputSize - l

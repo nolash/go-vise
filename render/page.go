@@ -251,16 +251,15 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 	tb := strings.Builder{}
 	rb := strings.Builder{}
 
-	netRemaining := remaining
+	netRemaining := remaining - 1
 	if len(sinkValues) > 1 {
-		log.Printf("menusizes %v", menuSizes)
 		netRemaining -= menuSizes[1] - 1
 	}
 
 	for i, v := range sinkValues {
-		log.Printf("processing sinkvalue %v: %s", i, v)
 		l += len(v)
-		if uint32(l) > netRemaining {
+		log.Printf("processing sinkvalue %v: %s", i, v)
+		if uint32(l) > netRemaining - 1 {
 			if tb.Len() == 0 {
 				return nil, fmt.Errorf("capacity insufficient for sink field %v", i)
 			}
