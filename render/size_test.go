@@ -219,4 +219,34 @@ func TestManySizes(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-}	
+}
+
+func TestManySizesMenued(t *testing.T) {
+	for i := 60; i < 128; i++ {
+		st := state.NewState(0)
+		ca := cache.NewCache()
+		mn := NewMenu().WithOutputSize(32)
+		mrs := resource.NewMenuResource().WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
+		rs := TestSizeResource{
+			mrs,	
+		}
+		szr := NewSizer(uint32(i))
+		pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
+		ca.Push()
+		st.Down("pages")
+		ca.Add("foo", "inky", 10)
+		ca.Add("bar", "pinky", 10)
+		ca.Add("baz", "blinky", 10)
+		ca.Add("xyzzy", "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve", 0)
+		pg.Map("foo")
+		pg.Map("bar")
+		pg.Map("baz")
+		pg.Map("xyzzy")
+		mn.Put("0", "yay")
+		mn.Put("12", "nay")
+		_, err := pg.Render("pages", 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
