@@ -3,7 +3,7 @@ package resource
 import (
 	"testing"
 
-	"git.defalsify.org/festive/state"
+	"git.defalsify.org/vise/state"
 )
 
 func TestStateResourceInit(t *testing.T) {

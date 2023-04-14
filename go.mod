@@ -1,4 +1,4 @@
-module git.defalsify.org/festive
+module git.defalsify.org/vise
 
 go 1.20
 

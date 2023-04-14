@@ -6,11 +6,11 @@ import (
 	"io"
 	"log"
 
-	"git.defalsify.org/festive/cache"
-	"git.defalsify.org/festive/render"
-	"git.defalsify.org/festive/resource"
-	"git.defalsify.org/festive/state"
-	"git.defalsify.org/festive/vm"
+	"git.defalsify.org/vise/cache"
+	"git.defalsify.org/vise/render"
+	"git.defalsify.org/vise/resource"
+	"git.defalsify.org/vise/state"
+	"git.defalsify.org/vise/vm"
 )
 
 // Config globally defines behavior of all components driven by the engine.

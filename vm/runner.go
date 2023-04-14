@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	"git.defalsify.org/festive/cache"
-	"git.defalsify.org/festive/render"
-	"git.defalsify.org/festive/resource"
-	"git.defalsify.org/festive/state"
+	"git.defalsify.org/vise/cache"
+	"git.defalsify.org/vise/render"
+	"git.defalsify.org/vise/resource"
+	"git.defalsify.org/vise/state"
 )
 
 // Vm holds sub-components mutated by the vm execution.

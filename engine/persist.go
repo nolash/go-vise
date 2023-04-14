@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"git.defalsify.org/festive/persist"
-	"git.defalsify.org/festive/resource"
+	"git.defalsify.org/vise/persist"
+	"git.defalsify.org/vise/resource"
 )
 
 // RunPersisted performs a single vm execution from client input using a persisted state.

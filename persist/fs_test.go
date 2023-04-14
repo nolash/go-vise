@@ -7,9 +7,9 @@ import (
 	"reflect"
 	"testing"
 
-	"git.defalsify.org/festive/cache"
-	"git.defalsify.org/festive/state"
-	"git.defalsify.org/festive/vm"
+	"git.defalsify.org/vise/cache"
+	"git.defalsify.org/vise/state"
+	"git.defalsify.org/vise/vm"
 )
 
 func TestSerializeState(t *testing.T) {
@@ -73,7 +73,7 @@ func TestSaveLoad(t *testing.T) {
 	ca.Add("inky", "pinky", 13)
 	ca.Add("blinky", "clyde", 42)
 
-	dir, err := ioutil.TempDir("", "festive_persist")
+	dir, err := ioutil.TempDir("", "vise_persist")
 	if err != nil {
 		t.Error(err)
 	}

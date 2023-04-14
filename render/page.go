@@ -7,8 +7,8 @@ import (
 	"strings"
 	"text/template"
 
-	"git.defalsify.org/festive/cache"
-	"git.defalsify.org/festive/resource"
+	"git.defalsify.org/vise/cache"
+	"git.defalsify.org/vise/resource"
 )
 
 // Page exectues output rendering into pages constrained by size.

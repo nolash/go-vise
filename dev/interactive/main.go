@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"git.defalsify.org/festive/engine"
+	"git.defalsify.org/vise/engine"
 )
 
 func main() {

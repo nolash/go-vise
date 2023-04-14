@@ -1,16 +1,14 @@
 package engine
 
 import (
-//	"bytes"
 	"context"
-//	"errors"
 	"io/ioutil"
 	"os"
 	"testing"
 
-	"git.defalsify.org/festive/cache"
-	"git.defalsify.org/festive/persist"
-	"git.defalsify.org/festive/state"
+	"git.defalsify.org/vise/cache"
+	"git.defalsify.org/vise/persist"
+	"git.defalsify.org/vise/state"
 )
 
 func TestPersist(t *testing.T) {
@@ -22,7 +20,7 @@ func TestPersist(t *testing.T) {
 	}
 	rs := NewFsWrapper(dataDir, nil)
 
-	persistDir, err := ioutil.TempDir("", "festive_engine_persist")
+	persistDir, err := ioutil.TempDir("", "vise_engine_persist")
 	if err != nil {
 		t.Fatal(err)
 	}

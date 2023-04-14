@@ -3,7 +3,7 @@ package render
 import (
 	"testing"
 
-	"git.defalsify.org/festive/cache"
+	"git.defalsify.org/vise/cache"
 )
 
 

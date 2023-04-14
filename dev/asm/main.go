@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"git.defalsify.org/festive/asm"
+	"git.defalsify.org/vise/asm"
 )
 
 func main() {

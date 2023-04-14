@@ -1,4 +1,4 @@
-# festive: A Constrained Size Output Virtual Machine
+# vise: A Constrained Size Output Virtual Machine
 
 An attempt at defining a small VM to handle menu interaction for size-constrained clients and servers.
 
@@ -142,7 +142,7 @@ Currently the following rules apply for encoding in version `0`:
 
 ## Reference implementation
 
-This repository provides a `golang` reference implementation for the `festive` concept.
+This repository provides a `golang` reference implementation for the `vise` concept.
 
 In this reference implementation some constraints apply
 

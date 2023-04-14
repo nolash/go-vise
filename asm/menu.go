@@ -3,7 +3,7 @@ package asm
 import (
 	"fmt"
 
-	"git.defalsify.org/festive/vm"
+	"git.defalsify.org/vise/vm"
 )
 
 // BatchCode defines quasi-opcodes that expand to mulitple individual vm instructions.

@@ -7,7 +7,7 @@ import (
 	"log"
 	"testing"
 
-	"git.defalsify.org/festive/vm"
+	"git.defalsify.org/vise/vm"
 )
 
 

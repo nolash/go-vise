@@ -8,10 +8,10 @@ import (
 	"path"
 	"testing"
 
-	"git.defalsify.org/festive/cache"
-	"git.defalsify.org/festive/resource"
-	"git.defalsify.org/festive/state"
-	"git.defalsify.org/festive/testdata"
+	"git.defalsify.org/vise/cache"
+	"git.defalsify.org/vise/resource"
+	"git.defalsify.org/vise/state"
+	"git.defalsify.org/vise/testdata"
 )
 
 var (

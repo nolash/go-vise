@@ -8,7 +8,7 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
-	"git.defalsify.org/festive/vm"
+	"git.defalsify.org/vise/vm"
 )
 
 type genFunc func() error
@@ -167,7 +167,7 @@ func generate() error {
 //
 // This directory can in turn be used as data source for the the resource.FsResource object.
 func Generate() (string, error) {
-	dir, err := ioutil.TempDir("", "festive_testdata_")
+	dir, err := ioutil.TempDir("", "vise_testdata_")
 	if err != nil {
 		return "", err
 	}

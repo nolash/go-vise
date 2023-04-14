@@ -13,11 +13,11 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 
-	"git.defalsify.org/festive/vm"
+	"git.defalsify.org/vise/vm"
 )
 
 
-// Asm assembles bytecode from the festive assembly mini-language.
+// Asm assembles bytecode from the vise assembly mini-language.
 type Asm struct {
 	Instructions []*Instruction `@@*`
 }

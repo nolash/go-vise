@@ -1,7 +1,7 @@
 package resource
 
 import (
-	"git.defalsify.org/festive/state"
+	"git.defalsify.org/vise/state"
 )
 
 type StateResource struct {

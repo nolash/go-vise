@@ -1,2 +1,2 @@
-// Package vm handles the line-by-line execution of festive bytecode.
+// Package vm handles the line-by-line execution of vise bytecode.
 package vm
