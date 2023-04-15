@@ -1,0 +1,6 @@
+LOAD myname 32
+MAP myname
+MOUT 0 "abort"
+HALT
+INCMP 0 _
+INCMP * entry_name_save 

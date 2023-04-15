@@ -37,13 +37,13 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 	if cfg.OutputSize > 0 {
 		szr = render.NewSizer(cfg.OutputSize)
 	}
+	ctx = context.WithValue(ctx, "sessionId", cfg.SessionId)
 	engine := Engine{
 		st: st,
 		rs: rs,
 		ca: ca,
 		vm: vm.NewVm(st, rs, ca, szr),
 	}
-	//if cfg.Root != "" {
 	if st.Moves == 0 {
 		engine.Init(cfg.Root, ctx)
 	}

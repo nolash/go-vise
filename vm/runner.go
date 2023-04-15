@@ -264,7 +264,7 @@ func(vm *Vm) RunMove(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	log.Printf("loaded additional code: %x", code)
+	log.Printf("loaded code for %s: %x", sym, code)
 	b = append(b, code...)
 	vm.Reset()
 	return b, nil

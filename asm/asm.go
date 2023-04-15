@@ -93,8 +93,13 @@ func parseTwoSym(b *bytes.Buffer, arg Arg) (int, error) {
 		selector = strconv.FormatUint(uint64(*arg.Size), 10)
 		sym = *arg.Selector
 	} else if arg.Selector != nil {
-		sym = *arg.Sym
-		selector = *arg.Selector
+		if *arg.Sym == "*" {
+			sym = *arg.Selector
+			selector = *arg.Sym
+		} else {
+			sym = *arg.Sym
+			selector = *arg.Selector
+		}
 	}
 
 	n, err := writeSym(b, selector)
@@ -255,7 +260,7 @@ var (
 		{"Comment", `(?:#)[^\n]*`},
 		{"Ident", `^[A-Z]+`},
 		{"Size", `[0-9]+`},
-		{"Sym", `[a-zA-Z_][a-zA-Z0-9_]*`},
+		{"Sym", `[a-zA-Z_\*][a-zA-Z0-9_]*`},
 		{"Whitespace", `[ \t]+`},
 		{"EOL", `[\n\r]+`},
 		{"Quote", `["']`},
@@ -297,6 +302,9 @@ func writeDisplay(w *bytes.Buffer, s string) (int, error) {
 	return w.WriteString(s)
 }
 func writeSize(w *bytes.Buffer, n uint32) (int, error) {
+	if n == 0 {
+		return w.Write([]byte{0x01, 0x00})
+	}
 	bn := [4]byte{}
 	sz := numSize(n)
 	if sz > 4 {

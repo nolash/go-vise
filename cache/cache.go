@@ -51,9 +51,12 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 		}
 		return fmt.Errorf("key %v already defined in frame %v", key, checkFrame)
 	}
-	sz := ca.checkCapacity(value)
-	if sz == 0 {
-		return fmt.Errorf("Cache capacity exceeded %v of %v", ca.CacheUseSize + sz, ca.CacheSize)
+	var sz uint32
+	if len(value) > 0 {
+		sz = ca.checkCapacity(value)
+		if sz == 0 {
+			return fmt.Errorf("Cache capacity exceeded %v of %v", ca.CacheUseSize + sz, ca.CacheSize)
+		}
 	}
 	log.Printf("add key %s value size %v limit %v", key, sz, sizeLimit)
 	ca.Cache[len(ca.Cache)-1][key] = value

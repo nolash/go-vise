@@ -1,0 +1,3 @@
+DOWN entry_name 0 "name"
+DOWN entry_email 1 "email"
+DOWN entry_sex 2 "sex"

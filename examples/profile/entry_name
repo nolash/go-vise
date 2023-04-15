@@ -1,0 +1,2 @@
+Name is currently: {{.myname}}
+Enter new name.
