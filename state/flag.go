@@ -6,8 +6,6 @@ const (
 	FLAG_TERMINATE = 3
 	FLAG_DIRTY = 4
 	FLAG_LOADFAIL = 5
-	FLAG_USERSTART = 9
-	//FLAG_WRITEABLE = FLAG_LOADFAIL
 )
 
 func IsWriteableFlag(flag uint32) bool {

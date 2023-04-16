@@ -87,7 +87,11 @@ func TestEngineInit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-//
+
+	err = en.Init("root", ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
 	w := bytes.NewBuffer(nil)
 	_, err = en.WriteResult(w, ctx)
 	if err != nil {
@@ -150,5 +154,42 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	_, err = en.Exec([]byte("_foo"), ctx)
 	if err == nil {
 		t.Fatalf("expected fail on invalid input")
+	}
+}
+
+func TestEngineResumeTerminated(t *testing.T) {
+	generateTestData(t)
+	ctx := context.TODO()
+	st := state.NewState(17)
+	rs := NewFsWrapper(dataDir, &st)
+	ca := cache.NewCache().WithCacheSize(1024)
+
+	en, err := NewEngine(Config{
+		Root: "root",
+	}, &st, &rs, ca, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = en.Init("root", ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = en.Exec([]byte("1"), ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = en.Exec([]byte("1"), ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	location, idx := st.Where()
+	if location != "root" {
+		t.Fatalf("expected 'root', got %s", location)
+	}
+	if idx != 0 {
+		t.Fatalf("expected idx '0', got %v", idx)
 	}
 }

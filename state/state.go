@@ -327,10 +327,22 @@ func(st *State) SetInput(input []byte) error {
 	return nil
 }
 
-func(st *State) Reset() error {
+// Reset re-initializes the state to run from top node with accumulated client state.
+func(st *State) Restart() error {
+	st.resetBaseFlags()
+	st.Moves = 0
+	st.SizeIdx = 0
+	st.input = []byte{}
 	return nil
 }
 
+// String implements String interface
 func(st State) String() string {
 	return fmt.Sprintf("moves %v idx %v path: %s", st.Moves, st.SizeIdx, strings.Join(st.ExecPath, "/"))
 }
+
+// initializes all flags not in control of client.
+func(st *State) resetBaseFlags() {
+	st.Flags[0] = 0
+}
+

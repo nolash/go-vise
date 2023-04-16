@@ -28,6 +28,7 @@ type Engine struct {
 	rs resource.Resource
 	ca cache.Memory
 	vm *vm.Vm
+	root string
 	initd bool
 }
 
@@ -44,11 +45,8 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 		ca: ca,
 		vm: vm.NewVm(st, rs, ca, szr),
 	}
-	var err error
-	if st.Moves == 0 {
-		err = engine.Init(cfg.Root, ctx)
-	}
-	return engine, err
+	engine.root = cfg.Root	
+	return engine, nil
 }
 
 // Init must be explicitly called before using the Engine instance.
@@ -62,6 +60,7 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 	if sym == "" {
 		return fmt.Errorf("start sym empty")
 	}
+	inSave, _ := en.st.GetInput()
 	err := en.st.SetInput([]byte{})
 	if err != nil {
 		return err
@@ -77,6 +76,10 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 	}
 	log.Printf("ended init VM run with code %x", b)
 	en.st.SetCode(b)
+	err = en.st.SetInput(inSave)
+	if err != nil {
+		return err
+	}
 	en.initd = true
 	return nil
 }
@@ -92,7 +95,17 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 // - no current bytecode is available
 // - input processing against bytcode failed
 func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
-	err := vm.ValidInput(input)
+	var err error
+	if en.st.Moves == 0 {
+		err = en.Init(en.root, ctx)
+		if err != nil {
+			return false, err
+		}
+		if len(input) == 0 {
+			return true, nil
+		}
+	}
+	err = vm.ValidInput(input)
 	if err != nil {
 		return true, err
 	}
@@ -109,6 +122,7 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	if len(code) == 0 {
 		return false, fmt.Errorf("no code to execute")
 	}
+
 	log.Printf("start new VM run with code %x", code)
 	code, err = en.vm.Run(code, ctx)
 	if err != nil {
@@ -124,13 +138,14 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 		if len(code) > 0 {
 			log.Printf("terminated with code remaining: %x", code)
 		}
-		return false, nil
+		return false, err
 	}
 
 	en.st.SetCode(code)
 	if len(code) == 0 {
 		log.Printf("runner finished with no remaining code")
-		return false, nil
+		err = en.reset(ctx)
+		return false, err
 	}
 
 	return true, nil
@@ -148,4 +163,23 @@ func(en *Engine) WriteResult(w io.Writer, ctx context.Context) (int, error) {
 		return 0, err
 	}
 	return io.WriteString(w, r)
+}
+
+func(en *Engine) reset(ctx context.Context) error {
+	var err error
+	var isTop bool
+	for !isTop {
+		isTop, err = en.st.Top()
+		if err != nil {
+			return err
+		}
+		_, err = en.st.Up()
+		if err != nil {
+			return err
+		}
+		en.ca.Pop()
+	}
+	en.st.Restart()
+	en.initd = false
+	return en.Init(en.root, ctx)
 }

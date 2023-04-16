@@ -56,6 +56,8 @@ The signal flag arguments should only set a single flag to be tested. If more th
 
 First 8 flags are reserved and used for internal VM operations.
 
+When a signal is caught, the *bytecode buffer is flushed* before the target symbol code is loaded.
+
 
 ### Avoid duplicate menu items
 
@@ -144,17 +146,17 @@ Currently the following rules apply for encoding in version `0`:
 
 This repository provides a `golang` reference implementation for the `vise` concept.
 
-In this reference implementation some constraints apply
-
 
 ### Structure
 
-- `vm`: Defines instructions, and applies transformations according to the instructions.
-- `state`: Holds the bytecode buffer, error states and navigation states.
+- `asm`: Assembly parser and compiler.
 - `cache`: Holds and manages all loaded content.
-- `resource`: Retrieves data and bytecode from external symbols, and retrieves templates.
-- `render`: Renders menu and templates, and enforces output size constraints.
 - `engine`: Outermost interface. Orchestrates execution of bytecode against input. 
+- `persist`: Interface and reference implementation of `state` and `cache` persistence across asynchronous vm executions.
+- `render`: Renders menu and templates, and enforces output size constraints.
+- `resource`: Retrieves data and bytecode from external symbols, and retrieves templates.
+- `state`: Holds the bytecode buffer, error states and navigation states.
+- `vm`: Defines instructions, and applies transformations according to the instructions.
 
 
 ### Template rendering
@@ -162,6 +164,21 @@ In this reference implementation some constraints apply
 Template rendering is done using the `text/template` faciilty in the `golang` standard library. 
 
 It expects all replacement symbols to be available at time of rendering, and has no tolerance for missing ones.
+
+
+### Runtime engine
+
+The runtime engine:
+
+* Validates client input
+* Runs VM with client input
+* Renders result
+* Restarts execution from top if the vm has nothing more to do.
+
+There are two flavors of the engine:
+
+* `engine.Loop` - class used for continuous, in-memory interaction with the vm (e.g. terminal).
+* `engine.RunPersisted` - method which combines single vm executions with persisted state (e.g. http).
 
 
 ## Bytecode examples
@@ -182,7 +199,7 @@ It expects all replacement symbols to be available at time of rendering, and has
 
 ## Assembly examples
 
-See `testdata/*.fst`
+See `testdata/*.vis`
 
 
 ## Development tools

@@ -195,7 +195,6 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 		b = bh
 		vm.st.Down(sym)
 		vm.ca.Push()
-		vm.Reset()
 	}
 	return b, nil
 }
@@ -213,7 +212,6 @@ func(vm *Vm) RunCroak(b []byte, ctx context.Context) ([]byte, error) {
 	if r {
 		log.Printf("croak at flag %v, purging and moving to top", sig)
 		vm.Reset()
-		vm.st.Reset()
 		vm.pg.Reset()
 		vm.ca.Reset()
 		b = []byte{}
