@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 
@@ -22,6 +23,7 @@ var (
 )
 
 func nameSave(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	log.Printf("writing name to file")
 	fp := path.Join(scriptDir, "myname.txt")
 	err := ioutil.WriteFile(fp, input, 0600)
 	return resource.Result{}, err

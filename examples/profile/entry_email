@@ -1,0 +1,2 @@
+Your email is now: {{.myemail}}
+Enter new email.

@@ -1,4 +1,4 @@
-for f in $(ls $1); do
+for f in $(ls $1/*.vis); do
 	b=$(basename $f)
 	b=${b%.*}
 	go run ./dev/asm $1/$b.vis > $1/$b.bin

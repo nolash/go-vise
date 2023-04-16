@@ -426,7 +426,6 @@ func TestRunReturn(t *testing.T) {
 	var err error
 
 	st.Down("root")
-	st.SetInput([]byte("0"))
 	b := NewLine(nil, INCMP, []string{"0", "bar"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	b = NewLine(b, INCMP, []string{"1", "_"}, nil, nil)
@@ -434,6 +433,7 @@ func TestRunReturn(t *testing.T) {
 
 	ctx := context.TODO()
 
+	st.SetInput([]byte("0"))
 	b, err = vm.Run(b, ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -518,6 +518,60 @@ func TestInputBranch(t *testing.T) {
 		t.Fatal(err)
 	}
 	location, _ = st.Where()
+	if location != "one" {
+		t.Fatalf("expected 'one', got %s", location)
+	}
+}
+
+func TestInputIgnore(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	ca := cache.NewCache()
+	vm := NewVm(&st, &rs, ca, nil)
+
+	var err error
+
+	st.Down("root")
+
+	b := NewLine(nil, INCMP, []string{"foo", "one"}, nil, nil)
+	b = NewLine(b, INCMP, []string{"bar", "two"}, nil, nil)
+
+	ctx := context.TODO()
+
+	st.SetInput([]byte("foo"))
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	location, _ := st.Where()
+	if location != "one" {
+		t.Fatalf("expected 'one', got %s", location)
+	}
+}
+
+func TestInputIgnoreWildcard(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	ca := cache.NewCache()
+	vm := NewVm(&st, &rs, ca, nil)
+
+	var err error
+
+	st.Down("root")
+
+	b := NewLine(nil, INCMP, []string{"foo", "one"}, nil, nil)
+	b = NewLine(b, INCMP, []string{"*", "two"}, nil, nil)
+
+	ctx := context.TODO()
+
+	st.SetInput([]byte("foo"))
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	location, _ := st.Where()
 	if location != "one" {
 		t.Fatalf("expected 'one', got %s", location)
 	}

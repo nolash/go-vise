@@ -60,7 +60,11 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 			log.Printf("terminate set! bailing!")
 			return []byte{}, nil
 		}
-		vm.st.ResetBaseFlags()
+		//vm.st.ResetBaseFlags()
+		_, err = vm.st.ResetFlag(state.FLAG_TERMINATE)
+		if err != nil {
+			panic(err)
+		}
 		_, err = vm.st.SetFlag(state.FLAG_DIRTY)
 		if err != nil {
 			panic(err)
@@ -271,13 +275,14 @@ func(vm *Vm) RunMove(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // RunIncmp executes the INCMP opcode
+// TODO: create state transition table and simplify flow
 func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	sym, target, b, err := ParseInCmp(b)
 	if err != nil {
 		return b, err
 	}
 
-	change, err := vm.st.SetFlag(state.FLAG_READIN)
+	reading, err := vm.st.GetFlag(state.FLAG_READIN)
 	if err != nil {
 		panic(err)
 	}
@@ -286,7 +291,7 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 		panic(err)
 	}
 	if have {
-		if change {
+		if !reading {
 			_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
 			if err != nil {
 				panic(err)
@@ -295,18 +300,24 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 			log.Printf("ignoring input %s, already have match", sym)
 			return b, nil
 		}
+	} else {
+		_, err = vm.st.SetFlag(state.FLAG_READIN)
+		if err != nil {
+			panic(err)
+		}
 	}
 	input, err := vm.st.GetInput()
 	if err != nil {
 		return b, err
 	}
-	log.Printf("sym is %s", sym)
-	if sym == "*" {
+	log.Printf("testing sym %s input %s", sym, input)
+
+	if !have && sym == "*" {
 		log.Printf("input wildcard match ('%s'), target '%s'", input, target)
 	} else {
 		if sym != string(input) {
 			return b, nil
-		}
+		} 
 		log.Printf("input match for '%s', target '%s'", input, target)
 	}
 

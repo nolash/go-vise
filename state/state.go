@@ -113,11 +113,6 @@ func(st *State) ResetFlag(bitIndex uint32) (bool, error) {
 	return true, nil
 }
 
-// ResetBaseFlags restes all builtin flags not writeable by client.
-func(st *State) ResetBaseFlags() {
-	st.Flags[0] = 0	
-}
-
 // GetFlag returns the state of the flag at the given bit field index.
 //
 // Fails if bit field index is out of range.
