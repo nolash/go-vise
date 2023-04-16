@@ -29,6 +29,13 @@ func nameSave(sym string, input []byte, ctx context.Context) (resource.Result, e
 	return resource.Result{}, err
 }
 
+func emailSave(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	log.Printf("writing email to file")
+	fp := path.Join(scriptDir, "myemail.txt")
+	err := ioutil.WriteFile(fp, input, 0600)
+	return resource.Result{}, err
+}
+
 func main() {
 	var dir string
 	var root string
@@ -42,7 +49,8 @@ func main() {
 
 	st := state.NewState(0)
 	rs := resource.NewFsResource(scriptDir)
-	rs.AddLocalFunc("entry_name_save", nameSave)
+	rs.AddLocalFunc("do_name_save", nameSave)
+	rs.AddLocalFunc("do_email_save", emailSave)
 	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",

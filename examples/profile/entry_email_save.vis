@@ -1,0 +1,3 @@
+LOAD do_email_save 1
+RELOAD myemail
+MOVE _

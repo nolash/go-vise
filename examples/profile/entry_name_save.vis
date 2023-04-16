@@ -1,2 +1,3 @@
+LOAD do_name_save 1
 RELOAD myname
 MOVE _
