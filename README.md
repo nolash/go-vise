@@ -223,3 +223,18 @@ Will output bytecode on STDOUT generated from a valid assembly file.
 
 Will list all the instructions on STDOUT from a valid binary file.
 
+
+## Interactive case examples
+
+Found in `examples/`.
+
+Be sure to `make examples` before running them.
+
+Can be run with e.g. `go run ./examples/<case> -s 80`
+
+Contents of the case directory:
+
+* `*.vis` - assembly code.
+* `*.bin` - bytecode for each node symbol (only after make).
+* `*.txt.orig` - default contents of a single data entry.
+* `*.txt` - current contents of a single data entry (only after make).
