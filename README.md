@@ -8,22 +8,21 @@ Original motivation was to create a simple templating renderer for USSD clients,
 
 ## Opcodes
 
-The VM defines the following opcode symbols:
+The VM defines the following opcode symbols, alphabetically:
 
-* `CATCH <symbol> <signal>` - Jump to symbol if signal is set (see `signals` below).
-* `CROAK <signal>` - Clear state and restart execution from top if signal is set (see `signals` below).
-* `LOAD <symbol> <size>` - Execute the code symbol `symbol` and cache the data, constrained to the given `size`. Can be exposed with `MAP` within scope, 
-* `RELOAD <symbol>` - Execute a code symbol already loaded by `LOAD` and cache the data, constrained to the previously given `size` for the same symbol. 
-* `MAP <symbol>` - Expose a code symbol previously loaded by `LOAD` to the rendering client. Roughly corresponds to the `global` directive in Python.
-* `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls.
+* `CATCH <symbol> <signal>` - Jump to symbol if signal is set (see `signals` below). If match, has same side-effect as move.
+* `CROAK <signal>` - Clear state and restart execution from top if signal is set (see `signals` below). If match, has same side-effect as move.
 * `HALT` - Stop execution. The remaining bytecode (typically, the routing code for the node) is returned to the invoking function.
 * `INCMP <arg> <symbol>` - Compare registered input to `arg`. If match, it has the same side-effects as `MOVE`. In addition, any consecutive `INCMP` matches will be ignored until `HALT` is called.
-* `MOUT <choice> <display>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
+* `LOAD <symbol> <size>` - Execute the code symbol `symbol` and cache the data, constrained to the given `size`. Can be exposed with `MAP` within scope.  See "External code" below.
+* `MAP <symbol>` - Expose a code symbol previously loaded by `LOAD` to the rendering client. Roughly corresponds to the `global` directive in Python.
 * `MNEXT <choice> <display>` - Define how to display the choice for advancing when browsing menu.
+* `MOUT <choice> <display>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
+* `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls.
 * `MPREV <choice> <display>` - Define how to display the choice for returning when browsing menu.
-* `MSIZE <max> <min>` - **Not yet implemented**. Set min and max display size of menu part to `num` bytes.
 * `MSEP` -  **Not yet implemented**. Marker for menu page separation. Incompatible with browseable nodes.
-
+* `MSIZE <max> <min>` - **Not yet implemented**. Set min and max display size of menu part to `num` bytes.
+* `RELOAD <symbol>` - Execute a code symbol already loaded by `LOAD` and cache the data, constrained to the previously given `size` for the same symbol. See "External code" below.
 
 ### External code
 
