@@ -1,3 +1,5 @@
-CATCH identified 9 0
+LOAD myname 64
+LOAD myemail 64
+CATCH identified 8 0
 DOWN entry_name 0 "name"
 DOWN entry_email 1 "email"

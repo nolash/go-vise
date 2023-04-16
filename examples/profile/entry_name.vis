@@ -1,4 +1,3 @@
-LOAD myname 32
 MAP myname
 MOUT 0 "abort"
 HALT

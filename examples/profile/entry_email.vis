@@ -1,4 +1,3 @@
-LOAD myemail 32
 MAP myemail
 MOUT 0 "abort"
 HALT

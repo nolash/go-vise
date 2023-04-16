@@ -18,25 +18,84 @@ import (
 )
 
 const (
-	USERFLAG_IDENTIFIED = iota + state.FLAG_USERSTART
+	USERFLAG_IDENTIFIED = iota + 8
+	USERFLAG_HAVENAME 
+	USERFLAG_HAVEEMAIL
 )
 
 var (
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "profile")
+	emptyResult = resource.Result{}
 )
 
-func nameSave(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+type profileResource struct {
+	*resource.FsResource
+	st *state.State
+	haveEntered bool
+}
+
+func newProfileResource(st *state.State, rs *resource.FsResource) *profileResource {
+	return &profileResource{
+		rs,
+		st,
+		false,
+	}
+}
+
+func(pr *profileResource) checkEntry() error {
+	if pr.haveEntered {
+		return nil
+	}
+	one, err := pr.st.GetFlag(USERFLAG_HAVENAME)
+	if err != nil {
+		return err
+	}
+	two, err := pr.st.GetFlag(USERFLAG_HAVEEMAIL)
+	if err != nil {
+		return err
+	}
+	if one && two {
+		_, err = pr.st.SetFlag(USERFLAG_IDENTIFIED)
+		if err != nil {
+			return err
+		}
+		pr.haveEntered = true
+	}
+	return nil
+}
+
+func(pr profileResource) nameSave(sym string, input []byte, ctx context.Context) (resource.Result, error) {
 	log.Printf("writing name to file")
 	fp := path.Join(scriptDir, "myname.txt")
 	err := ioutil.WriteFile(fp, input, 0600)
-	return resource.Result{}, err
+	if err != nil {
+		return emptyResult, err
+	}
+	changed, err := pr.st.SetFlag(USERFLAG_HAVENAME)
+	if err != nil {
+		return emptyResult, err
+	}
+	if changed {
+		pr.checkEntry()
+	}
+	return emptyResult, err
 }
 
-func emailSave(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(pr profileResource) emailSave(sym string, input []byte, ctx context.Context) (resource.Result, error) {
 	log.Printf("writing email to file")
 	fp := path.Join(scriptDir, "myemail.txt")
 	err := ioutil.WriteFile(fp, input, 0600)
+	if err != nil {
+		return emptyResult, err
+	}
+	changed, err := pr.st.SetFlag(USERFLAG_HAVEEMAIL)
+	if err != nil {
+		return emptyResult, err
+	}
+	if changed {
+		pr.checkEntry()
+	}
 	return resource.Result{}, err
 }
 
@@ -51,10 +110,11 @@ func main() {
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
-	st := state.NewState(1)
-	rs := resource.NewFsResource(scriptDir)
-	rs.AddLocalFunc("do_name_save", nameSave)
-	rs.AddLocalFunc("do_email_save", emailSave)
+	st := state.NewState(3)
+	rsf := resource.NewFsResource(scriptDir)
+	rs := newProfileResource(&st, &rsf)
+	rs.AddLocalFunc("do_name_save", rs.nameSave)
+	rs.AddLocalFunc("do_email_save", rs.emailSave)
 	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
@@ -62,7 +122,7 @@ func main() {
 		OutputSize: uint32(size),
 	}
 	ctx := context.Background()
-	en, err := engine.NewEngine(cfg, &st, &rs, ca, ctx)
+	en, err := engine.NewEngine(cfg, &st, rs, ca, ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine create fail: %v\n", err)
 		os.Exit(1)
