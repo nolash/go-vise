@@ -178,6 +178,11 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 	}
 	r, err := vm.st.MatchFlag(sig, mode)
 	if err != nil {
+		_, err = vm.st.SetFlag(state.FLAG_TERMINATE)
+		if err != nil {
+			panic(err)
+		}
+		log.Printf("terminate set")
 		return b, err
 	}
 	if r {
@@ -190,7 +195,7 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 		vm.st.Down(sym)
 		vm.ca.Push()
 		vm.Reset()
-	} 
+	}
 	return b, nil
 }
 

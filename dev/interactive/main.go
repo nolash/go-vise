@@ -22,10 +22,14 @@ func main() {
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
 	ctx := context.Background()
-	en := engine.NewSizedEngine(dir, uint32(size))
-	err := engine.Loop(&en, os.Stdin, os.Stdout, ctx)
+	en, err := engine.NewSizedEngine(dir, uint32(size))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "loop exited with error: %v", err)
+		fmt.Fprintf(os.Stderr, "engine create fail: %v\n", err)
+		os.Exit(1)
+	}
+	err = engine.Loop(&en, os.Stdin, os.Stdout, ctx)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)
 	}
 }

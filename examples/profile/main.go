@@ -17,6 +17,10 @@ import (
 	"git.defalsify.org/vise/state"
 )
 
+const (
+	USERFLAG_IDENTIFIED = iota + state.FLAG_USERSTART
+)
+
 var (
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "profile")
@@ -47,7 +51,7 @@ func main() {
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
-	st := state.NewState(0)
+	st := state.NewState(1)
 	rs := resource.NewFsResource(scriptDir)
 	rs.AddLocalFunc("do_name_save", nameSave)
 	rs.AddLocalFunc("do_email_save", emailSave)
@@ -58,11 +62,15 @@ func main() {
 		OutputSize: uint32(size),
 	}
 	ctx := context.Background()
-	en := engine.NewEngine(cfg, &st, &rs, ca, ctx)
-
-	err := engine.Loop(&en, os.Stdin, os.Stdout, ctx)
+	en, err := engine.NewEngine(cfg, &st, &rs, ca, ctx)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "loop exited with error: %v", err)
+		fmt.Fprintf(os.Stderr, "engine create fail: %v\n", err)
+		os.Exit(1)
+	}
+
+	err = engine.Loop(&en, os.Stdin, os.Stdout, ctx)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)
 	}
 }

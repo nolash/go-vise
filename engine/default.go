@@ -9,7 +9,7 @@ import (
 )
 
 // NewDefaultEngine is a convenience function to instantiate a filesystem-backed engine with no output constraints.
-func NewDefaultEngine(dir string) Engine {
+func NewDefaultEngine(dir string) (Engine, error) {
 	st := state.NewState(0)
 	rs := resource.NewFsResource(dir)
 	ca := cache.NewCache()
@@ -21,7 +21,7 @@ func NewDefaultEngine(dir string) Engine {
 }
 
 // NewSizedEngine is a convenience function to instantiate a filesystem-backed engine with a specified output constraint.
-func NewSizedEngine(dir string, size uint32) Engine {
+func NewSizedEngine(dir string, size uint32) (Engine, error) {
 	st := state.NewState(0)
 	rs := resource.NewFsResource(dir)
 	ca := cache.NewCache()

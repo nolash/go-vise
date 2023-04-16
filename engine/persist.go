@@ -24,7 +24,10 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 		return err
 	}
 
-	en := NewEngine(cfg, pr.GetState(), rs, pr.GetMemory(), ctx)
+	en, err := NewEngine(cfg, pr.GetState(), rs, pr.GetMemory(), ctx)
+	if err != nil {
+		return err
+	}
 
 	c, err := en.WriteResult(w, ctx)
 	if err != nil {

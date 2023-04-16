@@ -32,7 +32,7 @@ type Engine struct {
 }
 
 // NewEngine creates a new Engine
-func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memory, ctx context.Context) Engine {
+func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memory, ctx context.Context) (Engine, error) {
 	var szr *render.Sizer
 	if cfg.OutputSize > 0 {
 		szr = render.NewSizer(cfg.OutputSize)
@@ -44,10 +44,11 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 		ca: ca,
 		vm: vm.NewVm(st, rs, ca, szr),
 	}
+	var err error
 	if st.Moves == 0 {
-		engine.Init(cfg.Root, ctx)
+		err = engine.Init(cfg.Root, ctx)
 	}
-	return engine
+	return engine, err
 }
 
 // Init must be explicitly called before using the Engine instance.
@@ -70,6 +71,9 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 	b, err = en.vm.Run(b, ctx)
 	if err != nil {
 		return err
+	}
+	if len(b) == 0 {
+		return fmt.Errorf("no code left after init, that's just useless and sad")
 	}
 	log.Printf("ended init VM run with code %x", b)
 	en.st.SetCode(b)

@@ -23,8 +23,11 @@ func TestLoopTop(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}
-	en := NewEngine(cfg, &st, &rs, ca, ctx)
-	err := en.Init("root", ctx)
+	en, err := NewEngine(cfg, &st, &rs, ca, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,8 +62,11 @@ func TestLoopBackForth(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}
-	en := NewEngine(cfg, &st, &rs, ca, ctx)
-	err := en.Init("root", ctx)
+	en, err := NewEngine(cfg, &st, &rs, ca, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,8 +99,11 @@ func TestLoopBrowse(t *testing.T) {
 		OutputSize: 68,
 		Root: "root",
 	}
-	en := NewEngine(cfg, &st, &rs, ca, ctx)
-	err := en.Init("root", ctx)
+	en, err := NewEngine(cfg, &st, &rs, ca, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

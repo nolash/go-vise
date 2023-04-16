@@ -81,9 +81,12 @@ func TestEngineInit(t *testing.T) {
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 	
-	en := NewEngine(Config{
+	en, err := NewEngine(Config{
 		Root: "root",
 	}, &st, &rs, ca, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
 //
 	w := bytes.NewBuffer(nil)
 	_, err = en.WriteResult(w, ctx)
@@ -133,8 +136,14 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
-	en := NewEngine(Config{}, &st, &rs, ca, ctx)
-	err := en.Init("root", ctx)
+	
+	en, err := NewEngine(Config{
+		Root: "root",
+	}, &st, &rs, ca, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = en.Init("root", ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
