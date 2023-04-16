@@ -18,10 +18,10 @@ The VM defines the following opcode symbols:
 * `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls. More detailed: After a `MOVE` call, a `BACK` call will return to the same execution frame, with the same symbols available, but all `MAP` calls will have to be repeated.
 * `HALT` - Stop execution. The remaining bytecode (typically, the routing code for the node) is returned to the invoking function.
 * `INCMP <arg> <symbol>` - Compare registered input to `arg`. If match, it has the same side-effects as `MOVE`. In addition, any consecutive `INCMP` matches will be ignored until `HALT` is called.
-* `MSIZE <max> <min>` - Set min and max display size of menu part to `num` bytes.
 * `MOUT <choice> <display>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
 * `MNEXT <choice> <display>` - Define how to display the choice for advancing when browsing menu.
 * `MPREV <choice> <display>` - Define how to display the choice for returning when browsing menu.
+* `MSIZE <max> <min>` - **Not yet implemented**. Set min and max display size of menu part to `num` bytes.
 * `MSEP` -  **Not yet implemented**. Marker for menu page separation. Incompatible with browseable nodes.
 
 
@@ -34,6 +34,8 @@ Any symbol successfully loaded with `LOAD` will be associated with the call stac
 Loaded symbols are not automatically exposed to the rendering client. To expose symbols ot the rendering client the `MAP` opcode must be used.
 
 The associated content of loaded symbols may be refreshed using the `RELOAD` opcode. `RELOAD` only works within the same constraints as `MAP`. However, updated content must be available even if a `MAP` precedes a `RELOAD` within the same frame.
+
+Methods handling `LOAD` symbols have the client input available to them.
 
 
 ### External symbol optimizations
@@ -166,7 +168,7 @@ Template rendering is done using the `text/template` faciilty in the `golang` st
 It expects all replacement symbols to be available at time of rendering, and has no tolerance for missing ones.
 
 
-### Runtime engine
+## Runtime engine
 
 The runtime engine:
 
@@ -179,6 +181,13 @@ There are two flavors of the engine:
 
 * `engine.Loop` - class used for continuous, in-memory interaction with the vm (e.g. terminal).
 * `engine.RunPersisted` - method which combines single vm executions with persisted state (e.g. http).
+
+
+### Client identification
+
+The `engine.Config` struct defines a property `SessionId` which is added to the `context.Context` passed through entire engine vm call roundtrip.
+
+This is used to identify the caller, and thus defines a top-level storage key under which data entries should be retrieved.
 
 
 ## Bytecode examples
@@ -216,7 +225,7 @@ Outputs bytecodes and templates for test data scenarios used in `engine` unit te
 
 ### Interactive runner
 
-`go run ./dev/interactive [-d <data_directory>] [--root <root_symbol>]`
+`go run ./dev/interactive [-d <data_directory>] [--root <root_symbol>] [--session-id <session_id>]`
 
 Creates a new interactive session using `engine.DefaultEngine`, starting execution at symbol `root_symbol`
 
@@ -225,6 +234,8 @@ Creates a new interactive session using `engine.DefaultEngine`, starting executi
 If `data_directory` is not set, current directory will be used.
 
 if `root_symbol` is not set, the symbol `root` will be used.
+
+if `session_id` is set, mutable data will be stored and retrieved keyed by the given identifer (if implemented).
 
 
 ### Assembler
@@ -247,7 +258,9 @@ Found in `examples/`.
 
 Be sure to `make examples` before running them.
 
-Can be run with e.g. `go run ./examples/<case> -s 80`
+Can be run with e.g. `go run ./examples/<case> [...]`
+
+The available options are the same as for the `dev/interactive` tool.
 
 Contents of the case directory:
 
