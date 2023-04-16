@@ -2,8 +2,42 @@
 
 An attempt at defining a small VM to handle menu interaction for size-constrained clients and servers.
 
+
+## Rationale
+
 Original motivation was to create a simple templating renderer for USSD clients, combined with an agnostic data-retrieval reference that may conceal any level of complexity.
 
+
+## Features
+
+### Implemented
+
+* Define and enforce max output size for every individual output.
+* Allow one single data entry to fill remaining available size capacity.
+* An assembly-like mini-language to define:
+    - external code execution.
+    - input validation and routing.
+    - menu definitions.
+    - flow control.
+    - exception handling.
+* templated output from results of external code execution.
+* generate and navigate pages where data symbol contents are too long to display on a single page.
+* pluggable function design for handling external code execution calls.
+
+
+### Pending
+
+* Node Walking Audit Tool (NWAT) to ensure all nodes produce output within constraints.
+* Input generator engine for the NWAT.
+* State error flag debugger representation, builtin as well as user-defined.
+* Stepwise debug view on log/stderr of state mutations.
+* Toolset to assist bootstrapping/recovering (failed) state from spec.
+
+
+### Possibly useful
+
+* Breakpoints.
+* Key/value database reference example.
 
 
 ## Opcodes
@@ -23,6 +57,7 @@ The VM defines the following opcode symbols, alphabetically:
 * `MSEP` -  **Not yet implemented**. Marker for menu page separation. Incompatible with browseable nodes.
 * `MSIZE <max> <min>` - **Not yet implemented**. Set min and max display size of menu part to `num` bytes.
 * `RELOAD <symbol>` - Execute a code symbol already loaded by `LOAD` and cache the data, constrained to the previously given `size` for the same symbol. See "External code" below.
+
 
 ### External code
 
@@ -264,6 +299,6 @@ The available options are the same as for the `dev/interactive` tool.
 Contents of the case directory:
 
 * `*.vis` - assembly code.
-* `*.bin` - bytecode for each node symbol (only after make).
+* `*.bin` - bytecode for each node symbol (only available after make).
 * `*.txt.orig` - default contents of a single data entry.
-* `*.txt` - current contents of a single data entry (only after make).
+* `*.txt` - current contents of a single data entry (only available after make).
