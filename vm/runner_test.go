@@ -541,6 +541,7 @@ func TestInputIgnore(t *testing.T) {
 
 	b := NewLine(nil, INCMP, []string{"foo", "one"}, nil, nil)
 	b = NewLine(b, INCMP, []string{"bar", "two"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
 
 	ctx := context.TODO()
 

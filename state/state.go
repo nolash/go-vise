@@ -208,6 +208,10 @@ func(st *State) Next() (uint16, error) {
 	return st.SizeIdx, nil
 }
 
+func(st *State) Same() {
+	st.Moves += 1
+}
+
 // Previous moves to the next sink page index.
 //
 // Fails if try to move beyond index 0.
@@ -338,7 +342,7 @@ func(st *State) Restart() error {
 
 // String implements String interface
 func(st State) String() string {
-	return fmt.Sprintf("moves %v idx %v path: %s", st.Moves, st.SizeIdx, strings.Join(st.ExecPath, "/"))
+	return fmt.Sprintf("moves %v idx %v flags: 0x%x path: %s", st.Moves, st.SizeIdx, st.Flags, strings.Join(st.ExecPath, "/"))
 }
 
 // initializes all flags not in control of client.

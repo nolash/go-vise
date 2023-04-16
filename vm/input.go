@@ -12,7 +12,7 @@ import (
 var (
 	inputRegexStr = "^[a-zA-Z0-9].*$"
 	inputRegex = regexp.MustCompile(inputRegexStr)
-	ctrlRegexStr = "^[><_^]$"
+	ctrlRegexStr = "^[><_^.]$"
 	ctrlRegex = regexp.MustCompile(ctrlRegexStr)
 	symRegexStr = "^[a-zA-Z0-9][a-zA-Z0-9_]+$"
 	symRegex = regexp.MustCompile(symRegexStr)
@@ -76,7 +76,7 @@ func CheckTarget(target []byte, st *state.State) (bool, error) {
 	switch target[0] {
 	case '_':
 		topOk, err := st.Top()
-		if err!= nil {
+		if err != nil {
 			return false, err
 		}
 		return topOk, nil
@@ -137,6 +137,10 @@ func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Co
 				return sym, idx, err
 			}
 		}
+	case '.':
+		st.Same()
+		location, idx := st.Where()
+		return location, idx, nil
 	default:
 		sym = string(target)
 		err := st.Down(sym)

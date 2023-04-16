@@ -1,11 +1,12 @@
 package state
 
 const (
-	FLAG_READIN = 1
-	FLAG_INMATCH = 2
-	FLAG_TERMINATE = 3
-	FLAG_DIRTY = 4
-	FLAG_LOADFAIL = 5
+	FLAG_READIN = iota
+	FLAG_INMATCH 
+	FLAG_TERMINATE 
+	FLAG_DIRTY
+	FLAG_WAIT
+	FLAG_LOADFAIL
 )
 
 func IsWriteableFlag(flag uint32) bool {
@@ -16,4 +17,7 @@ func IsWriteableFlag(flag uint32) bool {
 	//	return true	
 	//}
 	return false
+}
+
+type FlagDebugger struct {
 }

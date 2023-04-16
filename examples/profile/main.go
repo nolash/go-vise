@@ -122,9 +122,10 @@ func main() {
 		OutputSize: uint32(size),
 	}
 	ctx := context.Background()
-	en, err := engine.NewEngine(cfg, &st, rs, ca, ctx)
+	en := engine.NewEngine(cfg, &st, rs, ca, ctx)
+	err := en.Init(ctx)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "engine create fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)
 	}
 

@@ -31,6 +31,7 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 		sizer: sizer,
 	}
 	vmi.Reset()
+	log.Printf("vm created with state: %v", st)
 	return vmi
 }
 
@@ -65,6 +66,19 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 		if err != nil {
 			panic(err)
 		}
+
+		waitChange, err := vm.st.ResetFlag(state.FLAG_WAIT)
+		if err != nil {
+			panic(err)
+		}
+		if waitChange {
+			log.Printf("waitchange")
+			_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
+			if err != nil {
+				panic(err)
+			}
+		}
+
 		_, err = vm.st.SetFlag(state.FLAG_DIRTY)
 		if err != nil {
 			panic(err)
@@ -295,12 +309,7 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 		panic(err)
 	}
 	if have {
-		if !reading {
-			_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
-			if err != nil {
-				panic(err)
-			}
-		} else {
+		if reading {
 			log.Printf("ignoring input %s, already have match", sym)
 			return b, nil
 		}
@@ -320,11 +329,11 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 		log.Printf("input wildcard match ('%s'), target '%s'", input, target)
 	} else {
 		if sym != string(input) {
+			log.Printf("foo")
 			return b, nil
 		} 
 		log.Printf("input match for '%s', target '%s'", input, target)
 	}
-
 	_, err = vm.st.SetFlag(state.FLAG_INMATCH)
 	if err != nil {
 		panic(err)
@@ -334,13 +343,10 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 		panic(err)
 	}
 
-	target, _, err = applyTarget([]byte(target), vm.st, vm.ca, ctx)
+	newTarget, _, err := applyTarget([]byte(target), vm.st, vm.ca, ctx)
+	
 	_, ok := err.(*state.IndexError)
 	if ok {
-		_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
-		if err != nil {
-			panic(err)
-		}
 		_, err = vm.st.SetFlag(state.FLAG_READIN)
 		if err != nil {
 			panic(err)
@@ -349,12 +355,16 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	} else if err != nil {
 		return b, err
 	}
+
+	target = newTarget
+
 	vm.Reset()
 
 	code, err := vm.rs.GetCode(target)
 	if err != nil {
 		return b, err
 	}
+	log.Printf("bar")
 	log.Printf("loaded additional code for target '%s': %x", target, code)
 	b = append(b, code...)
 	return b, err
@@ -368,7 +378,12 @@ func(vm *Vm) RunHalt(b []byte, ctx context.Context) ([]byte, error) {
 		return b, err
 	}
 	log.Printf("found HALT, stopping")
-	return b, err
+	
+	_, err = vm.st.SetFlag(state.FLAG_WAIT)
+	if err != nil {
+		panic(err)
+	}
+	return b, nil
 }
 
 // RunMSize executes the MSIZE opcode
@@ -454,6 +469,7 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 	input, _ := vm.st.GetInput()
 	r, err := fn(key, input, ctx)
 	if err != nil {
+		log.Printf("loadfail %v", err)
 		var perr error
 		_, perr = vm.st.SetFlag(state.FLAG_LOADFAIL)
 		if perr != nil {

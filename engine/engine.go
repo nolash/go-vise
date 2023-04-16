@@ -33,7 +33,7 @@ type Engine struct {
 }
 
 // NewEngine creates a new Engine
-func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memory, ctx context.Context) (Engine, error) {
+func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memory, ctx context.Context) Engine {
 	var szr *render.Sizer
 	if cfg.OutputSize > 0 {
 		szr = render.NewSizer(cfg.OutputSize)
@@ -46,17 +46,19 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 		vm: vm.NewVm(st, rs, ca, szr),
 	}
 	engine.root = cfg.Root	
-	return engine, nil
+
+	return engine
 }
 
 // Init must be explicitly called before using the Engine instance.
 //
 // It loads and executes code for the start node.
-func(en *Engine) Init(sym string, ctx context.Context) error {
+func(en *Engine) Init(ctx context.Context) error {
 	if en.initd {
 		log.Printf("already initialized")
 		return nil
 	}
+	sym := en.root
 	if sym == "" {
 		return fmt.Errorf("start sym empty")
 	}
@@ -97,7 +99,7 @@ func(en *Engine) Init(sym string, ctx context.Context) error {
 func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	var err error
 	if en.st.Moves == 0 {
-		err = en.Init(en.root, ctx)
+		err = en.Init(ctx)
 		if err != nil {
 			return false, err
 		}
@@ -165,6 +167,7 @@ func(en *Engine) WriteResult(w io.Writer, ctx context.Context) (int, error) {
 	return io.WriteString(w, r)
 }
 
+// start execution over at top node while keeping current state of client error flags.
 func(en *Engine) reset(ctx context.Context) error {
 	var err error
 	var isTop bool
@@ -181,5 +184,5 @@ func(en *Engine) reset(ctx context.Context) error {
 	}
 	en.st.Restart()
 	en.initd = false
-	return en.Init(en.root, ctx)
+	return en.Init(ctx)
 }
