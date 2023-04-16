@@ -191,7 +191,8 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 		if err != nil {
 			return b, err
 		}
-		b = append(bh, b...)
+		//b = append(bh, b...)
+		b = bh
 		vm.st.Down(sym)
 		vm.ca.Push()
 		vm.Reset()

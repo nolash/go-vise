@@ -18,6 +18,7 @@ var dynVal = "three"
 type TestResource struct {
 	resource.MenuResource
 	state *state.State
+	RootCode []byte
 }
 
 func getOne(sym string, input []byte, ctx context.Context) (resource.Result, error) {
@@ -121,6 +122,8 @@ func(r TestResource) GetCode(sym string) ([]byte, error) {
 		b = NewLine(b, MOUT, []string{"0", "repent"}, nil, nil)
 		b = NewLine(b, HALT, nil, nil, nil)
 		b = NewLine(b, MOVE, []string{"_"}, nil, nil)
+	case "root":
+		b = r.RootCode
 	}
 
 	return b, nil
@@ -495,10 +498,13 @@ func TestInputBranch(t *testing.T) {
 	st.Down("root")
 
 	b := NewLine(nil, LOAD, []string{"setFlagOne"}, []byte{0x00}, nil)
-	b = NewLine(b, CATCH, []string{"flagCatch"}, []byte{8}, []uint8{0})
 	b = NewLine(b, RELOAD, []string{"setFlagOne"}, nil, nil)
 	b = NewLine(b, CATCH, []string{"flagCatch"}, []byte{8}, []uint8{0})
 	b = NewLine(b, CATCH, []string{"one"}, []byte{9}, []uint8{0})
+	rs.RootCode = b
+
+	//b = NewLine(b, RELOAD, []string{"setFlagOne"}, nil, nil)
+	//b = NewLine(b, CATCH, []string{"flagCatch"}, []byte{8}, []uint8{0})
 
 	ctx := context.TODO()
 
