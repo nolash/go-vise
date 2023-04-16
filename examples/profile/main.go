@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	USERFLAG_IDENTIFIED = iota + 8
+	USERFLAG_IDENTIFIED = iota + state.FLAG_USERSTART
 	USERFLAG_HAVENAME 
 	USERFLAG_HAVEEMAIL
 )
@@ -44,6 +44,7 @@ func newProfileResource(st *state.State, rs *resource.FsResource) *profileResour
 }
 
 func(pr *profileResource) checkEntry() error {
+	log.Printf("%v %v", USERFLAG_IDENTIFIED, USERFLAG_HAVENAME)
 	if pr.haveEntered {
 		return nil
 	}

@@ -7,6 +7,7 @@ const (
 	FLAG_DIRTY
 	FLAG_WAIT
 	FLAG_LOADFAIL
+	FLAG_USERSTART = 8
 )
 
 func IsWriteableFlag(flag uint32) bool {
