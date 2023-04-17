@@ -53,37 +53,34 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 // Init must be explicitly called before using the Engine instance.
 //
 // It loads and executes code for the start node.
-func(en *Engine) Init(ctx context.Context) error {
+func(en *Engine) Init(ctx context.Context) (bool, error) {
 	if en.initd {
 		log.Printf("already initialized")
-		return nil
+		return true, nil
 	}
 	sym := en.root
 	if sym == "" {
-		return fmt.Errorf("start sym empty")
+		return false, fmt.Errorf("start sym empty")
 	}
 	inSave, _ := en.st.GetInput()
 	err := en.st.SetInput([]byte{})
 	if err != nil {
-		return err
+		return false, err
 	}
 	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
 	log.Printf("start new init VM run with code %x", b)
 	b, err = en.vm.Run(b, ctx)
 	if err != nil {
-		return err
+		return false, err
 	}
-	if len(b) == 0 {
-		return fmt.Errorf("no code left after init, that's just useless and sad")
-	}
+	
 	log.Printf("ended init VM run with code %x", b)
 	en.st.SetCode(b)
 	err = en.st.SetInput(inSave)
 	if err != nil {
-		return err
+		return false, err
 	}
-	en.initd = true
-	return nil
+	return len(b) > 0, nil
 }
 
 // Exec processes user input against the current state of the virtual machine environment.
@@ -99,13 +96,11 @@ func(en *Engine) Init(ctx context.Context) error {
 func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	var err error
 	if en.st.Moves == 0 {
-		err = en.Init(ctx)
+		cont, err := en.Init(ctx)
 		if err != nil {
 			return false, err
 		}
-		if len(input) == 0 {
-			return true, nil
-		}
+		return cont, nil
 	}
 	err = vm.ValidInput(input)
 	if err != nil {
@@ -146,7 +141,7 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	en.st.SetCode(code)
 	if len(code) == 0 {
 		log.Printf("runner finished with no remaining code")
-		err = en.reset(ctx)
+		_, err = en.reset(ctx)
 		return false, err
 	}
 
@@ -168,17 +163,17 @@ func(en *Engine) WriteResult(w io.Writer, ctx context.Context) (int, error) {
 }
 
 // start execution over at top node while keeping current state of client error flags.
-func(en *Engine) reset(ctx context.Context) error {
+func(en *Engine) reset(ctx context.Context) (bool, error) {
 	var err error
 	var isTop bool
 	for !isTop {
 		isTop, err = en.st.Top()
 		if err != nil {
-			return err
+			return false, err
 		}
 		_, err = en.st.Up()
 		if err != nil {
-			return err
+			return false, err
 		}
 		en.ca.Pop()
 	}

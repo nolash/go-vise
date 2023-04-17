@@ -85,7 +85,7 @@ func TestEngineInit(t *testing.T) {
 		Root: "root",
 	}, &st, &rs, ca, ctx)
 
-	err = en.Init(ctx)
+	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +141,8 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	en := NewEngine(Config{
 		Root: "root",
 	}, &st, &rs, ca, ctx)
-	err := en.Init(ctx)
+	var err error
+	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +162,8 @@ func TestEngineResumeTerminated(t *testing.T) {
 	en := NewEngine(Config{
 		Root: "root",
 	}, &st, &rs, ca, ctx)
-	err := en.Init(ctx)
+	var err error
+	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

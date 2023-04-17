@@ -72,7 +72,8 @@ func main() {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "SessionId", sessionId)
 	en := engine.NewEngine(cfg, &st, rs, ca, ctx)
-	err := en.Init(ctx)
+	var err error
+	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)
