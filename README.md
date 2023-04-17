@@ -38,7 +38,7 @@ Original motivation was to create a simple templating renderer for USSD clients,
 
 * Breakpoints.
 * Key/value database reference example.
-* Same-page catch with dedicated error string to prepend to template
+* Dedicated error string to prepend to template (e.g. on catch)
 
 
 ## Opcodes

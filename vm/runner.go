@@ -72,7 +72,6 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 			panic(err)
 		}
 		if waitChange {
-			log.Printf("waitchange")
 			_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
 			if err != nil {
 				panic(err)
@@ -463,7 +462,7 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 	return r, nil
 }
 
-// retrieve data for key
+// retrieve and cache data for key
 func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
 	fn, err := rs.FuncFor(key)
 	if err != nil {

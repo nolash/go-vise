@@ -35,7 +35,7 @@ type profileResource struct {
 	haveEntered bool
 }
 
-func newProfileResource(st *state.State, rs *resource.FsResource) *profileResource {
+func newProfileResource(st *state.State, rs *resource.FsResource) resource.Resource {
 	return &profileResource{
 		rs,
 		st,
@@ -113,7 +113,10 @@ func main() {
 
 	st := state.NewState(3)
 	rsf := resource.NewFsResource(scriptDir)
-	rs := newProfileResource(&st, &rsf)
+	rs, ok := newProfileResource(&st, &rsf).(*profileResource)
+	if !ok {
+		os.Exit(1)
+	}
 	rs.AddLocalFunc("do_name_save", rs.nameSave)
 	rs.AddLocalFunc("do_email_save", rs.emailSave)
 	ca := cache.NewCache()
