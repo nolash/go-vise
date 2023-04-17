@@ -192,23 +192,29 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 	}
 	r, err := vm.st.MatchFlag(sig, mode)
 	if err != nil {
-		_, err = vm.st.SetFlag(state.FLAG_TERMINATE)
-		if err != nil {
-			panic(err)
+		var perr error
+		_, perr = vm.st.SetFlag(state.FLAG_TERMINATE)
+		if perr != nil {
+			panic(perr)
 		}
 		log.Printf("terminate set")
 		return b, err
 	}
 	if r {
-		log.Printf("catch at flag %v, moving to %v", sig, sym) //bitField, d)
+		//b = append(bh, b...)
+		//vm.st.Down(sym)
+		//vm.ca.Push()
+		actualSym, _, err := applyTarget([]byte(sym), vm.st, vm.ca, ctx)
+		if err != nil {
+			return b, err
+		}
+		log.Printf("catch at flag %v, moving to '%v' ('%v')", sig, sym, actualSym)
+		sym = actualSym
 		bh, err := vm.rs.GetCode(sym)
 		if err != nil {
 			return b, err
 		}
-		//b = append(bh, b...)
 		b = bh
-		vm.st.Down(sym)
-		vm.ca.Push()
 	}
 	return b, nil
 }

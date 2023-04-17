@@ -1,0 +1,3 @@
+HALT
+LOAD again 0
+INCMP * _

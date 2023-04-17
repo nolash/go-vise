@@ -1,0 +1,6 @@
+LOAD verifyinput 0
+MAP verifyinput
+HALT
+RELOAD verifyinput
+CATCH . 8 1
+MOVE end
