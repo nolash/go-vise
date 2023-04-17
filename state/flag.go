@@ -20,5 +20,11 @@ func IsWriteableFlag(flag uint32) bool {
 	return false
 }
 
-type FlagDebugger struct {
+// Retrieve the state of a state flag
+func getFlag(bitIndex uint32, bitField []byte) bool {
+	byteIndex := bitIndex / 8
+	localBitIndex := bitIndex % 8
+	b := bitField[byteIndex]
+	return (b & (1 << localBitIndex)) > 0
 }
+
