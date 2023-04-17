@@ -36,6 +36,7 @@ type State struct {
 	Flags []byte // Error state
 	Moves uint32 // Number of times navigation has been performed
 	input []byte // Last input
+	debug bool // Make string representation more human friendly
 }
 
 // number of bytes necessary to represent a bitfield of the given size.
@@ -50,13 +51,13 @@ func toByteSize(BitSize uint32) uint8 {
 	return uint8(BitSize / 8)
 }
 
-// Retrieve the state of a state flag
-func getFlag(bitIndex uint32, bitField []byte) bool {
-	byteIndex := bitIndex / 8
-	localBitIndex := bitIndex % 8
-	b := bitField[byteIndex]
-	return (b & (1 << localBitIndex)) > 0
-}
+//// Retrieve the state of a state flag
+//func getFlag(bitIndex uint32, bitField []byte) bool {
+//	byteIndex := bitIndex / 8
+//	localBitIndex := bitIndex % 8
+//	b := bitField[byteIndex]
+//	return (b & (1 << localBitIndex)) > 0
+//}
 
 // NewState creates a new State object with BitSize number of error condition states in ADDITION to the 8 builtin flags.
 func NewState(BitSize uint32) State {
@@ -69,6 +70,11 @@ func NewState(BitSize uint32) State {
 	} else {
 		st.Flags = []byte{}
 	}
+	return st
+}
+
+func(st State) WithDebug() State {
+	st.debug = true
 	return st
 }
 
@@ -342,7 +348,13 @@ func(st *State) Restart() error {
 
 // String implements String interface
 func(st State) String() string {
-	return fmt.Sprintf("moves %v idx %v flags: 0x%x path: %s", st.Moves, st.SizeIdx, st.Flags, strings.Join(st.ExecPath, "/"))
+	var flags string
+	if st.debug {
+		flags = FlagDebugger.AsString(st.Flags, st.BitSize - 8)
+	} else {
+		flags = fmt.Sprintf("0x%x", st.Flags)
+	}
+	return fmt.Sprintf("moves: %v idx: %v flags: %s path: %s", st.Moves, st.SizeIdx, flags, strings.Join(st.ExecPath, "/"))
 }
 
 // initializes all flags not in control of client.
