@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -23,11 +24,11 @@ type Asm struct {
 
 // Arg holds all parsed argument elements of a single line of assembly code.
 type Arg struct {
-	Sym *string `((@SpecialSym | @Sym) Whitespace?)?`
+	Sym *string `(@Sym Whitespace?)?`
 	Size *uint32 `(@Size Whitespace?)?`
 	Flag *uint8 `(@Size Whitespace?)?`
-	Selector *string `((@SpecialSym | @SpecialSelector | @Sym) Whitespace?)?`
-	Desc *string `(Quote (@Sym @Whitespace?)+ Quote Whitespace?)?`
+	Selector *string `(@Sym Whitespace?)?`
+	Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
 }
 
 func flush(b *bytes.Buffer, w io.Writer) (int, error) {
@@ -183,7 +184,7 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 
 	// Catch
 	if a.Selector != nil {
-		Logg.Tracef("entring twosym", "op", op)
+		log.Printf("entering twosym for %v", op)
 		n, err := parseTwoSym(b, a)
 		n_buf += n
 		if err != nil {
@@ -246,7 +247,7 @@ func (a Arg) String() string {
 type Instruction struct {
 	OpCode string `@Ident`
 	OpArg Arg `(Whitespace @@)?`
-	Comment string `Whitespace? Comment? EOL`
+	Comment string `Comment? EOL`
 }
 
 // String implement the String interface.
@@ -259,10 +260,7 @@ var (
 		{"Comment", `(?:#)[^\n]*`},
 		{"Ident", `^[A-Z]+`},
 		{"Size", `[0-9]+`},
-		{"Cap", `[A-Z]`},
-		{"Sym", `[a-zA-Z0-9_]+`},
-		{"SpecialSym", `_`},
-		{"SpecialSelector", `[\*\.]`},
+		{"Sym", `[a-zA-Z_\*\.][a-zA-Z0-9_]*`},
 		{"Whitespace", `[ \t]+`},
 		{"EOL", `[\n\r]+`},
 		{"Quote", `["']`},
@@ -357,7 +355,7 @@ func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 	} else if arg.Sym != nil {
 		sym = *arg.Sym
 	}
-	Logg.Debugf("menu processor add", "code", code, "selector", selector, "desc", *arg.Desc, "sym", sym) //%v '%v' '%v' '%v'", code, selector, *arg.Desc, sym)
+	log.Printf("menu processor add %v '%v' '%v' '%v'", code, selector, *arg.Desc, sym)
 	err := bt.menuProcessor.Add(code, selector, *arg.Desc, sym)
 	return 0, err
 }
@@ -381,7 +379,7 @@ func Parse(s string, w io.Writer) (int, error) {
 
 	var rn int
 	for _, v := range ast.Instructions {
-		Logg.Debugf("parsing line", "opcode", v.OpCode, "args", v.OpArg)
+		log.Printf("parsing line %v: %v", v.OpCode, v.OpArg)
 		op, ok := vm.OpcodeIndex[v.OpCode]
 		if !ok {
 			n, err := batch.MenuAdd(w, v.OpCode, v.OpArg)
@@ -400,7 +398,7 @@ func Parse(s string, w io.Writer) (int, error) {
 			if err != nil {
 				return rn, err
 			}
-			Logg.Debugf("wrote bytecode", "bytes", n, "args", v.OpArg)
+			log.Printf("wrote %v bytes for %v", n, v.OpArg)
 		}
 	}
 	n, err := batch.Exit(w)

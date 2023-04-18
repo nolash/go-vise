@@ -1,15 +1,13 @@
-examples: profile session helloworld validate
-
-.PHONY: examples
+all: profile session helloworld validate
 
 profile:
-	bash examples/compile.bash examples/profile
+	make -C examples/profile
 
 session:
-	bash examples/compile.bash examples/session
+	make -C examples/session
 
 helloworld:
-	bash examples/compile.bash examples/helloworld
+	make -C examples/session
 
 validate:
-	bash examples/compile.bash examples/validate
+	make -C examples/validate
