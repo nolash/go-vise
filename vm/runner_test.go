@@ -80,6 +80,8 @@ func (r TestResource) GetTemplate(sym string) (string, error) {
 		return "root", nil
 	case "_catch":
 		return "aiee", nil
+	case "ouf":
+		return "ouch", nil
 	case "flagCatch":
 		return "flagiee", nil
 	}
@@ -124,6 +126,9 @@ func(r TestResource) GetCode(sym string) ([]byte, error) {
 		b = NewLine(b, MOVE, []string{"_"}, nil, nil)
 	case "root":
 		b = r.RootCode
+	case "ouf":
+		b = NewLine(b, MOUT, []string{"1", "oo"}, nil, nil)
+		b = NewLine(b, HALT, nil, nil, nil)
 	}
 
 	return b, nil
@@ -185,6 +190,7 @@ func TestRunLoadRender(t *testing.T) {
 		t.Fatal(err)
 	}
 	b = NewLine(nil, MAP, []string{"one"}, nil, nil)
+	b = NewLine(b, MAP, []string{"two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	_, err = vm.Run(b, ctx)
 	if err != nil {
@@ -582,4 +588,41 @@ func TestInputIgnoreWildcard(t *testing.T) {
 	if location != "one" {
 		t.Fatalf("expected 'one', got %s", location)
 	}
+}
+
+func TestCatchCleanMenu(t *testing.T) {
+	st := state.NewState(5)
+	rs := TestResource{}
+	ca := cache.NewCache()
+	vm := NewVm(&st, &rs, ca, nil)
+
+	var err error
+
+	st.Down("root")
+
+	b := NewLine(nil, MOUT, []string{"1", "one"}, nil, nil)
+	b = NewLine(b, MOUT, []string{"2", "two"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+	b = NewLine(b, INCMP, []string{"1", "foo"}, nil, nil)
+	b = NewLine(b, CATCH, []string{"ouf"}, []byte{0x08}, []uint8{0x01})
+
+	ctx := context.TODO()
+
+	st.SetInput([]byte("foo"))
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	st.SetInput([]byte("foo"))
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r, err := vm.Render(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("Result:\n%s", r)
 }

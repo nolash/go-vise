@@ -76,6 +76,8 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 			if err != nil {
 				panic(err)
 			}
+			vm.pg.Reset()
+			vm.mn.Reset()
 		}
 
 		_, err = vm.st.SetFlag(state.FLAG_DIRTY)

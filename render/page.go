@@ -176,6 +176,9 @@ func(pg *Page) Render(sym string, idx uint16) (string, error) {
 func(pg *Page) Reset() {
 	pg.sink = nil
 	pg.cacheMap = make(map[string]string)
+	if pg.menu != nil {
+		pg.menu.Reset()
+	}
 }
 
 // render menu and all syms except sink, split sink into display chunks

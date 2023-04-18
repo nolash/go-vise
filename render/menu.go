@@ -178,4 +178,7 @@ func(m *Menu) reset() {
 	}
 }
 
-
+func(m *Menu) Reset() {
+	m.menu = [][2]string{}
+	m.reset()
+}

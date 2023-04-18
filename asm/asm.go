@@ -23,11 +23,11 @@ type Asm struct {
 
 // Arg holds all parsed argument elements of a single line of assembly code.
 type Arg struct {
-	Sym *string `(@Sym Whitespace?)?`
+	Sym *string `((@SpecialSym | @Sym) Whitespace?)?`
 	Size *uint32 `(@Size Whitespace?)?`
 	Flag *uint8 `(@Size Whitespace?)?`
-	Selector *string `(@Sym Whitespace?)?`
-	Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
+	Selector *string `((@SpecialSym | @SpecialSelector | @Sym) Whitespace?)?`
+	Desc *string `(Quote (@Sym @Whitespace?)+ Quote Whitespace?)?`
 }
 
 func flush(b *bytes.Buffer, w io.Writer) (int, error) {
@@ -246,7 +246,7 @@ func (a Arg) String() string {
 type Instruction struct {
 	OpCode string `@Ident`
 	OpArg Arg `(Whitespace @@)?`
-	Comment string `Comment? EOL`
+	Comment string `Whitespace? Comment? EOL`
 }
 
 // String implement the String interface.
@@ -259,7 +259,10 @@ var (
 		{"Comment", `(?:#)[^\n]*`},
 		{"Ident", `^[A-Z]+`},
 		{"Size", `[0-9]+`},
-		{"Sym", `[a-zA-Z_\*\.][a-zA-Z0-9_]*`},
+		{"Cap", `[A-Z]`},
+		{"Sym", `[a-zA-Z0-9_]+`},
+		{"SpecialSym", `_`},
+		{"SpecialSelector", `[\*\.]`},
 		{"Whitespace", `[ \t]+`},
 		{"EOL", `[\n\r]+`},
 		{"Quote", `["']`},

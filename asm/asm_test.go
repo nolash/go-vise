@@ -247,3 +247,19 @@ func TestParserWriteMultiple(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestParserCapQuote(t *testing.T) {
+	t.Skip("please fix mysterious ignore of initial cap in display sym match")
+	b := vm.NewLine(nil, vm.MOUT, []string{"a", "foo"}, nil, nil) 
+	b = vm.NewLine(b, vm.MOUT, []string{"b", "Bar"}, nil, nil) 
+	b = vm.NewLine(b, vm.MOUT, []string{"c", "baz"}, nil, nil) 
+	s, err := vm.ToString(b)
+	log.Printf("parsing:\n%s", s)
+
+	r := bytes.NewBuffer(nil)
+	n, err := Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = n
+}
