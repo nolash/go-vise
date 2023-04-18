@@ -29,6 +29,12 @@ var (
 	LogWriter = os.Stderr
 )
 
+
+func AsString(level int) string {
+	return levelStr[level]	
+}
+
+
 type Logger interface {
 	Writef(w io.Writer, level int, msg string, args ...any)
 	WriteCtxf(ctx context.Context, w io.Writer, level int, msg string, args ...any)
@@ -44,5 +50,5 @@ type Logger interface {
 	WarnCtxf(ctx context.Context, msg string, args ...any)
 	Errorf(msg string, args ...any)
 	ErrorCtxf(ctx context.Context, msg string, args ...any)
-	AsString(level int) string
 }
+

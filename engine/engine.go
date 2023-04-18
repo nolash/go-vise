@@ -54,7 +54,7 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 // It loads and executes code for the start node.
 func(en *Engine) Init(ctx context.Context) (bool, error) {
 	if en.initd {
-		Logg.Debugf("already initialized")
+		Logg.DebugCtxf(ctx, "already initialized")
 		return true, nil
 	}
 	sym := en.root
@@ -67,13 +67,13 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
-	Logg.Debugf("start new init VM run", "code", b)
+	Logg.DebugCtxf(ctx, "start new init VM run", "code", b)
 	b, err = en.vm.Run(b, ctx)
 	if err != nil {
 		return false, err
 	}
 	
-	Logg.Debugf("end new init VM run", "code", b)
+	Logg.DebugCtxf(ctx, "end new init VM run", "code", b)
 	en.st.SetCode(b)
 	err = en.st.SetInput(inSave)
 	if err != nil {
@@ -110,7 +110,7 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	Logg.Infof("new VM execution with input", "input", string(input))
+	Logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
 	code, err := en.st.GetCode()
 	if err != nil {
 		return false, err

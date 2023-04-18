@@ -30,7 +30,7 @@ func Loop(en *Engine, reader io.Reader, writer io.Writer, ctx context.Context) e
 	for running {
 		in, err := bufReader.ReadString('\n')
 		if err == io.EOF {
-			Logg.Debugf("EOF found, that's all folks")
+			Logg.DebugCtxf(ctx, "EOF found, that's all folks")
 			return nil
 		}
 		if err != nil {
