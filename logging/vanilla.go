@@ -34,20 +34,21 @@ func(v Vanilla) Printf(level int, msg string, args ...any) {
 	v.Writef(LogWriter, level, msg, args...)
 }
 
-func(v Vanilla) Writef(w io.Writer, level int, msg string, args ...any) {
+func(v Vanilla) writef(w io.Writer, file string, line int, level int, msg string, args ...any) {
 	if level > v.levelFilter {
 		return
 	}
-	var file string
-	var line int
-	_, file, line, _ = runtime.Caller(0) // BUG: needs to be passed from top to aliased private functions
-	basefile := path.Base(file)
 	argsStr := argsToString(args)
 	if len(msg) > 0 {
-		fmt.Fprintf(w, "[%s] %s:%s:%v %s\t%s\n", v.AsString(level), v.domain, basefile, line, msg, argsStr)
+		fmt.Fprintf(w, "[%s] %s:%s:%v %s\t%s\n", v.AsString(level), v.domain, file, line, msg, argsStr)
 	} else {
-		fmt.Fprintf(w, "[%s] %s:%s:%v %s\n", v.AsString(level), v.domain, basefile, line, argsStr)
+		fmt.Fprintf(w, "[%s] %s:%s:%v %s\n", v.AsString(level), v.domain, file, line, argsStr)
 	}
+}
+
+func(v Vanilla) Writef(w io.Writer, level int, msg string, args ...any) {
+	file, line := getCaller(2)
+	v.writef(w, file, line, level, msg, args)
 }
 
 func argsToString(args []any) string {
@@ -79,8 +80,18 @@ func(v Vanilla) WriteCtxf(ctx context.Context, w io.Writer, level int, msg strin
 	v.Writef(w, level, msg, args...)
 }
 
+func(v Vanilla) printf(level int, msg string, args ...any) {
+	file, line := getCaller(3)
+	v.writef(LogWriter, file, line, level, msg, args...)
+}
+
+func(v Vanilla) printCtxf(ctx context.Context, level int, msg string, args ...any) {
+	file, line := getCaller(3)
+	v.writef(LogWriter, file, line, level, msg, args...)
+}
+
 func(v Vanilla) PrintCtxf(ctx context.Context, level int, msg string, args ...any) {
-	v.Printf(level, msg, args...)
+	v.printf(level, msg, args...)
 }
 
 func(v Vanilla) AsString(level int) string {
@@ -88,41 +99,49 @@ func(v Vanilla) AsString(level int) string {
 }
 
 func(v Vanilla) Tracef(msg string, args ...any) {
-	v.Printf(LVL_TRACE, msg, args...)
+	v.printf(LVL_TRACE, msg, args...)
 }
 
 func(v Vanilla) Debugf(msg string, args ...any) {
-	v.Printf(LVL_DEBUG, msg, args...)
+	v.printf(LVL_DEBUG, msg, args...)
 }
 
 func(v Vanilla) Infof(msg string, args ...any) {
-	v.Printf(LVL_INFO, msg, args...)
+	v.printf(LVL_INFO, msg, args...)
 }
 
 func(v Vanilla) Warnf(msg string, args ...any) {
-	v.Printf(LVL_WARN, msg, args...)
+	v.printf(LVL_WARN, msg, args...)
 }
 
 func(v Vanilla) Errorf(msg string, args ...any) {
-	v.Printf(LVL_ERROR, msg, args...)
+	v.printf(LVL_ERROR, msg, args...)
 }
 
 func(v Vanilla) TraceCtxf(ctx context.Context, msg string, args ...any) {
-	v.PrintCtxf(ctx, LVL_TRACE, msg, args...)
+	v.printCtxf(ctx, LVL_TRACE, msg, args...)
 }
 
 func(v Vanilla) DebugCtxf(ctx context.Context, msg string, args ...any) {
-	v.PrintCtxf(ctx, LVL_DEBUG, msg, args...)
+	v.printCtxf(ctx, LVL_DEBUG, msg, args...)
 }
 
 func(v Vanilla) InfoCtxf(ctx context.Context, msg string, args ...any) {
-	v.PrintCtxf(ctx, LVL_INFO, msg, args...)
+	v.printCtxf(ctx, LVL_INFO, msg, args...)
 }
 
 func(v Vanilla) WarnCtxf(ctx context.Context, msg string, args ...any) {
-	v.PrintCtxf(ctx, LVL_WARN, msg, args...)
+	v.printCtxf(ctx, LVL_WARN, msg, args...)
 }
 
 func(v Vanilla) ErrorCtxf(ctx context.Context, msg string, args ...any) {
-	v.PrintCtxf(ctx, LVL_ERROR, msg, args...)
+	v.printCtxf(ctx, LVL_ERROR, msg, args...)
+}
+
+func getCaller(depth int) (string, int) {
+	var file string
+	var line int
+	_, file, line,_ = runtime.Caller(depth)
+	baseFile := path.Base(file)
+	return baseFile, line
 }
