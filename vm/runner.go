@@ -3,7 +3,6 @@ package vm
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"git.defalsify.org/vise/cache"
 	"git.defalsify.org/vise/render"
@@ -31,7 +30,7 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 		sizer: sizer,
 	}
 	vmi.Reset()
-	log.Printf("vm created with state: %v", st)
+	Logg.Infof("vm created with state", "state", st)
 	return vmi
 }
 
@@ -58,7 +57,8 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 			panic(err)
 		}
 		if r {
-			log.Printf("terminate set! bailing!")
+			//log.Printf("terminate set! bailing!")
+			Logg.Infof("terminate set! bailing")
 			return []byte{}, nil
 		}
 		//vm.st.ResetBaseFlags()
@@ -87,8 +87,8 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 			return b, err
 		}
 		b = bb
-		log.Printf("execute code %x (%s) %x", op, OpcodeString[op], b)
-		log.Printf("state: %v", vm.st)
+		Logg.Debugf("execute code", "opcode", op, "op", OpcodeString[op], "code", b)
+		Logg.Debugf("", "state", vm.st)
 		switch op {
 		case CATCH:
 			b, err = vm.RunCatch(b, ctx)
@@ -150,7 +150,7 @@ func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 		panic(err)
 	}
 	if r {
-		log.Printf("Not processing input. Setting terminate")
+		Logg.Debugf("Not processing input. Setting terminate")
 		_, err := vm.st.SetFlag(state.FLAG_TERMINATE)
 		if err != nil {
 			panic(err)
@@ -162,12 +162,12 @@ func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 		panic(err)
 	}
 	if r {
-		log.Printf("Terminate found!!")
+		Logg.Tracef("Terminate found!!")
 		return b, nil
 	}
 
 
-	log.Printf("no code remaining but not terminating")
+	Logg.Tracef("no code remaining but not terminating")
 	location, _ := vm.st.Where()
 	if location == "" {
 		return b, fmt.Errorf("dead runner with no current location")
@@ -196,7 +196,7 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 		if perr != nil {
 			panic(perr)
 		}
-		log.Printf("terminate set")
+		Logg.Tracef("terminate set")
 		return b, err
 	}
 	if r {
@@ -207,7 +207,7 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 		if err != nil {
 			return b, err
 		}
-		log.Printf("catch at flag %v, moving to '%v' ('%v')", sig, sym, actualSym)
+		Logg.Infof("catch!", "flag", sig, "sym", sym, "target", actualSym)
 		sym = actualSym
 		bh, err := vm.rs.GetCode(sym)
 		if err != nil {
@@ -229,7 +229,7 @@ func(vm *Vm) RunCroak(b []byte, ctx context.Context) ([]byte, error) {
 		return b, err
 	}
 	if r {
-		log.Printf("croak at flag %v, purging and moving to top", sig)
+		Logg.Infof("croak at flag %v, purging and moving to top", "signal", sig)
 		vm.Reset()
 		vm.pg.Reset()
 		vm.ca.Reset()
@@ -291,7 +291,7 @@ func(vm *Vm) RunMove(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	log.Printf("loaded code for %s: %x", sym, code)
+	Logg.Debugf("loaded code", "sym", sym, "code", code)
 	b = append(b, code...)
 	vm.Reset()
 	return b, nil
@@ -315,7 +315,7 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	}
 	if have {
 		if reading {
-			log.Printf("ignoring input %s, already have match", sym)
+			Logg.Debugf("ignoring input - already have match", "input", sym)
 			return b, nil
 		}
 	} else {
@@ -328,16 +328,15 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	log.Printf("testing sym %s input %s", sym, input)
+	Logg.Tracef("testing sym", "sym", sym, "input", input)
 
 	if !have && sym == "*" {
-		log.Printf("input wildcard match ('%s'), target '%s'", input, target)
+		Logg.Debugf("input wildcard match", "input", input, "target", target)
 	} else {
 		if sym != string(input) {
-			log.Printf("foo")
 			return b, nil
 		} 
-		log.Printf("input match for '%s', target '%s'", input, target)
+		Logg.Infof("input match", "input", input, "target", target)
 	}
 	_, err = vm.st.SetFlag(state.FLAG_INMATCH)
 	if err != nil {
@@ -369,8 +368,7 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	log.Printf("bar")
-	log.Printf("loaded additional code for target '%s': %x", target, code)
+	Logg.Debugf("loaded additional code", "target", target, "code", code)
 	b = append(b, code...)
 	return b, err
 }
@@ -382,7 +380,7 @@ func(vm *Vm) RunHalt(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	log.Printf("found HALT, stopping")
+	Logg.Debugf("found HALT, stopping")
 	
 	_, err = vm.st.SetFlag(state.FLAG_WAIT)
 	if err != nil {
@@ -393,7 +391,7 @@ func(vm *Vm) RunHalt(b []byte, ctx context.Context) ([]byte, error) {
 
 // RunMSize executes the MSIZE opcode
 func(vm *Vm) RunMSize(b []byte, ctx context.Context) ([]byte, error) {
-	log.Printf("WARNING MSIZE not yet implemented")
+	Logg.Warnf("MSIZE not yet implemented")
 	_, _, b, err := ParseMSize(b)
 	return b, err
 }
@@ -474,7 +472,7 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 	input, _ := vm.st.GetInput()
 	r, err := fn(key, input, ctx)
 	if err != nil {
-		log.Printf("loadfail %v", err)
+		Logg.Tracef("loadfail", "err", err)
 		var perr error
 		_, perr = vm.st.SetFlag(state.FLAG_LOADFAIL)
 		if perr != nil {

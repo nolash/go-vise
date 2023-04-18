@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 )
 
@@ -31,7 +30,7 @@ func Loop(en *Engine, reader io.Reader, writer io.Writer, ctx context.Context) e
 	for running {
 		in, err := bufReader.ReadString('\n')
 		if err == io.EOF {
-			log.Printf("EOF found, that's all folks")
+			Logg.Debugf("EOF found, that's all folks")
 			return nil
 		}
 		if err != nil {

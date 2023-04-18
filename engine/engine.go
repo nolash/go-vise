@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 
 	"git.defalsify.org/vise/cache"
 	"git.defalsify.org/vise/render"
@@ -55,7 +54,7 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 // It loads and executes code for the start node.
 func(en *Engine) Init(ctx context.Context) (bool, error) {
 	if en.initd {
-		log.Printf("already initialized")
+		Logg.Debugf("already initialized")
 		return true, nil
 	}
 	sym := en.root
@@ -68,13 +67,13 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 		return false, err
 	}
 	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
-	log.Printf("start new init VM run with code %x", b)
+	Logg.Debugf("start new init VM run", "code", b)
 	b, err = en.vm.Run(b, ctx)
 	if err != nil {
 		return false, err
 	}
 	
-	log.Printf("ended init VM run with code %x", b)
+	Logg.Debugf("end new init VM run", "code", b)
 	en.st.SetCode(b)
 	err = en.st.SetInput(inSave)
 	if err != nil {
@@ -111,7 +110,7 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 		return false, err
 	}
 
-	log.Printf("new execution with input '%s' (0x%x)", input, input)
+	Logg.Infof("new VM execution with input", "input", string(input))
 	code, err := en.st.GetCode()
 	if err != nil {
 		return false, err
@@ -120,12 +119,12 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("no code to execute")
 	}
 
-	log.Printf("start new VM run with code %x", code)
+	Logg.Debugf("start new VM run", "code", code)
 	code, err = en.vm.Run(code, ctx)
 	if err != nil {
 		return false, err
 	}
-	log.Printf("ended VM run with code %x", code)
+	Logg.Debugf("end new VM run", "code", code)
 
 	v, err := en.st.MatchFlag(state.FLAG_TERMINATE, false)
 	if err != nil {
@@ -133,14 +132,14 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	}
 	if v {
 		if len(code) > 0 {
-			log.Printf("terminated with code remaining: %x", code)
+			Logg.Debugf("terminated with code remaining", "code", code)
 		}
 		return false, err
 	}
 
 	en.st.SetCode(code)
 	if len(code) == 0 {
-		log.Printf("runner finished with no remaining code")
+		Logg.Infof("runner finished with no remaining code")
 		_, err = en.reset(ctx)
 		return false, err
 	}

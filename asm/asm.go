@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -184,7 +183,7 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 
 	// Catch
 	if a.Selector != nil {
-		log.Printf("entering twosym for %v", op)
+		Logg.Tracef("entring twosym", "op", op)
 		n, err := parseTwoSym(b, a)
 		n_buf += n
 		if err != nil {
@@ -355,7 +354,7 @@ func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 	} else if arg.Sym != nil {
 		sym = *arg.Sym
 	}
-	log.Printf("menu processor add %v '%v' '%v' '%v'", code, selector, *arg.Desc, sym)
+	Logg.Debugf("menu processor add", "code", code, "selector", selector, "desc", *arg.Desc, "sym", sym) //%v '%v' '%v' '%v'", code, selector, *arg.Desc, sym)
 	err := bt.menuProcessor.Add(code, selector, *arg.Desc, sym)
 	return 0, err
 }
@@ -379,7 +378,7 @@ func Parse(s string, w io.Writer) (int, error) {
 
 	var rn int
 	for _, v := range ast.Instructions {
-		log.Printf("parsing line %v: %v", v.OpCode, v.OpArg)
+		Logg.Debugf("parsing line", "opcode", v.OpCode, "args", v.OpArg)
 		op, ok := vm.OpcodeIndex[v.OpCode]
 		if !ok {
 			n, err := batch.MenuAdd(w, v.OpCode, v.OpArg)
@@ -398,7 +397,7 @@ func Parse(s string, w io.Writer) (int, error) {
 			if err != nil {
 				return rn, err
 			}
-			log.Printf("wrote %v bytes for %v", n, v.OpArg)
+			Logg.Debugf("wrote bytecode", "bytes", n, "args", v.OpArg)
 		}
 	}
 	n, err := batch.Exit(w)

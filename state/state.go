@@ -2,7 +2,6 @@ package state
 
 import (
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -209,7 +208,7 @@ func(st *State) Next() (uint16, error) {
 	}
 	st.SizeIdx += 1
 	s, idx := st.Where()
-	log.Printf("next page for %s: %v", s, idx)
+	Logg.Debugf("next page", "location", s, "index", idx)
 	st.Moves += 1
 	return st.SizeIdx, nil
 }
@@ -230,7 +229,7 @@ func(st *State) Previous() (uint16, error) {
 	}
 	st.SizeIdx -= 1
 	s, idx := st.Where()
-	log.Printf("previous page for %s: %v", s, idx)
+	Logg.Debugf("previous page", "location", s, "index", idx)
 	st.Moves += 1
 	return st.SizeIdx, nil
 }
@@ -243,7 +242,7 @@ func(st *State) Sides() (bool, bool) {
 		return false, false
 	}
 	next := true
-	log.Printf("sides %v", st.SizeIdx)
+	Logg.Tracef("sides", "index", st.SizeIdx)
 	if st.SizeIdx == 0 {
 		return next, false	
 	}
@@ -282,14 +281,14 @@ func(st *State) Up() (string, error) {
 	if l == 0 {
 		return "", fmt.Errorf("exit called beyond top frame")
 	}
-	log.Printf("execpath before %v", st.ExecPath)
+	Logg.Tracef("execpath before", "path", st.ExecPath)
 	st.ExecPath = st.ExecPath[:l-1]
 	sym := ""
 	if len(st.ExecPath) > 0 {
 		sym = st.ExecPath[len(st.ExecPath)-1]
 	}
 	st.SizeIdx = 0
-	log.Printf("execpath after %v", st.ExecPath)
+	Logg.Tracef("execpath after", "path", st.ExecPath)
 	st.Moves += 1
 	return sym, nil
 }
@@ -302,13 +301,13 @@ func(st *State) Depth() uint8 {
 // Appendcode adds the given bytecode to the end of the existing code.
 func(st *State) AppendCode(b []byte) error {
 	st.Code = append(st.Code, b...)
-	log.Printf("code changed to 0x%x", b)
+	Logg.Debugf("code changed (append)", "code", b)
 	return nil
 }
 
 // SetCode replaces the current bytecode with the given bytecode.
 func(st *State) SetCode(b []byte) {
-	log.Printf("code set to 0x%x", b)
+	Logg.Debugf("code changed (set)", "code", b)
 	st.Code = b
 }
 

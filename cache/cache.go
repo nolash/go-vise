@@ -2,7 +2,6 @@ package cache
 
 import (
 	"fmt"
-	"log"
 )
 
 // Cache stores loaded content, enforcing size limits and keeping track of size usage.
@@ -46,7 +45,7 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	checkFrame := ca.frameOf(key)
 	if checkFrame > -1 {
 		if checkFrame == len(ca.Cache) - 1 {
-			log.Printf("Ignoring load request on frame that has symbol already loaded")
+			Logg.Debugf("Ignoring load request on frame that has symbol already loaded")
 			return nil
 		}
 		return fmt.Errorf("key %v already defined in frame %v", key, checkFrame)
@@ -58,7 +57,8 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 			return fmt.Errorf("Cache capacity exceeded %v of %v", ca.CacheUseSize + sz, ca.CacheSize)
 		}
 	}
-	log.Printf("add key %s value size %v limit %v", key, sz, sizeLimit)
+	Logg.Infof("Cache add", "key", key, "size", sz, "limit", sizeLimit)
+	Logg.Tracef("", "Cache add data", value)
 	ca.Cache[len(ca.Cache)-1][key] = value
 	ca.CacheUseSize += sz
 	ca.Sizes[key] = sizeLimit
@@ -152,7 +152,7 @@ func (ca *Cache) Pop() error {
 	for k, v := range m {
 		sz := len(v)
 		ca.CacheUseSize -= uint32(sz)
-		log.Printf("free frame %v key %v value size %v", l, k, sz)
+		Logg.Debugf("Cache free", "frame", l, "key", k, "size", sz)
 	}
 	ca.Cache = ca.Cache[:l]
 	//ca.resetCurrent()

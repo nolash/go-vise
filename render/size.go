@@ -3,7 +3,6 @@ package render
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -46,8 +45,8 @@ func(szr *Sizer) Check(s string) (uint32, bool) {
 	l := uint32(len(s))
 	if szr.outputSize > 0 {
 		if l > szr.outputSize {
-			log.Printf("sizer check fails with length %v: %s", l, szr)
-			log.Printf("sizer contents:\n%s", s)
+			Logg.Infof("sized check fails", "length", l, "sizer", szr)
+			Logg.Tracef("", "sizer contents", s)
 			return 0, false
 		}
 		l = szr.outputSize - l
@@ -82,7 +81,7 @@ func(szr *Sizer) MenuSize() uint16 {
 
 // AddCursor adds a pagination cursor for the paged sink content.
 func(szr *Sizer) AddCursor(c uint32) {
-	log.Printf("added cursor: %v", c)
+	Logg.Debugf("Added cursor", "offset", c)
 	szr.crsrs = append(szr.crsrs, c)
 }
 

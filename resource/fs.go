@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path"
 	"path/filepath"
 	"strings"
@@ -69,7 +68,7 @@ func(fs FsResource) getFunc(sym string, input []byte, ctx context.Context) (Resu
 func(fs FsResource) getFuncNoCtx(sym string, input []byte) (Result, error) {
 	fb := sym + ".txt"
 	fp := path.Join(fs.Path, fb)
-	log.Printf("getfunc search dir %s %s for %s", fs.Path, fp, sym)
+	Logg.Debugf("getfunc search dir", "dir", fs.Path, "path", fp, "sym", sym)
 	r, err := ioutil.ReadFile(fp)
 	if err != nil {
 		return Result{}, fmt.Errorf("failed getting data for sym '%s': %v", sym, err)

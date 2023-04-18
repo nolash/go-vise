@@ -3,7 +3,6 @@ package render
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"strings"
 	"text/template"
 
@@ -59,7 +58,6 @@ func(pg *Page) Usage() (uint32, uint32, error) {
 			return 0, 0, err
 		}
 		c += sz
-		log.Printf("v %x %v %v %v %v", []byte(v), len(v), l, sz, c)
 	}
 	r := uint32(l)
 	rsv := uint32(c)-r
@@ -96,7 +94,7 @@ func(pg *Page) Map(key string) error {
 			return err
 		}
 	}
-	log.Printf("mapped %s", key)
+	Logg.Tracef("mapped", "key", key)
 	return nil
 }
 
@@ -144,7 +142,7 @@ func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16) 
 	} else if idx > 0 {
 		return "", fmt.Errorf("sizer needed for indexed render")
 	}
-	log.Printf("render for index: %v", idx)
+	Logg.Debugf("render for", "index", idx)
 	
 	tp, err := template.New("tester").Option("missingkey=error").Parse(tpl)
 	if err != nil {
@@ -200,13 +198,13 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 			sink = k
 			sinkValues = strings.Split(v, "\n")
 			v = ""
-			log.Printf("found sink %s with field count %v", k, len(sinkValues))
+			Logg.Infof("found sink", "sym", k, "fields", len(sinkValues))
 		}
 		noSinkValues[k] = v
 	}
 	
 	if sink == "" {
-		log.Printf("no sink found for sym %s", sym)
+		Logg.Tracef("no sink found", "sym", sym)
 		return values, nil
 	}
 
@@ -244,7 +242,7 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 		menuSizes[3] = menuSizes[1] + menuSizes[2]
 	}
 
-	log.Printf("%v bytes available for sink split before navigation", remaining)
+	Logg.Debugf("calculated pre-navigation allocation", "bytes", remaining)
 
 	l := 0
 	var count uint16
@@ -258,7 +256,7 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 
 	for i, v := range sinkValues {
 		l += len(v)
-		log.Printf("processing sinkvalue %v: %s", i, v)
+		Logg.Tracef("processing sink", "idx", i, "value", v)
 		if uint32(l) > netRemaining - 1 {
 			if tb.Len() == 0 {
 				return nil, fmt.Errorf("capacity insufficient for sink field %v", i)
@@ -296,7 +294,7 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[st
 	}
 
 	for i, v := range strings.Split(r, "\n") {
-		log.Printf("nosinkvalue %v: %s", i, v)
+		Logg.Tracef("nosinkvalue", "idx", i, "value", v)
 	}
 
 	return noSinkValues, nil
@@ -310,7 +308,7 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 	if err != nil {
 		return "", err
 	}
-	log.Printf("rendered %v bytes for template", len(s))
+	Logg.Debugf("rendered template", "bytes", len(s))
 	r += s
 
 	if pg.menu != nil {
@@ -318,7 +316,7 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 		if err != nil {
 			return "", err
 		}
-		log.Printf("rendered %v bytes for menu", len(s))
+		Logg.Debugf("rendered menu", "bytes", len(s))
 		if len(s) > 0 {
 			r += "\n" + s
 		}
@@ -332,4 +330,3 @@ func(pg *Page) render(sym string, values map[string]string, idx uint16) (string,
 	}
 	return r, nil
 }
-

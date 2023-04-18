@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 )
 
 // ToString verifies all instructions in bytecode and returns an assmebly code instruction for it.
@@ -14,7 +13,7 @@ func ToString(b []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	log.Printf("Total %v bytes written to string buffer", n)
+	Logg.Tracef("", "bytes_written", n)
 	return buf.String(), nil
 }
 
@@ -155,7 +154,7 @@ func ParseAll(b []byte, w io.Writer) (int, error) {
 				return rn, err
 			}
 			rn += n
-			log.Printf("wrote %v bytes for instruction %v", n, s)
+			Logg.Tracef("instruction debug write", "bytes", n, "instruction", s)
 		}
 
 		//rs += "\n"

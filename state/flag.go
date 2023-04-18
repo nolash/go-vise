@@ -27,4 +27,3 @@ func getFlag(bitIndex uint32, bitField []byte) bool {
 	b := bitField[byteIndex]
 	return (b & (1 << localBitIndex)) > 0
 }
-

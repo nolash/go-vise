@@ -2,7 +2,6 @@ package persist
 
 import (
 	"io/ioutil"
-	"log"
 	"path"
 	"path/filepath"
 	"github.com/fxamacker/cbor/v2"
@@ -68,7 +67,7 @@ func(p *FsPersister) Save(key string) error {
 		return err
 	}
 	fp := path.Join(p.dir, key)
-	log.Printf("saved key %v state %x", key, p.State.Code)
+	Logg.Debugf("saved state and cache", "key", key, "bytecode", p.State.Code)
 	return ioutil.WriteFile(fp, b, 0600)
 }
 
@@ -80,6 +79,6 @@ func(p *FsPersister) Load(key string) error {
 		return err
 	}
 	err = p.Deserialize(b)
-	log.Printf("loaded key %v state %x", key, p.State.Code)
+	Logg.Debugf("loaded state and cache", "key", key, "bytecode", p.State.Code)
 	return err
 }

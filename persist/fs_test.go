@@ -3,7 +3,6 @@ package persist
 import (
 	"bytes"
 	"io/ioutil"
-	"log"
 	"reflect"
 	"testing"
 
@@ -33,7 +32,6 @@ func TestSerializeState(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	log.Printf("v %b", v)
 
 	prnew := NewFsPersister(".")
 	err = prnew.Deserialize(v)
