@@ -3,5 +3,5 @@
 package logging
 
 var (
-	LogLevel = LVL_DEBUG
+	LogLevel = LVL_INFO
 )

@@ -1,7 +1,7 @@
-// +build logwarn
+// +build !logwarn,!logdebug,!loginfo,!logtrace,!logerror
 
 package logging
 
 var (
-	LogLevel = LVL_WARN
+	LogLevel = LVL_NONE
 )
