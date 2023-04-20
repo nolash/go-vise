@@ -60,6 +60,7 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 
 // Finish implements EngineIsh interface
 func(en *Engine) Finish() error {
+	Logg.Tracef("that's a wrap", "engine", en)
 	return nil
 }
 
@@ -69,6 +70,7 @@ func(en *Engine) restore() {
 		return
 	}
 	if en.root != location {
+		Logg.Infof("restoring state: %s", location)
 		en.root = "."
 	}
 }

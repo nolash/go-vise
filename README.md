@@ -260,7 +260,7 @@ Outputs bytecodes and templates for test data scenarios used in `engine` unit te
 
 ### Interactive runner
 
-`go run ./dev/interactive [-d <data_directory>] [--root <root_symbol>] [--session-id <session_id>]`
+`go run ./dev/interactive [-d <data_directory>] [--root <root_symbol>] [--session-id <session_id>] [--persist]`
 
 Creates a new interactive session using `engine.DefaultEngine`, starting execution at symbol `root_symbol`
 
@@ -271,6 +271,8 @@ If `data_directory` is not set, current directory will be used.
 if `root_symbol` is not set, the symbol `root` will be used.
 
 if `session_id` is set, mutable data will be stored and retrieved keyed by the given identifer (if implemented).
+
+If `persist` is set, the execution state will be persisted across sessions.
 
 
 ### Assembler

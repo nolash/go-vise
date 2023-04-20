@@ -67,7 +67,7 @@ func(p *FsPersister) Save(key string) error {
 		return err
 	}
 	fp := path.Join(p.dir, key)
-	Logg.Debugf("saved state and cache", "key", key, "bytecode", p.State.Code, "map")
+	Logg.Debugf("saved state and cache", "key", key, "bytecode", p.State.Code)
 	return ioutil.WriteFile(fp, b, 0600)
 }
 

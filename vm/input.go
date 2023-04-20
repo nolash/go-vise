@@ -61,7 +61,6 @@ func valid(target []byte) bool {
 
 	if !ok {
 		err = validControl(target)
-		Logg.Debugf("ouf", "err", err)
 		if err == nil {
 			ok = true
 		}

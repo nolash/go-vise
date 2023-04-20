@@ -44,6 +44,7 @@ func(pe PersistedEngine) Exec(input []byte, ctx context.Context) (bool, error) {
 
 // Finish implements EngineIsh interface
 func(pe PersistedEngine) Finish() error {
+	Logg.Tracef("that's a wrap", "engine", pe)
 	return pe.pr.Save(pe.Engine.session)
 }
 
