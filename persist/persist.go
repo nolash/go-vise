@@ -1,8 +1,8 @@
 package persist
 
 import (
-	"git.defalsify.org/vise/cache"
-	"git.defalsify.org/vise/state"
+	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/state"
 )
 
 // Persister interface defines the methods needed for a component that can store the execution state to a storage location.

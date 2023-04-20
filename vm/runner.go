@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"git.defalsify.org/vise/cache"
-	"git.defalsify.org/vise/render"
-	"git.defalsify.org/vise/resource"
-	"git.defalsify.org/vise/state"
+	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/render"
+	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/state"
 )
 
 // Vm holds sub-components mutated by the vm execution.

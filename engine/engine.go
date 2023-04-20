@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 
-	"git.defalsify.org/vise/cache"
-	"git.defalsify.org/vise/render"
-	"git.defalsify.org/vise/resource"
-	"git.defalsify.org/vise/state"
-	"git.defalsify.org/vise/vm"
+	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/render"
+	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/vm"
 )
 
 // Config globally defines behavior of all components driven by the engine.

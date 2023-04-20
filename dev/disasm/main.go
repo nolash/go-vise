@@ -5,7 +5,7 @@ import (
 	"os"
 	"io/ioutil"
 
-	"git.defalsify.org/vise/vm"
+	"git.defalsify.org/vise.git/vm"
 )
 
 func main() {

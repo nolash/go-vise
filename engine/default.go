@@ -3,9 +3,9 @@ package engine
 import (
 	"context"
 
-	"git.defalsify.org/vise/cache"
-	"git.defalsify.org/vise/resource"
-	"git.defalsify.org/vise/state"
+	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/state"
 )
 
 // NewDefaultEngine is a convenience function to instantiate a filesystem-backed engine with no output constraints.

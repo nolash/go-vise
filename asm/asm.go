@@ -13,7 +13,7 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 
-	"git.defalsify.org/vise/vm"
+	"git.defalsify.org/vise.git/vm"
 )
 
 

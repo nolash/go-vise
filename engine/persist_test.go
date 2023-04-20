@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"git.defalsify.org/vise/cache"
-	"git.defalsify.org/vise/persist"
-	"git.defalsify.org/vise/state"
+	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/persist"
+	"git.defalsify.org/vise.git/state"
 )
 
 func TestPersist(t *testing.T) {

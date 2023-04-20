@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"git.defalsify.org/vise/cache"
-	"git.defalsify.org/vise/state"
-	"git.defalsify.org/vise/vm"
+	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/vm"
 )
 
 func TestSerializeState(t *testing.T) {

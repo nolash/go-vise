@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"git.defalsify.org/vise/cache"
-	"git.defalsify.org/vise/state"
+	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/state"
 )
 
 var (

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"github.com/fxamacker/cbor/v2"
 
-	"git.defalsify.org/vise/cache"
-	"git.defalsify.org/vise/state"
+	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/state"
 )
 
 // FsPersister is an implementation of Persister that saves state to the file system.
