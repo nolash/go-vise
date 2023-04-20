@@ -69,7 +69,7 @@ func(en *Engine) restore() {
 		return
 	}
 	if en.root != location {
-		en.root = "." //location
+		en.root = "."
 	}
 }
 
