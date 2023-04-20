@@ -8,6 +8,36 @@ import (
 	"git.defalsify.org/vise.git/resource"
 )
 
+type PersistedEngine struct {
+	*Engine
+	pr persist.Persister
+}
+
+
+func NewPersistedEngine(cfg Config, pr persist.Persister, rs resource.Resource, ctx context.Context) (PersistedEngine, error) {
+	err := pr.Load(cfg.SessionId)
+	if err != nil {
+		return PersistedEngine{}, err
+	}
+	st := pr.GetState()
+	ca := pr.GetMemory()
+	enb := NewEngine(cfg, st, rs, ca, ctx)
+	en := PersistedEngine{
+		&enb,
+		pr,
+	}
+	return en, nil 
+}
+
+func(pe *PersistedEngine) Exec(input []byte, ctx context.Context) (bool, error) {
+	v, err := pe.Engine.Exec(input, ctx)
+	if err != nil {
+		return v, err
+	}
+	err = pe.pr.Save(pe.Engine.session)
+	return v, err
+}
+
 // RunPersisted performs a single vm execution from client input using a persisted state.
 //
 // State is first loaded from storage. The vm is initialized with the state and executed. The new state is then saved to storage.

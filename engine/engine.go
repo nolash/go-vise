@@ -28,6 +28,7 @@ type Engine struct {
 	ca cache.Memory
 	vm *vm.Vm
 	root string
+	session string
 	initd bool
 }
 
@@ -45,6 +46,7 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 		vm: vm.NewVm(st, rs, ca, szr),
 	}
 	engine.root = cfg.Root	
+	engine.session = cfg.SessionId
 
 	return engine
 }
