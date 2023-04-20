@@ -1,4 +1,4 @@
-module git.defalsify.org/vise
+module git.defalsify.org/vise.git
 
 go 1.20
 
