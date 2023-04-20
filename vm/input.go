@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"regexp"
@@ -37,6 +38,9 @@ func validControl(input []byte) error {
 
 // CheckSym validates the given byte string as a node symbol.
 func ValidSym(input []byte) error {
+	if bytes.Equal(input, []byte("_catch")) {
+		return nil
+	}
 	if !symRegex.Match(input) {
 		return fmt.Errorf("Input '%s' does not match 'sym' format /%s/", input, symRegexStr)
 	}
@@ -57,6 +61,7 @@ func valid(target []byte) bool {
 
 	if !ok {
 		err = validControl(target)
+		Logg.Debugf("ouf", "err", err)
 		if err == nil {
 			ok = true
 		}
@@ -97,11 +102,11 @@ func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Co
 
 	ok := valid(target)
 	if !ok {
-		return sym, idx, fmt.Errorf("invalid input: %x", target)
+		return sym, idx, fmt.Errorf("invalid input: %s", target)
 	}
 
-	switch target[0] {
-	case '_':
+	switch string(target) {
+	case "_":
 		sym, err = st.Up()
 		if err != nil {
 			return sym, idx, err
@@ -111,17 +116,17 @@ func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Co
 			return sym, idx, err
 		}
 
-	case '>':
+	case ">":
 		idx, err = st.Next()
 		if err != nil {
 			return sym, idx, err
 		}
-	case '<':
+	case "<":
 		idx, err = st.Previous()
 		if err != nil {
 			return sym, idx, err
 		}
-	case '^':
+	case "^":
 		notTop := true
 		for notTop {
 			notTop, err := st.Top()
@@ -137,7 +142,7 @@ func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Co
 				return sym, idx, err
 			}
 		}
-	case '.':
+	case ".":
 		st.Same()
 		location, idx := st.Where()
 		return location, idx, nil
@@ -152,6 +157,7 @@ func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Co
 			return sym, idx, err
 		}
 		idx = 0
+		Logg.Debugf("inputsss", "sym", sym)
 	}
 	return sym, idx, nil
 }

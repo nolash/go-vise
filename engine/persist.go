@@ -38,15 +38,13 @@ func(pe PersistedEngine) Exec(input []byte, ctx context.Context) (bool, error) {
 	if err != nil {
 		return v, err
 	}
-	renderer := pe.Engine.vm.Renderer()
-	err = pe.pr.Save(pe.Engine.session, renderer)
+	err = pe.pr.Save(pe.Engine.session)
 	return v, err
 }
 
 // Finish implements EngineIsh interface
 func(pe PersistedEngine) Finish() error {
-	renderer := pe.Engine.vm.Renderer()
-	return pe.pr.Save(pe.Engine.session, renderer)
+	return pe.pr.Save(pe.Engine.session)
 }
 
 // RunPersisted performs a single vm execution from client input using a persisted state.
@@ -71,8 +69,7 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 	if err != nil {
 		return err
 	}
-	renderer := en.vm.Renderer()
-	err = pr.Save(cfg.SessionId, renderer)
+	err = pr.Save(cfg.SessionId)
 	if err != nil {
 		return err
 	}
@@ -89,6 +86,5 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 		return err
 	}
 	en.Finish()
-	renderer = en.vm.Renderer()
-	return pr.Save(cfg.SessionId, renderer)
+	return pr.Save(cfg.SessionId)
 }

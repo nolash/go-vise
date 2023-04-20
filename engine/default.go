@@ -39,7 +39,7 @@ func NewDefaultEngine(dir string, persisted bool, session *string) (EngineIsh, e
 		if err != nil {
 			Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
 			pr = pr.WithContent(&st, ca)
-			err = pr.Save(cfg.SessionId, nil)
+			err = pr.Save(cfg.SessionId)
 			if err != nil {
 				return nil, err
 			}
@@ -80,7 +80,7 @@ func NewSizedEngine(dir string, size uint32, persisted bool, session *string) (E
 		if err != nil {
 			Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
 			pr = pr.WithContent(&st, ca)
-			err = pr.Save(cfg.SessionId, nil)
+			err = pr.Save(cfg.SessionId)
 			if err != nil {
 				return nil, err
 			}
