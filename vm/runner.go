@@ -34,6 +34,11 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 	return vmi
 }
 
+// Renderer returns the current state of the renderer operated on by the vm.
+func(vmi *Vm) Renderer() render.Renderer {
+	return vmi.pg	
+}
+
 // Reset re-initializes sub-components for output rendering.
 func(vmi *Vm) Reset() {
 	vmi.mn = render.NewMenu()
@@ -281,14 +286,7 @@ func(vm *Vm) RunMove(b []byte, ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	if sym == "_" {
-		vm.st.Up()
-		vm.ca.Pop()
-		sym, _ = vm.st.Where()
-	} else {
-		vm.st.Down(sym)
-		vm.ca.Push()
-	}
+	sym, _, err = applyTarget([]byte(sym), vm.st, vm.ca, ctx)
 	code, err := vm.rs.GetCode(sym)
 	if err != nil {
 		return b, err

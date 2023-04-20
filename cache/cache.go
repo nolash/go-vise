@@ -44,11 +44,12 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	}
 	checkFrame := ca.frameOf(key)
 	if checkFrame > -1 {
-		if checkFrame == len(ca.Cache) - 1 {
+		thisFrame := len(ca.Cache) - 1
+		if checkFrame == thisFrame {
 			Logg.Debugf("Ignoring load request on frame that has symbol already loaded")
 			return nil
 		}
-		return fmt.Errorf("key %v already defined in frame %v", key, checkFrame)
+		return fmt.Errorf("key %v already defined in frame %v, this is frame %v", key, checkFrame, thisFrame)
 	}
 	var sz uint32
 	if len(value) > 0 {

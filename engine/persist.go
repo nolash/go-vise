@@ -8,12 +8,14 @@ import (
 	"git.defalsify.org/vise.git/resource"
 )
 
+// PersistedEngine adds persisted state to the Engine object. It provides a persisted state option for synchronous/interactive clients.
 type PersistedEngine struct {
 	*Engine
 	pr persist.Persister
 }
 
 
+// NewPersistedEngine creates a new PersistedEngine
 func NewPersistedEngine(cfg Config, pr persist.Persister, rs resource.Resource, ctx context.Context) (PersistedEngine, error) {
 	err := pr.Load(cfg.SessionId)
 	if err != nil {
@@ -21,21 +23,30 @@ func NewPersistedEngine(cfg Config, pr persist.Persister, rs resource.Resource, 
 	}
 	st := pr.GetState()
 	ca := pr.GetMemory()
+	
 	enb := NewEngine(cfg, st, rs, ca, ctx)
 	en := PersistedEngine{
 		&enb,
 		pr,
 	}
-	return en, nil 
+	return en, err
 }
 
-func(pe *PersistedEngine) Exec(input []byte, ctx context.Context) (bool, error) {
+// Exec executes the parent method Engine.Exec, and afterwards persists the new state.
+func(pe PersistedEngine) Exec(input []byte, ctx context.Context) (bool, error) {
 	v, err := pe.Engine.Exec(input, ctx)
 	if err != nil {
 		return v, err
 	}
-	err = pe.pr.Save(pe.Engine.session)
+	renderer := pe.Engine.vm.Renderer()
+	err = pe.pr.Save(pe.Engine.session, renderer)
 	return v, err
+}
+
+// Finish implements EngineIsh interface
+func(pe PersistedEngine) Finish() error {
+	renderer := pe.Engine.vm.Renderer()
+	return pe.pr.Save(pe.Engine.session, renderer)
 }
 
 // RunPersisted performs a single vm execution from client input using a persisted state.
@@ -60,7 +71,8 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 	if err != nil {
 		return err
 	}
-	err = pr.Save(cfg.SessionId)
+	renderer := en.vm.Renderer()
+	err = pr.Save(cfg.SessionId, renderer)
 	if err != nil {
 		return err
 	}
@@ -76,5 +88,7 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 	if err != nil {
 		return err
 	}
-	return pr.Save(cfg.SessionId)
+	en.Finish()
+	renderer = en.vm.Renderer()
+	return pr.Save(cfg.SessionId, renderer)
 }

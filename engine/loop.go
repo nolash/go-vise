@@ -17,7 +17,8 @@ import (
 // Any error not handled by the engine will terminate the oop and return an error.
 //
 // Rendered output is written to the provided writer.
-func Loop(en *Engine, reader io.Reader, writer io.Writer, ctx context.Context) error {
+func Loop(en EngineIsh, reader io.Reader, writer io.Writer, ctx context.Context) error {
+	defer en.Finish()
 	var err error
 	_, err = en.WriteResult(writer, ctx)
 	if err != nil {

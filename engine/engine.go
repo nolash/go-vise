@@ -12,6 +12,13 @@ import (
 	"git.defalsify.org/vise.git/vm"
 )
 
+type EngineIsh interface {
+	Init(ctx context.Context) (bool, error)
+	Exec(input []byte, ctx context.Context) (bool, error)
+	WriteResult(w io.Writer, ctx context.Context) (int, error)
+	Finish() error
+}
+
 // Config globally defines behavior of all components driven by the engine.
 type Config struct {
 	OutputSize uint32 // Maximum size of output from a single rendered page
@@ -51,10 +58,26 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 	return engine
 }
 
+// Finish implements EngineIsh interface
+func(en *Engine) Finish() error {
+	return nil
+}
+
+func(en *Engine) restore() {
+	location, _ := en.st.Where()
+	if len(location) == 0 {
+		return
+	}
+	if en.root != location {
+		en.root = "." //location
+	}
+}
+
 // Init must be explicitly called before using the Engine instance.
 //
 // It loads and executes code for the start node.
 func(en *Engine) Init(ctx context.Context) (bool, error) {
+	en.restore()
 	if en.initd {
 		Logg.DebugCtxf(ctx, "already initialized")
 		return true, nil
@@ -111,7 +134,10 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	return en.exec(input, ctx)
+}
 
+func(en *Engine) exec(input []byte, ctx context.Context) (bool, error) {
 	Logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
 	code, err := en.st.GetCode()
 	if err != nil {

@@ -128,6 +128,15 @@ func(pg *Page) Sizes() (map[string]uint16, error) {
 	return sizes, nil
 }
 
+// Keys returns all mapped symbols.
+func(pg *Page) Keys() []string {
+	var r []string
+	for k, _ := range pg.cacheMap {
+		r = append(r, k)	
+	}
+	return r
+}
+
 // RenderTemplate is an adapter to implement the builtin golang text template renderer as resource.RenderTemplate.
 func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16) (string, error) {
 	tpl, err := pg.resource.GetTemplate(sym)

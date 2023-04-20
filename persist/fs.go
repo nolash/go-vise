@@ -7,6 +7,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/render"
 	"git.defalsify.org/vise.git/state"
 )
 
@@ -14,6 +15,7 @@ import (
 type FsPersister struct {
 	State *state.State
 	Memory *cache.Cache
+	MapKeys []string
 	dir string
 }
 
@@ -39,6 +41,12 @@ func(p *FsPersister) WithContent(st *state.State, ca *cache.Cache) *FsPersister 
 	return p
 }
 
+// WithRenderer extracts the mapped keys to add to serialization.
+func(p *FsPersister) WithRenderer(pg render.Renderer) *FsPersister {
+	p.MapKeys = pg.Keys()
+	return p
+}
+
 // GetState implements the Persister interface.
 func(p *FsPersister) GetState() *state.State {
 	return p.State
@@ -61,13 +69,16 @@ func(p *FsPersister) Deserialize(b []byte) error {
 }
 
 // GetState implements the Persister interface.
-func(p *FsPersister) Save(key string) error {
+func(p *FsPersister) Save(key string, renderer render.Renderer) error {
+	if renderer != nil {
+		p = p.WithRenderer(renderer)
+	}
 	b, err := p.Serialize()
 	if err != nil {
 		return err
 	}
 	fp := path.Join(p.dir, key)
-	Logg.Debugf("saved state and cache", "key", key, "bytecode", p.State.Code)
+	Logg.Debugf("saved state and cache", "key", key, "bytecode", p.State.Code, "map", p.MapKeys)
 	return ioutil.WriteFile(fp, b, 0600)
 }
 
@@ -79,6 +90,10 @@ func(p *FsPersister) Load(key string) error {
 		return err
 	}
 	err = p.Deserialize(b)
-	Logg.Debugf("loaded state and cache", "key", key, "bytecode", p.State.Code)
+	Logg.Debugf("loaded state and cache", "key", key, "bytecode", p.State.Code, "map", p.MapKeys)
 	return err
+}
+
+func(p *FsPersister) GetKeys() []string {
+	return p.MapKeys
 }
