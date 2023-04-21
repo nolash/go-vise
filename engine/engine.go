@@ -12,6 +12,7 @@ import (
 	"git.defalsify.org/vise.git/vm"
 )
 
+// EngineIsh defines the interface for execution engines that handle vm initialization and execution, and rendering outputs.
 type EngineIsh interface {
 	Init(ctx context.Context) (bool, error)
 	Exec(input []byte, ctx context.Context) (bool, error)
@@ -64,6 +65,7 @@ func(en *Engine) Finish() error {
 	return nil
 }
 
+// change root to current state location if non-empty.
 func(en *Engine) restore() {
 	location, _ := en.st.Where()
 	if len(location) == 0 {
@@ -139,6 +141,7 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	return en.exec(input, ctx)
 }
 
+// backend for Exec, after the input validity check
 func(en *Engine) exec(input []byte, ctx context.Context) (bool, error) {
 	Logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
 	code, err := en.st.GetCode()
