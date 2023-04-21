@@ -20,9 +20,11 @@ Original motivation was to create a simple templating renderer for USSD clients,
     - menu definitions.
     - flow control.
     - exception handling.
-* templated output from results of external code execution.
-* generate and navigate pages where data symbol contents are too long to display on a single page.
-* pluggable function design for handling external code execution calls.
+* Templated output from results of external code execution.
+* Generate and navigate pages where data symbol contents are too long to display on a single page.
+* Pluggable function design for handling external code execution calls.
+* Language settable from configuration or during execution.
+* Language-based templates and external values.
 
 
 ### Pending
