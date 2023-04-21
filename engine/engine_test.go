@@ -33,7 +33,7 @@ func NewFsWrapper(path string, st *state.State) FsWrapper {
 		st,
 	}
 	wr.AddLocalFunc("one", wr.one)
-	wr.AddLocalFunc("inky", wr.inky)
+	//wr.AddLocalFunc("inky", wr.inky)
 	wr.AddLocalFunc("pinky", wr.pinky)
 	wr.AddLocalFunc("set_lang", wr.set_lang)
 	wr.AddLocalFunc("translate", wr.translate)

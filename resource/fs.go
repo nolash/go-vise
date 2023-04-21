@@ -30,9 +30,9 @@ func NewFsResource(path string) (FsResource) {
 }
 
 func(fsr FsResource) GetTemplate(sym string, ctx context.Context) (string, error) {
-	v := ctx.Value("Language")
 	fp := path.Join(fsr.Path, sym)
 	fpl := fp
+	v := ctx.Value("Language")
 	if v != nil {
 		lang := v.(lang.Language)
 		fpl += "_" + lang.Code
@@ -41,14 +41,13 @@ func(fsr FsResource) GetTemplate(sym string, ctx context.Context) (string, error
 	var err error
 	r, err = ioutil.ReadFile(fpl)
 	if err != nil {
-		Logg.DebugCtxf(ctx, "err", "err", err)
 		if errors.Is(err, os.ErrNotExist) {
 			if fpl != fp {
 				r, err = ioutil.ReadFile(fp)
-				if err != nil {
-					return "", err
-				}
 			}
+		}
+		if err != nil {
+			return "", fmt.Errorf("failed getting template for sym '%s': %v", sym, err)
 		}
 	}
 	s := string(r)
@@ -85,21 +84,32 @@ func(fsr FsResource) String() string {
 }
 
 func(fsr FsResource) getFunc(sym string, input []byte, ctx context.Context) (Result, error) {
-	v := ctx.Value("language")
+	v := ctx.Value("Language")
 	if v == nil {
 		return fsr.getFuncNoCtx(sym, input, nil)
 	}
-	language := v.(*lang.Language)
-	return fsr.getFuncNoCtx(sym, input, language)
+	language := v.(lang.Language)
+	return fsr.getFuncNoCtx(sym, input, &language)
 }
 
 func(fsr FsResource) getFuncNoCtx(sym string, input []byte, language *lang.Language) (Result, error) {
 	fb := sym + ".txt"
 	fp := path.Join(fsr.Path, fb)
-	Logg.Debugf("getfunc search dir", "dir", fsr.Path, "path", fp, "sym", sym, "language", language)
+	fpl := fp
+	if language != nil {
+		fpl += "_" + language.Code
+	}
+	Logg.Debugf("getfunc search dir", "dir", fsr.Path, "path", fp, "lang_path", fpl, "sym", sym, "language", language)
 	r, err := ioutil.ReadFile(fp)
 	if err != nil {
-		return Result{}, fmt.Errorf("failed getting data for sym '%s': %v", sym, err)
+		if errors.Is(err, os.ErrNotExist) {
+			if fpl != fp {
+				r, err = ioutil.ReadFile(fp)
+			}
+		}
+		if err != nil {
+			return Result{}, fmt.Errorf("failed getting data for sym '%s': %v", sym, err)
+		}
 	}
 	s := string(r)
 	return Result{
