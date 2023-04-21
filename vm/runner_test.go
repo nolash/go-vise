@@ -62,6 +62,13 @@ func setFlag(sym string, input []byte, ctx context.Context) (resource.Result, er
 
 }
 
+func set_lang(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{
+		Content: string(input),
+		FlagSet: []uint32{state.FLAG_LANG},
+	}, nil
+}
+
 type TestStatefulResolver struct {
 	state *state.State
 }
@@ -103,6 +110,8 @@ func (r TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 		return getEcho, nil
 	case "setFlagOne":
 		return setFlag, nil
+	case "set_lang":
+		return set_lang, nil
 	}
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
 }
@@ -625,4 +634,29 @@ func TestCatchCleanMenu(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Printf("Result:\n%s", r)
+}
+
+func TestSetLang(t *testing.T) {
+	st := state.NewState(0)
+	rs := TestResource{}
+	ca := cache.NewCache()
+	vm := NewVm(&st, &rs, ca, nil)
+
+	var err error
+
+	st.Down("root")
+
+	st.SetInput([]byte("no"))
+	b := NewLine(nil, LOAD, []string{"set_lang"}, []byte{0x01, 0x00}, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+
+	ctx := context.TODO()
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lang := *st.Language
+	if lang.Code != "nor" {
+		t.Fatalf("expected language 'nor',, got %s", lang.Code)
+	}
 }

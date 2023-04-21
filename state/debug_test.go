@@ -50,7 +50,7 @@ func TestDebugState(t *testing.T) {
 	st.Down("root")
 
 	r := fmt.Sprintf("%s", st)
-	expect := "moves: 1 idx: 0 flags: INTERNAL_DIRTY(3),FOO(8) path: root"
+	expect := "moves: 1 idx: 0 flags: INTERNAL_DIRTY(3),FOO(8) path: root lang: (default)"
 	if r != expect {
 		t.Fatalf("expected '%s', got '%s'", expect, r)
 	}

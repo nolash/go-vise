@@ -3,6 +3,8 @@ package state
 import (
 	"fmt"
 	"strings"
+
+	"git.defalsify.org/vise.git/lang"
 )
 
 type IndexError struct {
@@ -30,10 +32,11 @@ func(err *IndexError) Error() string {
 type State struct {
 	Code []byte // Pending bytecode to execute
 	ExecPath []string // Command symbols stack
-	BitSize uint32 // size of (32-bit capacity) bit flag byte array
-	SizeIdx uint16
+	BitSize uint32 // Size of (32-bit capacity) bit flag byte array
+	SizeIdx uint16 // Lateral page browse index in current frame
 	Flags []byte // Error state
 	Moves uint32 // Number of times navigation has been performed
+	Language *lang.Language // Language selector for rendering
 	input []byte // Last input
 	debug bool // Make string representation more human friendly
 }
@@ -345,6 +348,20 @@ func(st *State) Restart() error {
 	return nil
 }
 
+// SetLanguage validates and sets language according to the given ISO639 language code.
+func(st *State) SetLanguage(code string) error {
+	if code == "" {
+		st.Language = nil
+	}
+	l, err := lang.LanguageFromCode(code)
+	if err != nil {
+		return err
+	}
+	st.Language = &l
+	Logg.Infof("language set", "language", l)
+	return nil
+}
+
 // String implements String interface
 func(st State) String() string {
 	var flags string
@@ -353,7 +370,13 @@ func(st State) String() string {
 	} else {
 		flags = fmt.Sprintf("0x%x", st.Flags)
 	}
-	return fmt.Sprintf("moves: %v idx: %v flags: %s path: %s", st.Moves, st.SizeIdx, flags, strings.Join(st.ExecPath, "/"))
+	var lang string
+	if st.Language == nil {
+		lang = "(default)"
+	} else {
+		lang = fmt.Sprintf("%s", *st.Language)
+	}
+	return fmt.Sprintf("moves: %v idx: %v flags: %s path: %s lang: %s", st.Moves, st.SizeIdx, flags, strings.Join(st.ExecPath, "/"), lang)
 }
 
 // initializes all flags not in control of client.

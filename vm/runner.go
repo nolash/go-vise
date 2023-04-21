@@ -11,6 +11,7 @@ import (
 )
 
 // Vm holds sub-components mutated by the vm execution.
+// TODO: Renderer should be passed to avoid proxy methods not strictly related to vm operation
 type Vm struct {
 	st *state.State // Navigation and error states.
 	rs resource.Resource // Retrieves content, code, and templates for symbols.
@@ -30,7 +31,7 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 		sizer: sizer,
 	}
 	vmi.Reset()
-	Logg.Infof("vm created with state", "state", st)
+	Logg.Infof("vm created with state", "state", st, "renderer", vmi.pg)
 	return vmi
 }
 
@@ -57,15 +58,23 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 			panic(err)
 		}
 		if r {
-			//log.Printf("terminate set! bailing!")
 			Logg.InfoCtxf(ctx, "terminate set! bailing")
 			return []byte{}, nil
 		}
-		//vm.st.ResetBaseFlags()
+
 		_, err = vm.st.ResetFlag(state.FLAG_TERMINATE)
 		if err != nil {
 			panic(err)
 		}
+
+		change, err := vm.st.ResetFlag(state.FLAG_LANG)
+		if err != nil {
+			panic(err)
+		}
+		if change {
+			ctx = context.WithValue(ctx, "Language", *vm.st.Language)
+		}
+		
 
 		waitChange, err := vm.st.ResetFlag(state.FLAG_WAIT)
 		if err != nil {
@@ -496,6 +505,15 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 			panic(err)
 		}
 	}
+
+	haveLang, err := vm.st.MatchFlag(state.FLAG_LANG, false)
+	if err != nil {
+		panic(err)
+	}
+	if haveLang {
+		vm.st.SetLanguage(r.Content)
+	}
+	
 
 	return r.Content, err
 }

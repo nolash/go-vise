@@ -7,6 +7,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"git.defalsify.org/vise.git/lang"
 )
 
 type FsResource struct {
@@ -50,7 +52,7 @@ func(fs FsResource) FuncFor(sym string) (EntryFunc, error) {
 	if ok {
 		return fn, nil
 	}
-	_, err := fs.getFuncNoCtx(sym, nil)
+	_, err := fs.getFuncNoCtx(sym, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unknown sym: %s", sym)
 	}
@@ -62,13 +64,18 @@ func(fs FsResource) String() string {
 }
 
 func(fs FsResource) getFunc(sym string, input []byte, ctx context.Context) (Result, error) {
-	return fs.getFuncNoCtx(sym, input)
+	v := ctx.Value("language")
+	if v == nil {
+		return fs.getFuncNoCtx(sym, input, nil)
+	}
+	language := v.(*lang.Language)
+	return fs.getFuncNoCtx(sym, input, language)
 }
 
-func(fs FsResource) getFuncNoCtx(sym string, input []byte) (Result, error) {
+func(fs FsResource) getFuncNoCtx(sym string, input []byte, language *lang.Language) (Result, error) {
 	fb := sym + ".txt"
 	fp := path.Join(fs.Path, fb)
-	Logg.Debugf("getfunc search dir", "dir", fs.Path, "path", fp, "sym", sym)
+	Logg.Debugf("getfunc search dir", "dir", fs.Path, "path", fp, "sym", sym, "language", language)
 	r, err := ioutil.ReadFile(fp)
 	if err != nil {
 		return Result{}, fmt.Errorf("failed getting data for sym '%s': %v", sym, err)

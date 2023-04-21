@@ -27,6 +27,7 @@ type Config struct {
 	Root string
 	FlagCount uint32
 	CacheSize uint32
+	Language string
 }
 
 // Engine is an execution engine that handles top-level errors when running client inputs against code in the bytecode buffer.
@@ -56,6 +57,20 @@ func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memor
 	engine.root = cfg.Root	
 	engine.session = cfg.SessionId
 
+	var err error
+	if st.Language != nil {
+		if cfg.Language != "" {
+			err = st.SetLanguage(cfg.Language)
+			panic(err)
+		}
+	}
+
+	if st.Language != nil {
+		_, err = st.SetFlag(state.FLAG_LANG)
+		if err != nil {
+			panic(err)
+		}
+	}
 	return engine
 }
 
@@ -86,6 +101,7 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 		Logg.DebugCtxf(ctx, "already initialized")
 		return true, nil
 	}
+	
 	sym := en.root
 	if sym == "" {
 		return false, fmt.Errorf("start sym empty")
@@ -123,6 +139,9 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 // - input processing against bytcode failed
 func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	var err error
+	if en.st.Language != nil {
+		ctx = context.WithValue(ctx, "Language", *en.st.Language)
+	}
 	if en.st.Moves == 0 {
 		cont, err := en.Init(ctx)
 		if err != nil {
@@ -176,7 +195,6 @@ func(en *Engine) exec(input []byte, ctx context.Context) (bool, error) {
 		_, err = en.reset(ctx)
 		return false, err
 	}
-
 	return true, nil
 }
 
@@ -187,6 +205,9 @@ func(en *Engine) exec(input []byte, ctx context.Context) (bool, error) {
 // - the template for the given node point is note available for retrieval using the resource.Resource implementer.
 // - the supplied writer fails to process the writes.
 func(en *Engine) WriteResult(w io.Writer, ctx context.Context) (int, error) {
+	if en.st.Language != nil {
+		ctx = context.WithValue(ctx, "Language", *en.st.Language)
+	}
 	r, err := en.vm.Render(ctx)
 	if err != nil {
 		return 0, err

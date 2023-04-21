@@ -71,4 +71,3 @@ func(m *MenuResource) GetCode(sym string) ([]byte, error) {
 func(m *MenuResource) GetTemplate(sym string) (string, error) {
 	return m.templateFunc(sym)
 }
-

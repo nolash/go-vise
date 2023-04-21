@@ -156,7 +156,6 @@ func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Co
 			return sym, idx, err
 		}
 		idx = 0
-		Logg.Debugf("inputsss", "sym", sym)
 	}
 	return sym, idx, nil
 }

@@ -7,11 +7,13 @@ const (
 	FLAG_DIRTY
 	FLAG_WAIT
 	FLAG_LOADFAIL
+	FLAG_RESERVED
+	FLAG_LANG
 	FLAG_USERSTART = 8
 )
 
 func IsWriteableFlag(flag uint32) bool {
-	if flag > 7 {
+	if flag > 6 {
 		return true
 	}
 	//if flag & FLAG_WRITEABLE > 0 {

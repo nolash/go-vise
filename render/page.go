@@ -181,6 +181,7 @@ func(pg *Page) Reset() {
 	}
 }
 
+
 // render menu and all syms except sink, split sink into display chunks
 // TODO: Function too long, split up
 func(pg *Page) prepare(sym string, values map[string]string, idx uint16) (map[string]string, error) {
