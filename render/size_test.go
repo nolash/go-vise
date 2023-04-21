@@ -14,7 +14,7 @@ type TestSizeResource struct {
 	*resource.MenuResource
 }
 
-func getTemplate(sym string) (string, error) {
+func getTemplate(sym string, ctx context.Context) (string, error) {
 	var tpl string
 	switch sym {
 	case "small":
@@ -124,12 +124,13 @@ func TestSizeLimit(t *testing.T) {
 	mn.Put("1", "foo the foo")
 	mn.Put("2", "go to bar")
 
-	_, err = pg.Render("small", 0)
+	ctx := context.TODO()
+	_, err = pg.Render("small", 0, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = pg.Render("toobig", 0)
+	_, err = pg.Render("toobig", 0, ctx)
 	if err == nil {
 		t.Fatalf("expected size exceeded")
 	}
@@ -159,7 +160,8 @@ func TestSizePages(t *testing.T) {
 	mn.Put("1", "foo the foo")
 	mn.Put("2", "go to bar")
 
-	r, err := pg.Render("pages",  0)
+	ctx := context.TODO()
+	r, err := pg.Render("pages",  0, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -176,7 +178,7 @@ lala poo
 	if r != expect {
 		t.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, r)
 	}
-	r, err = pg.Render("pages", 1)
+	r, err = pg.Render("pages", 1, ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -214,7 +216,9 @@ func TestManySizes(t *testing.T) {
 		pg.Map("bar")
 		pg.Map("baz")
 		pg.Map("xyzzy")
-		_, err := pg.Render("pages", 0)
+
+		ctx := context.TODO()
+		_, err := pg.Render("pages", 0, ctx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -244,7 +248,9 @@ func TestManySizesMenued(t *testing.T) {
 		pg.Map("xyzzy")
 		mn.Put("0", "yay")
 		mn.Put("12", "nay")
-		_, err := pg.Render("pages", 0)
+
+		ctx := context.TODO()
+		_, err := pg.Render("pages", 0, ctx)
 		if err != nil {
 			t.Fatal(err)
 		}

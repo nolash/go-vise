@@ -451,7 +451,7 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 		return "", nil
 	}
 	sym, idx := vm.st.Where()
-	r, err := vm.pg.Render(sym, idx)
+	r, err := vm.pg.Render(sym, idx, ctx)
 	var ok bool
 	_, ok = err.(*render.BrowseError)
 	if ok {
@@ -459,7 +459,7 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 		b := NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
 		vm.Run(b, ctx)
 		sym, idx := vm.st.Where()
-		r, err = vm.pg.Render(sym, idx)
+		r, err = vm.pg.Render(sym, idx, ctx)
 	}
 	if err != nil {
 		return "", err
