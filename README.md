@@ -156,15 +156,14 @@ Multipage outputs, like listings, are handled using the _sink_ output constraint
 
 ### Languages support
 
-**Not yet implemeennted**
+Language for rendering can be set as:
 
-Language for rendering is determined at the top-level state.
+* Configuration variable of the engine
+* By setting the `FLAG_LANG` flag in the return value of a `LOAD` instruction handler.
 
-Lookups dependent on language are prefixed by either `ISO 639-1` or `ISO 639-3` language codes, followed by `:`.
+The language argument in either case **MUST** be a `ISO-639` language code string. 
 
-Default language means records returned without prefix if no language is set. Default language should be settable at the top-level.
-
-Node names **must** be defined using 7-bit ASCII.
+Methods for retrieving data and templates are passed the language information through the `context.Context` value under the key `Language`. The value should be cast as a `lang.Language` object.
 
 
 ## Virtual machine interface layout
@@ -194,6 +193,7 @@ This repository provides a `golang` reference implementation for the `vise` conc
 - `resource`: Retrieves data and bytecode from external symbols, and retrieves templates.
 - `state`: Holds the bytecode buffer, error states and navigation states.
 - `vm`: Defines instructions, and applies transformations according to the instructions.
+- `lang`: Validation and specification of language context.
 
 
 ### Template rendering
