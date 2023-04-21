@@ -2,8 +2,10 @@ package resource
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -27,55 +29,73 @@ func NewFsResource(path string) (FsResource) {
 	}
 }
 
-func(fs FsResource) GetTemplate(sym string, ctx context.Context) (string, error) {
-	fp := path.Join(fs.Path, sym)
-	r, err := ioutil.ReadFile(fp)
+func(fsr FsResource) GetTemplate(sym string, ctx context.Context) (string, error) {
+	v := ctx.Value("Language")
+	fp := path.Join(fsr.Path, sym)
+	fpl := fp
+	if v != nil {
+		lang := v.(lang.Language)
+		fpl += "_" + lang.Code
+	}
+	var r []byte
+	var err error
+	r, err = ioutil.ReadFile(fpl)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			if fpl != fp {
+				r, err = ioutil.ReadFile(fp)
+				if err != nil {
+					return "", err
+				}
+			}
+		}
+	}
 	s := string(r)
 	return strings.TrimSpace(s), err
 }
 
-func(fs FsResource) GetCode(sym string) ([]byte, error) {
+func(fsr FsResource) GetCode(sym string) ([]byte, error) {
 	fb := sym + ".bin"
-	fp := path.Join(fs.Path, fb)
+	fp := path.Join(fsr.Path, fb)
 	return ioutil.ReadFile(fp)
 }
 
-func(fs *FsResource) AddLocalFunc(sym string, fn EntryFunc) {
-	if fs.fns == nil {
-		fs.fns = make(map[string]EntryFunc)
+func(fsr *FsResource) AddLocalFunc(sym string, fn EntryFunc) {
+	if fsr.fns == nil {
+		fsr.fns = make(map[string]EntryFunc)
 	}
-	fs.fns[sym] = fn
+	fsr.fns[sym] = fn
 }
 
-func(fs FsResource) FuncFor(sym string) (EntryFunc, error) {
-	fn, ok := fs.fns[sym]
+func(fsr FsResource) FuncFor(sym string) (EntryFunc, error) {
+	fn, ok := fsr.fns[sym]
 	if ok {
 		return fn, nil
 	}
-	_, err := fs.getFuncNoCtx(sym, nil, nil)
+	_, err := fsr.getFuncNoCtx(sym, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unknown sym: %s", sym)
 	}
-	return fs.getFunc, nil
+	return fsr.getFunc, nil
 }
 
-func(fs FsResource) String() string {
-	return fmt.Sprintf("fs resource at path: %s", fs.Path)
+func(fsr FsResource) String() string {
+	return fmt.Sprintf("fs resource at path: %s", fsr.Path)
 }
 
-func(fs FsResource) getFunc(sym string, input []byte, ctx context.Context) (Result, error) {
+func(fsr FsResource) getFunc(sym string, input []byte, ctx context.Context) (Result, error) {
 	v := ctx.Value("language")
 	if v == nil {
-		return fs.getFuncNoCtx(sym, input, nil)
+		return fsr.getFuncNoCtx(sym, input, nil)
 	}
 	language := v.(*lang.Language)
-	return fs.getFuncNoCtx(sym, input, language)
+	return fsr.getFuncNoCtx(sym, input, language)
 }
 
-func(fs FsResource) getFuncNoCtx(sym string, input []byte, language *lang.Language) (Result, error) {
+func(fsr FsResource) getFuncNoCtx(sym string, input []byte, language *lang.Language) (Result, error) {
 	fb := sym + ".txt"
-	fp := path.Join(fs.Path, fb)
-	Logg.Debugf("getfunc search dir", "dir", fs.Path, "path", fp, "sym", sym, "language", language)
+	fp := path.Join(fsr.Path, fb)
+	Logg.Debugf("getfunc search dir", "dir", fsr.Path, "path", fp, "sym", sym, "language", language)
 	r, err := ioutil.ReadFile(fp)
 	if err != nil {
 		return Result{}, fmt.Errorf("failed getting data for sym '%s': %v", sym, err)
