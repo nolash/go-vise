@@ -41,6 +41,7 @@ func(fsr FsResource) GetTemplate(sym string, ctx context.Context) (string, error
 	var err error
 	r, err = ioutil.ReadFile(fpl)
 	if err != nil {
+		Logg.DebugCtxf(ctx, "err", "err", err)
 		if errors.Is(err, os.ErrNotExist) {
 			if fpl != fp {
 				r, err = ioutil.ReadFile(fp)

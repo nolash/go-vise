@@ -53,9 +53,11 @@ func root() error {
 	b := []byte{}
 	b = vm.NewLine(b, vm.MOUT, []string{"1", "do the foo"}, nil, nil)
 	b = vm.NewLine(b, vm.MOUT, []string{"2", "go to the bar"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"3", "language template"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"1", "foo"}, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"2", "bar"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"3", "lang"}, nil, nil)
 
 	tpl := "hello world"
 
@@ -147,13 +149,33 @@ func defaultCatch() error {
 	return out("_catch", b, tpl, nil)
 }
 
+func lang() error {
+	b := []byte{}
+	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
+	b = vm.NewLine(b, vm.LOAD, []string{"inky"}, []byte{20}, nil)
+	b = vm.NewLine(b, vm.MAP, []string{"inky"}, nil, nil)
+	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"*", "_"}, nil, nil)
+
+	tpl := "this changes with language {{.inky}}"
+
+	err := out("lang", b, tpl, nil)
+	if err != nil {
+		return err
+	}
+
+	tpl = "dette endrer med språket {{.inky}}"
+	fp := path.Join(DataDir, "lang_nor")
+	return os.WriteFile(fp, []byte(tpl), 0600)
+}
+
 func generate() error {
 	err := os.MkdirAll(DataDir, 0755)
 	if err != nil {
 		return err
 	}
 
-	fns := []genFunc{root, foo, bar, baz, long, defaultCatch}
+	fns := []genFunc{root, foo, bar, baz, long, lang, defaultCatch}
 	for _, fn := range fns {
 		err = fn()
 		if err != nil {

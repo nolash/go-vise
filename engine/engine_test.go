@@ -124,7 +124,8 @@ func TestEngineInit(t *testing.T) {
 	b := w.Bytes()
 	expect_str := `hello world
 1:do the foo
-2:go to the bar`
+2:go to the bar
+3:language template`
 
 	if !bytes.Equal(b, []byte(expect_str)) {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect_str, b)
@@ -264,4 +265,44 @@ func TestLanguageSet(t *testing.T) {
 	if r != "fett" {
 		t.Fatalf("expected 'fett', got '%s'", r)
 	}
+}
+
+func TestLanguageRender(t *testing.T) {
+	generateTestData(t)
+	ctx := context.TODO()
+	st := state.NewState(0)
+	rs := NewFsWrapper(dataDir, &st)
+	ca := cache.NewCache()
+
+	en := NewEngine(Config{
+		Root: "root",
+	}, &st, &rs, ca, ctx)
+
+	var err error
+	_, err = en.Init(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+
+	b := vm.NewLine(nil, vm.LOAD, []string{"set_lang"}, []byte{0x01, 0x00}, nil)
+	b = vm.NewLine(b, vm.MOVE, []string{"lang"}, nil, nil)
+	st.SetCode(b)
+
+	_, err = en.Exec([]byte("nor"), ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	br := bytes.NewBuffer(nil)
+	_, err = en.WriteResult(br, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect := "dette endrer"
+	r := br.String()
+	if r[:len(expect)] != expect {
+		t.Fatalf("expected %s, got %s", expect, r[:len(expect)])
+	}
+
 }
