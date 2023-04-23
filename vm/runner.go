@@ -81,24 +81,15 @@ func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
 	Logg.Tracef("new vm run")
 	running := true
 	for running {
-		r, err := vm.st.MatchFlag(state.FLAG_TERMINATE, true)
-		if err != nil {
-			panic(err)
-		}
+		r := vm.st.MatchFlag(state.FLAG_TERMINATE, true)
 		if r {
 			Logg.InfoCtxf(ctx, "terminate set! bailing")
 			return []byte{}, nil
 		}
 
-		_, err = vm.st.ResetFlag(state.FLAG_TERMINATE)
-		if err != nil {
-			panic(err)
-		}
+		_ = vm.st.ResetFlag(state.FLAG_TERMINATE)
 
-		change, err := vm.st.ResetFlag(state.FLAG_LANG)
-		if err != nil {
-			panic(err)
-		}
+		change := vm.st.ResetFlag(state.FLAG_LANG)
 		if change {
 			if vm.st.Language != nil {
 				ctx = context.WithValue(ctx, "Language", *vm.st.Language)
@@ -106,23 +97,14 @@ func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
 		}
 		
 
-		waitChange, err := vm.st.ResetFlag(state.FLAG_WAIT)
-		if err != nil {
-			panic(err)
-		}
+		waitChange := vm.st.ResetFlag(state.FLAG_WAIT)
 		if waitChange {
-			_, err = vm.st.ResetFlag(state.FLAG_INMATCH)
-			if err != nil {
-				panic(err)
-			}
+			vm.st.ResetFlag(state.FLAG_INMATCH)
 			vm.pg.Reset()
 			vm.mn.Reset()
 		}
 
-		_, err = vm.st.SetFlag(state.FLAG_DIRTY)
-		if err != nil {
-			panic(err)
-		}
+		_ = vm.st.SetFlag(state.FLAG_DIRTY)
 		op, bb, err := opSplit(b)
 		if err != nil {
 			return b, err
@@ -183,10 +165,7 @@ func(vm *Vm) runErrCheck(ctx context.Context, b []byte, err error) ([]byte, erro
 	}
 	vm.pg = vm.pg.WithError(err)
 
-	v, err := vm.st.MatchFlag(state.FLAG_LOADFAIL, true)
-	if err != nil {
-		panic(err)
-	}
+	v := vm.st.MatchFlag(state.FLAG_LOADFAIL, true)
 	if !v {
 		return b, err
 	}
@@ -206,22 +185,13 @@ func(vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
 	if len(b) > 0 {
 		return b, nil
 	}
-	r, err := vm.st.MatchFlag(state.FLAG_READIN, false)
-	if err != nil {
-		panic(err)
-	}
+	r := vm.st.MatchFlag(state.FLAG_READIN, false)
 	if r {
 		Logg.DebugCtxf(ctx, "Not processing input. Setting terminate")
-		_, err := vm.st.SetFlag(state.FLAG_TERMINATE)
-		if err != nil {
-			panic(err)
-		}
+		vm.st.SetFlag(state.FLAG_TERMINATE)
 		return b, nil
 	}
-	r, err = vm.st.MatchFlag(state.FLAG_TERMINATE, true)
-	if err != nil {
-		panic(err)
-	}
+	r = vm.st.MatchFlag(state.FLAG_TERMINATE, true)
 	if r {
 		Logg.TraceCtxf(ctx, "Terminate found!!")
 		return b, nil
@@ -258,16 +228,16 @@ func(vm *Vm) runCatch(ctx context.Context, b []byte) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	r, err := vm.st.MatchFlag(sig, mode)
-	if err != nil {
-		var perr error
-		_, perr = vm.st.SetFlag(state.FLAG_TERMINATE)
-		if perr != nil {
-			panic(perr)
-		}
-		Logg.TraceCtxf(ctx, "terminate set")
-		return b, err
-	}
+	r := vm.st.MatchFlag(sig, mode)
+//	if err != nil {
+//		var perr error
+//		_, perr = vm.st.SetFlag(state.FLAG_TERMINATE)
+//		if perr != nil {
+//			panic(perr)
+//		}
+//		Logg.TraceCtxf(ctx, "terminate set")
+//		return b, err
+//	}
 	if r {
 		//b = append(bh, b...)
 		//vm.st.Down(sym)
@@ -293,10 +263,7 @@ func(vm *Vm) runCroak(ctx context.Context, b []byte) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	r, err := vm.st.MatchFlag(sig, mode)
-	if err != nil {
-		return b, err
-	}
+	r := vm.st.MatchFlag(sig, mode)
 	if r {
 		Logg.InfoCtxf(ctx, "croak at flag %v, purging and moving to top", "signal", sig)
 		vm.Reset()
@@ -370,11 +337,8 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 		return b, err
 	}
 
-	reading, err := vm.st.GetFlag(state.FLAG_READIN)
-	if err != nil {
-		panic(err)
-	}
-	have, err := vm.st.GetFlag(state.FLAG_INMATCH)
+	reading := vm.st.GetFlag(state.FLAG_READIN)
+	have := vm.st.GetFlag(state.FLAG_INMATCH)
 	if err != nil {
 		panic(err)
 	}
@@ -384,10 +348,7 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 			return b, nil
 		}
 	} else {
-		_, err = vm.st.SetFlag(state.FLAG_READIN)
-		if err != nil {
-			panic(err)
-		}
+		vm.st.SetFlag(state.FLAG_READIN)
 	}
 	input, err := vm.st.GetInput()
 	if err != nil {
@@ -403,23 +364,14 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 		} 
 		Logg.InfoCtxf(ctx, "input match", "input", input, "target", target)
 	}
-	_, err = vm.st.SetFlag(state.FLAG_INMATCH)
-	if err != nil {
-		panic(err)
-	}
-	_, err = vm.st.ResetFlag(state.FLAG_READIN)
-	if err != nil {
-		panic(err)
-	}
+	vm.st.SetFlag(state.FLAG_INMATCH)
+	vm.st.ResetFlag(state.FLAG_READIN)
 
 	newTarget, _, err := applyTarget([]byte(target), vm.st, vm.ca, ctx)
 	
 	_, ok := err.(*state.IndexError)
 	if ok {
-		_, err = vm.st.SetFlag(state.FLAG_READIN)
-		if err != nil {
-			panic(err)
-		}
+		vm.st.SetFlag(state.FLAG_READIN)
 		return b, nil
 	} else if err != nil {
 		return b, err
@@ -447,10 +399,7 @@ func(vm *Vm) runHalt(ctx context.Context, b []byte) ([]byte, error) {
 	}
 	Logg.DebugCtxf(ctx, "found HALT, stopping")
 	
-	_, err = vm.st.SetFlag(state.FLAG_WAIT)
-	if err != nil {
-		panic(err)
-	}
+	vm.st.SetFlag(state.FLAG_WAIT)
 	return b, nil
 }
 
@@ -501,10 +450,7 @@ func(vm *Vm) runMPrev(ctx context.Context, b []byte) ([]byte, error) {
 
 // Render wraps output rendering, and handles error when attempting to browse beyond the rendered page count.
 func(vm *Vm) Render(ctx context.Context) (string, error) {
-	changed, err := vm.st.ResetFlag(state.FLAG_DIRTY)
-	if err != nil {
-		panic(err)	
-	}
+	changed := vm.st.ResetFlag(state.FLAG_DIRTY)
 	if !changed {
 		return "", nil
 	}
@@ -537,36 +483,23 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 	input, _ := vm.st.GetInput()
 	r, err := fn(ctx, key, input)
 	if err != nil {
-		var perr error
-		_, perr = vm.st.SetFlag(state.FLAG_LOADFAIL)
-		if perr != nil {
-			panic(err)
-		}
+		_ = vm.st.SetFlag(state.FLAG_LOADFAIL)
 		return "", NewExternalCodeError(key, err).WithCode(r.Status)
 	}
 	for _, flag := range r.FlagSet {
 		if !state.IsWriteableFlag(flag) {
 			continue
 		}
-		_, err = vm.st.SetFlag(flag)
-		if err != nil {
-			panic(err)
-		}
+		vm.st.SetFlag(flag)
 	}
 	for _, flag := range r.FlagReset {
 		if !state.IsWriteableFlag(flag) {
 			continue
 		}
-		_, err = vm.st.ResetFlag(flag)
-		if err != nil {
-			panic(err)
-		}
+		vm.st.ResetFlag(flag)
 	}
 
-	haveLang, err := vm.st.MatchFlag(state.FLAG_LANG, true)
-	if err != nil {
-		panic(err)
-	}
+	haveLang := vm.st.MatchFlag(state.FLAG_LANG, true)
 	if haveLang {
 		vm.st.SetLanguage(r.Content)
 	}

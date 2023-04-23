@@ -23,81 +23,44 @@ func TestNewState(t *testing.T) {
 
 func TestStateflags(t *testing.T) {
 	st := NewState(9)
-	v, err := st.GetFlag(2)
-	if err != nil {
-		t.Error(err)
-	}
+	v := st.GetFlag(2)
 	if v {
 		t.Fatalf("Expected bit 2 not to be set")
 	}
-	v, err = st.SetFlag(2)
-	if err != nil {
-		t.Error(err)
-	}
+	v = st.SetFlag(2)
 	if !v {
 		t.Fatalf("Expected change to be set for bit 2")
 	}
-	v, err = st.GetFlag(2)
-	if err != nil {
-		t.Error(err)
-	}
+	v = st.GetFlag(2)
 	if !v {
 		t.Fatalf("Expected bit 2 to be set")
 	}
-	v, err = st.SetFlag(10)
-	if err != nil {
-		t.Error(err)
-	}
+	v = st.SetFlag(10)
 	if !v {
 		t.Fatalf("Expected change to be set for bit 10")
 	}
-	v, err = st.GetFlag(10)
-	if err != nil {
-		t.Error(err)
-	}
+	v = st.GetFlag(10)
 	if !v {
 		t.Fatalf("Expected bit 10 to be set")
 	}
-	v, err = st.ResetFlag(2)
-	if err != nil {
-		t.Error(err)
-	}
+	v = st.ResetFlag(2)
 	if !v {
 		t.Fatalf("Expected change to be set for bit 10")
 	}
-	v, err = st.GetFlag(2)
-	if err != nil {
-		t.Error(err)
-	}
+	v = st.GetFlag(2)
 	if v {
 		t.Fatalf("Expected bit 2 not to be set")
 	}
-	v, err = st.GetFlag(10)
-	if err != nil {
-		t.Error(err)
-	}
+	v = st.GetFlag(10)
 	if !v {
 		t.Fatalf("Expected bit 10 to be set")
 	}
-	v, err = st.SetFlag(10)
-	if err != nil {
-		t.Error(err)
-	}
+	v = st.SetFlag(10)
 	if v {
 		t.Fatalf("Expected change not to be set for bit 10")
 	}
-	v, err = st.SetFlag(2)
-	if err != nil {
-		t.Error(err)
-	}
-	v, err = st.SetFlag(16)
-	if err != nil {
-		t.Error(err)
-	}
-	v, err = st.SetFlag(17)
-	if err == nil {
-		t.Fatalf("Expected out of range for bit index 17")
-	}
+	v = st.SetFlag(2)
+	v = st.SetFlag(16)
 	if !bytes.Equal(st.Flags[:3], []byte{0x04, 0x04, 0x01}) {
 		t.Fatalf("Expected 0x040401, got %v", st.Flags[:3])
 	}
@@ -105,7 +68,7 @@ func TestStateflags(t *testing.T) {
 
 func TestStateFlagFromSlice(t *testing.T) {
 	st := NewState(15)
-	_, _= st.SetFlag(2)
+	st.SetFlag(2)
 	v := st.GetIndex([]byte{})
 	if v {
 		t.Fatalf("Expected no match on empty compare")
@@ -118,7 +81,7 @@ func TestStateFlagFromSlice(t *testing.T) {
 	if !v {
 		t.Fatalf("Expected 0x04 to match")
 	}
-	_, _= st.SetFlag(12)
+	st.SetFlag(12)
 	v = st.GetIndex([]byte{0x04})
 	if !v {
 		t.Fatalf("Expected 0x04 to match")
@@ -127,7 +90,7 @@ func TestStateFlagFromSlice(t *testing.T) {
 	if !v {
 		t.Fatalf("Expected 0x1000 to match")
 	}
-	v, _ = st.ResetFlag(2)
+	v = st.ResetFlag(2)
 	v = st.GetIndex([]byte{0x00, 0x10})
 	if !v {
 		t.Fatalf("Expected 0x1000 to matck")
@@ -221,20 +184,20 @@ func TestStateNavigate(t *testing.T) {
 func TestStateFlagMatch(t *testing.T) {
 	st := NewState(2)
 	st.SetFlag(8)
-	v, _ := st.MatchFlag(8, true)
+	v := st.MatchFlag(8, true)
 	if !v {
 		t.Fatalf("unexpected flag")
 	}
-	v, _ = st.MatchFlag(8, false)
+	v = st.MatchFlag(8, false)
 	if v {
 		t.Fatalf("unexpected flag")
 	}
 
-	v, _ = st.MatchFlag(9, true)
+	v = st.MatchFlag(9, true)
 	if v {
 		t.Fatalf("unexpected flag")
 	}
-	v, _ = st.MatchFlag(9, false)
+	v = st.MatchFlag(9, false)
 	if !v {
 		t.Fatalf("unexpected flag")
 	}

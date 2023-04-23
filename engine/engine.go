@@ -66,10 +66,7 @@ func NewEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Res
 	}
 
 	if st.Language != nil {
-		_, err = st.SetFlag(state.FLAG_LANG)
-		if err != nil {
-			panic(err)
-		}
+		st.SetFlag(state.FLAG_LANG)
 	}
 	return engine
 }
@@ -178,10 +175,7 @@ func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
 	}
 	Logg.Debugf("end new VM run", "code", code)
 
-	v, err := en.st.MatchFlag(state.FLAG_TERMINATE, true)
-	if err != nil {
-		return false, err
-	}
+	v := en.st.MatchFlag(state.FLAG_TERMINATE, true)
 	if v {
 		if len(code) > 0 {
 			Logg.Debugf("terminated with code remaining", "code", code)

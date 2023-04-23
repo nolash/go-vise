@@ -85,19 +85,19 @@ func(st State) WithDebug() State {
 // Returns true if bit state was changed.
 //
 // Fails if bitindex is out of range.
-func(st *State) SetFlag(bitIndex uint32) (bool, error) {
+func(st *State) SetFlag(bitIndex uint32) bool {
 	if bitIndex + 1 > st.BitSize {
-		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.BitSize)
+		panic(fmt.Sprintf("bit index %v is out of range of bitfield size %v", bitIndex, st.BitSize))
 	}
 	r := getFlag(bitIndex, st.Flags)
 	if r {
-		return false, nil
+		return false
 	}
 	byteIndex := bitIndex / 8
 	localBitIndex := bitIndex % 8
 	b := st.Flags[byteIndex] 
 	st.Flags[byteIndex] = b | (1 << localBitIndex)
-	return true, nil
+	return true
 }
 
 
@@ -106,29 +106,29 @@ func(st *State) SetFlag(bitIndex uint32) (bool, error) {
 // Returns true if bit state was changed.
 //
 // Fails if bitindex is out of range.
-func(st *State) ResetFlag(bitIndex uint32) (bool, error) {
+func(st *State) ResetFlag(bitIndex uint32) bool {
 	if bitIndex + 1 > st.BitSize {
-		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.BitSize)
+		panic(fmt.Sprintf("bit index %v is out of range of bitfield size %v", bitIndex, st.BitSize))
 	}
 	r := getFlag(bitIndex, st.Flags)
 	if !r {
-		return false, nil
+		return false
 	}
 	byteIndex := bitIndex / 8
 	localBitIndex := bitIndex % 8
 	b := st.Flags[byteIndex] 
 	st.Flags[byteIndex] = b & (^(1 << localBitIndex))
-	return true, nil
+	return true
 }
 
 // GetFlag returns the state of the flag at the given bit field index.
 //
 // Fails if bit field index is out of range.
-func(st *State) GetFlag(bitIndex uint32) (bool, error) {
+func(st *State) GetFlag(bitIndex uint32) bool {
 	if bitIndex + 1 > st.BitSize {
-		return false, fmt.Errorf("bit index %v is out of range of bitfield size %v", bitIndex, st.BitSize)
+		panic(fmt.Sprintf("bit index %v is out of range of bitfield size %v", bitIndex, st.BitSize))
 	}
-	return getFlag(bitIndex, st.Flags), nil
+	return getFlag(bitIndex, st.Flags)
 }
 
 // FlagBitSize reports the amount of bits available in the bit field index.
@@ -146,13 +146,9 @@ func(st *State) FlagByteSize() uint8 {
 // The flag is specified given its bit index in the bit field.
 //
 // If invertMatch is set, a positive result will be returned if the flag is not set.
-func(st *State) MatchFlag(sig uint32, matchSet bool) (bool, error) {
-	r, err := st.GetFlag(sig)
-	if err != nil {
-		return false, err
-	}
-	Logg.Debugf("rrr", "r", r, "match", matchSet)
-	return matchSet == r, nil
+func(st *State) MatchFlag(sig uint32, matchSet bool) bool {
+	r := st.GetFlag(sig)
+	return matchSet == r
 }
 
 // GetIndex scans a byte slice in same order as in storage, and returns the index of the first set bit.

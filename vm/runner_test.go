@@ -181,14 +181,14 @@ func TestRun(t *testing.T) {
 	b = NewLine(b, HALT, nil, nil, nil)
 	ctx := context.TODO()
 	_, err := vm.Run(ctx, b)
-	if err != nil {
-		t.Errorf("run error: %v", err)	
+	if err == nil {
+		t.Fatalf("expected error")
 	}
 
 	b = []byte{0x01, 0x02}
 	_, err = vm.Run(ctx, b)
 	if err == nil {
-		t.Errorf("no error on invalid opcode")	
+		t.Fatalf("no error on invalid opcode")	
 	}
 }
 
@@ -255,12 +255,10 @@ func TestRunMultiple(t *testing.T) {
 	b = NewLine(b, LOAD, []string{"one"}, []byte{0x00}, nil)
 	b = NewLine(b, LOAD, []string{"two"}, []byte{42}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	b, err := vm.Run(ctx, b)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(b) > 0 {
-		t.Errorf("expected empty code")
+	var err error
+	b, err = vm.Run(ctx, b)
+	if err == nil {
+		t.Fatal(err)
 	}
 }
 
@@ -331,19 +329,20 @@ func TestRunArg(t *testing.T) {
 	_ = st.SetInput(input)
 
 	bi := NewLine(nil, INCMP, []string{"bar", "baz"}, nil, nil)
-	bi = NewLine(bi, HALT, nil, nil, nil)
 	ctx := context.TODO()
+
+	var err error
 	b, err := vm.Run(ctx, bi)
-	if err != nil {
-		t.Error(err)	
+	if err == nil {
+		t.Fatalf("expected error")
 	}
 	l := len(b)
 	if l != 0 {
-		t.Errorf("expected empty remainder, got length %v: %v", l, b)
+		t.Fatalf("expected empty remainder, got length %v: %v", l, b)
 	}
 	r, _ := st.Where()
 	if r != "baz" {
-		t.Errorf("expected where-state baz, got %v", r)
+		t.Fatalf("expected where-state baz, got %v", r)
 	}
 }
 
@@ -366,8 +365,8 @@ func TestRunInputHandler(t *testing.T) {
 	var err error
 	ctx := context.TODO()
 	_, err = vm.Run(ctx, bi)
-	if err != nil {
-		t.Fatal(err)	
+	if err == nil {
+		t.Fatalf("expected error")
 	}
 	r, _ := st.Where()
 	if r != "foo" {
@@ -490,21 +489,20 @@ func TestRunReturn(t *testing.T) {
 
 	st.Down("root")
 	b := NewLine(nil, INCMP, []string{"0", "bar"}, nil, nil)
-	b = NewLine(b, HALT, nil, nil, nil)
 	b = NewLine(b, INCMP, []string{"1", "_"}, nil, nil)
-	b = NewLine(b, HALT, nil, nil, nil)
 
 	ctx := context.TODO()
 
 	st.SetInput([]byte("0"))
 	b, err = vm.Run(ctx, b)
-	if err != nil {
-		t.Fatal(err)
+	if err == nil {
+		t.Fatalf("expected error")
 	}
 	location, _ := st.Where()
 	if location != "bar" {
 		t.Fatalf("expected location 'bar', got '%s'", location)
 	}
+
 	st.SetInput([]byte("1"))
 	b, err = vm.Run(ctx, b)
 	if err != nil {

@@ -48,19 +48,10 @@ func(pr *profileResource) checkEntry() error {
 	if pr.haveEntered {
 		return nil
 	}
-	one, err := pr.st.GetFlag(USERFLAG_HAVENAME)
-	if err != nil {
-		return err
-	}
-	two, err := pr.st.GetFlag(USERFLAG_HAVEEMAIL)
-	if err != nil {
-		return err
-	}
+	one := pr.st.GetFlag(USERFLAG_HAVENAME)
+	two := pr.st.GetFlag(USERFLAG_HAVEEMAIL)
 	if one && two {
-		_, err = pr.st.SetFlag(USERFLAG_IDENTIFIED)
-		if err != nil {
-			return err
-		}
+		pr.st.SetFlag(USERFLAG_IDENTIFIED)
 		pr.haveEntered = true
 	}
 	return nil
@@ -73,10 +64,7 @@ func(pr profileResource) nameSave(ctx context.Context, sym string, input []byte)
 	if err != nil {
 		return emptyResult, err
 	}
-	changed, err := pr.st.SetFlag(USERFLAG_HAVENAME)
-	if err != nil {
-		return emptyResult, err
-	}
+	changed := pr.st.SetFlag(USERFLAG_HAVENAME)
 	if changed {
 		pr.checkEntry()
 	}
@@ -90,10 +78,7 @@ func(pr profileResource) emailSave(ctx context.Context, sym string, input []byte
 	if err != nil {
 		return emptyResult, err
 	}
-	changed, err := pr.st.SetFlag(USERFLAG_HAVEEMAIL)
-	if err != nil {
-		return emptyResult, err
-	}
+	changed := pr.st.SetFlag(USERFLAG_HAVEEMAIL)
 	if changed {
 		pr.checkEntry()
 	}

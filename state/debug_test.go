@@ -39,14 +39,8 @@ func TestDebugState(t *testing.T) {
 		t.Fatal(err)
 	}
 	st := NewState(1).WithDebug()
-	_, err = st.SetFlag(FLAG_DIRTY)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = st.SetFlag(8)
-	if err != nil {
-		t.Fatal(err)
-	}
+	st.SetFlag(FLAG_DIRTY)
+	st.SetFlag(8)
 	st.Down("root")
 
 	r := fmt.Sprintf("%s", st)

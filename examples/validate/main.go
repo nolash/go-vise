@@ -33,7 +33,7 @@ type verifyResource struct {
 func(vr *verifyResource) verify(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var err error
 	if string(input) == "something" {
-		_, err = vr.st.SetFlag(USERFLAG_HAVESOMETHING)
+		vr.st.SetFlag(USERFLAG_HAVESOMETHING)
 	}
 	return resource.Result{
 		Content: "",
@@ -41,9 +41,8 @@ func(vr *verifyResource) verify(ctx context.Context, sym string, input []byte) (
 }
 
 func(vr *verifyResource) again(ctx context.Context, sym string, input []byte) (resource.Result, error) {
-	var err error
-	_, err = vr.st.ResetFlag(USERFLAG_HAVESOMETHING)
-	return resource.Result{}, err
+	vr.st.ResetFlag(USERFLAG_HAVESOMETHING)
+	return resource.Result{}, nil
 }
 
 func main() {
