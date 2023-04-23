@@ -2,5 +2,5 @@ LOAD verifyinput 0
 MAP verifyinput
 HALT
 RELOAD verifyinput
-CATCH . 8 1
+CATCH . 8 0
 MOVE end

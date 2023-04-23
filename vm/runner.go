@@ -78,9 +78,10 @@ func(vmi *Vm) Reset() {
 //
 // On error, the remaining instructions will be returned. State will not be rolled back.
 func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
+	Logg.Tracef("new vm run")
 	running := true
 	for running {
-		r, err := vm.st.MatchFlag(state.FLAG_TERMINATE, false)
+		r, err := vm.st.MatchFlag(state.FLAG_TERMINATE, true)
 		if err != nil {
 			panic(err)
 		}
@@ -99,7 +100,9 @@ func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
 			panic(err)
 		}
 		if change {
-			ctx = context.WithValue(ctx, "Language", *vm.st.Language)
+			if vm.st.Language != nil {
+				ctx = context.WithValue(ctx, "Language", *vm.st.Language)
+			}
 		}
 		
 
@@ -180,7 +183,7 @@ func(vm *Vm) runErrCheck(ctx context.Context, b []byte, err error) ([]byte, erro
 	}
 	vm.pg = vm.pg.WithError(err)
 
-	v, err := vm.st.MatchFlag(state.FLAG_LOADFAIL, false)
+	v, err := vm.st.MatchFlag(state.FLAG_LOADFAIL, true)
 	if err != nil {
 		panic(err)
 	}
@@ -203,7 +206,7 @@ func(vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
 	if len(b) > 0 {
 		return b, nil
 	}
-	r, err := vm.st.MatchFlag(state.FLAG_READIN, true)
+	r, err := vm.st.MatchFlag(state.FLAG_READIN, false)
 	if err != nil {
 		panic(err)
 	}
@@ -215,7 +218,7 @@ func(vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
 		}
 		return b, nil
 	}
-	r, err = vm.st.MatchFlag(state.FLAG_TERMINATE, false)
+	r, err = vm.st.MatchFlag(state.FLAG_TERMINATE, true)
 	if err != nil {
 		panic(err)
 	}
@@ -558,7 +561,7 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 		}
 	}
 
-	haveLang, err := vm.st.MatchFlag(state.FLAG_LANG, false)
+	haveLang, err := vm.st.MatchFlag(state.FLAG_LANG, true)
 	if err != nil {
 		panic(err)
 	}

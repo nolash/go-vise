@@ -43,6 +43,25 @@ func NewTestResource(st *state.State) TestResource {
 	tr.AddEntryFunc("setFlagOne", setFlag)
 	tr.AddEntryFunc("set_lang", set_lang)
 	tr.AddEntryFunc("aiee", uhOh)
+
+	var b []byte
+	b = NewLine(nil, HALT, nil, nil, nil)
+	tr.AddBytecode("one", b)
+
+	b = NewLine(nil, MOUT, []string{"0", "repent"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+	tr.AddBytecode("_catch", b)
+
+	b = NewLine(nil, MOUT, []string{"0", "repent"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+	b = NewLine(b, MOVE, []string{"_"}, nil, nil)
+	tr.AddBytecode("flagCatch", b)
+
+	b = NewLine(nil, MOUT, []string{"1", "oo"}, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+	tr.AddBytecode("ouf", b)
+	
+	tr.AddBytecode("root", tr.RootCode)
 	return tr
 }
 
@@ -132,7 +151,7 @@ func(r TestResource) getInput(ctx context.Context, sym string, input []byte) (re
 	}, err
 }
 
-func(r TestResource) GetCode(sym string) ([]byte, error) {
+func(r TestResource) getCode(sym string) ([]byte, error) {
 	var b []byte
 	switch sym {
 	case "_catch":
@@ -400,6 +419,7 @@ func TestRunMenu(t *testing.T) {
 
 	ctx := context.TODO()
 
+	rs.AddBytecode("foo", []byte{})
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
@@ -435,6 +455,7 @@ func TestRunMenuBrowse(t *testing.T) {
 
 	ctx := context.TODO()
 
+	rs.AddBytecode("foo", []byte{})
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
@@ -538,12 +559,10 @@ func TestInputBranch(t *testing.T) {
 
 	b := NewLine(nil, LOAD, []string{"setFlagOne"}, []byte{0x00}, nil)
 	b = NewLine(b, RELOAD, []string{"setFlagOne"}, nil, nil)
-	b = NewLine(b, CATCH, []string{"flagCatch"}, []byte{8}, []uint8{0})
-	b = NewLine(b, CATCH, []string{"one"}, []byte{9}, []uint8{0})
+	b = NewLine(b, CATCH, []string{"flagCatch"}, []byte{8}, []uint8{1})
+	b = NewLine(b, CATCH, []string{"one"}, []byte{9}, []uint8{1})
 	rs.RootCode = b
-
-	//b = NewLine(b, RELOAD, []string{"setFlagOne"}, nil, nil)
-	//b = NewLine(b, CATCH, []string{"flagCatch"}, []byte{8}, []uint8{0})
+	rs.AddBytecode("root", rs.RootCode)
 
 	ctx := context.TODO()
 
@@ -637,7 +656,7 @@ func TestCatchCleanMenu(t *testing.T) {
 	b = NewLine(b, MOUT, []string{"2", "two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	b = NewLine(b, INCMP, []string{"1", "foo"}, nil, nil)
-	b = NewLine(b, CATCH, []string{"ouf"}, []byte{0x08}, []uint8{0x01})
+	b = NewLine(b, CATCH, []string{"ouf"}, []byte{0x08}, []uint8{0x00})
 
 	ctx := context.TODO()
 

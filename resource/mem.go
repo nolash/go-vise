@@ -49,6 +49,7 @@ func(mr MemResource) getFunc(sym string) (EntryFunc, error) {
 }
 
 func(mr *MemResource) AddTemplate(sym string, tpl string) {
+	Logg.Tracef("mem resource added template", "sym", sym, "length", len(tpl))
 	mr.templates[sym] = tpl
 }
 
@@ -58,5 +59,6 @@ func(mr *MemResource) AddEntryFunc(sym string, fn EntryFunc) {
 }
 
 func(mr *MemResource) AddBytecode(sym string, code []byte) {
+	Logg.Tracef("mem resource added bytecode", "sym", sym, "code", code)
 	mr.bytecodes[sym] = code
 }
