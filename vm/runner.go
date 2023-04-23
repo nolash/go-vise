@@ -118,39 +118,39 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 		Logg.DebugCtxf(ctx, "", "state", vm.st)
 		switch op {
 		case CATCH:
-			b, err = vm.RunCatch(b, ctx)
+			b, err = vm.runCatch(b, ctx)
 		case CROAK:
-			b, err = vm.RunCroak(b, ctx)
+			b, err = vm.runCroak(b, ctx)
 		case LOAD:
-			b, err = vm.RunLoad(b, ctx)
+			b, err = vm.runLoad(b, ctx)
 		case RELOAD:
-			b, err = vm.RunReload(b, ctx)
+			b, err = vm.runReload(b, ctx)
 		case MAP:
-			b, err = vm.RunMap(b, ctx)
+			b, err = vm.runMap(b, ctx)
 		case MOVE:
-			b, err = vm.RunMove(b, ctx)
+			b, err = vm.runMove(b, ctx)
 		case INCMP:
-			b, err = vm.RunInCmp(b, ctx)
+			b, err = vm.runInCmp(b, ctx)
 		case MSIZE:
-			b, err = vm.RunMSize(b, ctx)
+			b, err = vm.runMSize(b, ctx)
 		case MOUT:
-			b, err = vm.RunMOut(b, ctx)
+			b, err = vm.runMOut(b, ctx)
 		case MNEXT:
-			b, err = vm.RunMNext(b, ctx)
+			b, err = vm.runMNext(b, ctx)
 		case MPREV:
-			b, err = vm.RunMPrev(b, ctx)
+			b, err = vm.runMPrev(b, ctx)
 		case HALT:
-			b, err = vm.RunHalt(b, ctx)
+			b, err = vm.runHalt(b, ctx)
 			return b, err
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
 		}
-		b, err = vm.RunErrCheck(ctx, b, err)
+		b, err = vm.runErrCheck(ctx, b, err)
 		if err != nil {
 			return b, err
 		}
 		if len(b) == 0 {
-			b, err = vm.RunDeadCheck(b, ctx)
+			b, err = vm.runDeadCheck(b, ctx)
 			if err != nil {
 				return b, err
 			}
@@ -162,7 +162,8 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 	return b, nil
 }
 
-func(vm *Vm) RunErrCheck(ctx context.Context, b []byte, err error) ([]byte, error) {
+// handles errors that should not be deferred to the client.
+func(vm *Vm) runErrCheck(ctx context.Context, b []byte, err error) ([]byte, error) {
 	if err == nil {
 		return b, err
 	}
@@ -180,14 +181,14 @@ func(vm *Vm) RunErrCheck(ctx context.Context, b []byte, err error) ([]byte, erro
 	return b, nil
 }
 
-// RunDeadCheck determines whether a state of empty bytecode should result in termination.
+// determines whether a state of empty bytecode should result in termination.
 //
 // If there is remaining bytecode, this method is a noop.
 //
 // If input has not been matched, a default invalid input page should be generated aswell as a possiblity of return to last screen (or exit).
 // 
 // If the termination flag has been set but not yet handled, execution is allowed to terminate.
-func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 	if len(b) > 0 {
 		return b, nil
 	}
@@ -229,14 +230,14 @@ func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // RunMap executes the MAP opcode
-func(vm *Vm) RunMap(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMap(b []byte, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseMap(b)
 	err = vm.pg.Map(sym)
 	return b, err
 }
 
 // RunMap executes the CATCH opcode
-func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runCatch(b []byte, ctx context.Context) ([]byte, error) {
 	sym, sig, mode, b, err := ParseCatch(b)
 	if err != nil {
 		return b, err
@@ -271,7 +272,7 @@ func(vm *Vm) RunCatch(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // RunMap executes the CROAK opcode
-func(vm *Vm) RunCroak(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runCroak(b []byte, ctx context.Context) ([]byte, error) {
 	sig, mode, b, err := ParseCroak(b)
 	if err != nil {
 		return b, err
@@ -291,7 +292,7 @@ func(vm *Vm) RunCroak(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // RunLoad executes the LOAD opcode
-func(vm *Vm) RunLoad(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runLoad(b []byte, ctx context.Context) ([]byte, error) {
 	sym, sz, b, err := ParseLoad(b)
 	if err != nil {
 		return b, err
@@ -305,7 +306,7 @@ func(vm *Vm) RunLoad(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // RunLoad executes the RELOAD opcode
-func(vm *Vm) RunReload(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runReload(b []byte, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseReload(b)
 	if err != nil {
 		return b, err
@@ -326,7 +327,7 @@ func(vm *Vm) RunReload(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // RunLoad executes the MOVE opcode
-func(vm *Vm) RunMove(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMove(b []byte, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseMove(b)
 	if err != nil {
 		return b, err
@@ -347,7 +348,7 @@ func(vm *Vm) RunMove(b []byte, ctx context.Context) ([]byte, error) {
 
 // RunIncmp executes the INCMP opcode
 // TODO: create state transition table and simplify flow
-func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	sym, target, b, err := ParseInCmp(b)
 	if err != nil {
 		return b, err
@@ -422,7 +423,7 @@ func(vm *Vm) RunInCmp(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // RunHalt executes the HALT opcode
-func(vm *Vm) RunHalt(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runHalt(b []byte, ctx context.Context) ([]byte, error) {
 	var err error
 	b, err = ParseHalt(b)
 	if err != nil {
@@ -438,14 +439,14 @@ func(vm *Vm) RunHalt(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // RunMSize executes the MSIZE opcode
-func(vm *Vm) RunMSize(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMSize(b []byte, ctx context.Context) ([]byte, error) {
 	Logg.WarnCtxf(ctx,  "MSIZE not yet implemented")
 	_, _, b, err := ParseMSize(b)
 	return b, err
 }
 
 // RunMOut executes the MOUT opcode
-func(vm *Vm) RunMOut(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMOut(b []byte, ctx context.Context) ([]byte, error) {
 	choice, title, b, err := ParseMOut(b)
 	if err != nil {
 		return b, err
@@ -455,7 +456,7 @@ func(vm *Vm) RunMOut(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // RunMNext executes the MNEXT opcode
-func(vm *Vm) RunMNext(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMNext(b []byte, ctx context.Context) ([]byte, error) {
        selector, display, b, err := ParseMNext(b)
        if err != nil {
 	       return b, err
@@ -469,7 +470,7 @@ func(vm *Vm) RunMNext(b []byte, ctx context.Context) ([]byte, error) {
 }
 	
 // RunMPrev executes the MPREV opcode
-func(vm *Vm) RunMPrev(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMPrev(b []byte, ctx context.Context) ([]byte, error) {
        selector, display, b, err := ParseMPrev(b)
        if err != nil {
 	       return b, err
