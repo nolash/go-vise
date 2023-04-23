@@ -363,13 +363,24 @@ func TestRunArgInvalid(t *testing.T) {
 	st.Down("root")
 	b := NewLine(nil, INCMP, []string{"bar", "baz"}, nil, nil)
 
-	b, err = vm.Run(b, context.TODO())
+	ctx := context.TODO()
+	b, err = vm.Run(b, ctx)
 	if err != nil {
 		t.Fatal(err)	
 	}
-	r, _ := st.Where()
-	if r != "_catch" {
-		t.Fatalf("expected where-state _catch, got %v", r)
+	location, _ := st.Where()
+	if location != "_catch" {
+		t.Fatalf("expected where-state _catch, got %v", location)
+	}
+
+	r, err := vm.Render(ctx)
+	if err != nil {
+		t.Fatal(err)	
+	}
+	expect := `invalid input: 'foo'
+0:repent`
+	if r != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s", expect, r)
 	}
 }
 

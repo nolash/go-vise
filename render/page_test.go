@@ -1,9 +1,11 @@
 package render
 
 import (
+	"fmt"
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/resource"
 )
 
 
@@ -112,4 +114,20 @@ func TestStateMapSink(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func TestWithError(t *testing.T) {
+	ca := cache.NewCache()
+	rs := resource.NewMemResource()
+	pg := NewPage(ca, rs)
+	ca.Push()
+
+	mn := NewMenu().WithOutputSize(32)
+	err := mn.Put("0", "aiee")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = fmt.Errorf("my humps")
+	pg = pg.WithMenu(mn).WithError(err)
+
 }

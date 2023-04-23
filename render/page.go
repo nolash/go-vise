@@ -56,12 +56,16 @@ func(pg *Page) WithError(err error) *Page {
 	return pg
 }
 
+// WithOpaqueError sets an error which will be used for display regardless of which error was set using WithError
 func(pg *Page) WithOpaqueError(err error) *Page {
 	pg.errConst = err
 	return pg
 }
 
-func(pg *Page) Error() string {
+// Error implements error interface.
+//
+// This error is used internally by the renderer, and is not intended for direct use.
+func(pg *Page) ErrorString() string {
 	if pg.err != nil {
 		if pg.errConst != nil {
 			return pg.errConst.Error()

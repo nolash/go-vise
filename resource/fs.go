@@ -19,7 +19,7 @@ type FsResource struct {
 	fns map[string]EntryFunc
 }
 
-func NewFsResource(path string) (FsResource) {
+func NewFsResource(path string) FsResource {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		panic(err)

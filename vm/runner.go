@@ -10,20 +10,21 @@ import (
 	"git.defalsify.org/vise.git/state"
 )
 
+// ExternalCodeError indicates an error that occurred when resolving an external code symbol (LOAD, RELOAD).
 type ExternalCodeError struct {
 	sym string
 	err error
 }
 
+// NewExternalCodeError creates a new ExternalCodeError.
 func NewExternalCodeError(sym string, err error) error {
 	return ExternalCodeError{sym, err}
 }
 
+// Error implements error interface
 func(e ExternalCodeError) Error() string {
 	return fmt.Sprintf("[%s] %v", e.sym, e.err)
 }
-
-
 
 // Vm holds sub-components mutated by the vm execution.
 // TODO: Renderer should be passed to avoid proxy methods not strictly related to vm operation
@@ -217,7 +218,11 @@ func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 	if location == "" {
 		return b, fmt.Errorf("dead runner with no current location")
 	}
-	cerr := fmt.Errorf("invalid input")
+	input, err := vm.st.GetInput()
+	if err != nil {
+		input = []byte("(no input)")
+	}
+	cerr := NewInvalidInputError(string(input))
 	vm.pg.WithError(cerr)	
 	b = NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
 	return b, nil

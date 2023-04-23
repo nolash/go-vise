@@ -58,16 +58,16 @@ func(m *MenuResource) WithTemplateGetter(templateGetter TemplateFunc) *MenuResou
 }
 
 // FuncFor implements Resource interface
-func(m *MenuResource) FuncFor(sym string) (EntryFunc, error) {
+func(m MenuResource) FuncFor(sym string) (EntryFunc, error) {
 	return m.funcFunc(sym)
 }
 
 // GetCode implements Resource interface
-func(m *MenuResource) GetCode(sym string) ([]byte, error) {
+func(m MenuResource) GetCode(sym string) ([]byte, error) {
 	return m.codeFunc(sym)
 }
 
 // GetTemplate implements Resource interface
-func(m *MenuResource) GetTemplate(sym string, ctx context.Context) (string, error) {
+func(m MenuResource) GetTemplate(sym string, ctx context.Context) (string, error) {
 	return m.templateFunc(sym, ctx)
 }

@@ -20,16 +20,19 @@ var (
 
 )
 
+// InvalidInputError indicates client input that was unhandled by the bytecode (INCMP fallthrough)
 type InvalidInputError struct {
 	input string
 }
 
+// NewInvalidInputError creates a new InvalidInputError
 func NewInvalidInputError(input string) error {
 	return InvalidInputError{input}
 }
 
+// Error implements error interface.
 func(e InvalidInputError) Error() string {
-	return "invalid input"
+	return fmt.Sprintf("invalid input: '%s'", e.input)
 }
 
 // CheckInput validates the given byte string as client input.
