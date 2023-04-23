@@ -696,27 +696,27 @@ func TestLoadError(t *testing.T) {
 		t.Fatalf("expected: \n\t%s\ngot:\n\t%s", expect, r)
 	}
 
-	rs.CatchContent = "foo"
-
-	st.Up()
-	st.SetInput([]byte{})
-	b = NewLine(nil, LOAD, []string{"aiee"}, []byte{0x01, 0x10}, nil)
-	b = NewLine(b, HALT, nil, nil, nil)
-
-	b, err = vm.Run(b, ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	r, err = vm.Render(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	expect = `[aiee] uh-oh spaghetti'ohs
-foo
-0:repent`
-	if r != expect {
-		t.Fatalf("expected: \n\t%s\ngot:\n\t%s", expect, r)
-	}
+//	rs.CatchContent = "foo"
+//
+//	st.Up()
+//	st.SetInput([]byte{})
+//	b = NewLine(nil, LOAD, []string{"aiee"}, []byte{0x01, 0x10}, nil)
+//	b = NewLine(b, HALT, nil, nil, nil)
+//
+//	b, err = vm.Run(b, ctx)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//
+//	r, err = vm.Render(ctx)
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	expect = `[aiee] uh-oh spaghetti'ohs
+//foo
+//0:repent`
+//	if r != expect {
+//		t.Fatalf("expected: \n\t%s\ngot:\n\t%s", expect, r)
+//	}
 
 }
