@@ -1,0 +1,62 @@
+- 0.0.13
+	* Panic instead of error when interfacing out-of-bounds state flags.
+	* Reverse catch mode, true/1 now means test set instead of reset.
+	* Make context first arg in method where it is used.
+	* Add application defined status code to external symbol result.
+- 0.0.12
+	* Add volatile resource.MemResource implementation
+	* Enable registering error string in renderer for display.
+- 0.0.11:
+	* Language context for external symbol and template lookups.
+	* Implement language selection via config and bytecode execution.
+- 0.0.10:
+	* Add control symbol resolution to the MOVE instruction.
+	* Make persist properly recover non-root states.
+	* Implement persistent state engine.
+- 0.0.9:
+	* Change module path to git.defalsify.org/vise.git (added .git postfix).
+	* Add previously missing WARN loglevel.
+	* Replace bash script with Makefile for examples compilation.
+	* Remove residual menu upon symbol change without render.
+	* Add context-sensitive logger interface.
+- 0.0.8:
+	* Add license file
+	* Add features description in readme.
+	* Define offset visible for application for definable state flags.
+	* Add hello world example.
+	* Allow special targets for catch.
+- 0.0.7:
+	* Restart state and engine on empty termination code (start from top).
+	* Add no-move transition option, replaying current node.
+- 0.0.6:
+	* Flush code buffer on catch
+	* Catch empty code after init
+	* Ensure passthrough of wildcards when have match in INCMP handler.
+	* Add profile menu example.
+	* Rename project from "festive" to "vise"
+- 0.0.5:
+	* Ensure correct entry point for persisted runner.
+	* Allow special target "ascend" ("_") in catch code.
+	* Add input to external code handler interface.
+	* Add persistent state engine runner method.
+	* Move source files to root directory.
+- 0.0.4:
+	* Enable choice of writer for render in engine loop.
+	* Catch browser beyond start.
+	* Handle browse (pagination) inputs.
+	* Add menu render to sizer calculation.
+- 0.0.3:
+	* Synchronize cache stack with state stack in vm runner execution.
+	* Terminate on EOF if not checking input (INCMP).
+	* Add file source alternative for external symbols in fs resource.
+	* Factor out engine loop code.
+	* Enable stateful rendering through vm object.
+	* Factor out menu handlig.
+	* Make browse menu options conditional on browse state.
+	* Add sink symbol splitting (fills remaining space).
+- 0.0.2:
+	* Add termination handler in engine.
+	* Ensure initial display when engine first executed (output from engine.Init)
+	* Add batch menu command handling for asm.
+- 0.0.1:
+	ª Create base components.
