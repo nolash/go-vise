@@ -20,7 +20,6 @@ type Page struct {
 	sink *string // Content symbol rendered by dynamic size.
 	sizer *Sizer // Process size constraints.
 	err error // Error state to prepend to output.
-	errConst error // Use this error for display on all errors.
 }
 
 // NewPage creates a new Page object.
@@ -56,20 +55,12 @@ func(pg *Page) WithError(err error) *Page {
 	return pg
 }
 
-// WithFixedError sets an error which will be used for display regardless of which error was set using WithError
-func(pg *Page) WithFixedError(err error) *Page {
-	pg.errConst = err
-	return pg
-}
-
 // Error implements error interface.
 func(pg *Page) Error() string {
 	if pg.err != nil {
-		if pg.errConst != nil {
-			return pg.errConst.Error()
-		}
+		return pg.err.Error()
 	}
-	return pg.err.Error()
+	return ""
 }
 
 // Usage returns size used by values and menu, and remaining size available
