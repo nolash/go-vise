@@ -13,17 +13,28 @@ import (
 // ExternalCodeError indicates an error that occurred when resolving an external code symbol (LOAD, RELOAD).
 type ExternalCodeError struct {
 	sym string
+	code int
 	err error
 }
 
 // NewExternalCodeError creates a new ExternalCodeError.
-func NewExternalCodeError(sym string, err error) error {
-	return ExternalCodeError{sym, err}
+func NewExternalCodeError(sym string, err error) *ExternalCodeError {
+	return &ExternalCodeError{
+		sym: sym,
+		err: err,
+	}
+}
+
+func(e *ExternalCodeError) WithCode(code int) *ExternalCodeError {
+	e.code = code
+	return e
 }
 
 // Error implements error interface
 func(e ExternalCodeError) Error() string {
-	return fmt.Sprintf("[%s] %v", e.sym, e.err)
+	//return fmt.Sprintf("[%s] %v", e.sym, e.err)
+	Logg.Errorf("external code error: %v", e.err)
+	return fmt.Sprintf("error %v:%v", e.sym, e.code)
 }
 
 // Vm holds sub-components mutated by the vm execution.
@@ -526,7 +537,7 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 		if perr != nil {
 			panic(err)
 		}
-		return "", NewExternalCodeError(key, err)
+		return "", NewExternalCodeError(key, err).WithCode(r.Status)
 	}
 	for _, flag := range r.FlagSet {
 		if !state.IsWriteableFlag(flag) {

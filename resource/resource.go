@@ -7,6 +7,7 @@ import (
 // Result contains the results of an external code operation.
 type Result struct {
 	Content string // content value for symbol after execution.
+	Status int // application defined status code which can complement error returns
 	FlagSet []uint32 // request caller to set error flags at given indices.
 	FlagReset []uint32 // request caller to reset error flags at given indices.
 }

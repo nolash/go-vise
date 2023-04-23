@@ -701,7 +701,7 @@ func TestLoadError(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect := `[aiee] uh-oh spaghetti'ohs
+	expect := `error aiee:0
 0:repent`
 	if r != expect {
 		t.Fatalf("expected: \n\t%s\ngot:\n\t%s", expect, r)
