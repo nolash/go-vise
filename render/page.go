@@ -56,8 +56,8 @@ func(pg *Page) WithError(err error) *Page {
 	return pg
 }
 
-// WithOpaqueError sets an error which will be used for display regardless of which error was set using WithError
-func(pg *Page) WithOpaqueError(err error) *Page {
+// WithFixedError sets an error which will be used for display regardless of which error was set using WithError
+func(pg *Page) WithFixedError(err error) *Page {
 	pg.errConst = err
 	return pg
 }
@@ -65,7 +65,7 @@ func(pg *Page) WithOpaqueError(err error) *Page {
 // Error implements error interface.
 //
 // This error is used internally by the renderer, and is not intended for direct use.
-func(pg *Page) ErrorString() string {
+func(pg *Page) Error() string {
 	if pg.err != nil {
 		if pg.errConst != nil {
 			return pg.errConst.Error()
@@ -162,11 +162,12 @@ func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16, 
 		return "", err
 	}
 	if pg.err != nil {
-		Logg.DebugCtxf(ctx, "Prepending error: %s", pg.err)
+		derr := pg.Error()
+		Logg.DebugCtxf(ctx, "prepending error", "err", pg.err, "display", derr)
 		if len(tpl) == 0 {
-			tpl = pg.err.Error()
+			tpl = derr
 		} else {
-			tpl = fmt.Sprintf("%s\n%s", pg.err, tpl)
+			tpl = fmt.Sprintf("%s\n%s", derr, tpl)
 		}
 	}
 	if pg.sizer != nil {

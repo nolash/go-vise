@@ -1,6 +1,7 @@
 package render
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -119,6 +120,7 @@ func TestStateMapSink(t *testing.T) {
 func TestWithError(t *testing.T) {
 	ca := cache.NewCache()
 	rs := resource.NewMemResource()
+	rs.AddTemplate("foo", "bar")
 	pg := NewPage(ca, rs)
 	ca.Push()
 
@@ -130,4 +132,28 @@ func TestWithError(t *testing.T) {
 	err = fmt.Errorf("my humps")
 	pg = pg.WithMenu(mn).WithError(err)
 
+	ctx := context.TODO()
+	r, err := pg.Render("foo", 0, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect := `my humps
+bar
+0:aiee`
+	if r != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s", expect, r)
+	}
+
+	err = fmt.Errorf("my lumps")
+	pg = pg.WithFixedError(err)
+	r, err = pg.Render("foo", 0, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect = `my lumps
+bar
+0:aiee`
+	if r != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s", expect, r)
+	}
 }
