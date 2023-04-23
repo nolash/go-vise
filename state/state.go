@@ -151,15 +151,8 @@ func(st *State) MatchFlag(sig uint32, matchSet bool) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return matchSet && r, nil
-//	if matchSet {
-//		if !r {
-//			return false, nil
-//		}
-//	} else if r {
-//		return true, nil
-//	}
-//	return false, nil
+	Logg.Debugf("rrr", "r", r, "match", matchSet)
+	return matchSet == r, nil
 }
 
 // GetIndex scans a byte slice in same order as in storage, and returns the index of the first set bit.

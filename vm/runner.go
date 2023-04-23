@@ -227,12 +227,14 @@ func(vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
 		return b, nil
 	}
 
-
 	Logg.TraceCtxf(ctx, "no code remaining but not terminating")
 	location, _ := vm.st.Where()
 	if location == "" {
 		return b, fmt.Errorf("dead runner with no current location")
+	} else if location == "_catch" {
+		return b, fmt.Errorf("unexpected catch endless loop detected for state: %s", vm.st)
 	}
+
 	input, err := vm.st.GetInput()
 	if err != nil {
 		input = []byte("(no input)")

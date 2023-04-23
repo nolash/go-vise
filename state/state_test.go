@@ -217,3 +217,25 @@ func TestStateNavigate(t *testing.T) {
 		t.Fatalf("expected idx 0, got %v", i)
 	}
 }
+
+func TestStateFlagMatch(t *testing.T) {
+	st := NewState(2)
+	st.SetFlag(8)
+	v, _ := st.MatchFlag(8, true)
+	if !v {
+		t.Fatalf("unexpected flag")
+	}
+	v, _ = st.MatchFlag(8, false)
+	if v {
+		t.Fatalf("unexpected flag")
+	}
+
+	v, _ = st.MatchFlag(9, true)
+	if v {
+		t.Fatalf("unexpected flag")
+	}
+	v, _ = st.MatchFlag(9, false)
+	if !v {
+		t.Fatalf("unexpected flag")
+	}
+}

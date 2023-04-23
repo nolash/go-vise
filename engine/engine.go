@@ -178,7 +178,7 @@ func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
 	}
 	Logg.Debugf("end new VM run", "code", code)
 
-	v, err := en.st.MatchFlag(state.FLAG_TERMINATE, false)
+	v, err := en.st.MatchFlag(state.FLAG_TERMINATE, true)
 	if err != nil {
 		return false, err
 	}
