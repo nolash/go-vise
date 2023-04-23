@@ -16,31 +16,55 @@ import (
 var dynVal = "three"
 
 type TestResource struct {
-	resource.MenuResource
+	resource.MemResource
 	state *state.State
 	RootCode []byte
 	CatchContent string
 }
 
-func getOne(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func NewTestResource(st *state.State) TestResource {
+	tr := TestResource{
+		MemResource: resource.NewMemResource(),
+		state: st,	
+	}
+	tr.AddTemplate("foo", "inky pinky blinky clyde")
+	tr.AddTemplate("bar", "inky pinky {{.one}} blinky {{.two}} clyde")
+	tr.AddTemplate("baz", "inky pinky {{.baz}} blinky clyde")
+	tr.AddTemplate("three", "{{.one}} inky pinky {{.three}} blinky clyde {{.two}}")
+	tr.AddTemplate("root", "root")
+	tr.AddTemplate("_catch", tr.CatchContent)
+	tr.AddTemplate("ouf", "ouch")
+	tr.AddTemplate("flagCatch", "flagiee")
+	tr.AddEntryFunc("one", getOne)
+	tr.AddEntryFunc("two", getTwo)
+	tr.AddEntryFunc("dyn", getDyn)
+	tr.AddEntryFunc("arg", tr.getInput)
+	tr.AddEntryFunc("echo", getEcho)
+	tr.AddEntryFunc("setFlagOne", setFlag)
+	tr.AddEntryFunc("set_lang", set_lang)
+	tr.AddEntryFunc("aiee", uhOh)
+	return tr
+}
+
+func getOne(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: "one",
 	}, nil
 }
 
-func getTwo(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func getTwo(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: "two",
 	}, nil
 }
 
-func getDyn(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func getDyn(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: dynVal,
 	}, nil
 }
 
-func getEcho(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func getEcho(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	r := fmt.Sprintf("echo: %s", input)
 	return resource.Result{
 		Content: r,
@@ -48,11 +72,11 @@ func getEcho(sym string, input []byte, ctx context.Context) (resource.Result, er
 }
 
 
-func uhOh(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func uhOh(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{}, fmt.Errorf("uh-oh spaghetti'ohs")
 }
 
-func setFlag(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func setFlag(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	s := fmt.Sprintf("ping")
 	r := resource.Result{
 		Content: s,
@@ -68,38 +92,16 @@ func setFlag(sym string, input []byte, ctx context.Context) (resource.Result, er
 
 }
 
-func set_lang(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func set_lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: string(input),
 		FlagSet: []uint32{state.FLAG_LANG},
 	}, nil
 }
-
-type TestStatefulResolver struct {
-	state *state.State
-}
-
-func (r TestResource) GetTemplate(sym string, ctx context.Context) (string, error) {
-	switch sym {
-	case "foo":
-		return "inky pinky blinky clyde", nil
-	case "bar":
-		return "inky pinky {{.one}} blinky {{.two}} clyde", nil
-	case "baz":
-		return "inky pinky {{.baz}} blinky clyde", nil
-	case "three":
-		return "{{.one}} inky pinky {{.three}} blinky clyde {{.two}}", nil
-	case "root":
-		return "root", nil
-	case "_catch":
-		return r.CatchContent, nil
-	case "ouf":
-		return "ouch", nil
-	case "flagCatch":
-		return "flagiee", nil
-	}
-	return "", fmt.Errorf("unknown symbol %s", sym)
-}
+//
+//type TestStatefulResolver struct {
+//	state *state.State
+//}
 
 func (r TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 	switch sym {
@@ -123,7 +125,7 @@ func (r TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
 }
 
-func(r TestResource) getInput(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(r TestResource) getInput(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	v, err := r.state.GetInput()
 	return resource.Result{
 		Content: string(v),
@@ -152,19 +154,20 @@ func(r TestResource) GetCode(sym string) ([]byte, error) {
 
 func TestRun(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	_, err := vm.Run(b, context.TODO())
+	ctx := context.TODO()
+	_, err := vm.Run(ctx, b)
 	if err != nil {
 		t.Errorf("run error: %v", err)	
 	}
 
 	b = []byte{0x01, 0x02}
-	_, err = vm.Run(b, context.TODO())
+	_, err = vm.Run(ctx, b)
 	if err == nil {
 		t.Errorf("no error on invalid opcode")	
 	}
@@ -172,7 +175,7 @@ func TestRun(t *testing.T) {
 
 func TestRunLoadRender(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -185,7 +188,7 @@ func TestRunLoadRender(t *testing.T) {
 	b = NewLine(b, LOAD, []string{"two"}, []byte{0x0a}, nil)
 	b = NewLine(b, MAP, []string{"two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,14 +204,14 @@ func TestRunLoadRender(t *testing.T) {
 	b = NewLine(nil, LOAD, []string{"two"}, []byte{0x0a}, nil)
 	b = NewLine(b, MAP, []string{"two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
 	b = NewLine(nil, MAP, []string{"one"}, nil, nil)
 	b = NewLine(b, MAP, []string{"two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	_, err = vm.Run(b, ctx)
+	_, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -224,7 +227,7 @@ func TestRunLoadRender(t *testing.T) {
 
 func TestRunMultiple(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -233,7 +236,7 @@ func TestRunMultiple(t *testing.T) {
 	b = NewLine(b, LOAD, []string{"one"}, []byte{0x00}, nil)
 	b = NewLine(b, LOAD, []string{"two"}, []byte{42}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	b, err := vm.Run(b, ctx)
+	b, err := vm.Run(ctx, b)
 	if err != nil {
 		t.Error(err)
 	}
@@ -244,7 +247,7 @@ func TestRunMultiple(t *testing.T) {
 
 func TestRunReload(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	szr := render.NewSizer(128)
 	vm := NewVm(&st, &rs, ca, szr)
@@ -254,7 +257,7 @@ func TestRunReload(t *testing.T) {
 	b = NewLine(b, LOAD, []string{"dyn"}, nil, []uint8{0})
 	b = NewLine(b, MAP, []string{"dyn"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	_, err := vm.Run(b, ctx)
+	_, err := vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -268,7 +271,7 @@ func TestRunReload(t *testing.T) {
 	dynVal = "baz"
 	b = NewLine(nil, RELOAD, []string{"dyn"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	_, err = vm.Run(b, ctx)
+	_, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -276,7 +279,7 @@ func TestRunReload(t *testing.T) {
 
 func TestHalt(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -285,7 +288,8 @@ func TestHalt(t *testing.T) {
 	b = NewLine(b, HALT, nil, nil, nil)
 	b = NewLine(b, MOVE, []string{"foo"}, nil, nil)
 	var err error
-	b, err = vm.Run(b, context.TODO())
+	ctx := context.TODO()
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Error(err)
 	}
@@ -300,7 +304,7 @@ func TestHalt(t *testing.T) {
 
 func TestRunArg(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -309,7 +313,8 @@ func TestRunArg(t *testing.T) {
 
 	bi := NewLine(nil, INCMP, []string{"bar", "baz"}, nil, nil)
 	bi = NewLine(bi, HALT, nil, nil, nil)
-	b, err := vm.Run(bi, context.TODO())
+	ctx := context.TODO()
+	b, err := vm.Run(ctx, bi)
 	if err != nil {
 		t.Error(err)	
 	}
@@ -325,7 +330,7 @@ func TestRunArg(t *testing.T) {
 
 func TestRunInputHandler(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -340,7 +345,8 @@ func TestRunInputHandler(t *testing.T) {
 	bi = NewLine(bi, HALT, nil, nil, nil)
 
 	var err error
-	_, err = vm.Run(bi, context.TODO())
+	ctx := context.TODO()
+	_, err = vm.Run(ctx, bi)
 	if err != nil {
 		t.Fatal(err)	
 	}
@@ -352,7 +358,7 @@ func TestRunInputHandler(t *testing.T) {
 
 func TestRunArgInvalid(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -364,7 +370,7 @@ func TestRunArgInvalid(t *testing.T) {
 	b := NewLine(nil, INCMP, []string{"bar", "baz"}, nil, nil)
 
 	ctx := context.TODO()
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)	
 	}
@@ -386,7 +392,7 @@ func TestRunArgInvalid(t *testing.T) {
 
 func TestRunMenu(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -399,7 +405,7 @@ func TestRunMenu(t *testing.T) {
 	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Error(err)	
 	}
@@ -421,7 +427,7 @@ func TestRunMenu(t *testing.T) {
 func TestRunMenuBrowse(t *testing.T) {
 	log.Printf("This test is incomplete, it must check the output of a menu browser once one is implemented. For now it only checks whether it can execute the runner endpoints for the instrucitons.")
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -434,7 +440,7 @@ func TestRunMenuBrowse(t *testing.T) {
 	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Error(err)	
 	}
@@ -455,7 +461,7 @@ func TestRunMenuBrowse(t *testing.T) {
 
 func TestRunReturn(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -470,7 +476,7 @@ func TestRunReturn(t *testing.T) {
 	ctx := context.TODO()
 
 	st.SetInput([]byte("0"))
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -479,7 +485,7 @@ func TestRunReturn(t *testing.T) {
 		t.Fatalf("expected location 'bar', got '%s'", location)
 	}
 	st.SetInput([]byte("1"))
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -492,7 +498,7 @@ func TestRunReturn(t *testing.T) {
 
 func TestRunLoadInput(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -506,7 +512,7 @@ func TestRunLoadInput(t *testing.T) {
 
 	ctx := context.TODO()
 
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -522,7 +528,7 @@ func TestRunLoadInput(t *testing.T) {
 
 func TestInputBranch(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -542,7 +548,7 @@ func TestInputBranch(t *testing.T) {
 	ctx := context.TODO()
 
 	st.SetInput([]byte{0x08})
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -552,7 +558,7 @@ func TestInputBranch(t *testing.T) {
 	}
 
 	st.SetInput([]byte{0x09, 0x08})
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -564,7 +570,7 @@ func TestInputBranch(t *testing.T) {
 
 func TestInputIgnore(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -579,7 +585,7 @@ func TestInputIgnore(t *testing.T) {
 	ctx := context.TODO()
 
 	st.SetInput([]byte("foo"))
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -592,7 +598,7 @@ func TestInputIgnore(t *testing.T) {
 
 func TestInputIgnoreWildcard(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -606,7 +612,7 @@ func TestInputIgnoreWildcard(t *testing.T) {
 	ctx := context.TODO()
 
 	st.SetInput([]byte("foo"))
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -619,7 +625,7 @@ func TestInputIgnoreWildcard(t *testing.T) {
 
 func TestCatchCleanMenu(t *testing.T) {
 	st := state.NewState(5)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -636,13 +642,13 @@ func TestCatchCleanMenu(t *testing.T) {
 	ctx := context.TODO()
 
 	st.SetInput([]byte("foo"))
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	st.SetInput([]byte("foo"))
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -656,7 +662,7 @@ func TestCatchCleanMenu(t *testing.T) {
 
 func TestSetLang(t *testing.T) {
 	st := state.NewState(0)
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -669,7 +675,7 @@ func TestSetLang(t *testing.T) {
 	b = NewLine(b, HALT, nil, nil, nil)
 
 	ctx := context.TODO()
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -681,7 +687,7 @@ func TestSetLang(t *testing.T) {
 
 func TestLoadError(t *testing.T) {
 	st := state.NewState(0).WithDebug()
-	rs := TestResource{}
+	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -692,7 +698,7 @@ func TestLoadError(t *testing.T) {
 
 	var err error
 	ctx := context.TODO()
-	b, err = vm.Run(b, ctx)
+	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}

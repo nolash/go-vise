@@ -17,10 +17,10 @@ import (
 // Any error not handled by the engine will terminate the oop and return an error.
 //
 // Rendered output is written to the provided writer.
-func Loop(en EngineIsh, reader io.Reader, writer io.Writer, ctx context.Context) error {
+func Loop(ctx context.Context, en EngineIsh, reader io.Reader, writer io.Writer) error {
 	defer en.Finish()
 	var err error
-	_, err = en.WriteResult(writer, ctx)
+	_, err = en.WriteResult(ctx, writer)
 	if err != nil {
 		return err
 	}
@@ -38,11 +38,11 @@ func Loop(en EngineIsh, reader io.Reader, writer io.Writer, ctx context.Context)
 			return fmt.Errorf("cannot read input: %v\n", err)
 		}
 		in = strings.TrimSpace(in)
-		running, err = en.Exec([]byte(in), ctx)
+		running, err = en.Exec(ctx, []byte(in))
 		if err != nil {
 			return fmt.Errorf("unexpected termination: %v\n", err)
 		}
-		_, err = en.WriteResult(writer, ctx)
+		_, err = en.WriteResult(ctx, writer)
 		if err != nil {
 			return err
 		}

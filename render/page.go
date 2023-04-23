@@ -145,8 +145,8 @@ func(pg *Page) Sizes() (map[string]uint16, error) {
 }
 
 // RenderTemplate is an adapter to implement the builtin golang text template renderer as resource.RenderTemplate.
-func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16, ctx context.Context) (string, error) {
-	tpl, err := pg.resource.GetTemplate(sym, ctx)
+func(pg *Page) RenderTemplate(ctx context.Context, sym string, values map[string]string, idx uint16) (string, error) {
+	tpl, err := pg.resource.GetTemplate(ctx, sym)
 	if err != nil {
 		return "", err
 	}
@@ -184,15 +184,15 @@ func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16, 
 }
 
 // Render renders the current mapped content and menu state against the template associated with the symbol.
-func(pg *Page) Render(sym string, idx uint16, ctx context.Context) (string, error) {
+func(pg *Page) Render(ctx context.Context, sym string, idx uint16) (string, error) {
 	var err error
 
-	values, err := pg.prepare(sym, pg.cacheMap, idx, ctx)
+	values, err := pg.prepare(ctx, sym, pg.cacheMap, idx)
 	if err != nil {
 		return "", err
 	}
 
-	return pg.render(sym, values, idx, ctx)
+	return pg.render(ctx, sym, values, idx)
 }
 
 // Reset prepared the Page object for re-use.
@@ -209,7 +209,7 @@ func(pg *Page) Reset() {
 
 // render menu and all syms except sink, split sink into display chunks
 // TODO: Function too long, split up
-func(pg *Page) prepare(sym string, values map[string]string, idx uint16, ctx context.Context) (map[string]string, error) {
+func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string, idx uint16) (map[string]string, error) {
 	var sink string
 
 	if pg.sizer == nil {
@@ -238,7 +238,7 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16, ctx con
 	}
 
 	pg.sizer.AddCursor(0)
-	s, err := pg.render(sym, noSinkValues, 0, ctx)
+	s, err := pg.render(ctx, sym, noSinkValues, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -330,10 +330,10 @@ func(pg *Page) prepare(sym string, values map[string]string, idx uint16, ctx con
 }
 
 // render template, menu (if it exists), and audit size constraint (if it exists).
-func(pg *Page) render(sym string, values map[string]string, idx uint16, ctx context.Context) (string, error) {
+func(pg *Page) render(ctx context.Context, sym string, values map[string]string, idx uint16) (string, error) {
 	var ok bool
 	r := ""
-	s, err := pg.RenderTemplate(sym, values, idx, ctx)
+	s, err := pg.RenderTemplate(ctx, sym, values, idx)
 	if err != nil {
 		return "", err
 	}

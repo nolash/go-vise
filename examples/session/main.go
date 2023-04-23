@@ -23,7 +23,7 @@ var (
 	emptyResult = resource.Result{}
 )
 
-func save(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func save(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	sessionId := ctx.Value("SessionId").(string)
 	sessionDir := path.Join(scriptDir, sessionId)
 	err := os.MkdirAll(sessionDir, 0700)
@@ -71,14 +71,14 @@ func main() {
 	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "SessionId", sessionId)
-	en := engine.NewEngine(cfg, &st, rs, ca, ctx)
+	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
 	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)
 	}
-	err = engine.Loop(&en, os.Stdin, os.Stdout, ctx)
+	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

@@ -35,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 	if !cont {
-		_, err = en.WriteResult(os.Stdout, ctx)
+		_, err = en.WriteResult(ctx, os.Stdout)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "dead init write error: %v\n", err)
 			os.Exit(1)
@@ -43,7 +43,7 @@ func main() {
 		os.Stdout.Write([]byte{0x0a})
 		os.Exit(0)
 	}
-	err = engine.Loop(en, os.Stdin, os.Stdout, ctx)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

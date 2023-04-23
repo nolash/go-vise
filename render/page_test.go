@@ -133,7 +133,7 @@ func TestWithError(t *testing.T) {
 	pg = pg.WithMenu(mn).WithError(err)
 
 	ctx := context.TODO()
-	r, err := pg.Render("foo", 0, ctx)
+	r, err := pg.Render(ctx, "foo", 0)
 	if err != nil {
 		t.Fatal(err)
 	}

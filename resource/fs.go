@@ -29,7 +29,7 @@ func NewFsResource(path string) FsResource {
 	}
 }
 
-func(fsr FsResource) GetTemplate(sym string, ctx context.Context) (string, error) {
+func(fsr FsResource) GetTemplate(ctx context.Context, sym string) (string, error) {
 	fp := path.Join(fsr.Path, sym)
 	fpl := fp
 	v := ctx.Value("Language")
@@ -83,7 +83,7 @@ func(fsr FsResource) String() string {
 	return fmt.Sprintf("fs resource at path: %s", fsr.Path)
 }
 
-func(fsr FsResource) getFunc(sym string, input []byte, ctx context.Context) (Result, error) {
+func(fsr FsResource) getFunc(ctx context.Context, sym string, input []byte) (Result, error) {
 	v := ctx.Value("Language")
 	if v == nil {
 		return fsr.getFuncNoCtx(sym, input, nil)

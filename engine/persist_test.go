@@ -101,7 +101,7 @@ func TestEnginePersist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	en, err := NewPersistedEngine(cfg, pr, rs, ctx)
+	en, err := NewPersistedEngine(ctx, cfg, pr, rs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,16 +111,16 @@ func TestEnginePersist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = en.Exec([]byte("1"), ctx)
+	_, err = en.Exec(ctx, []byte("1"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	
-	_, err = en.Exec([]byte("2"), ctx)
+	_, err = en.Exec(ctx, []byte("2"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = en.Exec([]byte("00"), ctx)
+	_, err = en.Exec(ctx, []byte("00"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestEnginePersist(t *testing.T) {
 	}
 
 	pr = persist.NewFsPersister(persistDir)
-	en, err = NewPersistedEngine(cfg, pr, rs, ctx)
+	en, err = NewPersistedEngine(ctx, cfg, pr, rs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func TestEnginePersist(t *testing.T) {
 		t.Fatalf("expected index '1', got %v", idx)
 	}
 
-	_, err = en.Exec([]byte("11"), ctx)
+	_, err = en.Exec(ctx, []byte("11"))
 	if err != nil {
 		t.Fatal(err)
 	}

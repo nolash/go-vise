@@ -30,7 +30,7 @@ type verifyResource struct {
 	st *state.State
 }
 
-func(vr *verifyResource) verify(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(vr *verifyResource) verify(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var err error
 	if string(input) == "something" {
 		_, err = vr.st.SetFlag(USERFLAG_HAVESOMETHING)
@@ -40,7 +40,7 @@ func(vr *verifyResource) verify(sym string, input []byte, ctx context.Context) (
 	}, err
 }
 
-func(vr *verifyResource) again(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(vr *verifyResource) again(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var err error
 	_, err = vr.st.ResetFlag(USERFLAG_HAVESOMETHING)
 	return resource.Result{}, err
@@ -69,14 +69,14 @@ func main() {
 	}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "SessionId", sessionId)
-	en := engine.NewEngine(cfg, &st, rs, ca, ctx)
+	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
 	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)
 	}
-	err = engine.Loop(&en, os.Stdin, os.Stdout, ctx)
+	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

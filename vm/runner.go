@@ -77,7 +77,7 @@ func(vmi *Vm) Reset() {
 // Each step may update the state.
 //
 // On error, the remaining instructions will be returned. State will not be rolled back.
-func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
 	running := true
 	for running {
 		r, err := vm.st.MatchFlag(state.FLAG_TERMINATE, false)
@@ -129,29 +129,29 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 		Logg.DebugCtxf(ctx, "", "state", vm.st)
 		switch op {
 		case CATCH:
-			b, err = vm.runCatch(b, ctx)
+			b, err = vm.runCatch(ctx, b)
 		case CROAK:
-			b, err = vm.runCroak(b, ctx)
+			b, err = vm.runCroak(ctx, b)
 		case LOAD:
-			b, err = vm.runLoad(b, ctx)
+			b, err = vm.runLoad(ctx, b)
 		case RELOAD:
-			b, err = vm.runReload(b, ctx)
+			b, err = vm.runReload(ctx, b)
 		case MAP:
-			b, err = vm.runMap(b, ctx)
+			b, err = vm.runMap(ctx, b)
 		case MOVE:
-			b, err = vm.runMove(b, ctx)
+			b, err = vm.runMove(ctx, b)
 		case INCMP:
-			b, err = vm.runInCmp(b, ctx)
+			b, err = vm.runInCmp(ctx, b)
 		case MSIZE:
-			b, err = vm.runMSize(b, ctx)
+			b, err = vm.runMSize(ctx, b)
 		case MOUT:
-			b, err = vm.runMOut(b, ctx)
+			b, err = vm.runMOut(ctx, b)
 		case MNEXT:
-			b, err = vm.runMNext(b, ctx)
+			b, err = vm.runMNext(ctx, b)
 		case MPREV:
-			b, err = vm.runMPrev(b, ctx)
+			b, err = vm.runMPrev(ctx, b)
 		case HALT:
-			b, err = vm.runHalt(b, ctx)
+			b, err = vm.runHalt(ctx, b)
 			return b, err
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
@@ -161,7 +161,7 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 			return b, err
 		}
 		if len(b) == 0 {
-			b, err = vm.runDeadCheck(b, ctx)
+			b, err = vm.runDeadCheck(ctx, b)
 			if err != nil {
 				return b, err
 			}
@@ -199,7 +199,7 @@ func(vm *Vm) runErrCheck(ctx context.Context, b []byte, err error) ([]byte, erro
 // If input has not been matched, a default invalid input page should be generated aswell as a possiblity of return to last screen (or exit).
 // 
 // If the termination flag has been set but not yet handled, execution is allowed to terminate.
-func(vm *Vm) runDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
 	if len(b) > 0 {
 		return b, nil
 	}
@@ -241,14 +241,14 @@ func(vm *Vm) runDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // executes the MAP opcode
-func(vm *Vm) runMap(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMap(ctx context.Context, b []byte) ([]byte, error) {
 	sym, b, err := ParseMap(b)
 	err = vm.pg.Map(sym)
 	return b, err
 }
 
 // executes the CATCH opcode
-func(vm *Vm) runCatch(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runCatch(ctx context.Context, b []byte) ([]byte, error) {
 	sym, sig, mode, b, err := ParseCatch(b)
 	if err != nil {
 		return b, err
@@ -283,7 +283,7 @@ func(vm *Vm) runCatch(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // executes the CROAK opcode
-func(vm *Vm) runCroak(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runCroak(ctx context.Context, b []byte) ([]byte, error) {
 	sig, mode, b, err := ParseCroak(b)
 	if err != nil {
 		return b, err
@@ -303,7 +303,7 @@ func(vm *Vm) runCroak(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // executes the LOAD opcode
-func(vm *Vm) runLoad(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runLoad(ctx context.Context, b []byte) ([]byte, error) {
 	sym, sz, b, err := ParseLoad(b)
 	if err != nil {
 		return b, err
@@ -317,7 +317,7 @@ func(vm *Vm) runLoad(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // executes the RELOAD opcode
-func(vm *Vm) runReload(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runReload(ctx context.Context, b []byte) ([]byte, error) {
 	sym, b, err := ParseReload(b)
 	if err != nil {
 		return b, err
@@ -338,7 +338,7 @@ func(vm *Vm) runReload(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // executes the MOVE opcode
-func(vm *Vm) runMove(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMove(ctx context.Context, b []byte) ([]byte, error) {
 	sym, b, err := ParseMove(b)
 	if err != nil {
 		return b, err
@@ -359,7 +359,7 @@ func(vm *Vm) runMove(b []byte, ctx context.Context) ([]byte, error) {
 
 // executes the INCMP opcode
 // TODO: document state transition table and simplify flow
-func(vm *Vm) runInCmp(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 	sym, target, b, err := ParseInCmp(b)
 	if err != nil {
 		return b, err
@@ -434,7 +434,7 @@ func(vm *Vm) runInCmp(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // executes the HALT opcode
-func(vm *Vm) runHalt(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runHalt(ctx context.Context, b []byte) ([]byte, error) {
 	var err error
 	b, err = ParseHalt(b)
 	if err != nil {
@@ -450,14 +450,14 @@ func(vm *Vm) runHalt(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // executes the MSIZE opcode
-func(vm *Vm) runMSize(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMSize(ctx context.Context, b []byte) ([]byte, error) {
 	Logg.WarnCtxf(ctx,  "MSIZE not yet implemented")
 	_, _, b, err := ParseMSize(b)
 	return b, err
 }
 
 // executes the MOUT opcode
-func(vm *Vm) runMOut(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMOut(ctx context.Context, b []byte) ([]byte, error) {
 	choice, title, b, err := ParseMOut(b)
 	if err != nil {
 		return b, err
@@ -467,7 +467,7 @@ func(vm *Vm) runMOut(b []byte, ctx context.Context) ([]byte, error) {
 }
 
 // executes the MNEXT opcode
-func(vm *Vm) runMNext(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMNext(ctx context.Context, b []byte) ([]byte, error) {
        selector, display, b, err := ParseMNext(b)
        if err != nil {
 	       return b, err
@@ -481,7 +481,7 @@ func(vm *Vm) runMNext(b []byte, ctx context.Context) ([]byte, error) {
 }
 	
 // executes the MPREV opcode
-func(vm *Vm) runMPrev(b []byte, ctx context.Context) ([]byte, error) {
+func(vm *Vm) runMPrev(ctx context.Context, b []byte) ([]byte, error) {
        selector, display, b, err := ParseMPrev(b)
        if err != nil {
 	       return b, err
@@ -504,15 +504,15 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 		return "", nil
 	}
 	sym, idx := vm.st.Where()
-	r, err := vm.pg.Render(sym, idx, ctx)
+	r, err := vm.pg.Render(ctx, sym, idx)
 	var ok bool
 	_, ok = err.(*render.BrowseError)
 	if ok {
 		vm.Reset()
 		b := NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
-		vm.Run(b, ctx)
+		vm.Run(ctx, b)
 		sym, idx := vm.st.Where()
-		r, err = vm.pg.Render(sym, idx, ctx)
+		r, err = vm.pg.Render(ctx, sym, idx)
 	}
 	if err != nil {
 		return "", err
@@ -530,7 +530,7 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 		return "", fmt.Errorf("no retrieve function for external symbol %v", key)
 	}
 	input, _ := vm.st.GetInput()
-	r, err := fn(key, input, ctx)
+	r, err := fn(ctx, key, input)
 	if err != nil {
 		var perr error
 		_, perr = vm.st.SetFlag(state.FLAG_LOADFAIL)

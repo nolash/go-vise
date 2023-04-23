@@ -66,7 +66,7 @@ func(pr *profileResource) checkEntry() error {
 	return nil
 }
 
-func(pr profileResource) nameSave(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(pr profileResource) nameSave(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	log.Printf("writing name to file")
 	fp := path.Join(scriptDir, "myname.txt")
 	err := ioutil.WriteFile(fp, input, 0600)
@@ -83,7 +83,7 @@ func(pr profileResource) nameSave(sym string, input []byte, ctx context.Context)
 	return emptyResult, err
 }
 
-func(pr profileResource) emailSave(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(pr profileResource) emailSave(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	log.Printf("writing email to file")
 	fp := path.Join(scriptDir, "myemail.txt")
 	err := ioutil.WriteFile(fp, input, 0600)
@@ -126,7 +126,7 @@ func main() {
 		OutputSize: uint32(size),
 	}
 	ctx := context.Background()
-	en := engine.NewEngine(cfg, &st, rs, ca, ctx)
+	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
 	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
@@ -134,7 +134,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = engine.Loop(&en, os.Stdin, os.Stdout, ctx)
+	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

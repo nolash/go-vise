@@ -15,8 +15,8 @@ import (
 // EngineIsh defines the interface for execution engines that handle vm initialization and execution, and rendering outputs.
 type EngineIsh interface {
 	Init(ctx context.Context) (bool, error)
-	Exec(input []byte, ctx context.Context) (bool, error)
-	WriteResult(w io.Writer, ctx context.Context) (int, error)
+	Exec(ctx context.Context, input []byte) (bool, error)
+	WriteResult(ctx context.Context, w io.Writer) (int, error)
 	Finish() error
 }
 
@@ -42,7 +42,7 @@ type Engine struct {
 }
 
 // NewEngine creates a new Engine
-func NewEngine(cfg Config, st *state.State, rs resource.Resource, ca cache.Memory, ctx context.Context) Engine {
+func NewEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Resource, ca cache.Memory) Engine {
 	var szr *render.Sizer
 	if cfg.OutputSize > 0 {
 		szr = render.NewSizer(cfg.OutputSize)
@@ -113,7 +113,7 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 	}
 	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
 	Logg.DebugCtxf(ctx, "start new init VM run", "code", b)
-	b, err = en.vm.Run(b, ctx)
+	b, err = en.vm.Run(ctx, b)
 	if err != nil {
 		return false, err
 	}
@@ -137,7 +137,7 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 // - input is formally invalid (too long etc)
 // - no current bytecode is available
 // - input processing against bytcode failed
-func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
+func (en *Engine) Exec(ctx context.Context, input []byte) (bool, error) {
 	var err error
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
@@ -157,11 +157,11 @@ func (en *Engine) Exec(input []byte, ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return en.exec(input, ctx)
+	return en.exec(ctx, input)
 }
 
 // backend for Exec, after the input validity check
-func(en *Engine) exec(input []byte, ctx context.Context) (bool, error) {
+func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
 	Logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
 	code, err := en.st.GetCode()
 	if err != nil {
@@ -172,7 +172,7 @@ func(en *Engine) exec(input []byte, ctx context.Context) (bool, error) {
 	}
 
 	Logg.Debugf("start new VM run", "code", code)
-	code, err = en.vm.Run(code, ctx)
+	code, err = en.vm.Run(ctx, code)
 	if err != nil {
 		return false, err
 	}
@@ -204,7 +204,7 @@ func(en *Engine) exec(input []byte, ctx context.Context) (bool, error) {
 // - required data inputs to the template are not available.
 // - the template for the given node point is note available for retrieval using the resource.Resource implementer.
 // - the supplied writer fails to process the writes.
-func(en *Engine) WriteResult(w io.Writer, ctx context.Context) (int, error) {
+func(en *Engine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}

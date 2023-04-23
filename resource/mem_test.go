@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func testEntry(sym string, input []byte, ctx context.Context) (Result, error) {
+func testEntry(ctx context.Context, sym string, input []byte) (Result, error) {
 	return Result{
 		Content: fmt.Sprintf("%sbar", input),
 	}, nil
@@ -18,7 +18,7 @@ func TestMemResourceTemplate(t *testing.T) {
 	rs.AddTemplate("foo", "bar")
 
 	ctx := context.TODO()
-	r, err := rs.GetTemplate("foo", ctx)
+	r, err := rs.GetTemplate(ctx, "foo")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func TestMemResourceTemplate(t *testing.T) {
 		fmt.Errorf("expected 'bar', got %s", r)
 	}
 
-	_, err = rs.GetTemplate("bar", ctx)
+	_, err = rs.GetTemplate(ctx, "bar")
 	if err == nil {
 		t.Fatalf("expected error")
 	}
@@ -60,7 +60,7 @@ func TestMemResourceEntry(t *testing.T) {
 	}
 
 	ctx := context.TODO()
-	r, err := fn("foo", []byte("xyzzy"), ctx)
+	r, err := fn(ctx, "foo", []byte("xyzzy"))
 	if err != nil {
 		t.Fatal(err)
 	}

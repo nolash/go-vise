@@ -11,59 +11,101 @@ import (
 )
 
 type TestSizeResource struct {
-	*resource.MenuResource
+	*resource.MemResource
 }
 
-func getTemplate(sym string, ctx context.Context) (string, error) {
-	var tpl string
-	switch sym {
-	case "small":
-		tpl = "one {{.foo}} two {{.bar}} three {{.baz}}"
-	case "toobig":
-		tpl = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in mattis lorem. Aliquam erat volutpat. Ut vitae metus."
-	case "pages":
-		tpl = "one {{.foo}} two {{.bar}} three {{.baz}}\n{{.xyzzy}}"
-	}
-	return tpl, nil
+func NewTestSizeResource() TestSizeResource {
+	mem := resource.NewMemResource()
+	rs := TestSizeResource{&mem}
+	rs.AddTemplate("small", "one {{.foo}} two {{.bar}} three {{.baz}}")
+	rs.AddTemplate("toobug", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in mattis lorem. Aliquam erat volutpat. Ut vitae metus.")
+	rs.AddTemplate("pages", "one {{.foo}} two {{.bar}} three {{.baz}}\n{{.xyzzy}}")
+	rs.AddEntryFunc("foo", get)
+	rs.AddEntryFunc("bar", get)
+	rs.AddEntryFunc("baz", get)
+	rs.AddEntryFunc("xyzzy", getXyzzy)
+	return rs
 }
 
-func funcFor(sym string) (resource.EntryFunc, error) {
+func get(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	switch sym {
 	case "foo":
-		return getFoo, nil
+		return resource.Result{
+			Content: "inky",
+		}, nil
 	case "bar":
-		return getBar, nil
+		return resource.Result{
+			Content: "pinky",
+		}, nil
 	case "baz":
-		return getBaz, nil
-	case "xyzzy":
-		return getXyzzy, nil
+		return resource.Result{
+			Content: "blinky",
+		}, nil
 	}
-	return nil, fmt.Errorf("unknown func: %s", sym)
+	return resource.Result{}, fmt.Errorf("unknown sym: %s", sym)
 }
 
-func getFoo(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func getXyzzy(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	r := "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve"
 	return resource.Result{
-		Content: "inky",
+		Content: r,
 	}, nil
 }
-
-func getBar(sym string, input []byte, ctx context.Context) (resource.Result, error) {
-	return resource.Result{
-		Content: "pinky",
-	}, nil
-}
-
-func getBaz(sym string, input []byte, ctx context.Context) (resource.Result, error) {
-	return resource.Result{
-		Content: "blinky",
-	}, nil
-}
-
-func getXyzzy(sym string, input []byte, ctx context.Context) (resource.Result, error) {
-	return resource.Result{
-		Content: "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve",
-	}, nil
-}
+//
+//type TestSizeResource struct {
+//	*resource.MenuResource
+//}
+//
+//func getTemplate(sym string, ctx context.Context) (string, error) {
+//	var tpl string
+//	switch sym {
+//	case "small":
+//		tpl = "one {{.foo}} two {{.bar}} three {{.baz}}"
+//	case "toobig":
+//		tpl = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in mattis lorem. Aliquam erat volutpat. Ut vitae metus."
+//	case "pages":
+//		tpl = "one {{.foo}} two {{.bar}} three {{.baz}}\n{{.xyzzy}}"
+//	}
+//	return tpl, nil
+//}
+//
+//func funcFor(sym string) (resource.EntryFunc, error) {
+//	switch sym {
+//	case "foo":
+//		return getFoo, nil
+//	case "bar":
+//		return getBar, nil
+//	case "baz":
+//		return getBaz, nil
+//	case "xyzzy":
+//		return getXyzzy, nil
+//	}
+//	return nil, fmt.Errorf("unknown func: %s", sym)
+//}
+//
+//func getFoo(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+//	return resource.Result{
+//		Content: "inky",
+//	}, nil
+//}
+//
+//func getBar(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+//	return resource.Result{
+//		Content: "pinky",
+//	}, nil
+//}
+//
+//func getBaz(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+//	return resource.Result{
+//		Content: "blinky",
+//	}, nil
+//}
+//
+//func getXyzzy(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+//	return resource.Result{
+//		Content: "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve",
+//	}, nil
+//}
 
 func TestSizeCheck(t *testing.T) {
 	szr := NewSizer(16)
@@ -88,10 +130,11 @@ func TestSizeLimit(t *testing.T) {
 	st := state.NewState(0)
 	ca := cache.NewCache()
 	mn := NewMenu().WithOutputSize(32)
-	mrs := resource.NewMenuResource().WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
-	rs := TestSizeResource{
-		mrs,
-	}
+	//mrs := NewMenuResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
+	//rs := TestSizeResource{
+	//	mrs,
+	//}
+	rs := NewTestSizeResource()
 	szr := NewSizer(128)
 	pg := NewPage(ca, rs).WithMenu(mn).WithSizer(szr)
 	ca.Push()
@@ -125,12 +168,12 @@ func TestSizeLimit(t *testing.T) {
 	mn.Put("2", "go to bar")
 
 	ctx := context.TODO()
-	_, err = pg.Render("small", 0, ctx)
+	_, err = pg.Render(ctx, "small", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = pg.Render("toobig", 0, ctx)
+	_, err = pg.Render(ctx, "toobig", 0)
 	if err == nil {
 		t.Fatalf("expected size exceeded")
 	}
@@ -140,10 +183,11 @@ func TestSizePages(t *testing.T) {
 	st := state.NewState(0)
 	ca := cache.NewCache()
 	mn := NewMenu().WithOutputSize(32)
-	mrs := resource.NewMenuResource().WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
-	rs := TestSizeResource{
-		mrs,	
-	}
+	//mrs := NewMenuResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
+	//rs := TestSizeResource{
+	//	mrs,	
+	//}
+	rs := NewTestSizeResource()
 	szr := NewSizer(128)
 	pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
 	ca.Push()
@@ -161,7 +205,7 @@ func TestSizePages(t *testing.T) {
 	mn.Put("2", "go to bar")
 
 	ctx := context.TODO()
-	r, err := pg.Render("pages",  0, ctx)
+	r, err := pg.Render(ctx, "pages",  0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -178,7 +222,7 @@ lala poo
 	if r != expect {
 		t.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, r)
 	}
-	r, err = pg.Render("pages", 1, ctx)
+	r, err = pg.Render(ctx, "pages", 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,10 +244,10 @@ func TestManySizes(t *testing.T) {
 		st := state.NewState(0)
 		ca := cache.NewCache()
 		mn := NewMenu().WithOutputSize(32)
-		mrs := resource.NewMenuResource().WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
-		rs := TestSizeResource{
-			mrs,	
-		}
+		rs := NewTestSizeResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
+		//rs := TestSizeResource{
+		//	mrs,	
+		//}
 		szr := NewSizer(uint32(i))
 		pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
 		ca.Push()
@@ -218,7 +262,7 @@ func TestManySizes(t *testing.T) {
 		pg.Map("xyzzy")
 
 		ctx := context.TODO()
-		_, err := pg.Render("pages", 0, ctx)
+		_, err := pg.Render(ctx, "pages", 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -230,10 +274,7 @@ func TestManySizesMenued(t *testing.T) {
 		st := state.NewState(0)
 		ca := cache.NewCache()
 		mn := NewMenu().WithOutputSize(32)
-		mrs := resource.NewMenuResource().WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
-		rs := TestSizeResource{
-			mrs,	
-		}
+		rs := NewTestSizeResource()
 		szr := NewSizer(uint32(i))
 		pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
 		ca.Push()
@@ -250,7 +291,7 @@ func TestManySizesMenued(t *testing.T) {
 		mn.Put("12", "nay")
 
 		ctx := context.TODO()
-		_, err := pg.Render("pages", 0, ctx)
+		_, err := pg.Render(ctx, "pages", 0)
 		if err != nil {
 			t.Fatal(err)
 		}

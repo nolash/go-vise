@@ -34,7 +34,7 @@ func TestResourceLanguage(t *testing.T) {
 	}
 
 	rs := NewFsResource(dir)
-	r, err := rs.GetTemplate("foo", ctx)
+	r, err := rs.GetTemplate(ctx, "foo")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +44,7 @@ func TestResourceLanguage(t *testing.T) {
 
 	ctx = context.WithValue(ctx, "Language", lang)
 	rs = NewFsResource(dir)
-	r, err = rs.GetTemplate("foo", ctx)
+	r, err = rs.GetTemplate(ctx, "foo")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestResourceLanguage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err = rs.GetTemplate("foo", ctx)
+	r, err = rs.GetTemplate(ctx, "foo")
 	if err != nil {
 		t.Fatal(err)
 	}

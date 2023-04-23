@@ -40,26 +40,26 @@ func NewFsWrapper(path string, st *state.State) FsWrapper {
 	return wr
 }
 
-func(fs FsWrapper) one(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(fs FsWrapper) one(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: "one",
 	}, nil
 }
 
-func(fs FsWrapper) inky(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(fs FsWrapper) inky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: "tinkywinky",
 	}, nil
 }
 
-func(fs FsWrapper) pinky(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(fs FsWrapper) pinky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	r := fmt.Sprintf("xyzzy: %x", input)
 	return resource.Result{
 		Content: r,
 	}, nil
 }
 
-func(fs FsWrapper) translate(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(fs FsWrapper) translate(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	r := "cool"
 	v := ctx.Value("Language")
 	code := ""
@@ -75,7 +75,7 @@ func(fs FsWrapper) translate(sym string, input []byte, ctx context.Context) (res
 	}, nil
 }
 
-func(fs FsWrapper) set_lang(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+func(fs FsWrapper) set_lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: string(input),
 		FlagSet: []uint32{state.FLAG_LANG},
@@ -107,17 +107,18 @@ func TestEngineInit(t *testing.T) {
 	st := state.NewState(17)
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
-	
-	en := NewEngine(Config{
+
+	cfg := Config{
 		Root: "root",
-	}, &st, &rs, ca, ctx)
+	}
+	en := NewEngine(ctx, cfg, &st, &rs, ca)
 
 	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 	w := bytes.NewBuffer(nil)
-	_, err = en.WriteResult(w, ctx)
+	_, err = en.WriteResult(ctx, w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +133,7 @@ func TestEngineInit(t *testing.T) {
 	}
 
 	input := []byte("1")
-	_, err = en.Exec(input, ctx)
+	_, err = en.Exec(ctx, input)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +142,7 @@ func TestEngineInit(t *testing.T) {
 		t.Fatalf("expected where-string 'foo', got %s", r)
 	}
 	w = bytes.NewBuffer(nil)
-	_, err = en.WriteResult(w, ctx)
+	_, err = en.WriteResult(ctx, w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,16 +166,16 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
-	
-	en := NewEngine(Config{
+	cfg := Config{
 		Root: "root",
-	}, &st, &rs, ca, ctx)
+	}	
+	en := NewEngine(ctx, cfg, &st, &rs, ca)
 	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = en.Exec([]byte("_foo"), ctx)
+	_, err = en.Exec(ctx, []byte("_foo"))
 	if err == nil {
 		t.Fatalf("expected fail on invalid input")
 	}
@@ -186,22 +187,23 @@ func TestEngineResumeTerminated(t *testing.T) {
 	st := state.NewState(17)
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
-
-	en := NewEngine(Config{
+	
+	cfg := Config{
 		Root: "root",
-	}, &st, &rs, ca, ctx)
+	}
+	en := NewEngine(ctx, cfg, &st, &rs, ca)
 	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = en.Exec([]byte("1"), ctx)
+	_, err = en.Exec(ctx, []byte("1"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = en.Exec([]byte("1"), ctx)
+	_, err = en.Exec(ctx, []byte("1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,9 +224,10 @@ func TestLanguageSet(t *testing.T) {
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
-	en := NewEngine(Config{
+	cfg := Config{
 		Root: "root",
-	}, &st, &rs, ca, ctx)
+	}
+	en := NewEngine(ctx, cfg, &st, &rs, ca)
 
 	var err error
 	_, err = en.Init(ctx)
@@ -237,7 +240,7 @@ func TestLanguageSet(t *testing.T) {
 	b = vm.NewLine(b, vm.MOVE, []string{"."}, nil, nil)
 	st.SetCode(b)
 
-	_, err = en.Exec([]byte("no"), ctx)
+	_, err = en.Exec(ctx, []byte("no"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -254,7 +257,7 @@ func TestLanguageSet(t *testing.T) {
 	b = vm.NewLine(b, vm.MOVE, []string{"."}, nil, nil)
 	st.SetCode(b)
 
-	_, err = en.Exec([]byte("no"), ctx)
+	_, err = en.Exec(ctx, []byte("no"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -274,9 +277,10 @@ func TestLanguageRender(t *testing.T) {
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache()
 
-	en := NewEngine(Config{
+	cfg := Config{
 		Root: "root",
-	}, &st, &rs, ca, ctx)
+	}
+	en := NewEngine(ctx, cfg, &st, &rs, ca)
 
 	var err error
 	_, err = en.Init(ctx)
@@ -289,13 +293,13 @@ func TestLanguageRender(t *testing.T) {
 	b = vm.NewLine(b, vm.MOVE, []string{"lang"}, nil, nil)
 	st.SetCode(b)
 
-	_, err = en.Exec([]byte("nor"), ctx)
+	_, err = en.Exec(ctx, []byte("nor"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	
 	br := bytes.NewBuffer(nil)
-	_, err = en.WriteResult(br, ctx)
+	_, err = en.WriteResult(ctx, br)
 	if err != nil {
 		t.Fatal(err)
 	}

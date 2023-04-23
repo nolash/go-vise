@@ -16,7 +16,7 @@ type PersistedEngine struct {
 
 
 // NewPersistedEngine creates a new PersistedEngine
-func NewPersistedEngine(cfg Config, pr persist.Persister, rs resource.Resource, ctx context.Context) (PersistedEngine, error) {
+func NewPersistedEngine(ctx context.Context, cfg Config, pr persist.Persister, rs resource.Resource) (PersistedEngine, error) {
 	err := pr.Load(cfg.SessionId)
 	if err != nil {
 		return PersistedEngine{}, err
@@ -24,7 +24,7 @@ func NewPersistedEngine(cfg Config, pr persist.Persister, rs resource.Resource, 
 	st := pr.GetState()
 	ca := pr.GetMemory()
 	
-	enb := NewEngine(cfg, st, rs, ca, ctx)
+	enb := NewEngine(ctx, cfg, st, rs, ca)
 	en := PersistedEngine{
 		&enb,
 		pr,
@@ -33,8 +33,8 @@ func NewPersistedEngine(cfg Config, pr persist.Persister, rs resource.Resource, 
 }
 
 // Exec executes the parent method Engine.Exec, and afterwards persists the new state.
-func(pe PersistedEngine) Exec(input []byte, ctx context.Context) (bool, error) {
-	v, err := pe.Engine.Exec(input, ctx)
+func(pe PersistedEngine) Exec(ctx context.Context, input []byte) (bool, error) {
+	v, err := pe.Engine.Exec(ctx, input)
 	if err != nil {
 		return v, err
 	}
@@ -64,9 +64,11 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 		return err
 	}
 
-	en := NewEngine(cfg, pr.GetState(), rs, pr.GetMemory(), ctx)
+	st := pr.GetState()
+	ca := pr.GetMemory()
+	en := NewEngine(ctx, cfg, st, rs, ca)
 
-	c, err := en.WriteResult(w, ctx)
+	c, err := en.WriteResult(ctx, w)
 	if err != nil {
 		return err
 	}
@@ -78,11 +80,11 @@ func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input 
 		return err
 	}
 
-	_, err = en.Exec(input, ctx)
+	_, err = en.Exec(ctx, input)
 	if err != nil {
 		return err
 	}
-	_, err = en.WriteResult(w, ctx)
+	_, err = en.WriteResult(ctx, w)
 	if err != nil {
 		return err
 	}

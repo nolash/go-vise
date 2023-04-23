@@ -24,7 +24,7 @@ func NewMemResource() MemResource {
 	return mr
 }
 
-func(mr MemResource) getTemplate(sym string, ctx context.Context) (string, error) {
+func(mr MemResource) getTemplate(ctx context.Context, sym string) (string, error) {
 	r, ok := mr.templates[sym]
 	if !ok {
 		return "", fmt.Errorf("unknown template symbol: %s", sym)

@@ -13,14 +13,14 @@ type Result struct {
 }
 
 // EntryFunc is a function signature for retrieving value for a key
-type EntryFunc func(sym string, input []byte, ctx context.Context) (Result, error)
+type EntryFunc func(ctx context.Context, sym string, input []byte) (Result, error)
 type CodeFunc func(sym string) ([]byte, error)
-type TemplateFunc func(sym string, ctx context.Context) (string, error)
+type TemplateFunc func(ctx context.Context, sym string) (string, error)
 type FuncForFunc func(sym string) (EntryFunc, error)
 
 // Resource implementation are responsible for retrieving values and templates for symbols, and can render templates from value dictionaries.
 type Resource interface {
-	GetTemplate(sym string, ctx context.Context) (string, error) // Get the template for a given symbol.
+	GetTemplate(ctx context.Context, sym string) (string, error) // Get the template for a given symbol.
 	GetCode(sym string) ([]byte, error) // Get the bytecode for the given symbol.
 	FuncFor(sym string) (EntryFunc, error) // Resolve symbol content point for.
 }
@@ -69,6 +69,6 @@ func(m MenuResource) GetCode(sym string) ([]byte, error) {
 }
 
 // GetTemplate implements Resource interface
-func(m MenuResource) GetTemplate(sym string, ctx context.Context) (string, error) {
-	return m.templateFunc(sym, ctx)
+func(m MenuResource) GetTemplate(ctx context.Context, sym string) (string, error) {
+	return m.templateFunc(ctx, sym)
 }
