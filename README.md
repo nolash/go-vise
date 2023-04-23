@@ -23,6 +23,7 @@ Original motivation was to create a simple templating renderer for USSD clients,
 * templated output from results of external code execution.
 * generate and navigate pages where data symbol contents are too long to display on a single page.
 * pluggable function design for handling external code execution calls.
+* Dedicated error string to prepend to template (e.g. on catch)
 
 
 ### Pending
@@ -38,7 +39,6 @@ Original motivation was to create a simple templating renderer for USSD clients,
 
 * Breakpoints.
 * Key/value database reference example.
-* Dedicated error string to prepend to template (e.g. on catch)
 
 
 ## Opcodes
