@@ -19,6 +19,8 @@ type Page struct {
 	menu *Menu // Menu rendererer.
 	sink *string // Content symbol rendered by dynamic size.
 	sizer *Sizer // Process size constraints.
+	err error // Error state to prepend to output.
+	errConst error // Use this error for display on all errors.
 }
 
 // NewPage creates a new Page object.
@@ -46,6 +48,26 @@ func(pg *Page) WithSizer(sizer *Sizer) *Page {
 		pg.sizer = pg.sizer.WithMenuSize(pg.menu.ReservedSize())
 	}
 	return pg
+}
+
+// WithError adds an error to prepend to the page output.
+func(pg *Page) WithError(err error) *Page {
+	pg.err = err
+	return pg
+}
+
+func(pg *Page) WithOpaqueError(err error) *Page {
+	pg.errConst = err
+	return pg
+}
+
+func(pg *Page) Error() string {
+	if pg.err != nil {
+		if pg.errConst != nil {
+			return pg.errConst.Error()
+		}
+	}
+	return pg.err.Error()
 }
 
 // Usage returns size used by values and menu, and remaining size available
@@ -134,6 +156,14 @@ func(pg *Page) RenderTemplate(sym string, values map[string]string, idx uint16, 
 	tpl, err := pg.resource.GetTemplate(sym, ctx)
 	if err != nil {
 		return "", err
+	}
+	if pg.err != nil {
+		Logg.DebugCtxf(ctx, "Prepending error: %s", pg.err)
+		if len(tpl) == 0 {
+			tpl = pg.err.Error()
+		} else {
+			tpl = fmt.Sprintf("%s\n%s", pg.err, tpl)
+		}
 	}
 	if pg.sizer != nil {
 		values, err = pg.sizer.GetAt(values, idx)

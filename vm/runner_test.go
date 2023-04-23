@@ -19,6 +19,7 @@ type TestResource struct {
 	resource.MenuResource
 	state *state.State
 	RootCode []byte
+	CatchContent string
 }
 
 func getOne(sym string, input []byte, ctx context.Context) (resource.Result, error) {
@@ -44,6 +45,11 @@ func getEcho(sym string, input []byte, ctx context.Context) (resource.Result, er
 	return resource.Result{
 		Content: r,
 	}, nil
+}
+
+
+func uhOh(sym string, input []byte, ctx context.Context) (resource.Result, error) {
+	return resource.Result{}, fmt.Errorf("uh-oh spaghetti'ohs")
 }
 
 func setFlag(sym string, input []byte, ctx context.Context) (resource.Result, error) {
@@ -86,13 +92,12 @@ func (r TestResource) GetTemplate(sym string, ctx context.Context) (string, erro
 	case "root":
 		return "root", nil
 	case "_catch":
-		return "aiee", nil
+		return r.CatchContent, nil
 	case "ouf":
 		return "ouch", nil
 	case "flagCatch":
 		return "flagiee", nil
 	}
-	panic(fmt.Sprintf("unknown symbol %s", sym))
 	return "", fmt.Errorf("unknown symbol %s", sym)
 }
 
@@ -112,6 +117,8 @@ func (r TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 		return setFlag, nil
 	case "set_lang":
 		return set_lang, nil
+	case "aiee":
+		return uhOh, nil
 	}
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
 }
@@ -659,4 +666,57 @@ func TestSetLang(t *testing.T) {
 	if lang.Code != "nor" {
 		t.Fatalf("expected language 'nor',, got %s", lang.Code)
 	}
+}
+
+func TestLoadError(t *testing.T) {
+	st := state.NewState(0).WithDebug()
+	rs := TestResource{}
+	ca := cache.NewCache()
+	vm := NewVm(&st, &rs, ca, nil)
+
+	st.Down("root")
+	st.SetInput([]byte{})
+	b := NewLine(nil, LOAD, []string{"aiee"}, []byte{0x01, 0x10}, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+
+	var err error
+	ctx := context.TODO()
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r, err := vm.Render(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect := `[aiee] uh-oh spaghetti'ohs
+0:repent`
+	if r != expect {
+		t.Fatalf("expected: \n\t%s\ngot:\n\t%s", expect, r)
+	}
+
+	rs.CatchContent = "foo"
+
+	st.Up()
+	st.SetInput([]byte{})
+	b = NewLine(nil, LOAD, []string{"aiee"}, []byte{0x01, 0x10}, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+
+	b, err = vm.Run(b, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r, err = vm.Render(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect = `[aiee] uh-oh spaghetti'ohs
+foo
+0:repent`
+	if r != expect {
+		t.Fatalf("expected: \n\t%s\ngot:\n\t%s", expect, r)
+	}
+
 }

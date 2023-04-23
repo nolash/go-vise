@@ -20,6 +20,18 @@ var (
 
 )
 
+type InvalidInputError struct {
+	input string
+}
+
+func NewInvalidInputError(input string) error {
+	return InvalidInputError{input}
+}
+
+func(e InvalidInputError) Error() string {
+	return "invalid input"
+}
+
 // CheckInput validates the given byte string as client input.
 func ValidInput(input []byte) error {
 	if !inputRegex.Match(input) {

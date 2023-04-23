@@ -10,6 +10,21 @@ import (
 	"git.defalsify.org/vise.git/state"
 )
 
+type ExternalCodeError struct {
+	sym string
+	err error
+}
+
+func NewExternalCodeError(sym string, err error) error {
+	return ExternalCodeError{sym, err}
+}
+
+func(e ExternalCodeError) Error() string {
+	return fmt.Sprintf("[%s] %v", e.sym, e.err)
+}
+
+
+
 // Vm holds sub-components mutated by the vm execution.
 // TODO: Renderer should be passed to avoid proxy methods not strictly related to vm operation
 type Vm struct {
@@ -129,6 +144,7 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 		default:
 			err = fmt.Errorf("Unhandled state: %v", op)
 		}
+		b, err = vm.RunErrCheck(ctx, b, err)
 		if err != nil {
 			return b, err
 		}
@@ -142,6 +158,24 @@ func(vm *Vm) Run(b []byte, ctx context.Context) ([]byte, error) {
 			return []byte{}, nil
 		}
 	}
+	return b, nil
+}
+
+func(vm *Vm) RunErrCheck(ctx context.Context, b []byte, err error) ([]byte, error) {
+	if err == nil {
+		return b, err
+	}
+	vm.pg = vm.pg.WithError(err)
+
+	v, err := vm.st.MatchFlag(state.FLAG_LOADFAIL, false)
+	if err != nil {
+		panic(err)
+	}
+	if !v {
+		return b, err
+	}
+
+	b = NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
 	return b, nil
 }
 
@@ -183,6 +217,8 @@ func(vm *Vm) RunDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 	if location == "" {
 		return b, fmt.Errorf("dead runner with no current location")
 	}
+	cerr := fmt.Errorf("invalid input")
+	vm.pg.WithError(cerr)	
 	b = NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
 	return b, nil
 }
@@ -479,13 +515,12 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 	input, _ := vm.st.GetInput()
 	r, err := fn(key, input, ctx)
 	if err != nil {
-		Logg.TraceCtxf(ctx, "loadfail", "err", err)
 		var perr error
 		_, perr = vm.st.SetFlag(state.FLAG_LOADFAIL)
 		if perr != nil {
 			panic(err)
 		}
-		return "", err
+		return "", NewExternalCodeError(key, err)
 	}
 	for _, flag := range r.FlagSet {
 		if !state.IsWriteableFlag(flag) {
@@ -513,7 +548,6 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 	if haveLang {
 		vm.st.SetLanguage(r.Content)
 	}
-	
 
 	return r.Content, err
 }
