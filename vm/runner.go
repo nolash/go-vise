@@ -229,14 +229,14 @@ func(vm *Vm) runDeadCheck(b []byte, ctx context.Context) ([]byte, error) {
 	return b, nil
 }
 
-// RunMap executes the MAP opcode
+// executes the MAP opcode
 func(vm *Vm) runMap(b []byte, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseMap(b)
 	err = vm.pg.Map(sym)
 	return b, err
 }
 
-// RunMap executes the CATCH opcode
+// executes the CATCH opcode
 func(vm *Vm) runCatch(b []byte, ctx context.Context) ([]byte, error) {
 	sym, sig, mode, b, err := ParseCatch(b)
 	if err != nil {
@@ -271,7 +271,7 @@ func(vm *Vm) runCatch(b []byte, ctx context.Context) ([]byte, error) {
 	return b, nil
 }
 
-// RunMap executes the CROAK opcode
+// executes the CROAK opcode
 func(vm *Vm) runCroak(b []byte, ctx context.Context) ([]byte, error) {
 	sig, mode, b, err := ParseCroak(b)
 	if err != nil {
@@ -291,7 +291,7 @@ func(vm *Vm) runCroak(b []byte, ctx context.Context) ([]byte, error) {
 	return []byte{}, nil
 }
 
-// RunLoad executes the LOAD opcode
+// executes the LOAD opcode
 func(vm *Vm) runLoad(b []byte, ctx context.Context) ([]byte, error) {
 	sym, sz, b, err := ParseLoad(b)
 	if err != nil {
@@ -305,7 +305,7 @@ func(vm *Vm) runLoad(b []byte, ctx context.Context) ([]byte, error) {
 	return b, err
 }
 
-// RunLoad executes the RELOAD opcode
+// executes the RELOAD opcode
 func(vm *Vm) runReload(b []byte, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseReload(b)
 	if err != nil {
@@ -326,7 +326,7 @@ func(vm *Vm) runReload(b []byte, ctx context.Context) ([]byte, error) {
 	return b, nil
 }
 
-// RunLoad executes the MOVE opcode
+// executes the MOVE opcode
 func(vm *Vm) runMove(b []byte, ctx context.Context) ([]byte, error) {
 	sym, b, err := ParseMove(b)
 	if err != nil {
@@ -346,8 +346,8 @@ func(vm *Vm) runMove(b []byte, ctx context.Context) ([]byte, error) {
 	return b, nil
 }
 
-// RunIncmp executes the INCMP opcode
-// TODO: create state transition table and simplify flow
+// executes the INCMP opcode
+// TODO: document state transition table and simplify flow
 func(vm *Vm) runInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	sym, target, b, err := ParseInCmp(b)
 	if err != nil {
@@ -422,7 +422,7 @@ func(vm *Vm) runInCmp(b []byte, ctx context.Context) ([]byte, error) {
 	return b, err
 }
 
-// RunHalt executes the HALT opcode
+// executes the HALT opcode
 func(vm *Vm) runHalt(b []byte, ctx context.Context) ([]byte, error) {
 	var err error
 	b, err = ParseHalt(b)
@@ -438,14 +438,14 @@ func(vm *Vm) runHalt(b []byte, ctx context.Context) ([]byte, error) {
 	return b, nil
 }
 
-// RunMSize executes the MSIZE opcode
+// executes the MSIZE opcode
 func(vm *Vm) runMSize(b []byte, ctx context.Context) ([]byte, error) {
 	Logg.WarnCtxf(ctx,  "MSIZE not yet implemented")
 	_, _, b, err := ParseMSize(b)
 	return b, err
 }
 
-// RunMOut executes the MOUT opcode
+// executes the MOUT opcode
 func(vm *Vm) runMOut(b []byte, ctx context.Context) ([]byte, error) {
 	choice, title, b, err := ParseMOut(b)
 	if err != nil {
@@ -455,7 +455,7 @@ func(vm *Vm) runMOut(b []byte, ctx context.Context) ([]byte, error) {
 	return b, err
 }
 
-// RunMNext executes the MNEXT opcode
+// executes the MNEXT opcode
 func(vm *Vm) runMNext(b []byte, ctx context.Context) ([]byte, error) {
        selector, display, b, err := ParseMNext(b)
        if err != nil {
@@ -469,7 +469,7 @@ func(vm *Vm) runMNext(b []byte, ctx context.Context) ([]byte, error) {
        return b, nil
 }
 	
-// RunMPrev executes the MPREV opcode
+// executes the MPREV opcode
 func(vm *Vm) runMPrev(b []byte, ctx context.Context) ([]byte, error) {
        selector, display, b, err := ParseMPrev(b)
        if err != nil {

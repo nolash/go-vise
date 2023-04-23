@@ -63,8 +63,6 @@ func(pg *Page) WithFixedError(err error) *Page {
 }
 
 // Error implements error interface.
-//
-// This error is used internally by the renderer, and is not intended for direct use.
 func(pg *Page) Error() string {
 	if pg.err != nil {
 		if pg.errConst != nil {
