@@ -9,7 +9,7 @@ import (
 // Sizer splits dynamic contents into individual segments for browseable pages.
 type Sizer struct {
 	outputSize uint32 // maximum output for a single page.
-	menuSize uint16 // actual menu size for the dynamic page being sized
+//	menuSize uint16 // actual menu size for the dynamic page being sized
 	memberSizes map[string]uint16 // individual byte sizes of all content to be rendered by template.
 	totalMemberSize uint32 // total byte size of all content to be rendered by template (sum of memberSizes)
 	crsrs []uint32 // byte offsets in the sink content for browseable pages indices.
@@ -25,10 +25,10 @@ func NewSizer(outputSize uint32) *Sizer {
 }
 
 // WithMenuSize sets the size of the menu being used in the rendering context.
-func(szr *Sizer) WithMenuSize(menuSize uint16) *Sizer {
-	szr.menuSize = menuSize
-	return szr
-}
+//func(szr *Sizer) WithMenuSize(menuSize uint16) *Sizer {
+//	szr.menuSize = menuSize
+//	return szr
+//}
 
 // Set adds a content symbol in the state it will be used by the renderer.
 func(szr *Sizer) Set(key string, size uint16) error {
@@ -56,11 +56,12 @@ func(szr *Sizer) Check(s string) (uint32, bool) {
 
 // String implements the String interface.
 func(szr *Sizer) String() string {
-	var diff uint32
-	if szr.outputSize > 0 {
-		diff = szr.outputSize - szr.totalMemberSize - uint32(szr.menuSize)
-	}
-	return fmt.Sprintf("output: %v, member: %v, menu: %v, diff: %v", szr.outputSize, szr.totalMemberSize, szr.menuSize, diff)
+//	var diff uint32
+//	if szr.outputSize > 0 {
+//		diff = szr.outputSize - szr.totalMemberSize - uint32(szr.menuSize)
+//	}
+//	return fmt.Sprintf("output: %v, member: %v, menu: %v, diff: %v", szr.outputSize, szr.totalMemberSize, szr.menuSize, diff)
+	return fmt.Sprintf("output: %v, member: %v", szr.outputSize, szr.totalMemberSize)
 }
 
 // Size gives the byte size of content for a single symbol.
@@ -75,9 +76,9 @@ func(szr *Sizer) Size(s string) (uint16, error) {
 }
 
 // Menusize returns the currently defined menu size.
-func(szr *Sizer) MenuSize() uint16 {
-	return szr.menuSize
-}
+//func(szr *Sizer) MenuSize() uint16 {
+//	return szr.menuSize
+//}
 
 // AddCursor adds a pagination cursor for the paged sink content.
 func(szr *Sizer) AddCursor(c uint32) {

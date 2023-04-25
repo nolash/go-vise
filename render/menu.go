@@ -44,7 +44,8 @@ type Menu struct {
 	pageCount uint16 // number of pages the menu should represent.
 	canNext bool // availability flag for the "next" browse option.
 	canPrevious bool // availability flag for the "previous" browse option.
-	outputSize uint16 // maximum size constraint for the menu.
+	//outputSize uint16 // maximum size constraint for the menu.
+	sink bool
 }
 
 // NewMenu creates a new Menu with an explicit page count.
@@ -58,16 +59,23 @@ func(m *Menu) WithPageCount(pageCount uint16) *Menu {
 	return m
 }
 
-// WithSize defines the maximum byte size of the rendered menu.
-func(m *Menu) WithOutputSize(outputSize uint16) *Menu {
-	m.outputSize = outputSize
+func(m *Menu) WithPages() *Menu {
+	if m.pageCount == 0 {
+		m.pageCount = 1
+	}
 	return m
 }
 
+// WithSize defines the maximum byte size of the rendered menu.
+//func(m *Menu) WithOutputSize(outputSize uint16) *Menu {
+//	m.outputSize = outputSize
+//	return m
+//}
+
 // GetOutputSize returns the defined heuristic menu size.
-func(m *Menu) GetOutputSize() uint32 {
-	return uint32(m.outputSize)
-}
+//func(m *Menu) GetOutputSize() uint32 {
+//	return uint32(m.outputSize)
+//}
 
 // WithBrowseConfig defines the criteria for page browsing.
 func(m *Menu) WithBrowseConfig(cfg BrowseConfig) *Menu {
@@ -87,8 +95,33 @@ func(m *Menu) Put(selector string, title string) error {
 }
 
 // ReservedSize returns the maximum render byte size of the menu.
-func(m *Menu) ReservedSize() uint16 {
-	return m.outputSize
+//func(m *Menu) ReservedSize() uint16 {
+//	return m.outputSize
+//}
+
+ // mainSize, prevsize, nextsize, nextsize+prevsize
+func(m *Menu) Sizes() ([4]uint32, error) {
+	var menuSizes [4]uint32
+	cfg := m.GetBrowseConfig()
+	tmpm := NewMenu().WithBrowseConfig(cfg)
+	v, err := tmpm.Render(0)
+	if err != nil {
+		return menuSizes, err
+	}
+	menuSizes[0] = uint32(len(v))
+	tmpm = tmpm.WithPageCount(2)
+	v, err = tmpm.Render(0)
+	if err != nil {
+		return menuSizes, err
+	}
+	menuSizes[1] = uint32(len(v)) - menuSizes[0]
+	v, err = tmpm.Render(1)
+	if err != nil {
+		return menuSizes, err
+	}
+	menuSizes[2] = uint32(len(v)) - menuSizes[0]
+	menuSizes[3] = menuSizes[1] + menuSizes[2]
+	return menuSizes, nil
 }
 
 // Render returns the full current state of the menu as a string.

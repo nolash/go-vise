@@ -34,18 +34,18 @@ func NewPage(cache cache.Memory, rs resource.Resource) *Page {
 // WithMenu sets a menu renderer for the page.
 func(pg *Page) WithMenu(menu *Menu) *Page {
 	pg.menu = menu
-	if pg.sizer != nil {
-		pg.sizer = pg.sizer.WithMenuSize(pg.menu.ReservedSize())
-	}
+	//if pg.sizer != nil {
+	//	pg.sizer = pg.sizer.WithMenuSize(pg.menu.ReservedSize())
+	//}
 	return pg
 }
 
 // WithSizer sets a size constraints definition for the page.
 func(pg *Page) WithSizer(sizer *Sizer) *Page {
 	pg.sizer = sizer
-	if pg.menu != nil {
-		pg.sizer = pg.sizer.WithMenuSize(pg.menu.ReservedSize())
-	}
+	//if pg.menu != nil {
+		//pg.sizer = pg.sizer.WithMenuSize(pg.menu.ReservedSize())
+	//}
 	return pg
 }
 
@@ -77,9 +77,9 @@ func(pg *Page) Usage() (uint32, uint32, error) {
 	}
 	r := uint32(l)
 	rsv := uint32(c)-r
-	if pg.menu != nil {
-		r += uint32(pg.menu.ReservedSize())
-	}
+	//if pg.menu != nil {
+	//	r += uint32(pg.menu.ReservedSize())
+	//}
 	return r, rsv, nil
 }
 
@@ -206,79 +206,50 @@ func(pg *Page) Reset() {
 	}
 }
 
-
-// render menu and all syms except sink, split sink into display chunks
-// TODO: Function too long, split up
-func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string, idx uint16) (map[string]string, error) {
+// extract sink values to separate array, and set the content of sink in values map to zero-length string.
+//
+// this allows render of page with emptry content the sink symbol to discover remaining capacity.
+func(pg *Page) split(sym string, values map[string]string) (map[string]string, string, []string, error) {
 	var sink string
-
-	if pg.sizer == nil {
-		return values, nil
-	}
-
 	var sinkValues []string
 	noSinkValues := make(map[string]string)
+
 	for k, v := range values {
 		sz, err := pg.cache.ReservedSize(k)
 		if err != nil {
-			return nil, err
+			return nil, "", nil, err
 		}
 		if sz == 0 {
 			sink = k
 			sinkValues = strings.Split(v, "\n")
 			v = ""
-			Logg.Infof("found sink", "sym", k, "fields", len(sinkValues))
+			Logg.Infof("found sink", "sym", sym, "sink", k)
 		}
 		noSinkValues[k] = v
 	}
 	
 	if sink == "" {
 		Logg.Tracef("no sink found", "sym", sym)
-		return values, nil
+		return values, "", nil, nil
 	}
+	return noSinkValues, sink, sinkValues, nil
+}
 
-	pg.sizer.AddCursor(0)
-	s, err := pg.render(ctx, sym, noSinkValues, 0)
-	if err != nil {
-		return nil, err
-	}
-	// remaining includes core menu
-	remaining, ok := pg.sizer.Check(s)
-	if !ok {
-		return nil, fmt.Errorf("capacity exceeded")
-	}
-
-	var menuSizes [4]uint32 // mainSize, prevsize, nextsize, nextsize+prevsize
-	if pg.menu != nil {
-		cfg := pg.menu.GetBrowseConfig()
-		tmpm := NewMenu().WithBrowseConfig(cfg)
-		v, err := tmpm.Render(0)
-		if err != nil {
-			return nil, err
-		}
-		menuSizes[0] = uint32(len(v))
-		tmpm = tmpm.WithPageCount(2)
-		v, err = tmpm.Render(0)
-		if err != nil {
-			return nil, err
-		}
-		menuSizes[1] = uint32(len(v)) - menuSizes[0]
-		v, err = tmpm.Render(1)
-		if err != nil {
-			return nil, err
-		}
-		menuSizes[2] = uint32(len(v)) - menuSizes[0]
-		menuSizes[3] = menuSizes[1] + menuSizes[2]
-	}
-
-	Logg.Debugf("calculated pre-navigation allocation", "bytes", remaining)
-
+// flatten the sink values array into a paged string.
+//
+// newlines (within the same page) render are defined by NUL (0x00).
+//
+// pages are separated by LF (0x0a).
+func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint32) (string, uint16, error) {
 	l := 0
 	var count uint16
 	tb := strings.Builder{}
 	rb := strings.Builder{}
 
+	// remaining is remaining less one LF
 	netRemaining := remaining - 1
+
+	// BUG: this reserves the previous browse before we know we need it
 	if len(sinkValues) > 1 {
 		netRemaining -= menuSizes[1] - 1
 	}
@@ -288,7 +259,7 @@ func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string
 		Logg.Tracef("processing sink", "idx", i, "value", v)
 		if uint32(l) > netRemaining - 1 {
 			if tb.Len() == 0 {
-				return nil, fmt.Errorf("capacity insufficient for sink field %v", i)
+				return "", 0, fmt.Errorf("capacity insufficient for sink field %v", i)
 			}
 			rb.WriteString(tb.String())
 			rb.WriteRune('\n')
@@ -315,14 +286,61 @@ func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string
 
 	r := rb.String()
 	r = strings.TrimRight(r, "\n")
+	return r, count, nil
+}
 
-	noSinkValues[sink] = r
+// render menu and all syms except sink, split sink into display chunks
+func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string, idx uint16) (map[string]string, error) {
+	if pg.sizer == nil {
+		return values, nil
+	}
 
+	// extract sink values
+	noSinkValues, sink, sinkValues, err := pg.split(sym, values)
+
+	// check if menu is sink aswell, fail if it is.
+	if pg.menu != nil {
+	//	if pg.menu.ReservedSize()
+	}
+
+	// pre-render template without sink
+	// this includes the menu before any browsing options have been added
+	pg.sizer.AddCursor(0)
+	s, err := pg.render(ctx, sym, noSinkValues, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	// this is the available bytes left for sink content and browse menu
+	remaining, ok := pg.sizer.Check(s)
+	if !ok {
+		return nil, fmt.Errorf("capacity exceeded")
+	}
+
+	// pre-calculate the menu sizes for all browse conditions
+	var menuSizes [4]uint32
+	if pg.menu != nil {
+		menuSizes, err = pg.menu.Sizes()
+		if err != nil {
+			return nil, err
+		}
+	}
+	Logg.Debugf("calculated pre-navigation allocation", "bytes", remaining, "menusizes", menuSizes)
+
+	// process sink values array into newline-separated string
+	sinkString, count, err := pg.joinSink(sinkValues, remaining, menuSizes)
+	if err != nil {
+		return nil, err
+	}
+	noSinkValues[sink] = sinkString
+
+	// update the page count of the menu
 	if pg.menu != nil {
 		pg.menu = pg.menu.WithPageCount(count)
 	}
 
-	for i, v := range strings.Split(r, "\n") {
+	// write all sink values to log.
+	for i, v := range strings.Split(sinkString, "\n") {
 		Logg.Tracef("nosinkvalue", "idx", i, "value", v)
 	}
 

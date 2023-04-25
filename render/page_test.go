@@ -55,7 +55,7 @@ func TestPageCurrentSize(t *testing.T) {
 		t.Errorf("expected remaining length 34, got %v", c)
 	}
 
-	mn := NewMenu().WithOutputSize(32)
+	mn := NewMenu() //.WithOutputSize(32)
 	pg = pg.WithMenu(mn)
 	l, c, err = pg.Usage()
 	if err != nil {
@@ -124,7 +124,7 @@ func TestWithError(t *testing.T) {
 	pg := NewPage(ca, rs)
 	ca.Push()
 
-	mn := NewMenu().WithOutputSize(32)
+	mn := NewMenu() //.WithOutputSize(32)
 	err := mn.Put("0", "aiee")
 	if err != nil {
 		t.Fatal(err)

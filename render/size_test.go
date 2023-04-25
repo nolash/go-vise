@@ -129,7 +129,7 @@ func TestSizeCheck(t *testing.T) {
 func TestSizeLimit(t *testing.T) {
 	st := state.NewState(0)
 	ca := cache.NewCache()
-	mn := NewMenu().WithOutputSize(32)
+	mn := NewMenu() //.WithOutputSize(32)
 	//mrs := NewMenuResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
 	//rs := TestSizeResource{
 	//	mrs,
@@ -182,7 +182,7 @@ func TestSizeLimit(t *testing.T) {
 func TestSizePages(t *testing.T) {
 	st := state.NewState(0)
 	ca := cache.NewCache()
-	mn := NewMenu().WithOutputSize(32)
+	mn := NewMenu() //.WithOutputSize(32)
 	//mrs := NewMenuResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
 	//rs := TestSizeResource{
 	//	mrs,	
@@ -243,7 +243,7 @@ func TestManySizes(t *testing.T) {
 	for i := 60; i < 160; i++ {
 		st := state.NewState(0)
 		ca := cache.NewCache()
-		mn := NewMenu().WithOutputSize(32)
+		mn := NewMenu() //.WithOutputSize(32)
 		rs := NewTestSizeResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
 		//rs := TestSizeResource{
 		//	mrs,	
@@ -273,7 +273,7 @@ func TestManySizesMenued(t *testing.T) {
 	for i := 60; i < 160; i++ {
 		st := state.NewState(0)
 		ca := cache.NewCache()
-		mn := NewMenu().WithOutputSize(32)
+		mn := NewMenu() //.WithOutputSize(32)
 		rs := NewTestSizeResource()
 		szr := NewSizer(uint32(i))
 		pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
