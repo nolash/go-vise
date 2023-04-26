@@ -46,11 +46,14 @@ type Menu struct {
 	canPrevious bool // availability flag for the "previous" browse option.
 	//outputSize uint16 // maximum size constraint for the menu.
 	sink bool
+	keep bool
 }
 
 // NewMenu creates a new Menu with an explicit page count.
 func NewMenu() *Menu {
-	return &Menu{}
+	return &Menu{
+		keep: true,
+	}
 }
 
 // WithBrowseConfig defines the criteria for page browsing.
@@ -64,6 +67,20 @@ func(m *Menu) WithPages() *Menu {
 		m.pageCount = 1
 	}
 	return m
+}
+
+func(m *Menu) WithSink() *Menu {
+	m.sink = true
+	return m
+}
+
+func(m *Menu) WithDispose() *Menu {
+	m.keep = false
+	return m
+}
+
+func(m Menu) IsSink() bool {
+	return m.sink
 }
 
 // WithSize defines the maximum byte size of the rendered menu.
@@ -129,8 +146,10 @@ func(m *Menu) Sizes() ([4]uint32, error) {
 // After this has been executed, the state of the menu will be empty.
 func(m *Menu) Render(idx uint16) (string, error) {
 	var menuCopy [][2]string
-	for _, v := range m.menu {
-		menuCopy = append(menuCopy, v)
+	if m.keep {
+		for _, v := range m.menu {
+			menuCopy = append(menuCopy, v)
+		}
 	}
 
 	err := m.applyPage(idx)
@@ -150,7 +169,9 @@ func(m *Menu) Render(idx uint16) (string, error) {
 		}
 		r += fmt.Sprintf("%s:%s", choice, title)
 	}
-	m.menu = menuCopy
+	if m.keep {
+		m.menu = menuCopy
+	}
 	return r, nil
 }
 
@@ -213,5 +234,6 @@ func(m *Menu) reset() {
 
 func(m *Menu) Reset() {
 	m.menu = [][2]string{}
+	m.sink = false
 	m.reset()
 }

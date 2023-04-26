@@ -127,8 +127,8 @@ func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
 			b, err = vm.runMove(ctx, b)
 		case INCMP:
 			b, err = vm.runInCmp(ctx, b)
-		case MSIZE:
-			b, err = vm.runMSize(ctx, b)
+		case MSINK:
+			b, err = vm.runMSink(ctx, b)
 		case MOUT:
 			b, err = vm.runMOut(ctx, b)
 		case MNEXT:
@@ -404,9 +404,9 @@ func(vm *Vm) runHalt(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 // executes the MSIZE opcode
-func(vm *Vm) runMSize(ctx context.Context, b []byte) ([]byte, error) {
-	Logg.WarnCtxf(ctx,  "MSIZE not yet implemented")
-	_, _, b, err := ParseMSize(b)
+func(vm *Vm) runMSink(ctx context.Context, b []byte) ([]byte, error) {
+	b, err := ParseMSink(b)
+	vm.mn = vm.mn.WithSink()
 	return b, err
 }
 

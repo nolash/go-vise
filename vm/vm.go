@@ -85,15 +85,16 @@ func ParseMNext(b []byte) (string, string, []byte, error) {
 	return parseTwoSym(b)
 }
 
-// ParseMSize parses and extracts the expected argument portion of a MSIZE instruction
-func ParseMSize(b []byte) (uint32, uint32, []byte, error) {
-	if len(b) < 2 {
-		return 0, 0, b, fmt.Errorf("argument too short")
-	}
-	r := uint32(b[0])
-	rr := uint32(b[1])
-	b = b[2:]
-	return r, rr, b, nil
+// ParseMSink parses and extracts the expected argument portion of a MSINK instruction
+func ParseMSink(b []byte) ([]byte, error) {
+	return parseNoArg(b)
+//	if len(b) < 2 {
+//		return 0, 0, b, fmt.Errorf("argument too short")
+//	}
+//	r := uint32(b[0])
+//	rr := uint32(b[1])
+//	b = b[2:]
+//	return b, nil
 }
 
 // ParseMOut parses and extracts the expected argument portion of a MOUT instruction

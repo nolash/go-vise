@@ -15,7 +15,7 @@ const (
 	MOVE = 6
 	HALT = 7
 	INCMP = 8
-	MSIZE = 9
+	MSINK = 9
 	MOUT = 10
 	MNEXT = 11
 	MPREV = 12
@@ -33,7 +33,7 @@ var (
 		MOVE: "MOVE",
 		HALT: "HALT",
 		INCMP: "INCMP",
-		MSIZE: "MSIZE",
+		MSINK: "MSINK",
 		MOUT: "MOUT",
 		MNEXT: "MNEXT",
 		MPREV: "MPREV",
@@ -49,7 +49,7 @@ var (
 		"MOVE": MOVE,
 		"HALT": HALT,
 		"INCMP": INCMP,
-		"MSIZE": MSIZE,
+		"MSINK": MSINK,
 		"MOUT": MOUT,
 		"MNEXT": MNEXT,
 		"MPREV": MPREV,

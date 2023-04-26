@@ -20,6 +20,7 @@ type Page struct {
 	sink *string // Content symbol rendered by dynamic size.
 	sizer *Sizer // Process size constraints.
 	err error // Error state to prepend to output.
+	extra string // Extra content to append to received template
 }
 
 // NewPage creates a new Page object.
@@ -150,6 +151,7 @@ func(pg *Page) RenderTemplate(ctx context.Context, sym string, values map[string
 	if err != nil {
 		return "", err
 	}
+	tpl += pg.extra
 	if pg.err != nil {
 		derr := pg.Error()
 		Logg.DebugCtxf(ctx, "prepending error", "err", pg.err, "display", derr)
@@ -173,7 +175,6 @@ func(pg *Page) RenderTemplate(ctx context.Context, sym string, values map[string
 	if err != nil {
 		return "", err
 	}
-
 
 	b := bytes.NewBuffer([]byte{})
 	err = tp.Execute(b, values)
@@ -200,6 +201,7 @@ func(pg *Page) Render(ctx context.Context, sym string, idx uint16) (string, erro
 // It clears mappings and removes the sink definition.
 func(pg *Page) Reset() {
 	pg.sink = nil
+	pg.extra = ""
 	pg.cacheMap = make(map[string]string)
 	if pg.menu != nil {
 		pg.menu.Reset()
@@ -256,7 +258,7 @@ func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint
 
 	for i, v := range sinkValues {
 		l += len(v)
-		Logg.Tracef("processing sink", "idx", i, "value", v)
+		Logg.Tracef("processing sink", "idx", i, "value", v, "netremaining", netRemaining, "l", l)
 		if uint32(l) > netRemaining - 1 {
 			if tb.Len() == 0 {
 				return "", 0, fmt.Errorf("capacity insufficient for sink field %v", i)
@@ -289,6 +291,15 @@ func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint
 	return r, count, nil
 }
 
+func(pg *Page) applyMenuSink(ctx context.Context) ([]string, error) {
+	s, err := pg.menu.WithDispose().WithPages().Render(0)
+	if err != nil {
+		return nil, err
+	}
+	values := strings.Split(s, "\n")
+	return values, nil
+}
+
 // render menu and all syms except sink, split sink into display chunks
 func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string, idx uint16) (map[string]string, error) {
 	if pg.sizer == nil {
@@ -297,10 +308,25 @@ func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string
 
 	// extract sink values
 	noSinkValues, sink, sinkValues, err := pg.split(sym, values)
+	if err != nil {
+		return nil, err
+	}
 
 	// check if menu is sink aswell, fail if it is.
 	if pg.menu != nil {
-	//	if pg.menu.ReservedSize()
+		if pg.menu.IsSink() {
+			if sink != "" {
+				return values, fmt.Errorf("cannot use menu as sink when sink already mapped")
+			}
+			sinkValues, err = pg.applyMenuSink(ctx)
+			if err != nil {
+				return nil, err
+			}
+			sink = "_menu"
+			pg.extra = "\n{{._menu}}"
+			pg.sizer.sink = sink
+			noSinkValues[sink] = ""
+		}
 	}
 
 	// pre-render template without sink
@@ -363,8 +389,9 @@ func(pg *Page) render(ctx context.Context, sym string, values map[string]string,
 		if err != nil {
 			return "", err
 		}
-		Logg.Debugf("rendered menu", "bytes", len(s))
-		if len(s) > 0 {
+		l := len(s)
+		Logg.Debugf("rendered menu", "bytes", l)
+		if l > 0 {
 			r += "\n" + s
 		}
 	}

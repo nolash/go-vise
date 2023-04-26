@@ -55,8 +55,7 @@ The VM defines the following opcode symbols, alphabetically:
 * `MOUT <choice> <display>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
 * `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls.
 * `MPREV <choice> <display>` - Define how to display the choice for returning when browsing menu.
-* `MSEP` -  **Not yet implemented**. Marker for menu page separation. Incompatible with browseable nodes.
-* `MSIZE <max> <min>` - **Not yet implemented**. Set min and max display size of menu part to `num` bytes.
+* `MSINK` - If set, the menu is defined as the browseable content sink. Cannot be used with an active `MAP` of a symbol with `LOAD` size `0`.
 * `RELOAD <symbol>` - Execute a code symbol already loaded by `LOAD` and cache the data, constrained to the previously given `size` for the same symbol. See "External code" below.
 
 

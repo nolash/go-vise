@@ -297,3 +297,93 @@ func TestManySizesMenued(t *testing.T) {
 		}
 	}
 }
+
+func TestMenuCollideSink(t *testing.T) {
+	ca := cache.NewCache()
+	rs := resource.NewMemResource()
+	rs.AddTemplate("foo", "bar")
+	szr := NewSizer(30)
+	pg := NewPage(ca, rs).WithSizer(szr)
+	ca.Push()
+
+	ca.Add("inky", "pinky", 5)
+	ca.Add("blinky", "clyde", 0)
+	pg.Map("inky")
+	
+	mn := NewMenu().WithSink()
+	pg = pg.WithMenu(mn)
+
+	var err error
+	ctx := context.TODO()
+	_, err = pg.Render(ctx, "foo", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	mn = NewMenu().WithSink()
+	pg = pg.WithMenu(mn)
+	pg.Map("blinky")
+	_, err = pg.Render(ctx, "foo", 0)
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+}
+
+func TestMenuSink(t *testing.T) {
+	ca := cache.NewCache()
+	rs := resource.NewMemResource()
+	rs.AddTemplate("foo", "bar {{.baz}}")
+	szr := NewSizer(30)
+
+	mn := NewMenu().WithSink()
+	mn.Put("0", "inky")
+	mn.Put("1", "pinky")
+	mn.Put("22", "blinky")
+	mn.Put("3", "clyde")
+	mn.Put("44", "tinkywinky")
+
+	pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
+	ca.Push()
+
+	ca.Add("baz", "xyzzy", 5)
+	pg.Map("baz")
+
+	var err error
+	ctx := context.TODO()
+	r, err := pg.Render(ctx, "foo", 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect := `bar xyzzy
+0:inky
+1:pinky`
+	if r != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
+	}
+
+	mn = NewMenu().WithSink()
+	mn.Put("0", "inky")
+	mn.Put("1", "pinky")
+	mn.Put("22", "blinky")
+	mn.Put("3", "clyde")
+	mn.Put("44", "tinkywinky")
+
+	pg = NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
+	ca.Push()
+
+	ca.Add("baz", "xyzzy", 5)
+	pg.Map("baz")
+
+	r, err = pg.Render(ctx, "foo", 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect = `bar xyzzy
+22:blinky
+3:clyde`
+	if r != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
+	}
+}
+
+

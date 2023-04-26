@@ -253,6 +253,7 @@ func TestParserCapQuote(t *testing.T) {
 	b := vm.NewLine(nil, vm.MOUT, []string{"a", "foo"}, nil, nil) 
 	b = vm.NewLine(b, vm.MOUT, []string{"b", "Bar"}, nil, nil) 
 	b = vm.NewLine(b, vm.MOUT, []string{"c", "baz"}, nil, nil) 
+	b = vm.NewLine(b, vm.MSINK, nil, nil, nil)
 	s, err := vm.ToString(b)
 	log.Printf("parsing:\n%s", s)
 

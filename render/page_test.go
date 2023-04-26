@@ -124,7 +124,7 @@ func TestWithError(t *testing.T) {
 	pg := NewPage(ca, rs)
 	ca.Push()
 
-	mn := NewMenu() //.WithOutputSize(32)
+	mn := NewMenu()
 	err := mn.Put("0", "aiee")
 	if err != nil {
 		t.Fatal(err)
@@ -144,3 +144,4 @@ bar
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s", expect, r)
 	}
 }
+

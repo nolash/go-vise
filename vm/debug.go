@@ -112,14 +112,9 @@ func ParseAll(b []byte, w io.Writer) (int, error) {
 		case HALT:
 			b, err = ParseHalt(b)
 			rs = "HALT\n"
-		case MSIZE:
-			r, v, bb, err := ParseMSize(b)
-			b = bb
-			if err == nil {
-				if w != nil {
-					rs = fmt.Sprintf("%s %v %v\n", s, r, v)
-				}
-			}
+		case MSINK:
+			b, err = ParseMSink(b)
+			rs = "MSINK\n"
 		case MOUT:
 			r, v, bb, err := ParseMOut(b)
 			b = bb

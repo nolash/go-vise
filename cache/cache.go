@@ -116,9 +116,12 @@ func(ca *Cache) Update(key string, value string) error {
 // Fails if key has not been loaded.
 func(ca *Cache) Get(key string) (string, error) {
 	i := ca.frameOf(key)
+	if i == -1 {
+		return "", fmt.Errorf("key '%s' not found in any frame", key)
+	}
 	r, ok := ca.Cache[i][key]
 	if !ok {
-		return "", fmt.Errorf("unknown key: %s", key)
+		return "", fmt.Errorf("unknown key '%s'", key)
 	}
 	return r, nil
 }
