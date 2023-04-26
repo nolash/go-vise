@@ -75,17 +75,17 @@ func (mp *MenuProcessor) ToLines() []byte {
 	for _, v := range mp.items {
 		switch v.code {
 		case MENU_UP:
-			preLines = vm.NewLine(preLines, vm.MOUT, []string{v.choice, v.display}, nil, nil)
-			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, "_"}, nil, nil)
+			preLines = vm.NewLine(preLines, vm.MOUT, []string{v.display, v.choice}, nil, nil)
+			postLines = vm.NewLine(postLines, vm.INCMP, []string{"_", v.choice}, nil, nil)
 		case MENU_NEXT:
-			preLines = vm.NewLine(preLines, vm.MNEXT, []string{v.choice, v.display}, nil, nil)
-			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, ">"}, nil, nil)
+			preLines = vm.NewLine(preLines, vm.MNEXT, []string{v.display, v.choice}, nil, nil)
+			postLines = vm.NewLine(postLines, vm.INCMP, []string{">", v.choice}, nil, nil)
 		case MENU_PREVIOUS:
-			preLines = vm.NewLine(preLines, vm.MPREV, []string{v.choice, v.display}, nil, nil)
-			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, "<"}, nil, nil)
+			preLines = vm.NewLine(preLines, vm.MPREV, []string{v.display, v.choice}, nil, nil)
+			postLines = vm.NewLine(postLines, vm.INCMP, []string{"<", v.choice}, nil, nil)
 		default:
-			preLines = vm.NewLine(preLines, vm.MOUT, []string{v.choice, v.display}, nil, nil)
-			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.choice, v.target}, nil, nil)
+			preLines = vm.NewLine(preLines, vm.MOUT, []string{v.display, v.choice}, nil, nil)
+			postLines = vm.NewLine(postLines, vm.INCMP, []string{v.target, v.choice}, nil, nil)
 		}
 	}
 

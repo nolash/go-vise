@@ -28,7 +28,8 @@ type Arg struct {
 	Size *uint32 `(@Size Whitespace?)?`
 	Flag *uint8 `(@Size Whitespace?)?`
 	Selector *string `(@Sym Whitespace?)?`
-	Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
+	Desc *string `(@Sym Whitespace?)?`
+	//Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
 }
 
 func flush(b *bytes.Buffer, w io.Writer) (int, error) {
@@ -42,6 +43,7 @@ func parseDescType(b *bytes.Buffer, arg Arg) (int, error) {
 	var rn int
 	var err error
 
+	log.Printf("desctype")
 	var selector string
 	if arg.Flag != nil {
 		selector = strconv.FormatUint(uint64(*arg.Flag), 10)
@@ -60,6 +62,7 @@ func parseDescType(b *bytes.Buffer, arg Arg) (int, error) {
 	}
 
 	if arg.Sym != nil {
+		log.Printf(">>>> sym")
 		n, err := writeSym(b, *arg.Sym)
 		rn += n
 		if err != nil {
@@ -102,6 +105,26 @@ func parseTwoSym(b *bytes.Buffer, arg Arg) (int, error) {
 		}
 	}
 
+	n, err := writeSym(b, selector)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	n, err = writeSym(b, sym)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	return rn, nil
+}
+
+func parseTwoSymReverse(b *bytes.Buffer, arg Arg) (int, error) {
+	var rn int
+
+	sym := *arg.Selector
+	selector := *arg.Sym 
 	n, err := writeSym(b, selector)
 	rn += n
 	if err != nil {
@@ -185,7 +208,13 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 	// Catch
 	if a.Selector != nil {
 		log.Printf("entering twosym for %v", op)
-		n, err := parseTwoSym(b, a)
+		var n int
+		var err error
+		if op == vm.MOUT {
+			n, err = parseTwoSymReverse(b, a)
+		} else {
+			n, err = parseTwoSym(b, a)
+		}
 		n_buf += n
 		if err != nil {
 			return n_out, err
@@ -344,19 +373,32 @@ func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 	bt.inMenu = true
 	var selector string
 	var sym string
-	if arg.Size != nil {
-		selector = strconv.FormatUint(uint64(*arg.Size), 10)
-	} else if arg.Selector != nil {
-		selector = *arg.Selector
-	}
+	var display string
+//	if arg.Size != nil {
+//		selector = strconv.FormatUint(uint64(*arg.Size), 10)
+//	} else if arg.Selector != nil {
+//		selector = *arg.Selector
+//	}
 
-	if selector == "" {
-		selector = *arg.Sym
-	} else if arg.Sym != nil {
-		sym = *arg.Sym
+//	if selector == "" {
+//		selector = *arg.Sym
+//	} else if arg.Sym != nil {
+//		sym = *arg.Sym
+//	}
+	//log.Printf("menu processor add %v '%v' '%v' '%v'", code, selector, *arg.Desc, sym)
+	//log.Printf("menu processor add %v '%v' '%v' '%v'", code, selector, *arg.Selector, sym)
+	//err := bt.menuProcessor.Add(code, selector, *arg.Desc, sym)
+	sym = *arg.Sym
+	if arg.Desc != nil {
+		display = *arg.Desc
+		selector = *arg.Selector
+		//err = bt.menuProcessor.Add(code, *arg.Selector, *arg.Desc, sym)
+	} else {
+		selector = strconv.FormatUint(uint64(*arg.Size), 10)
+		display = *arg.Selector
 	}
-	log.Printf("menu processor add %v '%v' '%v' '%v'", code, selector, *arg.Desc, sym)
-	err := bt.menuProcessor.Add(code, selector, *arg.Desc, sym)
+	log.Printf("menu processor add %v '%v' '%v' '%v'", code, selector, display, sym)
+	err := bt.menuProcessor.Add(code, selector, display, sym)
 	return 0, err
 }
 

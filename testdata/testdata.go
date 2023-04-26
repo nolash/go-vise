@@ -55,9 +55,9 @@ func root() error {
 	b = vm.NewLine(b, vm.MOUT, []string{"2", "go to the bar"}, nil, nil)
 	b = vm.NewLine(b, vm.MOUT, []string{"3", "language template"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"1", "foo"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"2", "bar"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"3", "lang"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"foo", "1"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"bar", "2"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"lang", "3"}, nil, nil)
 
 	tpl := "hello world"
 
@@ -71,9 +71,9 @@ func foo() error {
 	b = vm.NewLine(b, vm.MOUT, []string{"2", "see long"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"inky"}, []byte{20}, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"0", "_"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"1", "baz"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"2", "long"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"_", "0"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"baz", "1"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"long", "2"}, nil, nil)
 
 	data := make(map[string]string)
 	data["inky"] = "one"
@@ -89,7 +89,7 @@ func bar() error {
 	b := []byte{}
 	b = vm.NewLine(b, vm.LOAD, []string{"pinky"}, []byte{0}, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"*", "^"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"^", "*"}, nil, nil)
 
 	tpl := "this is bar - any input will return to top"
 
@@ -117,9 +117,9 @@ func long() error {
 	b = vm.NewLine(b, vm.LOAD, []string{"longdata"}, []byte{0x00}, nil)
 	b = vm.NewLine(b, vm.MAP, []string{"longdata"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"0", "_"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"00", ">"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"11", "<"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"_", "0"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{">", "00"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"<", "11"}, nil, nil)
 
 	tpl := `data
 {{.longdata}}`
@@ -142,7 +142,7 @@ func defaultCatch() error {
 	b := []byte{}
 	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"*", "_"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"_", "*"}, nil, nil)
 
 	tpl := "invalid input"
 
@@ -155,7 +155,7 @@ func lang() error {
 	b = vm.NewLine(b, vm.LOAD, []string{"inky"}, []byte{20}, nil)
 	b = vm.NewLine(b, vm.MAP, []string{"inky"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"*", "_"}, nil, nil)
+	b = vm.NewLine(b, vm.INCMP, []string{"_", "*"}, nil, nil)
 
 	tpl := "this changes with language {{.inky}}"
 

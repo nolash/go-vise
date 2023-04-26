@@ -356,18 +356,18 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 	}
 	Logg.TraceCtxf(ctx, "testing sym", "sym", sym, "input", input)
 
-	if !have && sym == "*" {
-		Logg.DebugCtxf(ctx, "input wildcard match", "input", input, "target", target)
+	if !have && target == "*" {
+		Logg.DebugCtxf(ctx, "input wildcard match", "input", input, "next", sym)
 	} else {
-		if sym != string(input) {
+		if target != string(input) {
 			return b, nil
 		} 
-		Logg.InfoCtxf(ctx, "input match", "input", input, "target", target)
+		Logg.InfoCtxf(ctx, "input match", "input", input, "next", sym)
 	}
 	vm.st.SetFlag(state.FLAG_INMATCH)
 	vm.st.ResetFlag(state.FLAG_READIN)
 
-	newTarget, _, err := applyTarget([]byte(target), vm.st, vm.ca, ctx)
+	newSym, _, err := applyTarget([]byte(sym), vm.st, vm.ca, ctx)
 	
 	_, ok := err.(*state.IndexError)
 	if ok {
@@ -377,15 +377,15 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 		return b, err
 	}
 
-	target = newTarget
+	sym = newSym
 
 	vm.Reset()
 
-	code, err := vm.rs.GetCode(target)
+	code, err := vm.rs.GetCode(sym)
 	if err != nil {
 		return b, err
 	}
-	Logg.DebugCtxf(ctx, "loaded additional code", "target", target, "code", code)
+	Logg.DebugCtxf(ctx, "loaded additional code", "next", sym, "code", code)
 	b = append(b, code...)
 	return b, err
 }

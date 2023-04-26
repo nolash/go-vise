@@ -328,7 +328,7 @@ func TestRunArg(t *testing.T) {
 	input := []byte("bar")
 	_ = st.SetInput(input)
 
-	bi := NewLine(nil, INCMP, []string{"bar", "baz"}, nil, nil)
+	bi := NewLine(nil, INCMP, []string{"baz", "bar"}, nil, nil)
 	ctx := context.TODO()
 
 	var err error
@@ -354,8 +354,8 @@ func TestRunInputHandler(t *testing.T) {
 
 	_ = st.SetInput([]byte("baz"))
 
-	bi := NewLine([]byte{}, INCMP, []string{"bar", "aiee"}, nil, nil)
-	bi = NewLine(bi, INCMP, []string{"baz", "foo"}, nil, nil)
+	bi := NewLine([]byte{}, INCMP, []string{"aiee", "bar"}, nil, nil)
+	bi = NewLine(bi, INCMP, []string{"foo", "baz"}, nil, nil)
 	bi = NewLine(bi, LOAD, []string{"one"}, []byte{0x00}, nil)
 	bi = NewLine(bi, LOAD, []string{"two"}, []byte{0x03}, nil)
 	bi = NewLine(bi, MAP, []string{"one"}, nil, nil)
@@ -385,7 +385,7 @@ func TestRunArgInvalid(t *testing.T) {
 	var err error
 	
 	st.Down("root")
-	b := NewLine(nil, INCMP, []string{"bar", "baz"}, nil, nil)
+	b := NewLine(nil, INCMP, []string{"baz", "bar"}, nil, nil)
 
 	ctx := context.TODO()
 	b, err = vm.Run(ctx, b)
@@ -488,8 +488,8 @@ func TestRunReturn(t *testing.T) {
 	var err error
 
 	st.Down("root")
-	b := NewLine(nil, INCMP, []string{"0", "bar"}, nil, nil)
-	b = NewLine(b, INCMP, []string{"1", "_"}, nil, nil)
+	b := NewLine(nil, INCMP, []string{"bar", "0"}, nil, nil)
+	b = NewLine(b, INCMP, []string{"_", "1"}, nil, nil)
 
 	ctx := context.TODO()
 
@@ -595,8 +595,8 @@ func TestInputIgnore(t *testing.T) {
 
 	st.Down("root")
 
-	b := NewLine(nil, INCMP, []string{"foo", "one"}, nil, nil)
-	b = NewLine(b, INCMP, []string{"bar", "two"}, nil, nil)
+	b := NewLine(nil, INCMP, []string{"one", "foo"}, nil, nil)
+	b = NewLine(b, INCMP, []string{"two", "bar"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
 	ctx := context.TODO()
@@ -623,8 +623,8 @@ func TestInputIgnoreWildcard(t *testing.T) {
 
 	st.Down("root")
 
-	b := NewLine(nil, INCMP, []string{"foo", "one"}, nil, nil)
-	b = NewLine(b, INCMP, []string{"*", "two"}, nil, nil)
+	b := NewLine(nil, INCMP, []string{"one", "foo"}, nil, nil)
+	b = NewLine(b, INCMP, []string{"two", "*"}, nil, nil)
 
 	ctx := context.TODO()
 
@@ -653,7 +653,7 @@ func TestCatchCleanMenu(t *testing.T) {
 	b := NewLine(nil, MOUT, []string{"1", "one"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"2", "two"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	b = NewLine(b, INCMP, []string{"1", "foo"}, nil, nil)
+	b = NewLine(b, INCMP, []string{"foo", "1"}, nil, nil)
 	b = NewLine(b, CATCH, []string{"ouf"}, []byte{0x08}, []uint8{0x00})
 
 	ctx := context.TODO()

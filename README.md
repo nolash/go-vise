@@ -45,16 +45,16 @@ Original motivation was to create a simple templating renderer for USSD clients,
 
 The VM defines the following opcode symbols, alphabetically:
 
-* `CATCH <symbol> <signal>` - Jump to symbol if signal is set (see `signals` below). If match, has same side-effect as move.
-* `CROAK <signal>` - Clear state and restart execution from top if signal is set (see `signals` below). If match, has same side-effect as move.
+* `CATCH <symbol> <signal> <matchmode>` - Jump to symbol if signal is set (see `signals` below). If match, has same side-effect as move.
+* `CROAK <signal> <matchmode>` - Clear state and restart execution from top if signal is set (see `signals` below). If match, has same side-effect as move.
 * `HALT` - Stop execution. The remaining bytecode (typically, the routing code for the node) is returned to the invoking function.
-* `INCMP <arg> <symbol>` - Compare registered input to `arg`. If match, it has the same side-effects as `MOVE`. In addition, any consecutive `INCMP` matches will be ignored until `HALT` is called.
+* `INCMP <symbol> <arg>` - Compare registered input to `arg`. If match, it has the same side-effects as `MOVE`. In addition, any consecutive `INCMP` matches will be ignored until `HALT` is called.
 * `LOAD <symbol> <size>` - Execute the code symbol `symbol` and cache the data, constrained to the given `size`. Can be exposed with `MAP` within scope.  See "External code" below.
 * `MAP <symbol>` - Expose a code symbol previously loaded by `LOAD` to the rendering client. Roughly corresponds to the `global` directive in Python.
-* `MNEXT <choice> <display>` - Define how to display the choice for advancing when browsing menu.
-* `MOUT <choice> <display>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
+* `MNEXT <symbol> <selector>` - Define how to display the choice for advancing when browsing menu.
+* `MOUT <symbol> <selector>` - Add menu display entry. Each entry should have a matching `INCMP` whose `arg` matches `choice`. `display` is a descriptive text of the menu item.
 * `MOVE <symbol>` - Create a new execution frame, invalidating all previous `MAP` calls.
-* `MPREV <choice> <display>` - Define how to display the choice for returning when browsing menu.
+* `MPREV <symbol> <selector>` - Define how to display the choice for returning when browsing menu.
 * `MSINK` - If set, the menu is defined as the browseable content sink. Cannot be used with an active `MAP` of a symbol with `LOAD` size `0`.
 * `RELOAD <symbol>` - Execute a code symbol already loaded by `LOAD` and cache the data, constrained to the previously given `size` for the same symbol. See "External code" below.
 

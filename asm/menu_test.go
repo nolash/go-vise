@@ -34,15 +34,15 @@ func TestMenuInterpreter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect := `MOUT 0 inky
-MNEXT 1 pinky
-MPREV 2 blinkyclyde
-MOUT 99 tinky_winky
+	expect := `MOUT inky 0
+MNEXT pinky 1
+MPREV blinkyclyde 2
+MOUT tinky_winky 99
 HALT
-INCMP 0 foo
-INCMP 1 >
-INCMP 2 <
-INCMP 99 _
+INCMP foo 0
+INCMP > 1
+INCMP < 2
+INCMP _ 99
 `
 	if r != expect {
 		t.Errorf("expected:\n\t%v\ngot:\n\t%v\n", expect, r)
