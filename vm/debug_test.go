@@ -96,7 +96,8 @@ func TestToString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect = "MNEXT 11 \"nextmenu\"\n"
+	//expect = "MNEXT 11 \"nextmenu\"\n"
+	expect = "MNEXT 11 nextmenu\n"
 	if r != expect {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
@@ -106,7 +107,8 @@ func TestToString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect = "MPREV 222 \"previous menu item\"\n"
+	//expect = "MPREV 222 \"previous menu item\"\n"
+	expect = "MPREV 222 previous menu item\n"
 	if r != expect {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
@@ -116,7 +118,8 @@ func TestToString(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect = "MOUT 1 \"foo\"\n"
+	//expect = "MOUT 1 \"foo\"\n"
+	expect = "MOUT 1 foo\n"
 	if r != expect {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}

@@ -15,6 +15,7 @@ type Result struct {
 // EntryFunc is a function signature for retrieving value for a key
 type EntryFunc func(ctx context.Context, sym string, input []byte) (Result, error)
 type CodeFunc func(sym string) ([]byte, error)
+type MenuFunc func(ctx context.Context, sym string) (string, error)
 type TemplateFunc func(ctx context.Context, sym string) (string, error)
 type FuncForFunc func(sym string) (EntryFunc, error)
 
@@ -22,6 +23,7 @@ type FuncForFunc func(sym string) (EntryFunc, error)
 type Resource interface {
 	GetTemplate(ctx context.Context, sym string) (string, error) // Get the template for a given symbol.
 	GetCode(sym string) ([]byte, error) // Get the bytecode for the given symbol.
+	GetMenu(ctx context.Context, sym string) (string, error) // Receive menu test for menu symbol.
 	FuncFor(sym string) (EntryFunc, error) // Resolve symbol content point for.
 }
 
@@ -32,6 +34,7 @@ type MenuResource struct {
 	sinkValues []string
 	codeFunc CodeFunc
 	templateFunc TemplateFunc
+	menuFunc MenuFunc
 	funcFunc FuncForFunc
 }
 
@@ -58,6 +61,12 @@ func(m *MenuResource) WithTemplateGetter(templateGetter TemplateFunc) *MenuResou
 	return m
 }
 
+// WithMenuGetter sets the menu symbol resolver method.
+func(m *MenuResource) WithMenuGetter(menuGetter MenuFunc) *MenuResource {
+	m.menuFunc = menuGetter
+	return m
+}
+
 // FuncFor implements Resource interface
 func(m MenuResource) FuncFor(sym string) (EntryFunc, error) {
 	return m.funcFunc(sym)
@@ -71,4 +80,9 @@ func(m MenuResource) GetCode(sym string) ([]byte, error) {
 // GetTemplate implements Resource interface
 func(m MenuResource) GetTemplate(ctx context.Context, sym string) (string, error) {
 	return m.templateFunc(ctx, sym)
+}
+
+// GetCode implements Resource interface
+func(m MenuResource) GetMenu(ctx context.Context, sym string) (string, error) {
+	return m.menuFunc(ctx, sym)
 }

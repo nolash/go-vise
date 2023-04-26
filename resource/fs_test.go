@@ -65,3 +65,62 @@ func TestResourceLanguage(t *testing.T) {
 		t.Fatalf("expected '%s', got '%s'", tmpl, r)
 	}
 }
+
+func TestResourceMenuLanguage(t *testing.T) {
+	lang, err := lang.LanguageFromCode("nor")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := context.TODO()
+
+	dir, err := os.MkdirTemp("", "vise_fsresource")
+	if err != nil {
+		t.Fatal(err)
+	}
+	rs := NewFsResource(dir)
+
+	r, err := rs.GetMenu(ctx, "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r != "foo" {
+		t.Fatalf("expected 'foo', got '%s'", r)
+	}
+
+	fp := path.Join(dir, "foo_menu")
+	menu := "foo bar"
+	err = os.WriteFile(fp, []byte(menu), 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err = rs.GetMenu(ctx, "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r != menu {
+		t.Fatalf("expected '%s', got '%s'", menu, r)
+	}
+
+	ctx = context.WithValue(ctx, "Language", lang)
+	r, err = rs.GetMenu(ctx, "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r != menu {
+		t.Fatalf("expected '%s', got '%s'", menu, r)
+	}
+
+	fp = path.Join(dir, "foo_menu_nor")
+	menu = "baz bar"
+	err = os.WriteFile(fp, []byte(menu), 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err = rs.GetMenu(ctx, "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r != menu {
+		t.Fatalf("expected '%s', got '%s'", menu, r)
+	}
+}

@@ -17,11 +17,11 @@ func TestMenuInterpreter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = m.Add("PREVIOUS", "2", "blinky clyde", "")
+	err = m.Add("PREVIOUS", "2", "blinkyclyde", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = m.Add("UP", "99", "tinky-winky", "")
+	err = m.Add("UP", "99", "tinky_winky", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,10 +34,10 @@ func TestMenuInterpreter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expect := `MOUT 0 "inky"
-MNEXT 1 "pinky"
-MPREV 2 "blinky clyde"
-MOUT 99 "tinky-winky"
+	expect := `MOUT 0 inky
+MNEXT 1 pinky
+MPREV 2 blinkyclyde
+MOUT 99 tinky_winky
 HALT
 INCMP 0 foo
 INCMP 1 >

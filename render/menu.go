@@ -1,7 +1,10 @@
 package render
 
 import (
+	"context"
 	"fmt"
+
+	"git.defalsify.org/vise.git/resource"
 )
 
 // BrowseError is raised when browsing outside the page range of a rendered node.
@@ -39,6 +42,7 @@ func DefaultBrowseConfig() BrowseConfig {
 
 // Menu renders menus. May be included in a Page object to render menus for pages.
 type Menu struct {
+	rs resource.Resource
 	menu [][2]string // selector and title for menu items.
 	browse BrowseConfig // browse definitions.
 	pageCount uint16 // number of pages the menu should represent.
@@ -76,6 +80,11 @@ func(m *Menu) WithSink() *Menu {
 
 func(m *Menu) WithDispose() *Menu {
 	m.keep = false
+	return m
+}
+
+func(m *Menu) WithResource(rs resource.Resource) *Menu {
+	m.rs = rs
 	return m
 }
 
@@ -117,22 +126,22 @@ func(m *Menu) Put(selector string, title string) error {
 //}
 
  // mainSize, prevsize, nextsize, nextsize+prevsize
-func(m *Menu) Sizes() ([4]uint32, error) {
+func(m *Menu) Sizes(ctx context.Context) ([4]uint32, error) {
 	var menuSizes [4]uint32
 	cfg := m.GetBrowseConfig()
 	tmpm := NewMenu().WithBrowseConfig(cfg)
-	v, err := tmpm.Render(0)
+	v, err := tmpm.Render(ctx, 0)
 	if err != nil {
 		return menuSizes, err
 	}
 	menuSizes[0] = uint32(len(v))
 	tmpm = tmpm.WithPageCount(2)
-	v, err = tmpm.Render(0)
+	v, err = tmpm.Render(ctx, 0)
 	if err != nil {
 		return menuSizes, err
 	}
 	menuSizes[1] = uint32(len(v)) - menuSizes[0]
-	v, err = tmpm.Render(1)
+	v, err = tmpm.Render(ctx, 1)
 	if err != nil {
 		return menuSizes, err
 	}
@@ -141,10 +150,21 @@ func(m *Menu) Sizes() ([4]uint32, error) {
 	return menuSizes, nil
 }
 
+func(m *Menu) titleFor(ctx context.Context, title string) (string, error) {
+	if m.rs == nil {
+		return title, nil
+	}
+	r, err := m.rs.GetMenu(ctx, title)
+	if err != nil {
+		return title, err
+	}
+	return r, nil
+}
+
 // Render returns the full current state of the menu as a string.
 //
 // After this has been executed, the state of the menu will be empty.
-func(m *Menu) Render(idx uint16) (string, error) {
+func(m *Menu) Render(ctx context.Context, idx uint16) (string, error) {
 	var menuCopy [][2]string
 	if m.keep {
 		for _, v := range m.menu {
@@ -166,6 +186,10 @@ func(m *Menu) Render(idx uint16) (string, error) {
 		}
 		if l > 0 {
 			r += "\n"
+		}
+		title, err = m.titleFor(ctx, title)
+		if err != nil {
+			return "", err
 		}
 		r += fmt.Sprintf("%s:%s", choice, title)
 	}

@@ -58,10 +58,13 @@ func NewEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Res
 	engine.session = cfg.SessionId
 
 	var err error
-	if st.Language != nil {
+	if st.Language == nil {
 		if cfg.Language != "" {
 			err = st.SetLanguage(cfg.Language)
-			panic(err)
+			if err != nil {
+				panic(err)
+			}
+			Logg.InfoCtxf(ctx, "set language from config", "language", cfg.Language)
 		}
 	}
 

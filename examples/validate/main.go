@@ -57,7 +57,7 @@ func main() {
 
 	st := state.NewState(1)
 	rsf := resource.NewFsResource(scriptDir)
-	rs := verifyResource{&rsf, &st}
+	rs := verifyResource{rsf, &st}
 	rs.AddLocalFunc("verifyinput", rs.verify)
 	rs.AddLocalFunc("again", rs.again)
 	ca := cache.NewCache()

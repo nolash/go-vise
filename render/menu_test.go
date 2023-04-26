@@ -1,6 +1,7 @@
 package render
 
 import (
+	"context"
 	"testing"
 )
 
@@ -14,7 +15,9 @@ func TestMenuInit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err := m.Render(0)
+
+	ctx := context.TODO()
+	r, err := m.Render(ctx, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +27,7 @@ func TestMenuInit(t *testing.T) {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
 
-	r, err = m.Render(1)
+	r, err = m.Render(ctx, 1)
 	if err == nil {
 		t.Fatalf("expected render fail")
 	}
@@ -43,7 +46,8 @@ func TestMenuBrowse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r, err := m.Render(0)
+	ctx := context.TODO()
+	r, err := m.Render(ctx, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +58,7 @@ func TestMenuBrowse(t *testing.T) {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
 
-	r, err = m.Render(1)
+	r, err = m.Render(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +70,7 @@ func TestMenuBrowse(t *testing.T) {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
 
-	r, err = m.Render(2)
+	r, err = m.Render(ctx, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +81,7 @@ func TestMenuBrowse(t *testing.T) {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
 
-	_, err = m.Render(3)
+	_, err = m.Render(ctx, 3)
 	if err == nil {
 		t.Fatalf("expected render fail")
 	}

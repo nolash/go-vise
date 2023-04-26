@@ -98,7 +98,7 @@ func main() {
 
 	st := state.NewState(3)
 	rsf := resource.NewFsResource(scriptDir)
-	rs, ok := newProfileResource(&st, &rsf).(*profileResource)
+	rs, ok := newProfileResource(&st, rsf).(*profileResource)
 	if !ok {
 		os.Exit(1)
 	}

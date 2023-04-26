@@ -52,7 +52,7 @@ func TestParserSized(t *testing.T) {
 
 func TestParseDisplay(t *testing.T) {
 	var b []byte
-	b = vm.NewLine(b, vm.MOUT, []string{"foo", "baz ba zbaz"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"foo", "baz_ba_zbaz"}, nil, nil)
 	s, err := vm.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
@@ -65,9 +65,9 @@ func TestParseDisplay(t *testing.T) {
 		t.Fatalf("expected 18 byte write count, got %v", n)
 	}
 	rb := r.Bytes()
-	expect := []byte{0x00, vm.MOUT, 0x03, 0x66, 0x6f, 0x6f, 0x0b, 0x62, 0x61, 0x7a, 0x20, 0x62, 0x61, 0x20, 0x7a, 0x62, 0x61, 0x7a}
+	expect := []byte{0x00, vm.MOUT, 0x03, 0x66, 0x6f, 0x6f, 0x0b, 0x62, 0x61, 0x7a, 0x5f, 0x62, 0x61, 0x5f, 0x7a, 0x62, 0x61, 0x7a}
 	if !bytes.Equal(rb, expect) {
-		t.Fatalf("expected %x, got %x", expect, rb)
+		t.Fatalf("expected:\n\t%x\ngot:\n\t%x", expect, rb)
 	}
 }
 
@@ -216,7 +216,7 @@ func TestParserWriteMultiple(t *testing.T) {
 	b = vm.NewLine(b, vm.CATCH, []string{"xyzzy"}, []byte{0x02, 0x9a}, []uint8{1})
 	b = vm.NewLine(b, vm.INCMP, []string{"pinky", "inky"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{42}, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"bar", "bar barb az"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"bar", "bar_barb_az"}, nil, nil)
 	s, err := vm.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
@@ -227,7 +227,7 @@ func TestParserWriteMultiple(t *testing.T) {
 	}
 	log.Printf("result %x", r.Bytes())
 
-	r_expect_hex := "000700010578797a7a7902029a01000804696e6b790570696e6b79000303666f6f012a000a036261720b626172206261726220617a"
+	r_expect_hex := "000700010578797a7a7902029a01000804696e6b790570696e6b79000303666f6f012a000a0b6261725f626172625f617a03626172"
 	r_expect, err := hex.DecodeString(r_expect_hex)
 	if err != nil {
 		t.Fatal(err)

@@ -9,6 +9,7 @@ type MemResource struct {
 	MenuResource
 	templates map[string]string
 	bytecodes map[string][]byte
+	menus map[string]string
 	funcs map[string]EntryFunc
 }
 
@@ -21,6 +22,7 @@ func NewMemResource() MemResource {
 	mr.WithCodeGetter(mr.getCode)
 	mr.WithTemplateGetter(mr.getTemplate)
 	mr.WithEntryFuncGetter(mr.getFunc)
+	mr.WithMenuGetter(mr.getMenu)
 	return mr
 }
 
@@ -38,6 +40,15 @@ func(mr MemResource) getCode(sym string) ([]byte, error) {
 		return nil, fmt.Errorf("unknown bytecode: %s", sym)
 	}
 	return r, nil
+}
+
+func(mr MemResource) getMenu(ctx context.Context, sym string) (string, error) {
+	r, ok := mr.menus[sym]
+	if !ok {
+		r = sym
+	}
+	return r, nil
+
 }
 
 func(mr MemResource) getFunc(sym string) (EntryFunc, error) {

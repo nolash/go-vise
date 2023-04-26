@@ -29,7 +29,7 @@ type FsWrapper struct {
 func NewFsWrapper(path string, st *state.State) FsWrapper {
 	rs := resource.NewFsResource(path)
 	wr := FsWrapper {
-		&rs, 
+		rs, 
 		st,
 	}
 	wr.AddLocalFunc("one", wr.one)
@@ -288,7 +288,6 @@ func TestLanguageRender(t *testing.T) {
 		t.Fatal(err)
 	}
 
-
 	b := vm.NewLine(nil, vm.LOAD, []string{"set_lang"}, []byte{0x01, 0x00}, nil)
 	b = vm.NewLine(b, vm.MOVE, []string{"lang"}, nil, nil)
 	st.SetCode(b)
@@ -309,4 +308,45 @@ func TestLanguageRender(t *testing.T) {
 		t.Fatalf("expected %s, got %s", expect, r[:len(expect)])
 	}
 
+}
+
+func TestConfigLanguageRender(t *testing.T) {
+	generateTestData(t)
+	ctx := context.TODO()
+	st := state.NewState(0)
+	rs := NewFsWrapper(dataDir, &st)
+	ca := cache.NewCache()
+
+	cfg := Config{
+		Root: "root",
+		Language: "nor",
+	}
+	en := NewEngine(ctx, cfg, &st, &rs, ca)
+
+	var err error
+	_, err = en.Init(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b := vm.NewLine(nil, vm.LOAD, []string{"set_lang"}, []byte{0x01, 0x00}, nil)
+	b = vm.NewLine(b, vm.MOVE, []string{"lang"}, nil, nil)
+	st.SetCode(b)
+
+	_, err = en.Exec(ctx, []byte("foo"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	br := bytes.NewBuffer(nil)
+	_, err = en.WriteResult(ctx, br)
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	expect := `dette endrer med språket one
+0:tilbake`
+	r := br.String()
+	if r != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s", expect, r)
+	}
 }

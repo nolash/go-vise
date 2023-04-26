@@ -34,7 +34,7 @@ func NewPage(cache cache.Memory, rs resource.Resource) *Page {
 
 // WithMenu sets a menu renderer for the page.
 func(pg *Page) WithMenu(menu *Menu) *Page {
-	pg.menu = menu
+	pg.menu = menu.WithResource(pg.resource)
 	//if pg.sizer != nil {
 	//	pg.sizer = pg.sizer.WithMenuSize(pg.menu.ReservedSize())
 	//}
@@ -292,7 +292,7 @@ func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint
 }
 
 func(pg *Page) applyMenuSink(ctx context.Context) ([]string, error) {
-	s, err := pg.menu.WithDispose().WithPages().Render(0)
+	s, err := pg.menu.WithDispose().WithPages().Render(ctx, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +346,7 @@ func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string
 	// pre-calculate the menu sizes for all browse conditions
 	var menuSizes [4]uint32
 	if pg.menu != nil {
-		menuSizes, err = pg.menu.Sizes()
+		menuSizes, err = pg.menu.Sizes(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -385,7 +385,7 @@ func(pg *Page) render(ctx context.Context, sym string, values map[string]string,
 	r += s
 
 	if pg.menu != nil {
-		s, err = pg.menu.Render(idx)
+		s, err = pg.menu.Render(ctx, idx)
 		if err != nil {
 			return "", err
 		}

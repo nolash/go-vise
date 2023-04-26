@@ -17,17 +17,23 @@ type FsResource struct {
 	MenuResource
 	Path string
 	fns map[string]EntryFunc
+//	languageStrict bool
 }
 
-func NewFsResource(path string) FsResource {
+func NewFsResource(path string) *FsResource {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		panic(err)
 	}
-	return FsResource{
+	return &FsResource{
 		Path: absPath,
 	}
 }
+
+//func(fsr *FsResource) WithStrictLanguage() *FsResource {
+//	fsr.languageStrict = true
+//	return fsr
+//}
 
 func(fsr FsResource) GetTemplate(ctx context.Context, sym string) (string, error) {
 	fp := path.Join(fsr.Path, sym)
@@ -58,6 +64,34 @@ func(fsr FsResource) GetCode(sym string) ([]byte, error) {
 	fb := sym + ".bin"
 	fp := path.Join(fsr.Path, fb)
 	return ioutil.ReadFile(fp)
+}
+
+func(fsr FsResource) GetMenu(ctx context.Context, sym string) (string, error) {
+	fp := path.Join(fsr.Path, sym + "_menu")
+	fpl := fp
+	v := ctx.Value("Language")
+	if v != nil {
+		lang := v.(lang.Language)
+		fpl += "_" + lang.Code
+	}
+	var r []byte
+	var err error
+	r, err = ioutil.ReadFile(fpl)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			if fpl != fp {
+				r, err = ioutil.ReadFile(fp)
+			}
+		}
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				return sym, nil
+			}
+			return "", fmt.Errorf("failed getting template for sym '%s': %v", sym, err)
+		}
+	}
+	s := string(r)
+	return strings.TrimSpace(s), err
 }
 
 func(fsr *FsResource) AddLocalFunc(sym string, fn EntryFunc) {

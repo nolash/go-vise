@@ -35,7 +35,7 @@ func NewDefaultEngine(dir string, persisted bool, session *string) (EngineIsh, e
 			return nil, err
 		}
 		pr := persist.NewFsPersister(dp)
-		en, err = NewPersistedEngine(ctx, cfg, pr, &rs)
+		en, err = NewPersistedEngine(ctx, cfg, pr, rs)
 		if err != nil {
 			Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
 			pr = pr.WithContent(&st, ca)
@@ -43,10 +43,10 @@ func NewDefaultEngine(dir string, persisted bool, session *string) (EngineIsh, e
 			if err != nil {
 				return nil, err
 			}
-			en, err = NewPersistedEngine(ctx, cfg, pr, &rs)
+			en, err = NewPersistedEngine(ctx, cfg, pr, rs)
 		}
 	} else {
-		enb := NewEngine(ctx, cfg, &st, &rs, ca)
+		enb := NewEngine(ctx, cfg, &st, rs, ca)
 		en = &enb
 	}
 	return en, err
@@ -76,7 +76,7 @@ func NewSizedEngine(dir string, size uint32, persisted bool, session *string) (E
 			return nil, err
 		}
 		pr := persist.NewFsPersister(dp)
-		en, err = NewPersistedEngine(ctx, cfg, pr, &rs)
+		en, err = NewPersistedEngine(ctx, cfg, pr, rs)
 		if err != nil {
 			Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
 			pr = pr.WithContent(&st, ca)
@@ -84,10 +84,10 @@ func NewSizedEngine(dir string, size uint32, persisted bool, session *string) (E
 			if err != nil {
 				return nil, err
 			}
-			en, err = NewPersistedEngine(ctx, cfg, pr, &rs)
+			en, err = NewPersistedEngine(ctx, cfg, pr, rs)
 		}
 	} else {
-		enb := NewEngine(ctx, cfg, &st, &rs, ca)
+		enb := NewEngine(ctx, cfg, &st, rs, ca)
 		en = &enb
 	}
 	return en, err

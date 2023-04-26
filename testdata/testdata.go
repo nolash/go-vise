@@ -166,7 +166,14 @@ func lang() error {
 
 	tpl = "dette endrer med språket {{.inky}}"
 	fp := path.Join(DataDir, "lang_nor")
-	return os.WriteFile(fp, []byte(tpl), 0600)
+	err = os.WriteFile(fp, []byte(tpl), 0600)
+	if err != nil {
+		return err
+	}
+
+	menu := "tilbake"
+	fp = path.Join(DataDir, "back_menu_nor")
+	return os.WriteFile(fp, []byte(menu), 0600)
 }
 
 func generate() error {
