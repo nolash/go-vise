@@ -193,6 +193,7 @@ This repository provides a `golang` reference implementation for the `vise` conc
 - `state`: Holds the bytecode buffer, error states and navigation states.
 - `vm`: Defines instructions, and applies transformations according to the instructions.
 - `lang`: Validation and specification of language context.
+- `logging`: Logging interface and build tags for loglevels.
 
 
 ### Template rendering
@@ -243,6 +244,24 @@ This is used to identify the caller, and thus defines a top-level storage key un
 ## Assembly examples
 
 See `testdata/*.vis`
+
+
+## Logging
+
+Loglevels are set at compile-time using the following build tags:
+
+* `lognone`
+* `logerror`
+* `logwarn`
+* `loginfo`
+* `logdebug`
+* `logtrace`
+
+Only use **ONE** of these tags.
+
+The default tag is `lognone` which disables logging completely.
+
+`logging/logging.go:Logger` defines the logging interface. It is faintly inspired by the experimental [slog](https://pkg.go.dev/golang.org/x/exp/slog) package, in that it differentiates explicit context logging.
 
 
 ## Development tools

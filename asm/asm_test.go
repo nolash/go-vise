@@ -23,7 +23,39 @@ func TestParserRoute(t *testing.T) {
 	Parse(s, b)
 	expect = vm.NewLine(nil, vm.MSINK, nil, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "MAP tinkywinky\n"
+	Parse(s, b)
+	expect = vm.NewLine(nil, vm.MAP, []string{"tinkywinky"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "MOVE dipsy\n"
+	Parse(s, b)
+	expect = vm.NewLine(nil, vm.MOVE, []string{"dipsy"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+			log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "RELOAD lalapu\n"
+	Parse(s, b)
+	expect = vm.NewLine(nil, vm.RELOAD, []string{"lalapu"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "LOAD foo 42\n"
+	Parse(s, b)
+	expect = vm.NewLine(nil, vm.LOAD, []string{"foo"}, []byte{0x2a}, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
@@ -31,7 +63,7 @@ func TestParserRoute(t *testing.T) {
 	Parse(s, b)
 	expect = vm.NewLine(nil, vm.MOUT, []string{"foo", "bar"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
-		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
@@ -39,7 +71,7 @@ func TestParserRoute(t *testing.T) {
 	Parse(s, b)
 	expect = vm.NewLine(nil, vm.MOUT, []string{"baz", "42"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
-		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
@@ -47,7 +79,7 @@ func TestParserRoute(t *testing.T) {
 	Parse(s, b)
 	expect = vm.NewLine(nil, vm.INCMP, []string{"foo", "bar"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
-		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
@@ -55,7 +87,7 @@ func TestParserRoute(t *testing.T) {
 	Parse(s, b)
 	expect = vm.NewLine(nil, vm.INCMP, []string{"baz", "42"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
-		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
@@ -63,7 +95,7 @@ func TestParserRoute(t *testing.T) {
 	Parse(s, b)
 	expect = vm.NewLine(nil, vm.INCMP, []string{"xyzzy", "*"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
-		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
@@ -73,7 +105,37 @@ func TestParserRoute(t *testing.T) {
 	expect = vm.NewLine(expect, vm.HALT, nil, nil, nil)
 	expect = vm.NewLine(expect, vm.INCMP, []string{"foo", "2"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
-		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "UP 3 bar\n"
+	Parse(s, b)
+	expect = vm.NewLine(nil, vm.MOUT, []string{"bar", "3"}, nil, nil)
+	expect = vm.NewLine(expect, vm.HALT, nil, nil, nil)
+	expect = vm.NewLine(expect, vm.INCMP, []string{"_", "3"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "NEXT 4 baz\n"
+	Parse(s, b)
+	expect = vm.NewLine(nil, vm.MNEXT, []string{"baz", "4"}, nil, nil)
+	expect = vm.NewLine(expect, vm.HALT, nil, nil, nil)
+	expect = vm.NewLine(expect, vm.INCMP, []string{">", "4"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "PREVIOUS 5 xyzzy\n"
+	Parse(s, b)
+	expect = vm.NewLine(nil, vm.MPREV, []string{"xyzzy", "5"}, nil, nil)
+	expect = vm.NewLine(expect, vm.HALT, nil, nil, nil)
+	expect = vm.NewLine(expect, vm.INCMP, []string{"<", "5"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 }

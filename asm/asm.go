@@ -106,6 +106,7 @@ func parseTwoSym(b *bytes.Buffer, arg Arg) (int, error) {
 		}
 	}
 
+
 	n, err := writeSym(b, sym)
 	rn += n
 	if err != nil {
@@ -117,7 +118,6 @@ func parseTwoSym(b *bytes.Buffer, arg Arg) (int, error) {
 	if err != nil {
 		return rn, err
 	}
-
 	return rn, nil
 }
 
@@ -208,14 +208,14 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 
 	// Catch
 	if a.Selector != nil {
-		log.Printf("entering twosym for %v", op)
+		log.Printf("have selector %v", instruction)
 		var n int
 		var err error
-//		if op == vm.MOUT {
-//			n, err = parseTwoSymReverse(b, a)
-//		} else {
+		if op == vm.MOUT {
+			n, err = parseTwoSymReverse(b, a)
+		} else {
 			n, err = parseTwoSym(b, a)
-//		}
+		}
 		n_buf += n
 		if err != nil {
 			return n_out, err
@@ -225,6 +225,7 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 
 	// Catch CATCH, LOAD and twosyms with integer-as-string
 	if a.Size != nil {
+		log.Printf("have size %v", instruction)
 		if a.Flag != nil {
 			n, err := parseSig(b, a)
 			n_buf += n

@@ -1,0 +1,11 @@
+MSINK
+DOWN poke 0 inky 
+DOWN poke 1 pinky 
+DOWN poke 2 blinky 
+DOWN poke 3 clyde
+DOWN poke 4 tinkywinky
+DOWN poke 5 dipsy
+DOWN poke 6 lala
+DOWN poke 7 pu
+NEXT 11 fwdmenu
+PREVIOUS 1234 backmenu
