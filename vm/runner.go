@@ -406,7 +406,9 @@ func(vm *Vm) runHalt(ctx context.Context, b []byte) ([]byte, error) {
 // executes the MSIZE opcode
 func(vm *Vm) runMSink(ctx context.Context, b []byte) ([]byte, error) {
 	b, err := ParseMSink(b)
-	vm.mn = vm.mn.WithSink()
+	mcfg := vm.mn.GetBrowseConfig()
+	vm.mn = vm.mn.WithSink().WithBrowseConfig(mcfg).WithPages()
+	//vm.pg.WithMenu(vm.mn)
 	return b, err
 }
 

@@ -326,6 +326,7 @@ func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string
 			pg.extra = "\n{{._menu}}"
 			pg.sizer.sink = sink
 			noSinkValues[sink] = ""
+			Logg.DebugCtxf(ctx, "menu is sink", "items", len(sinkValues))
 		}
 	}
 

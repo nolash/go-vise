@@ -11,3 +11,6 @@ helloworld:
 
 validate:
 	make -C examples/validate
+
+longmenu:
+	make -C examples/longmenu

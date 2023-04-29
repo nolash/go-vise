@@ -53,6 +53,10 @@ type Menu struct {
 	keep bool
 }
 
+func(m Menu) String() string {
+	return fmt.Sprintf("pagecount: %v sink: %v next: %v prev: %v", m.pageCount, m.sink, m.canNext, m.canPrevious)
+}
+
 // NewMenu creates a new Menu with an explicit page count.
 func NewMenu() *Menu {
 	return &Menu{
@@ -219,6 +223,7 @@ func(m *Menu) applyPage(idx uint16) error {
 	if idx == 0 {
 		m.canPrevious = false
 	}
+	Logg.Debugf("applypage", "m", m, "idx", idx)
 
 	if m.canNext {
 		err := m.Put(m.browse.NextSelector, m.browse.NextTitle)

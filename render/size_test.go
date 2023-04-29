@@ -333,9 +333,9 @@ func TestMenuSink(t *testing.T) {
 	ca := cache.NewCache()
 	rs := resource.NewMemResource()
 	rs.AddTemplate("foo", "bar {{.baz}}")
-	szr := NewSizer(30)
+	szr := NewSizer(45)
 
-	mn := NewMenu().WithSink()
+	mn := NewMenu().WithSink().WithBrowseConfig(DefaultBrowseConfig())
 	mn.Put("0", "inky")
 	mn.Put("1", "pinky")
 	mn.Put("22", "blinky")
@@ -356,12 +356,14 @@ func TestMenuSink(t *testing.T) {
 	}
 	expect := `bar xyzzy
 0:inky
-1:pinky`
+1:pinky
+22:blinky
+11:next`
 	if r != expect {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
 
-	mn = NewMenu().WithSink()
+	mn = NewMenu().WithSink().WithBrowseConfig(DefaultBrowseConfig())
 	mn.Put("0", "inky")
 	mn.Put("1", "pinky")
 	mn.Put("22", "blinky")
@@ -379,8 +381,9 @@ func TestMenuSink(t *testing.T) {
 		t.Fatal(err)
 	}
 	expect = `bar xyzzy
-22:blinky
-3:clyde`
+3:clyde
+44:tinkywinky
+22:previous`
 	if r != expect {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}

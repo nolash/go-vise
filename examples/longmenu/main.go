@@ -5,22 +5,29 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
+
+	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/engine"
 )
+var (
+	baseDir = testdataloader.GetBasePath()
+	scriptDir = path.Join(baseDir, "examples", "longmenu")
+)
 
 func main() {
-	var dir string
 	var root string
 	var size uint
 	var sessionId string
 	var persist bool
-	flag.StringVar(&dir, "d", ".", "resource dir to read from")
 	flag.UintVar(&size, "s", 0, "max size of output")
 	flag.StringVar(&root, "root", "root", "entry point symbol")
 	flag.StringVar(&sessionId, "session-id", "default", "session id")
 	flag.BoolVar(&persist, "persist", false, "use state persistence")
 	flag.Parse()
+
+	dir := scriptDir
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
 	ctx := context.Background()

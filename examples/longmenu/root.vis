@@ -1,0 +1,22 @@
+MOUT inky 0
+MOUT pinky 1
+MOUT blinky 2
+MOUT clyde 3
+MOUT tinkywinky 4
+MOUT dipsy 5
+MOUT lala 6
+MOUT pu 7
+MNEXT fwdmenu 11
+MPREV backmenu 1234
+MSINK
+HALT
+INCMP poke 0
+INCMP poke 1
+INCMP poke 2
+INCMP poke 3
+INCMP poke 4
+INCMP poke 5
+INCMP poke 6
+INCMP poke 7
+INCMP > 11
+INCMP < 1234
