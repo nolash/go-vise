@@ -1,3 +1,8 @@
+- 0.1.14
+	* Add language support for menus.
+	* Support for multi-page menus (only works for template renders without a sink).
+	* Executable example for multi-page menus.
+	* Fix broken menu batch instruction assembly.
 - 0.0.13
 	* Panic instead of error when interfacing out-of-bounds state flags.
 	* Reverse catch mode, true/1 now means test set instead of reset.
