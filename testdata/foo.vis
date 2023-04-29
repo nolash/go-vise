@@ -1,7 +1,7 @@
-MOUT 1 tofoo
-MOUT 2 gobar
+MOUT tofoo 1
+MOUT gobar 2
 LOAD inky 20
 HALT
-INCMP 1 _
-INCMP 2 baz
+INCMP _ 1
+INCMP baz 2
 CATCH _catch 1 1

@@ -1,4 +1,4 @@
 MAP do_save
 HALT
 RELOAD do_save
-INCMP * .
+INCMP . *

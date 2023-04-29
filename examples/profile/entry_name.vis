@@ -1,5 +1,5 @@
 MAP myname
-MOUT 0 "abort"
+MOUT abort 0
 HALT
-INCMP 0 _
-INCMP * entry_name_save 
+INCMP _ 0
+INCMP entry_name_save *

@@ -1,5 +1,5 @@
 LOAD myname 64
 LOAD myemail 64
 CATCH identified 8 1
-DOWN entry_name 0 "name"
-DOWN entry_email 1 "email"
+DOWN entry_name 0 name
+DOWN entry_email 1 email
