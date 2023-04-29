@@ -26,8 +26,8 @@ type Asm struct {
 type Arg struct {
 	Sym *string `(@Sym Whitespace?)?`
 	Size *uint32 `(@Size Whitespace?)?`
-	Flag *uint8 `(@Size Whitespace?)?`
-	Selector *string `(@Sym Whitespace?)?`
+	Flag *string `(@Flag Whitespace?)?`
+	Selector *string `(@Sel Whitespace?)?`
 	Desc *string `(@Sym Whitespace?)?`
 	//Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
 }
@@ -46,7 +46,8 @@ func parseDescType(b *bytes.Buffer, arg Arg) (int, error) {
 	log.Printf("desctype")
 	var selector string
 	if arg.Flag != nil {
-		selector = strconv.FormatUint(uint64(*arg.Flag), 10)
+		//selector = strconv.FormatUint(uint64(*arg.Flag), 10)
+		selector = *arg.Flag
 	} else if arg.Selector != nil {
 		selector = *arg.Selector
 	}
@@ -104,7 +105,10 @@ func parseTwoSym(b *bytes.Buffer, arg Arg) (int, error) {
 			sym = *arg.Sym
 			selector = *arg.Selector
 		}
+	} else if arg.Flag != nil {
+		selector = *arg.Flag
 	}
+	log.Printf("wtf? %v %v", sym, selector)
 
 
 	n, err := writeSym(b, sym)
@@ -156,7 +160,11 @@ func parseSig(b *bytes.Buffer, arg Arg) (int, error) {
 		return rn, err
 	}
 
-	n, err = b.Write([]byte{uint8(*arg.Flag)})
+	v, err := strconv.ParseUint(*arg.Flag, 10, 8)
+	if err != nil {
+		return rn, err
+	}
+	n, err = b.Write([]byte{uint8(v)})
 	rn += n
 	if err != nil {
 		return rn, err
@@ -246,6 +254,21 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 			}
 
 		}
+		log.Printf("write %x", b.Bytes())
+		return flush(b, w)
+	}
+
+	if a.Flag != nil {
+		n, err := writeSym(b, *a.Sym)
+		n_buf += n
+		if err != nil {
+			return n_out, err
+		}
+		n, err = writeSym(b, *a.Flag)
+		n_buf += n
+		if err != nil {
+			return n_out, err
+		}
 		return flush(b, w)
 	}
 
@@ -297,8 +320,10 @@ var (
 	asmLexer = lexer.MustSimple([]lexer.SimpleRule{
 		{"Comment", `(?:#)[^\n]*`},
 		{"Ident", `^[A-Z]+`},
-		{"Size", `[0-9]+`},
+		{"Size", `[1-9][0-9]*`},
 		{"Sym", `[a-zA-Z_\*\.\^\<\>][a-zA-Z0-9_]*`},
+		{"Flag", `[0-9]+`},
+		{"Sel", `[0-9a-zA-Z][a-zA-Z0-9_]*`},
 		{"Whitespace", `[ \t]+`},
 		{"EOL", `[\n\r]+`},
 		{"Quote", `["']`},
@@ -383,10 +408,17 @@ func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 	var selector string
 	var sym string
 	var display string
-	if arg.Desc != nil {
+	if arg.Sym == nil {
+		selector = strconv.FormatUint(uint64(*arg.Size), 10)
+		display = *arg.Desc
+	} else if arg.Desc != nil {
 		sym = *arg.Sym
 		display = *arg.Desc
-		selector = *arg.Selector
+		if arg.Size != nil {
+			selector = strconv.FormatUint(uint64(*arg.Size), 10)
+		} else if arg.Selector != nil {
+			selector = *arg.Selector
+		}
 	} else if arg.Size != nil {
 		if arg.Sym != nil {
 			sym = *arg.Sym
@@ -396,6 +428,10 @@ func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 	} else {
 		selector = *arg.Sym
 		display = *arg.Selector
+	}
+	if selector == "" {
+		selector = sym
+		sym = ""
 	}
 	log.Printf("menu processor add %v '%v' '%v' '%v'", code, selector, display, sym)
 	err := bt.menuProcessor.Add(code, selector, display, sym)
@@ -409,6 +445,7 @@ func(bt *Batcher) Exit(w io.Writer) (int, error) {
 
 // Parse one or more lines of assembly code, and write assembled bytecode to the provided writer.
 func Parse(s string, w io.Writer) (int, error) {
+	Logg.Tracef("asm parse line", "input", s)
 	rd := strings.NewReader(s)
 	ast, err := asmParser.Parse("file", rd)
 	if err != nil {
@@ -440,7 +477,7 @@ func Parse(s string, w io.Writer) (int, error) {
 			if err != nil {
 				return rn, err
 			}
-			log.Printf("wrote %v bytes for %v", n, v.OpArg)
+			log.Printf("asm wrote %v bytes for %v", n, v.OpArg)
 		}
 	}
 	n, err := batch.Exit(w)

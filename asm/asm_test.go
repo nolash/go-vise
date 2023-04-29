@@ -10,9 +10,14 @@ import (
 )
 
 func TestParserRoute(t *testing.T) {
+	var err error
+
 	b := bytes.NewBuffer(nil)
 	s := "HALT\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect := vm.NewLine(nil, vm.HALT, nil, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
@@ -20,7 +25,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "MSINK\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.MSINK, nil, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
@@ -28,7 +36,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "MAP tinkywinky\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.MAP, []string{"tinkywinky"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
@@ -36,7 +47,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "MOVE dipsy\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.MOVE, []string{"dipsy"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 			log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
@@ -44,7 +58,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "RELOAD lalapu\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.RELOAD, []string{"lalapu"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
@@ -52,7 +69,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "LOAD foo 42\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.LOAD, []string{"foo"}, []byte{0x2a}, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
@@ -60,7 +80,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "MOUT foo bar\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.MOUT, []string{"foo", "bar"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
@@ -68,15 +91,32 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "MOUT baz 42\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.MOUT, []string{"baz", "42"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b.Bytes())
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "MOUT plugh 000\n"
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect = vm.NewLine(nil, vm.MOUT, []string{"plugh", "000"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
 	s = "INCMP foo bar\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.INCMP, []string{"foo", "bar"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
@@ -84,7 +124,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "INCMP baz 42\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.INCMP, []string{"baz", "42"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
@@ -92,7 +135,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "INCMP xyzzy *\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.INCMP, []string{"xyzzy", "*"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
@@ -100,7 +146,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "DOWN foo 2 bar\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.MOUT, []string{"bar", "2"}, nil, nil)
 	expect = vm.NewLine(expect, vm.HALT, nil, nil, nil)
 	expect = vm.NewLine(expect, vm.INCMP, []string{"foo", "2"}, nil, nil)
@@ -110,7 +159,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "UP 3 bar\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.MOUT, []string{"bar", "3"}, nil, nil)
 	expect = vm.NewLine(expect, vm.HALT, nil, nil, nil)
 	expect = vm.NewLine(expect, vm.INCMP, []string{"_", "3"}, nil, nil)
@@ -120,7 +172,10 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "NEXT 4 baz\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.MNEXT, []string{"baz", "4"}, nil, nil)
 	expect = vm.NewLine(expect, vm.HALT, nil, nil, nil)
 	expect = vm.NewLine(expect, vm.INCMP, []string{">", "4"}, nil, nil)
@@ -130,10 +185,35 @@ func TestParserRoute(t *testing.T) {
 
 	b = bytes.NewBuffer(nil)
 	s = "PREVIOUS 5 xyzzy\n"
-	Parse(s, b)
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	expect = vm.NewLine(nil, vm.MPREV, []string{"xyzzy", "5"}, nil, nil)
 	expect = vm.NewLine(expect, vm.HALT, nil, nil, nil)
 	expect = vm.NewLine(expect, vm.INCMP, []string{"<", "5"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "CATCH foo 5 0\n"
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect = vm.NewLine(nil, vm.CATCH, []string{"foo"}, []byte{0x05}, []uint8{0})
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "CATCH foo 0 1\n"
+	_, err = Parse(s, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect = vm.NewLine(nil, vm.CATCH, []string{"xyzzy"}, []byte{0x05}, []uint8{1})
 	if !bytes.Equal(b.Bytes(), expect) {
 		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
@@ -304,12 +384,9 @@ func TestParseSig(t *testing.T) {
 	log.Printf("parsing:\n%s\n", s)
 
 	r = bytes.NewBuffer(nil)
-	n, err = Parse(s, r)
+	_, err = Parse(s, r)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if n != 11 {
-		t.Fatalf("expected 11 byte write count, got %v", n)
 	}
 	rb = r.Bytes()
 	expect_hex = "000105706c756768010100"
@@ -318,7 +395,7 @@ func TestParseSig(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(rb, expect) {
-		t.Fatalf("expected %v, got %x", expect_hex, rb)
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%x", expect_hex, rb)
 	}
 }
 

@@ -144,13 +144,22 @@ When browsing additional menu pages, the template output should not be included.
 Browsing menu display definitions (`MNEXT`, `MPREV`) as well as size constaints (`MSIZE`) should have sane defaults defined by the assembler if they are missing from the assembly code.
 
 
-### Multipage support
+### Multi-page support
 
 Multipage outputs, like listings, are handled using the _sink_ output constraints:
 
 - first calculate what the rendered display size is when all symbol results that are _not_ sinks are resolved.
 - split and cache the list data within its semantic context, given the _sink_ limitation after rendering.
 - provide a `next` and `previous` menu item to browse the prepared pagination of the list data.
+
+
+#### Multi-page menu support
+
+Long menus can also be paginated, as long as the rendered template does not have a different _sink_ already defined.
+
+Menu pagination is activated with the `MSINK` instruction. The menu sink is deactivated when the next `HALT` command is encountered.
+
+The menu will be rendered in the same manner as multi-page output, but is always appended to the rendered template.
 
 
 ### Languages support
@@ -160,14 +169,14 @@ Language for rendering can be set as:
 * Configuration variable of the engine
 * By setting the `FLAG_LANG` flag in the return value of a `LOAD` instruction handler.
 
-The language argument in either case **MUST** be a `ISO-639` language code string. 
+The language argument in either case **MUST** be a valid `ISO-639` language code string. 
 
 Methods for retrieving data and templates are passed the language information through the `context.Context` value under the key `Language`. The value should be cast as a `lang.Language` object.
 
 
 ## Virtual machine interface layout
 
-This is the version `0` of the VM. That translates to  _highly experimental_.
+This is the version `0` of the VM.
 
 Currently the following rules apply for encoding in version `0`:
 
@@ -187,13 +196,13 @@ This repository provides a `golang` reference implementation for the `vise` conc
 - `asm`: Assembly parser and compiler.
 - `cache`: Holds and manages all loaded content.
 - `engine`: Outermost interface. Orchestrates execution of bytecode against input. 
+- `lang`: Validation and specification of language context.
+- `logging`: Logging interface and build tags for loglevels.
 - `persist`: Interface and reference implementation of `state` and `cache` persistence across asynchronous vm executions.
 - `render`: Renders menu and templates, and enforces output size constraints.
 - `resource`: Retrieves data and bytecode from external symbols, and retrieves templates.
 - `state`: Holds the bytecode buffer, error states and navigation states.
 - `vm`: Defines instructions, and applies transformations according to the instructions.
-- `lang`: Validation and specification of language context.
-- `logging`: Logging interface and build tags for loglevels.
 
 
 ### Template rendering
@@ -230,14 +239,14 @@ This is used to identify the caller, and thus defines a top-level storage key un
 (Minimal, WIP)
 
 ```
-000a 03666f6f 06746f20666f6f  # MOUT "foo" "to foo" - display a menu entry for choice "foo", described by "to foo"
-0008 03666f6f 03626172        # INCMP "foo" "bar"   - move to node "bar" if input is "FOO"
-0001 0461696565 01 01         # CATCH "aiee" 1 1    - move to node "aiee" (and immediately halt) if input match flag (1) is not set (1)
-0003 04616263 020104          # LOAD "abc" 260      - execute code symbol "abc" with a result size limit of 260 (2 byte BE integer, 0x0104)
-0003 04646566 00              # LOAD "def" 0        - execute code symbol "abc" with no size limit (sink)
-0005 04616263                 # MAP "abc"           - make "abc" available for renderer
+000a 03666f6f 05746f666f6f    # MOUT tofoo foo - display a menu entry for choice "foo", described by "to foo"
+0008 03666f6f 03626172        # INCMP bar foo   - move to node "bar" if input is "FOO"
+0001 0461696565 01 01         # CATCH aiee 1 1    - move to node "aiee" (and immediately halt) if input match flag (1) is not set (1)
+0003 04616263 020104          # LOAD abc 260      - execute code symbol "abc" with a result size limit of 260 (2 byte BE integer, 0x0104)
+0003 04646566 00              # LOAD def 0        - execute code symbol "abc" with no size limit (sink)
+0005 04616263                 # MAP abc           - make "abc" available for renderer
 0007                          # HALT                - stop execution (require new input to continue)
-0006 03313233                 # MOVE "123"          - move to node "123" (regardless of input)
+0006 0461313233               # MOVE a123          - move to node "a123" (regardless of input)
 0007                          # HALT                - stop execution
 ```
 
@@ -313,7 +322,7 @@ Found in `examples/`.
 
 Be sure to `make examples` before running them.
 
-Can be run with e.g. `go run ./examples/<case> [...]`
+Can be run with `go run ./examples/<case> [...]` except helloworld which is run as `go run ./dev/interactive -d ./examples/helloworld [...]`
 
 The available options are the same as for the `dev/interactive` tool.
 
