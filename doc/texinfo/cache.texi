@@ -12,6 +12,7 @@ It can be used to:
 @end itemize
 
 
+@anchor{load_handler}
 @section The @code{LOAD} handler
 
 In the @emph{golang} code, the handler of the @code{LOAD} instruction is an implementation of the @code{resource.Resource} interface.

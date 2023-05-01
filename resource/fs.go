@@ -127,14 +127,17 @@ func(fsr FsResource) getFunc(ctx context.Context, sym string, input []byte) (Res
 }
 
 func(fsr FsResource) getFuncNoCtx(sym string, input []byte, language *lang.Language) (Result, error) {
-	fb := sym + ".txt"
-	fp := path.Join(fsr.Path, fb)
-	fpl := fp
+	fb := sym
+	fbl := fb
 	if language != nil {
-		fpl += "_" + language.Code
+		fbl += "_" + language.Code
 	}
+	fb += ".txt"
+	fbl += ".txt"
+	fp := path.Join(fsr.Path, fb)
+	fpl := path.Join(fsr.Path, fbl)
 	Logg.Debugf("getfunc search dir", "dir", fsr.Path, "path", fp, "lang_path", fpl, "sym", sym, "language", language)
-	r, err := ioutil.ReadFile(fp)
+	r, err := ioutil.ReadFile(fpl)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			if fpl != fp {

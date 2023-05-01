@@ -1,5 +1,5 @@
 @node dev
-@chapter Development
+@chapter Developing with vise
 
 
 @section Code repository structure
@@ -26,6 +26,127 @@ Holds the bytecode buffer, error states and navigation states.
 @item vm
 Defines instructions, and applies transformations according to the instructions.
 @end table
+
+
+@section Interacting with @code{vise}
+
+Implementers of @code{vise} should interface with the system using the @code{engine} module.
+
+The engine comes in two implementations, one volatile base implemetnation and a subclass that includes persistent state.
+
+
+@subsection Modes of operation
+
+The @code{engine} module provides three different modes of operation for the engine implementations.
+
+
+@subsubsection Manual operation
+
+Directly interaction with an @code{engine.Engine} instance.
+
+The engine is manually initialized, and execution must be explicitly triggered with input every time the VM yields control.
+
+Output flushing must also be operated manually.
+
+The interface is the same for both persistent and volatile operation.
+
+
+@subsubsection Synchronous loop
+
+Receives input from a reader and writes into to a writer, and executes the underlying @code{engine.Engine} with given inputs until execution is terminated.
+
+The loop may be either persistent or volatile.
+
+This mode drives the interactive driver execution tool. 
+
+
+@subsubsection Asynchronous one-shot
+
+Compatible with e.g. a network socket or HTTP frontend. The @code{engine.RunPersisted} method restores a persisted state and runs one single input until VM yield after which the new state is persisted.
+
+This mode of operation can only be used with persistent state.
+
+
+@subsection Configuration
+
+The engine configuration defines the top-level parameters for the execution environment, including maximum output size, default language, execution entry point and more.
+
+Please refer to @code{engine.Config} for details.
+
+
+@subsection Sessions
+
+The @code{engine.Config.SessionId} is used to disambiguate the end-user that is interacting with the engine.
+
+For example, in a @abbr{USSD} context, the @code{SessionId} may be the @emph{phone number} of the end-user.
+
+
+@anchor{execution_context}
+@subsection Execution context
+
+The engine stores the @code{SessionId} aswell as the current chosen @code{lang.Language} in the execution context. This is passed through to the VM operation, and is available for client code, specifically:
+
+@itemize
+@item When resolving symbols with @code{LOAD}. (@code{resource.EntryFunc}).
+@item When resolving menu symbols (@code{resource.Resource.GetMenu}).
+@item When retrieving node templates (@code{resource.Resource.GetTemplate}).
+@end itemize
+
+
+@section Resolving resources
+
+The core of implementation code is defined by implementing the @code{resource.Resource} interface. This is also described in the @ref{load_handler, LOAD handler} section.
+
+In addition to resolving external code symbols, @code{resource.Resource} implementations also translate @emph{menu labels} and @emph{templates} based on the current language context, and retrieves bytecode for execution nodes.
+
+@subsection Memory resource implementation
+
+One of two reference implementations of @code{resource.Resource} is the @code{resource.MemResource} class. It enables the client to register all node and symbol resolutions at runtime, using its functions prefixed with @code{Add...}. 
+
+The @code{resource.MemResource} implementation is primarily useful for use in tests.
+
+
+@subsection Filesystem resource implementation
+
+The Filesystem based resource implemementation is used by the @code{dev/interactive} tool, aswell as the executable examples in @file{examples/} directory.
+
+It is instantiated with a base directory location relative to which all resources are read.
+
+
+@subsubsection Bytecode (@code{resource.Resource.GetCode})
+
+Read from @file{basedir/<node>.bin}.
+
+
+@subsubsection Templates (@code{resource.Resource.GetTemplate})
+
+If language has been set, the template will be read from @file{basedir/<node>_<lang>}. For example, the @emph{norwegian} template for the node @code{root} will be read from @file{basedir/root_nor}.
+
+If reading the language specific template fails (or if no language has been set), template will be read from @file{basedir/<node>}.
+
+A missing template file will result in load failure and program termination.
+
+
+@subsubsection Menus (@code{resource.Resource.GetMenu})
+
+If language has been set, the template will be read from @file{basedir/<label>_<lang>_menu}. For example, the @emph{norwegian} template for the menu label @code{foo} will be read from @file{basedir/foo_nor_menu}.
+
+If reading the language specific menu label fails (or if no language has been set), label will be read from @file{basedir/<label>_menu}.
+
+If this also fails, the implementation returns the original label used for lookup.
+
+
+@subsubsection External symbols (@code{resource.Resource.FuncFor})
+
+The implementation allows setting resolver functions for symbols at runtime, using the @code{resource.FsResource.AddLocalFunc} method. This registers an @code{resource.FsResource.EntryFunc} with the lookup symbol as key. Note that the @code{EntryFunc} receives the language setting through the execution context.
+
+If no function has been registered for the requested symbol, it will be looked up in the filesystem on @file{basedir/<symbol>_<lang>.txt}. For example, the @emph{norwegian} entry for the symbol @code{foo} will be read from @file{basedir/foo_nor.txt}.
+
+If reading the language specific entry fails (or if no language has been set), entry will be read from @file{basedir/<symbol>.txt}.
+
+A missing entry will result in load failure and program termination.
+
+The implementation contains no built-in handling of the @code{SessionId} supplied by the context.
 
 
 @section Logging
