@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Released 2023 under AGPL3 -->
+<title>instructions (vise)</title>
+
+<meta name="description" content="instructions (vise)">
+<meta name="keywords" content="instructions (vise)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="index.html" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="navigation.html" rel="next" title="navigation">
+<link href="signals.html" rel="prev" title="signals">
+<style type="text/css">
+<!--
+div.example {margin-left: 3.2em}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<div class="chapter-level-extent" id="instructions">
+<div class="nav-panel">
+<p>
+Next: <a href="navigation.html" accesskey="n" rel="next">Navigation</a>, Previous: <a href="signals.html" accesskey="p" rel="prev">Signal flags</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<h2 class="chapter" id="Instructions">4 Instructions</h2>
+
+
+<ul class="mini-toc">
+<li><a href="#Data-types" accesskey="1">Data types</a></li>
+<li><a href="#Instruction-list" accesskey="2">Instruction list</a></li>
+<li><a href="#Batch-instructions" accesskey="3">Batch instructions</a></li>
+</ul>
+<div class="section-level-extent" id="Data-types">
+<h3 class="section">4.1 Data types</h3>
+
+
+<a class="anchor" id="node_005ftype"></a><ul class="mini-toc">
+<li><a href="#node" accesskey="1">node</a></li>
+<li><a href="#label" accesskey="2">label</a></li>
+<li><a href="#size" accesskey="3">size</a></li>
+<li><a href="#selector" accesskey="4">selector</a></li>
+<li><a href="#symbol" accesskey="5">symbol</a></li>
+<li><a href="#signal" accesskey="6">signal</a></li>
+<li><a href="#matchmode" accesskey="7">matchmode</a></li>
+</ul>
+<div class="subsection-level-extent" id="node">
+<h4 class="subsection">4.1.1 node</h4>
+
+<p>A node name is a string.
+</p>
+<p>Both regular and special node names exist.
+</p>
+<ul class="mini-toc">
+<li><a href="#Regular-node" accesskey="1">Regular node</a></li>
+<li><a href="#Special-node" accesskey="2">Special node</a></li>
+</ul>
+<div class="subsubsection-level-extent" id="Regular-node">
+<h4 class="subsubsection">4.1.1.1 Regular node</h4>
+
+<p>Must be one or more characters long.
+</p>
+<p>Starts with a 7-bit alphabetical character.
+</p>
+<p>The remainder of the string may contain 7-bit alphanumeric characters or underscore.
+</p>
+
+</div>
+<div class="subsubsection-level-extent" id="Special-node">
+<h4 class="subsubsection">4.1.1.2 Special node</h4>
+
+<p>Special node names are a single character.
+</p>
+<p>See <a class="ref" href="navigation.html#node_005fnames">Node names</a> for details. 
+</p>
+
+</div>
+</div>
+<div class="subsection-level-extent" id="label">
+<h4 class="subsection">4.1.2 label</h4>
+
+<p>Same rules as for <a class="ref" href="#symbol_005ftype">symbol</a>.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="size">
+<h4 class="subsection">4.1.3 size</h4>
+
+<p>Numerical value of any size.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="selector">
+<h4 class="subsection">4.1.4 selector</h4>
+
+<p>The selector <code class="code">*</code> is used to catch any input.
+</p>
+<p>Apart from that, a valid selector is a string of 7-bit alphanumeric characters.
+</p>
+
+<a class="anchor" id="symbol_005ftype"></a></div>
+<div class="subsection-level-extent" id="symbol">
+<h4 class="subsection">4.1.5 symbol</h4>
+
+<p>Same rules as for <a class="ref" href="#node_005ftype">regular node names</a>.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="signal">
+<h4 class="subsection">4.1.6 signal</h4>
+
+<p>Numerical value of any size.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="matchmode">
+<h4 class="subsection">4.1.7 matchmode</h4>
+
+<p>Binary numeric value, 0 or 1.
+</p>
+
+</div>
+</div>
+<div class="section-level-extent" id="Instruction-list">
+<h3 class="section">4.2 Instruction list</h3>
+
+<ul class="mini-toc">
+<li><a href="#CATCH-_003cnode_003e-_003csignal_003e-_003cmatchmode_003e" accesskey="1">CATCH &lt;node&gt; &lt;signal&gt; &lt;matchmode&gt;</a></li>
+<li><a href="#CROAK-_003csignal_003e-_003cmatchmode_003e" accesskey="2">CROAK &lt;signal&gt; &lt;matchmode&gt;</a></li>
+<li><a href="#HALT" accesskey="3">HALT</a></li>
+<li><a href="#INCMP-_003cnode_003e-_003cselector_003e" accesskey="4">INCMP &lt;node&gt; &lt;selector&gt;</a></li>
+<li><a href="#LOAD-_003csymbol_003e-_003csize_003e" accesskey="5">LOAD &lt;symbol&gt; &lt;size&gt;</a></li>
+<li><a href="#MAP-_003csymbol_003e" accesskey="6">MAP &lt;symbol&gt;</a></li>
+<li><a href="#MNEXT-_003clabel_003e-_003cselector_003e" accesskey="7">MNEXT &lt;label&gt; &lt;selector&gt;</a></li>
+<li><a href="#MOUT-_003clabel_003e-_003cselector_003e" accesskey="8">MOUT &lt;label&gt; &lt;selector&gt;</a></li>
+<li><a href="#MOVE-_003cnode_003e" accesskey="9">MOVE &lt;node&gt;</a></li>
+<li><a href="#MPREV-_003clabel_003e-_003cselector_003e">MPREV &lt;label&gt; &lt;selector&gt;</a></li>
+<li><a href="#MSINK">MSINK</a></li>
+<li><a href="#RELOAD-_003csymbol_003e">RELOAD &lt;symbol&gt;</a></li>
+</ul>
+<div class="subsection-level-extent" id="CATCH-_003cnode_003e-_003csignal_003e-_003cmatchmode_003e">
+<h4 class="subsection">4.2.1 CATCH &lt;node&gt; &lt;signal&gt; &lt;matchmode&gt;</h4>
+
+<p>Control flow using signal checking.
+</p>
+<p>If <code class="code">matchmode</code> is 1, then jump to <code class="code">node</code> if <code class="code">signal</code> is <em class="emph">set</em>.
+</p>
+<p>If <code class="code">matchmode</code> is 0, then jump to <code class="code">node</code> if <code class="code">signal</code> is <em class="emph">no set</em>.
+</p>
+<p>Existing bytecode in buffer is cleared before the jump.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="CROAK-_003csignal_003e-_003cmatchmode_003e">
+<h4 class="subsection">4.2.2 CROAK &lt;signal&gt; &lt;matchmode&gt;</h4>
+
+<p>Clear state and restart execution from top if signal is matched.
+</p>
+<p>Signal match is the same as for <code class="code">CATCH</code>.
+</p>
+</div>
+<div class="subsection-level-extent" id="HALT">
+<h4 class="subsection">4.2.3 HALT</h4>
+
+<p>Halt execution and yield control to client.
+</p>
+<p>Any remaining bytecode is kept in buffer. 
+</p>
+
+</div>
+<div class="subsection-level-extent" id="INCMP-_003cnode_003e-_003cselector_003e">
+<h4 class="subsection">4.2.4 INCMP &lt;node&gt; &lt;selector&gt;</h4>
+
+<p>Compare registered input to <code class="code">selector</code>.
+</p>
+<p>If match, it has the same side-effects as <code class="code">MOVE</code>.
+</p>
+<p>In addition, any consecutive <code class="code">INCMP</code> matches will be ignored until next <code class="code">HALT</code> is encountered.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="LOAD-_003csymbol_003e-_003csize_003e">
+<h4 class="subsection">4.2.5 LOAD &lt;symbol&gt; &lt;size&gt;</h4>
+
+<p>Execute the code symbol <code class="code">symbol</code> and cache the result.
+</p>
+<p>Result must be constrained to the given <code class="code">size</code>.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="MAP-_003csymbol_003e">
+<h4 class="subsection">4.2.6 MAP &lt;symbol&gt;</h4>
+
+<p>Expose result from <code class="code">symbol</code> previously loaded by <code class="code">LOAD</code> to the renderer.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="MNEXT-_003clabel_003e-_003cselector_003e">
+<h4 class="subsection">4.2.7 MNEXT &lt;label&gt; &lt;selector&gt;</h4>
+
+<p>Activate the &quot;next&quot; part of lateral navigation.
+</p>
+<p>Define how to display the menu choice for advancing to the next page.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="MOUT-_003clabel_003e-_003cselector_003e">
+<h4 class="subsection">4.2.8 MOUT &lt;label&gt; &lt;selector&gt;</h4>
+
+<p>Add menu entry.
+</p>
+<p>Each entry should have a corresponding &lsquo;INCMP&lsquo; with matching <code class="code">selector</code>.
+</p>
+<p>Attempt to resolve <code class="code">label</code> to a language-enabled string to use as menu title, or by default use the <code class="code">label</code> directly.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="MOVE-_003cnode_003e">
+<h4 class="subsection">4.2.9 MOVE &lt;node&gt;</h4>
+
+<p>Load bytecode and template corresponding to <code class="code">node</code>.
+</p>
+<p>The loaded bytecode is appended to existing bytecode in buffer.
+</p>
+<p>Invalidates effects of all preceding <code class="code">MAP</code> calls.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="MPREV-_003clabel_003e-_003cselector_003e">
+<h4 class="subsection">4.2.10 MPREV &lt;label&gt; &lt;selector&gt;</h4>
+
+<p>Activate the &quot;previous&quot; part of lateral navigation.
+</p>
+<p>Define how to display the menu choice for going back to the previous page.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="MSINK">
+<h4 class="subsection">4.2.11 MSINK</h4>
+
+<p>If set, the menu is defined as the multi-page content sink.
+</p>
+<p>Cannot be used with an active <code class="code">MAP</code> of a symbol with <code class="code">LOAD</code> size <code class="code">0</code>.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="RELOAD-_003csymbol_003e">
+<h4 class="subsection">4.2.12 RELOAD &lt;symbol&gt;</h4>
+
+<p>Execute a code symbol already loaded by <code class="code">LOAD</code> and overwrite the existing cache with the new results.
+</p>
+<p>Constrained to the previously given size for the same symbol.
+</p>
+
+
+</div>
+</div>
+<div class="section-level-extent" id="Batch-instructions">
+<h3 class="section">4.3 Batch instructions</h3>
+
+<p>Some convenience instructions are made available for defining menus.
+</p>
+<p>There instruction <strong class="strong">MUST</strong> be used at the <em class="emph">end</em> of the node&rsquo;s assembly code, as they expand to code on either side of a <code class="code">HALT</code> instruction.
+</p>
+<dl class="table">
+<dt><code class="code">DOWN &lt;symbol&gt; &lt;selector&gt; &lt;label&gt;</code></dt>
+<dd><p>Descend to next frame and move to <code class="code">symbol</code>.
+</p></dd>
+<dt><code class="code">UP &lt;selector&gt; &lt;label&gt;</code></dt>
+<dd><p>Return to the previous frame.
+</p></dd>
+<dt><code class="code">NEXT &lt;selector&gt; &lt;label&gt;</code></dt>
+<dd><p>Activate and set <em class="emph">next</em> menu option for browsing multiple-page renders.
+</p></dd>
+<dt><code class="code">PREVIOUS &lt;selector&gt; &lt;label&gt;</code></dt>
+<dd><p>Activate and set <em class="emph">previuos</em> menu option for browsing multiple-page renders.  (If <code class="code">MNEXT</code>/<code class="code">NEXT</code> has not been defined this will not be rendered).
+</p></dd>
+</dl>
+
+
+<ul class="mini-toc">
+<li><a href="#Batch-menu-expansion" accesskey="1">Batch menu expansion</a></li>
+</ul>
+<div class="subsection-level-extent" id="Batch-menu-expansion">
+<h4 class="subsection">4.3.1 Batch menu expansion</h4>
+
+<table class="multitable">
+<thead><tr><th>Batch instruction</th><th>Expanded instruction</th></tr></thead>
+<tbody><tr><td><div class="example">
+<pre class="example-preformatted">DOWN foo 0 to_foo
+</pre></div></td><td><div class="example">
+<pre class="example-preformatted">MOUT to_foo 0
+HALT
+INCMP foo 0
+</pre></div></td></tr>
+<tr><td><div class="example">
+<pre class="example-preformatted">UP 1 back
+</pre></div></td><td><div class="example">
+<pre class="example-preformatted">MOUT back 1
+HALT
+INCMP _ 1
+</pre></div></td></tr>
+<tr><td><div class="example">
+<pre class="example-preformatted">NEXT 2 fwd
+</pre></div></td><td><div class="example">
+<pre class="example-preformatted">MNEXT fwd 2
+HALT
+INCMP &gt; 2
+</pre></div></td></tr>
+<tr><td><div class="example">
+<pre class="example-preformatted">PREVIOUS 3 back
+</pre></div></td><td><div class="example">
+<pre class="example-preformatted">MPREV back 3
+HALT
+INCMP &lt; 3
+</pre></div></td></tr>
+<tr><td><div class="example">
+<pre class="example-preformatted">DOWN foo 0 to_foo
+UP 1 back
+</pre></div></td><td><div class="example">
+<pre class="example-preformatted">MOUT to_foo 0
+MOUT back 1
+HALT
+INCMP foo 0
+INCMP _ 1
+</pre></div></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<hr>
+<div class="nav-panel">
+<p>
+Next: <a href="navigation.html">Navigation</a>, Previous: <a href="signals.html">Signal flags</a>, Up: <a href="index.html">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

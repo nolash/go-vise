@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Released 2023 under AGPL3 -->
+<title>signals (vise)</title>
+
+<meta name="description" content="signals (vise)">
+<meta name="keywords" content="signals (vise)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="index.html" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="instructions.html" rel="next" title="instructions">
+<link href="nomenclature.html" rel="prev" title="nomenclature">
+
+
+</head>
+
+<body lang="en">
+<div class="chapter-level-extent" id="signals">
+<div class="nav-panel">
+<p>
+Next: <a href="instructions.html" accesskey="n" rel="next">Instructions</a>, Previous: <a href="nomenclature.html" accesskey="p" rel="prev">Nomenclature</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<h2 class="chapter" id="Signal-flags">3 Signal flags</h2>
+
+
+<ul class="mini-toc">
+<li><a href="#Client_002ddefined-signal-flags" accesskey="1">Client-defined signal flags</a></li>
+<li><a href="#Built_002din-signal-flags" accesskey="2">Built-in signal flags</a></li>
+</ul>
+<div class="section-level-extent" id="Client_002ddefined-signal-flags">
+<h3 class="section">3.1 Client-defined signal flags</h3>
+
+<p>The client can define any number of signal flags to use. The number of signals <strong class="strong">MUST</strong> be declared explicitly in the client code, and <strong class="strong">MUST NOT</strong> change in stateful or asynchronous execution environments.
+</p>
+<p>In the assembly code, signals may only be referred to by their numerical value. The numeric value of client-defined signals must have numeric value <code class="code">8</code> or greater.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#Flow-control" accesskey="1">Flow control</a></li>
+</ul>
+<div class="subsection-level-extent" id="Flow-control">
+<h4 class="subsection">3.1.1 Flow control</h4>
+
+<p>Signal flags enables the client to control the execution flow as a side-effect of the execution of external code symbols.
+</p>
+<p>Branching is defined using either the <code class="code">CATCH</code> or <code class="code">CROAK</code> instructions.
+</p>
+<p>The client specifies whether or not a set flag should be reset on next yield. If not, it is the responsiblity of the client to reset the flag when necessary.
+</p>
+
+<a class="anchor" id="builtin_005fflags"></a></div>
+</div>
+<div class="section-level-extent" id="Built_002din-signal-flags">
+<h3 class="section">3.2 Built-in signal flags</h3>
+
+<p>For the numeric values of the signals, please refer to the signals appendix.
+</p>
+<table class="multitable">
+<thead><tr><th width="15%">Flag name</th><th width="20%">Description</th><th width="55%">Lifetime</th><th width="10%">Writeable?</th></tr></thead>
+<tbody><tr><td width="15%"><code class="code">READIN</code></td><td width="20%">Input is being processed.</td><td width="55%">From first <code class="code">INCMP</code> until: an <code class="code">INCMP</code> match <em class="emph">or</em> an invalid input exception is triggered.</td><td width="10%">no</td></tr>
+<tr><td width="15%"><code class="code">INMATCH</code></td><td width="20%">Input matched an <code class="code">INCMP</code> instruction.</td><td width="55%">Next instruction.</td><td width="10%">no</td></tr>
+<tr><td width="15%"><code class="code">TERMINATE</code></td><td width="20%">Terminate execution before the following instruction.</td><td width="55%">Until explicit reseet.</td><td width="10%">no</td></tr>
+<tr><td width="15%"><code class="code">DIRTY</code></td><td width="20%">Rendered output is available.</td><td width="55%">Until output is processed.</td><td width="10%">no</td></tr>
+<tr><td width="15%"><code class="code">WAIT</code></td><td width="20%">Halt execution before the following instruction, and yield control to client.</td><td width="55%">Until control is yielded.</td><td width="10%">no</td></tr>
+<tr><td width="15%"><code class="code">LOADFAIL</code></td><td width="20%">An unexpected error has occurred during execution of an external code symbol.</td><td width="55%">Next instruction.</td><td width="10%">no</td></tr>
+<tr><td width="15%"><code class="code">LANG</code></td><td width="20%">Output from an external code symbol is a valid language code, and language should be changed accordingly.</td><td width="55%">Next instruction.</td><td width="10%">yes</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<hr>
+<div class="nav-panel">
+<p>
+Next: <a href="instructions.html">Instructions</a>, Previous: <a href="nomenclature.html">Nomenclature</a>, Up: <a href="index.html">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

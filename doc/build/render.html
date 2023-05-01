@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Released 2023 under AGPL3 -->
+<title>render (vise)</title>
+
+<meta name="description" content="render (vise)">
+<meta name="keywords" content="render (vise)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="index.html" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="language.html" rel="next" title="language">
+<link href="cache.html" rel="prev" title="cache">
+<style type="text/css">
+<!--
+div.example {margin-left: 3.2em}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<div class="chapter-level-extent" id="render">
+<div class="nav-panel">
+<p>
+Next: <a href="language.html" accesskey="n" rel="next">Handling languages</a>, Previous: <a href="cache.html" accesskey="p" rel="prev">External data</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<h2 class="chapter" id="Rendering">7 Rendering</h2>
+
+<p>Every node whose bytecode includes a <code class="code">HALT</code> statement <strong class="strong">MUST</strong> define a rendering template.
+</p>
+<p>Templates may be either static or dynamic.
+</p>
+
+<a class="anchor" id="dynamic_005ftemplates"></a><ul class="mini-toc">
+<li><a href="#Dynamic-templates" accesskey="1">Dynamic templates</a></li>
+<li><a href="#Rendering-pipeline" accesskey="2">Rendering pipeline</a></li>
+<li><a href="#Multiple_002dpage-rendering" accesskey="3">Multiple-page rendering</a></li>
+</ul>
+<div class="section-level-extent" id="Dynamic-templates">
+<h3 class="section">7.1 Dynamic templates</h3>
+
+<p>Using placeholders, the content behind <code class="code">MAP</code> calls in the current executing node may be embedded in the template.
+</p>
+<p>Placeholders have the following format:
+</p><pre class="verbatim">{{.symbol}}
+</pre><p>where <code class="code">symbol</code> is the corresponding argument to <code class="code">MAP</code>.
+</p>
+<p>Note that <code class="code">MAP</code> can only be called on symbols who have a corresponding <code class="code">LOAD</code> on the same level or futher up the stack.
+</p>
+<ul class="mini-toc">
+<li><a href="#Examples" accesskey="1">Examples</a></li>
+</ul>
+<div class="subsection-level-extent" id="Examples">
+<h4 class="subsection">7.1.1 Examples</h4>
+
+<p>Consider the following instruction sequence:
+</p>
+<div class="example">
+<pre class="example-preformatted">LOAD foo 32
+MAP foo
+HALT
+</pre></div>
+
+<p>If the template contains the placeholder <code class="code">foo</code>, the contents of that placeholder will be replaced by the cached result of the <code class="code">LOAD foo</code> external symbol.
+</p>
+<p>However:
+</p>
+<div class="example">
+<pre class="example-preformatted">LOAD foo 32
+HALT
+</pre></div>
+
+<p>This will not work for the same template, because the <code class="code">foo</code> symbol has not been exposed with a <code class="code">MAP</code> call.
+</p>
+
+<div class="example">
+<pre class="example-preformatted">LOAD foo 32
+MOVE bar
+# (bar bytecode follows)
+MAP foo
+HALT
+</pre></div>
+
+<p>If the template for the node <code class="code">bar</code> contains the placeholder <code class="code">foo</code>, the contents of that placeholder will be replaced by the cached result of the <code class="code">LOAD foo</code> external symbol.
+</p>
+<p>This works because the <code class="code">MAP</code> is encountered further down the node execution stack than where the <code class="code">LOAD</code> was encountered.
+</p>
+<p>However:
+</p>
+<div class="example">
+<pre class="example-preformatted">LOAD foo 32
+MOVE bar
+# (bar bytecode follows)
+MAP foo
+MOVE baz
+# (baz bytecode follows)
+HALT
+</pre></div>
+
+<p>Here, if the template for <code class="code">baz</code> contains the placeholder <code class="code">foo</code>, the execution will fail because the <code class="code">MAP</code> in <code class="code">bar</code> was invalidated by the <code class="code">MOVE</code> to <code class="code">baz</code>.
+</p>
+
+</div>
+</div>
+<div class="section-level-extent" id="Rendering-pipeline">
+<h3 class="section">7.2 Rendering pipeline</h3>
+
+<p>The pipeline starts with the loading of the template corresponding to the current execution node.
+</p>
+<p>From there, three branches are possible:
+</p>
+<ol class="enumerate">
+<li> No <em class="emph">sink</em> has been defined.
+</li><li> One of the encountered <code class="code">MAP</code> symbols resolves to a <em class="emph">sink</em>.
+</li><li> <code class="code">MSINK</code> has been encountered.
+</li></ol>
+
+<p>If the resulting output from any of these branches is larger than the output size, failure ensues and execution is terminated.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#No-sink" accesskey="1">No sink</a></li>
+<li><a href="#MAP-sink" accesskey="2">MAP sink</a></li>
+<li><a href="#Menu-sink" accesskey="3">Menu sink</a></li>
+</ul>
+<div class="subsection-level-extent" id="No-sink">
+<h4 class="subsection">7.2.1 No sink</h4>
+
+<ol class="enumerate">
+<li> Expand all placeholders in the template.
+</li><li> Expand all menu items
+</li></ol>
+
+
+<a class="anchor" id="map_005fsink"></a></div>
+<div class="subsection-level-extent" id="MAP-sink">
+<h4 class="subsection">7.2.2 MAP sink</h4>
+
+<ol class="enumerate">
+<li> Expand all non-sink placeholders in the template.
+</li><li> Expand all menu items.
+</li><li> Group sink items up to the remaining output size.
+</li><li> If any item alone exceeds the remaining output size, fail and terminate execution.
+</li><li> If any item together with the lateral navigation menu items exceed the remaining output size, fail and terminate execution.
+</li><li> Check the page navigation index (see <a class="ref" href="navigation.html#lateral_005fnavigation">Lateral navigation</a>).
+</li><li> Replace sink symbol result with group item corresponding to navigation index.
+</li><li> Expand all sink placeholders in the template.
+</li><li> Expand all menu items (including lateral navigation).
+</li></ol>
+
+
+</div>
+<div class="subsection-level-extent" id="Menu-sink">
+<h4 class="subsection">7.2.3 Menu sink</h4>
+
+<ol class="enumerate">
+<li> Remove all menu items (any following menu expansion will only contain lateral navigation items, when and if they apply).
+</li><li> Copy menu items to sink placeholder.
+</li><li> Continue from <a class="ref" href="#map_005fsink">MAP sink</a>.
+</li></ol>
+
+
+<a class="anchor" id="render_005fmulti"></a></div>
+</div>
+<div class="section-level-extent" id="Multiple_002dpage-rendering">
+<h3 class="section">7.3 Multiple-page rendering</h3>
+
+<p>As indicated above, multiple-page rendering is activated when a <code class="code">MAP</code> is issued to a symbol that is loaded with <code class="code">0</code> size. (<code class="code">LOAD &lt;symbol&gt; 0</code>).
+</p>
+<p>The result is split into rows using newline (<code class="code">0x0a</code>) as separator.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#Missing-navigation" accesskey="1">Missing navigation</a></li>
+<li><a href="#Multi_002dpage-example" accesskey="2">Multi-page example</a></li>
+</ul>
+<div class="subsection-level-extent" id="Missing-navigation">
+<h4 class="subsection">7.3.1 Missing navigation</h4>
+
+<p>If no <em class="emph">lateral navigation</em> has been activated, any sinks will still be processed.
+</p>
+<p>The sink placeholder will then be replaced with the first item in the group.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="Multi_002dpage-example">
+<h4 class="subsection">7.3.2 Multi-page example</h4>
+
+<p>Consider the following instruction sequence:
+</p>
+<div class="example">
+<pre class="example-preformatted">LOAD foo 8
+LOAD bar 16
+LOAD baz 0
+MAP foo
+MAP bar
+MAP baz
+MOUT to_foo 0
+MOUT to_bar 1
+MNEXT to_next 11
+MPREV to_prev 22
+HALT
+INCMP foo 0
+INCMP bar 1
+INCMP &gt; 11
+INCMP &lt; 22
+</pre></div>
+
+<p>... and the following template (14 bytes, without the placeholders, including line break):
+</p>
+<pre class="verbatim">This is {{.foo}} and {{.bar}}
+{{.baz}}
+</pre>
+
+<ul class="mini-toc">
+<li><a href="#Data-accounting" accesskey="1">Data accounting</a></li>
+<li><a href="#Rendering-logic" accesskey="2">Rendering logic</a></li>
+</ul>
+<div class="subsubsection-level-extent" id="Data-accounting">
+<h4 class="subsubsection">7.3.2.1 Data accounting</h4>
+
+<p>Then consider that the symbols resolve as follows:
+</p>
+<table class="multitable">
+<thead><tr><th>symbol</th><th>returned value</th><th>rendered value</th><th>bytes</th></tr></thead>
+<tbody><tr><td><code class="code">foo</code></td><td><code class="code">foobar</code></td><td><code class="code">foobar</code></td><td>6</td></tr>
+<tr><td><code class="code">bar</code></td><td><code class="code">barbarbar</code></td><td><code class="code">barbarbar</code></td><td>9</td></tr>
+<tr><td><code class="code">baz</code></td><td><pre class="verbatim">FOO 42
+BAR 13
+BAZ 666
+XYZZY 1984
+INKY 1
+PINKY 22
+BLINKY 333
+CLYDE 4444
+</pre></td><td>(deferred)</td><td>(71)</td></tr>
+<tr><td><code class="code">to_foo</code></td><td><code class="code">go to foo</code></td><td><code class="code">0:go to foo</code></td><td>11</td></tr>
+<tr><td><code class="code">to_bar</code></td><td><code class="code">visit the bar</code></td><td><code class="code">1:visit the bar</code></td><td>15</td></tr>
+<tr><td><code class="code">to_next</code></td><td><code class="code">next page</code></td><td><code class="code">11:next page</code></td><td>12</td></tr>
+<tr><td><code class="code">to_prev</code></td><td><code class="code">go back</code></td><td><code class="code">22:go back</code></td><td>10</td></tr>
+</tbody>
+</table>
+
+<p>Given an output size limit of 94, static part of the template (14 bytes). this results in the following render possibilities for the sink content:
+</p>
+<table class="multitable">
+<thead><tr><th>navigation case</th><th>bytes left for sink</th></tr></thead>
+<tbody><tr><td>no navigation</td><td>39</td></tr>
+<tr><td>next</td><td>27</td></tr>
+<tr><td>previous</td><td>29</td></tr>
+<tr><td>next + previous</td><td>17</td></tr>
+</tbody>
+</table>
+
+
+</div>
+<div class="subsubsection-level-extent" id="Rendering-logic">
+<h4 class="subsubsection">7.3.2.2 Rendering logic</h4>
+
+<p>The total sink byte count is 72, whereas the maximum available sink capacity is 39. At least one extra page is needed.
+</p>
+<p>The first page (with <code class="code">next</code>) has 27 bytes available, which covers the 3 first sink items (22 bytes, include line break). This results in the following output:
+</p>
+<div class="example">
+<pre class="example-preformatted">This is foobar and barbarbar
+FOO 42
+BAR 13
+BAZ 666
+0:go to foo
+1:visit the bar
+11:next page
+</pre></div>
+
+<p>Any page that is not first page has maximum 29 bytes available. There are 49 bytes left to render from the sink. This means that more pages are needed, and therefore both <code class="code">next</code> and <code class="code">previous</code> are needed, leaving a capacity of 17 bytes. This is only sufficient for the next item (11 bytes, with line break), resulting in the following output:
+</p>
+<div class="example">
+<pre class="example-preformatted">This is foobar and barbarbar
+XYZZY 1984
+0:go to foo
+1:visit the bar
+11:next page
+22:go back
+</pre></div>
+
+<p>For the next page we again compare with the maximum of 29 bytes. There are 38 bytes left to render. Another intermediate page is required, with the two next entries (16 bytes) fitting inside the capacity (17 bytes). The page then looks like this:
+</p>
+<div class="example">
+<pre class="example-preformatted">This is foobar and barbarbar
+INKY 1
+PINKY 22
+0:go to foo
+1:visit the bar
+11:next page
+22:go back
+</pre></div>
+
+<p>Lastly, with 22 bytes left to go, we can render within the maximum available space of 29 bytes (only using <code class="code">previous</code>). Thus:
+</p>
+
+<div class="example">
+<pre class="example-preformatted">This is foobar and barbarbar
+BLINKY 333
+CLYDE 4444
+0:go to foo
+1:visit the bar
+22:go back
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<hr>
+<div class="nav-panel">
+<p>
+Next: <a href="language.html">Handling languages</a>, Previous: <a href="cache.html">External data</a>, Up: <a href="index.html">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

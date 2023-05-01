@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Released 2023 under AGPL3 -->
+<title>dev (vise)</title>
+
+<meta name="description" content="dev (vise)">
+<meta name="keywords" content="dev (vise)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="index.html" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="cookbook.html" rel="prev" title="cookbook">
+<style type="text/css">
+<!--
+div.example {margin-left: 3.2em}
+ul.mark-bullet {list-style-type: disc}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<div class="chapter-level-extent" id="dev">
+<div class="nav-panel">
+<p>
+Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<h2 class="chapter" id="Developing-with-vise">10 Developing with vise</h2>
+
+
+<ul class="mini-toc">
+<li><a href="#Code-repository-structure" accesskey="1">Code repository structure</a></li>
+<li><a href="#Interacting-with-vise" accesskey="2">Interacting with <code class="code">vise</code></a></li>
+<li><a href="#Resolving-resources" accesskey="3">Resolving resources</a></li>
+<li><a href="#Logging" accesskey="4">Logging</a></li>
+<li><a href="#Tools" accesskey="5">Tools</a></li>
+<li><a href="#Assembly-examples" accesskey="6">Assembly examples</a></li>
+<li><a href="#Bytecode-example" accesskey="7">Bytecode example</a></li>
+</ul>
+<div class="section-level-extent" id="Code-repository-structure">
+<h3 class="section">10.1 Code repository structure</h3>
+
+<dl class="table">
+<dt><code class="code">asm</code></dt>
+<dd><p>Assembly parser and compiler.
+</p></dd>
+<dt><code class="code">cache</code></dt>
+<dd><p>Holds and manages all loaded content.
+</p></dd>
+<dt><code class="code">engine</code></dt>
+<dd><p>Outermost interface. Orchestrates execution of bytecode against input. 
+</p></dd>
+<dt><code class="code">lang</code></dt>
+<dd><p>Validation and specification of language context.
+</p></dd>
+<dt><code class="code">logging</code></dt>
+<dd><p>Logging interface and build tags for loglevels.
+</p></dd>
+<dt><code class="code">persist</code></dt>
+<dd><p>Interface and reference implementation of &lsquo;state&lsquo; and &lsquo;cache&lsquo; persistence across asynchronous vm executions.
+</p></dd>
+<dt><code class="code">render</code></dt>
+<dd><p>Renders menu and templates, and enforces output size constraints.
+</p></dd>
+<dt><code class="code">resource</code></dt>
+<dd><p>Retrieves data and bytecode from external symbols, and retrieves templates.
+</p></dd>
+<dt><code class="code">state</code></dt>
+<dd><p>Holds the bytecode buffer, error states and navigation states.
+</p></dd>
+<dt><code class="code">vm</code></dt>
+<dd><p>Defines instructions, and applies transformations according to the instructions.
+</p></dd>
+</dl>
+
+
+</div>
+<div class="section-level-extent" id="Interacting-with-vise">
+<h3 class="section">10.2 Interacting with <code class="code">vise</code></h3>
+
+<p>Implementers of <code class="code">vise</code> should interface with the system using the <code class="code">engine</code> module.
+</p>
+<p>The engine comes in two implementations, one volatile base implemetnation and a subclass that includes persistent state.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#Modes-of-operation" accesskey="1">Modes of operation</a></li>
+<li><a href="#Configuration" accesskey="2">Configuration</a></li>
+<li><a href="#Sessions" accesskey="3">Sessions</a></li>
+<li><a href="#Execution-context" accesskey="4">Execution context</a></li>
+</ul>
+<div class="subsection-level-extent" id="Modes-of-operation">
+<h4 class="subsection">10.2.1 Modes of operation</h4>
+
+<p>The <code class="code">engine</code> module provides three different modes of operation for the engine implementations.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#Manual-operation" accesskey="1">Manual operation</a></li>
+<li><a href="#Synchronous-loop" accesskey="2">Synchronous loop</a></li>
+<li><a href="#Asynchronous-one_002dshot" accesskey="3">Asynchronous one-shot</a></li>
+</ul>
+<div class="subsubsection-level-extent" id="Manual-operation">
+<h4 class="subsubsection">10.2.1.1 Manual operation</h4>
+
+<p>Directly interaction with an <code class="code">engine.Engine</code> instance.
+</p>
+<p>The engine is manually initialized, and execution must be explicitly triggered with input every time the VM yields control.
+</p>
+<p>Output flushing must also be operated manually.
+</p>
+<p>The interface is the same for both persistent and volatile operation.
+</p>
+
+</div>
+<div class="subsubsection-level-extent" id="Synchronous-loop">
+<h4 class="subsubsection">10.2.1.2 Synchronous loop</h4>
+
+<p>Receives input from a reader and writes into to a writer, and executes the underlying <code class="code">engine.Engine</code> with given inputs until execution is terminated.
+</p>
+<p>The loop may be either persistent or volatile.
+</p>
+<p>This mode drives the interactive driver execution tool. 
+</p>
+
+</div>
+<div class="subsubsection-level-extent" id="Asynchronous-one_002dshot">
+<h4 class="subsubsection">10.2.1.3 Asynchronous one-shot</h4>
+
+<p>Compatible with e.g. a network socket or HTTP frontend. The <code class="code">engine.RunPersisted</code> method restores a persisted state and runs one single input until VM yield after which the new state is persisted.
+</p>
+<p>This mode of operation can only be used with persistent state.
+</p>
+
+</div>
+</div>
+<div class="subsection-level-extent" id="Configuration">
+<h4 class="subsection">10.2.2 Configuration</h4>
+
+<p>The engine configuration defines the top-level parameters for the execution environment, including maximum output size, default language, execution entry point and more.
+</p>
+<p>Please refer to <code class="code">engine.Config</code> for details.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="Sessions">
+<h4 class="subsection">10.2.3 Sessions</h4>
+
+<p>The <code class="code">engine.Config.SessionId</code> is used to disambiguate the end-user that is interacting with the engine.
+</p>
+<p>For example, in a <abbr class="abbr">USSD</abbr> context, the <code class="code">SessionId</code> may be the <em class="emph">phone number</em> of the end-user.
+</p>
+
+<a class="anchor" id="execution_005fcontext"></a></div>
+<div class="subsection-level-extent" id="Execution-context">
+<h4 class="subsection">10.2.4 Execution context</h4>
+
+<p>The engine stores the <code class="code">SessionId</code> aswell as the current chosen <code class="code">lang.Language</code> in the execution context. This is passed through to the VM operation, and is available for client code, specifically:
+</p>
+<ul class="itemize mark-bullet">
+<li>When resolving symbols with <code class="code">LOAD</code>. (<code class="code">resource.EntryFunc</code>).
+</li><li>When resolving menu symbols (<code class="code">resource.Resource.GetMenu</code>).
+</li><li>When retrieving node templates (<code class="code">resource.Resource.GetTemplate</code>).
+</li></ul>
+
+
+</div>
+</div>
+<div class="section-level-extent" id="Resolving-resources">
+<h3 class="section">10.3 Resolving resources</h3>
+
+<p>The core of implementation code is defined by implementing the <code class="code">resource.Resource</code> interface. This is also described in the <a class="ref" href="cache.html#load_005fhandler">LOAD handler</a> section.
+</p>
+<p>In addition to resolving external code symbols, <code class="code">resource.Resource</code> implementations also translate <em class="emph">menu labels</em> and <em class="emph">templates</em> based on the current language context, and retrieves bytecode for execution nodes.
+</p>
+<ul class="mini-toc">
+<li><a href="#Memory-resource-implementation" accesskey="1">Memory resource implementation</a></li>
+<li><a href="#Filesystem-resource-implementation" accesskey="2">Filesystem resource implementation</a></li>
+</ul>
+<div class="subsection-level-extent" id="Memory-resource-implementation">
+<h4 class="subsection">10.3.1 Memory resource implementation</h4>
+
+<p>One of two reference implementations of <code class="code">resource.Resource</code> is the <code class="code">resource.MemResource</code> class. It enables the client to register all node and symbol resolutions at runtime, using its functions prefixed with <code class="code">Add...</code>. 
+</p>
+<p>The <code class="code">resource.MemResource</code> implementation is primarily useful for use in tests.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="Filesystem-resource-implementation">
+<h4 class="subsection">10.3.2 Filesystem resource implementation</h4>
+
+<p>The Filesystem based resource implemementation is used by the <code class="code">dev/interactive</code> tool, aswell as the executable examples in <samp class="file">examples/</samp> directory.
+</p>
+<p>It is instantiated with a base directory location relative to which all resources are read.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#Bytecode-_0028resource_002eResource_002eGetCode_0029" accesskey="1">Bytecode (<code class="code">resource.Resource.GetCode</code>)</a></li>
+<li><a href="#Templates-_0028resource_002eResource_002eGetTemplate_0029" accesskey="2">Templates (<code class="code">resource.Resource.GetTemplate</code>)</a></li>
+<li><a href="#Menus-_0028resource_002eResource_002eGetMenu_0029" accesskey="3">Menus (<code class="code">resource.Resource.GetMenu</code>)</a></li>
+<li><a href="#External-symbols-_0028resource_002eResource_002eFuncFor_0029" accesskey="4">External symbols (<code class="code">resource.Resource.FuncFor</code>)</a></li>
+</ul>
+<div class="subsubsection-level-extent" id="Bytecode-_0028resource_002eResource_002eGetCode_0029">
+<h4 class="subsubsection">10.3.2.1 Bytecode (<code class="code">resource.Resource.GetCode</code>)</h4>
+
+<p>Read from <samp class="file">basedir/&lt;node&gt;.bin</samp>.
+</p>
+
+</div>
+<div class="subsubsection-level-extent" id="Templates-_0028resource_002eResource_002eGetTemplate_0029">
+<h4 class="subsubsection">10.3.2.2 Templates (<code class="code">resource.Resource.GetTemplate</code>)</h4>
+
+<p>If language has been set, the template will be read from <samp class="file">basedir/&lt;node&gt;_&lt;lang&gt;</samp>. For example, the <em class="emph">norwegian</em> template for the node <code class="code">root</code> will be read from <samp class="file">basedir/root_nor</samp>.
+</p>
+<p>If reading the language specific template fails (or if no language has been set), template will be read from <samp class="file">basedir/&lt;node&gt;</samp>.
+</p>
+<p>A missing template file will result in load failure and program termination.
+</p>
+
+</div>
+<div class="subsubsection-level-extent" id="Menus-_0028resource_002eResource_002eGetMenu_0029">
+<h4 class="subsubsection">10.3.2.3 Menus (<code class="code">resource.Resource.GetMenu</code>)</h4>
+
+<p>If language has been set, the template will be read from <samp class="file">basedir/&lt;label&gt;_&lt;lang&gt;_menu</samp>. For example, the <em class="emph">norwegian</em> template for the menu label <code class="code">foo</code> will be read from <samp class="file">basedir/foo_nor_menu</samp>.
+</p>
+<p>If reading the language specific menu label fails (or if no language has been set), label will be read from <samp class="file">basedir/&lt;label&gt;_menu</samp>.
+</p>
+<p>If this also fails, the implementation returns the original label used for lookup.
+</p>
+
+</div>
+<div class="subsubsection-level-extent" id="External-symbols-_0028resource_002eResource_002eFuncFor_0029">
+<h4 class="subsubsection">10.3.2.4 External symbols (<code class="code">resource.Resource.FuncFor</code>)</h4>
+
+<p>The implementation allows setting resolver functions for symbols at runtime, using the <code class="code">resource.FsResource.AddLocalFunc</code> method. This registers an <code class="code">resource.FsResource.EntryFunc</code> with the lookup symbol as key. Note that the <code class="code">EntryFunc</code> receives the language setting through the execution context.
+</p>
+<p>If no function has been registered for the requested symbol, it will be looked up in the filesystem on <samp class="file">basedir/&lt;symbol&gt;_&lt;lang&gt;.txt</samp>. For example, the <em class="emph">norwegian</em> entry for the symbol <code class="code">foo</code> will be read from <samp class="file">basedir/foo_nor.txt</samp>.
+</p>
+<p>If reading the language specific entry fails (or if no language has been set), entry will be read from <samp class="file">basedir/&lt;symbol&gt;.txt</samp>.
+</p>
+<p>A missing entry will result in load failure and program termination.
+</p>
+<p>The implementation contains no built-in handling of the <code class="code">SessionId</code> supplied by the context.
+</p>
+
+</div>
+</div>
+</div>
+<div class="section-level-extent" id="Logging">
+<h3 class="section">10.4 Logging</h3>
+
+<p>Loglevels are set at compile-time using the following build tags:
+</p>
+<ul class="itemize mark-bullet">
+<li><code class="code">lognone</code>
+</li><li><code class="code">logerror</code>
+</li><li><code class="code">logwarn</code>
+</li><li><code class="code">loginfo</code>
+</li><li><code class="code">logdebug</code>
+</li><li><code class="code">logtrace</code>
+</li></ul>
+
+<p>Only use <strong class="strong">ONE</strong> of these tags.
+</p>
+<p>The default tag is <code class="code">lognone</code> which disables logging completely.
+</p>
+<p><code class="code">logging.Logger</code> defines the logging interface. It is faintly inspired by the experimental <a class="url" href="https://pkg.go.dev/golang.org/x/exp/slog)%20package">slog</a>.
+</p>
+
+</div>
+<div class="section-level-extent" id="Tools">
+<h3 class="section">10.5 Tools</h3>
+
+<p>Located in the <samp class="file">dev/</samp> directory of the source code repository. 
+</p>
+
+<ul class="mini-toc">
+<li><a href="#Test-data-generation" accesskey="1">Test data generation</a></li>
+<li><a href="#Interactive-runner" accesskey="2">Interactive runner</a></li>
+<li><a href="#Assembler" accesskey="3">Assembler</a></li>
+<li><a href="#Disassembler" accesskey="4">Disassembler</a></li>
+<li><a href="#Interactive-case-examples" accesskey="5">Interactive case examples</a></li>
+</ul>
+<div class="subsection-level-extent" id="Test-data-generation">
+<h4 class="subsection">10.5.1 Test data generation</h4>
+
+<div class="example">
+<pre class="example-preformatted">go run ./dev/gendata/ &lt;directory&gt;
+</pre></div>
+
+<p>Outputs bytecodes and templates for test data scenarios used in &lsquo;engine&lsquo; unit tests.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="Interactive-runner">
+<h4 class="subsection">10.5.2 Interactive runner</h4>
+
+<div class="example">
+<pre class="example-preformatted">go run ./dev/interactive [-d &lt;data_directory&gt;] [--root &lt;root_symbol&gt;] [--session-id &lt;session_id&gt;] [--persist]
+</pre></div>
+
+<p>Creates a new interactive session using <code class="code">engine.DefaultEngine</code>, starting execution at symbol <code class="code">root_symbol</code>
+</p>
+<p><code class="code">data_directory</code> points to a directory where templates and bytecode is to be found (in the same format as generated by <samp class="file">dev/gendata</samp>).
+</p>
+<p>If <code class="code">data_directory</code> is not set, current directory will be used.
+</p>
+<p>if <code class="code">root_symbol</code> is not set, the symbol <code class="code">root</code> will be used.
+</p>
+<p>if <code class="code">session_id</code> is set, mutable data will be stored and retrieved keyed by the given identifer (if implemented).
+</p>
+<p>If <code class="code">persist</code> is set, the execution state will be persisted across sessions.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="Assembler">
+<h4 class="subsection">10.5.3 Assembler</h4>
+
+<div class="example">
+<pre class="example-preformatted">go run ./dev/asm &lt;assembly_file&gt;
+</pre></div>
+
+<p>Will output bytecode on STDOUT generated from a valid assembly file.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="Disassembler">
+<h4 class="subsection">10.5.4 Disassembler</h4>
+
+<div class="example">
+<pre class="example-preformatted">go run ./dev/disasm/ &lt;binary_file&gt;
+</pre></div>
+
+<p>Will list all the instructions on STDOUT from a valid binary file.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="Interactive-case-examples">
+<h4 class="subsection">10.5.5 Interactive case examples</h4>
+
+<p>Found in <samp class="file">examples/</samp>.
+</p>
+<p>Be sure to <code class="code">make examples</code> before running them.
+</p>
+<p>Can be run with:
+</p>
+<div class="example">
+<pre class="example-preformatted">go run ./examples/&lt;case&gt; [...]
+</pre></div>
+
+<p>except helloworld which is run as
+</p>
+<div class="example">
+<pre class="example-preformatted">go run ./dev/interactive -d ./examples/helloworld [...]
+</pre></div>
+
+<p>The available options are the same as for the <samp class="file">dev/interactive</samp> tool.
+</p>
+<p>Contents of the case directory:
+</p>
+<dl class="table">
+<dt><samp class="file">*.vis</samp></dt>
+<dd><p>assembly code.
+</p></dd>
+<dt><samp class="file">*.bin</samp></dt>
+<dd><p>bytecode for each node symbol (only available after make).
+</p></dd>
+<dt><samp class="file">*.txt.orig</samp></dt>
+<dd><p>default contents of a single data entry.
+</p></dd>
+<dt><samp class="file">*.txt</samp></dt>
+<dd><p>current contents of a single data entry (only available after make).
+</p></dd>
+</dl>
+
+
+</div>
+</div>
+<div class="section-level-extent" id="Assembly-examples">
+<h3 class="section">10.6 Assembly examples</h3>
+
+<p>See <samp class="file">testdata/*.vis</samp>
+</p>
+
+</div>
+<div class="section-level-extent" id="Bytecode-example">
+<h3 class="section">10.7 Bytecode example</h3>
+
+<p>Currently the following rules apply for encoding in version <code class="code">0</code>:
+</p>
+<ul class="itemize mark-bullet">
+<li>A code instruction is a <em class="emph">big-endian</em> 2-byte value. See <samp class="file">vm/opcodes.go</samp> for valid opcode values.
+</li><li><code class="code">symbol</code> value is encoded as <em class="emph">one byte</em> of string length, after which the  byte-value of the string follows.
+</li><li><code class="code">size</code> value is encoded as <em class="emph">one byte</em> of numeric length, after which the <em class="emph">big-endian</em> byte-value of the integer follows.
+</li><li><code class="code">signal</code> value is encoded as <em class="emph">one byte</em> of byte length, after which a byte-array representing the defined signal follows.
+</li></ul>
+
+
+<ul class="mini-toc">
+<li><a href="#Example" accesskey="1">Example</a></li>
+</ul>
+<div class="subsection-level-extent" id="Example">
+<h4 class="subsection">10.7.1 Example</h4>
+
+<p>(Minimal, WIP)
+</p>
+<pre class="verbatim">000a 03666f6f 05746f666f6f    # MOUT tofoo foo  - display a menu entry for choice &quot;foo&quot;, described by &quot;to foo&quot;
+0008 03666f6f 03626172        # INCMP bar foo   - move to node &quot;bar&quot; if input is &quot;FOO&quot;
+0001 0461696565 01 01         # CATCH aiee 1 1  - move to node &quot;aiee&quot; (and immediately halt) if input match flag (1) is not set (1)
+0003 04616263 020104          # LOAD abc 260    - execute code symbol &quot;abc&quot; with a result size limit of 260 (2 byte BE integer, 0x0104)
+0003 04646566 00              # LOAD def 0      - execute code symbol &quot;abc&quot; with no size limit (sink)
+0005 04616263                 # MAP abc         - make &quot;abc&quot; available for renderer
+0007                          # HALT            - stop execution (require new input to continue)
+0006 0461313233               # MOVE a123       - move to node &quot;a123&quot; (regardless of input)
+0007                          # HALT            - stop execution
+</pre></div>
+</div>
+</div>
+<hr>
+<div class="nav-panel">
+<p>
+Previous: <a href="cookbook.html">Common patterns</a>, Up: <a href="index.html">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

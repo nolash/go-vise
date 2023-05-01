@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Released 2023 under AGPL3 -->
+<title>engine (vise)</title>
+
+<meta name="description" content="engine (vise)">
+<meta name="keywords" content="engine (vise)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="index.html" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="language.html" rel="next" title="language">
+<link href="render.html" rel="prev" title="render">
+<style type="text/css">
+<!--
+ul.mark-bullet {list-style-type: disc}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<div class="chapter-level-extent" id="engine">
+<div class="nav-panel">
+<p>
+Next: <a href="language.html" accesskey="n" rel="next">Handling languages</a>, Previous: <a href="render.html" accesskey="p" rel="prev">Rendering</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<h2 class="chapter" id="Using-vise">8 Using vise</h2>
+
+<p>Implementers of <code class="code">vise</code> should interface with the system using the <code class="code">engine</code> module.
+</p>
+<p>The engine comes in two implementations, one volatile base implemetnation and a subclass that includes persistent state.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#Modes-of-operation" accesskey="1">Modes of operation</a></li>
+<li><a href="#Configuration" accesskey="2">Configuration</a></li>
+<li><a href="#Sessions" accesskey="3">Sessions</a></li>
+<li><a href="#Execution-context" accesskey="4">Execution context</a></li>
+</ul>
+<div class="section-level-extent" id="Modes-of-operation">
+<h3 class="section">8.1 Modes of operation</h3>
+
+<p>The <code class="code">engine</code> module provides three different modes of operation for the engine implementations.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#Manual-operation" accesskey="1">Manual operation</a></li>
+<li><a href="#Synchronous-loop" accesskey="2">Synchronous loop</a></li>
+<li><a href="#Asynchronous-one_002dshot" accesskey="3">Asynchronous one-shot</a></li>
+</ul>
+<div class="subsection-level-extent" id="Manual-operation">
+<h4 class="subsection">8.1.1 Manual operation</h4>
+
+<p>Directly interaction with an <code class="code">engine.Engine</code> instance.
+</p>
+<p>The engine is manually initialized, and execution must be explicitly triggered with input every time the VM yields control.
+</p>
+<p>Output flushing must also be operated manually.
+</p>
+<p>The interface is the same for both persistent and volatile operation.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="Synchronous-loop">
+<h4 class="subsection">8.1.2 Synchronous loop</h4>
+
+<p>Receives input from a reader and writes into to a writer, and executes the underlying <code class="code">engine.Engine</code> with given inputs until execution is terminated.
+</p>
+<p>The loop may be either persistent or volatile.
+</p>
+<p>This mode drives the interactive driver execution tool. 
+</p>
+
+</div>
+<div class="subsection-level-extent" id="Asynchronous-one_002dshot">
+<h4 class="subsection">8.1.3 Asynchronous one-shot</h4>
+
+<p>Compatible with e.g. a network socket or HTTP frontend. The <code class="code">engine.RunPersisted</code> method restores a persisted state and runs one single input until VM yield after which the new state is persisted.
+</p>
+<p>This mode of operation can only be used with persistent state.
+</p>
+
+</div>
+</div>
+<div class="section-level-extent" id="Configuration">
+<h3 class="section">8.2 Configuration</h3>
+
+<p>The engine configuration defines the top-level parameters for the execution environment, including maximum output size, default language, execution entry point and more.
+</p>
+<p>Please refer to <code class="code">engine.Config</code> for details.
+</p>
+
+</div>
+<div class="section-level-extent" id="Sessions">
+<h3 class="section">8.3 Sessions</h3>
+
+<p>The <code class="code">engine.Config.SessionId</code> is used to disambiguate the end-user that is interacting with the engine.
+</p>
+<p>For example, in a <abbr class="abbr">USSD</abbr> context, the <code class="code">SessionId</code> may be the <em class="emph">phone number</em> of the end-user.
+</p>
+
+<a class="anchor" id="execution_005fcontext"></a></div>
+<div class="section-level-extent" id="Execution-context">
+<h3 class="section">8.4 Execution context</h3>
+
+<p>The engine stores the <code class="code">SessionId</code> aswell as the current chosen <code class="code">lang.Language</code> in the execution context. This is passed through to the VM operation, and is available for client code, specifically:
+</p>
+<ul class="itemize mark-bullet">
+<li>When resolving symbols with <code class="code">LOAD</code>. (<code class="code">resource.EntryFunc</code>).
+</li><li>When resolving menu symbols (<code class="code">resource.Resource.GetMenu</code>).
+</li><li>When retrieving node templates (<code class="code">resource.Resource.GetTemplate</code>).
+</li></ul>
+</div>
+</div>
+<hr>
+<div class="nav-panel">
+<p>
+Next: <a href="language.html">Handling languages</a>, Previous: <a href="render.html">Rendering</a>, Up: <a href="index.html">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>

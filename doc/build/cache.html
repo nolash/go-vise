@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Released 2023 under AGPL3 -->
+<title>cache (vise)</title>
+
+<meta name="description" content="cache (vise)">
+<meta name="keywords" content="cache (vise)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="index.html" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="render.html" rel="next" title="render">
+<link href="navigation.html" rel="prev" title="navigation">
+<style type="text/css">
+<!--
+ul.mark-bullet {list-style-type: disc}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<div class="chapter-level-extent" id="cache">
+<div class="nav-panel">
+<p>
+Next: <a href="render.html" accesskey="n" rel="next">Rendering</a>, Previous: <a href="navigation.html" accesskey="p" rel="prev">Navigation</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<h2 class="chapter" id="External-data">6 External data</h2>
+
+<p>The <code class="code">LOAD</code> instruction enables the client implementer to define external data retrieval and processing code.
+</p>
+<p>It can be used to:
+</p>
+<ul class="itemize mark-bullet">
+<li>Query and store data
+</li><li>Alter the menu execution flow
+</li><li>Change language
+</li></ul>
+
+
+<a class="anchor" id="load_005fhandler"></a><ul class="mini-toc">
+<li><a href="#The-LOAD-handler" accesskey="1">The <code class="code">LOAD</code> handler</a></li>
+<li><a href="#Size-limits" accesskey="2">Size limits</a></li>
+<li><a href="#Scope" accesskey="3">Scope</a></li>
+<li><a href="#Refreshing-cache-contents" accesskey="4">Refreshing cache contents</a></li>
+</ul>
+<div class="section-level-extent" id="The-LOAD-handler">
+<h3 class="section">6.1 The <code class="code">LOAD</code> handler</h3>
+
+<p>In the <em class="emph">golang</em> code, the handler of the <code class="code">LOAD</code> instruction is an implementation of the <code class="code">resource.Resource</code> interface.
+</p>
+<p>It uses the method <code class="code">resource.Resource.FuncFor</code> to return a function pointer of type <code class="code">resource.EntryFunc</code> that can resolve the symbol.
+</p>
+<p>The <code class="code">resource.Result</code> value that it returns has the following capabilities:
+</p>
+<ul class="itemize mark-bullet">
+<li>Returned data payload (can be empty).
+</li><li>A client-defined status code.
+</li><li>A list of client-defined signal flags to <em class="emph">set</em>.
+</li><li>A list of client-defined signal flags to <em class="emph">unset</em>.
+</li></ul>
+
+
+</div>
+<div class="section-level-extent" id="Size-limits">
+<h3 class="section">6.2 Size limits</h3>
+
+<p><code class="code">LOAD</code> instructions include a size parameter.
+</p>
+<p>This indicates the maximum byte size of the result that will be allowed.
+</p>
+<p>If the returned data payload exceeds this size, execution will terminate.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#g_t_0022Sink_0022-symbols" accesskey="1">&quot;Sink&quot; symbols</a></li>
+</ul>
+<div class="subsection-level-extent" id="g_t_0022Sink_0022-symbols">
+<h4 class="subsection">6.2.1 &quot;Sink&quot; symbols</h4>
+
+<p>A sink is a symbol loaded with <code class="code">size</code> parameter <code class="code">0</code>.
+</p>
+<p>This allows the contents to expand to all remaining available space when rendering a template. See <a class="ref" href="render.html#dynamic_005ftemplates">Dynamic templates</a> for details.
+</p>
+
+</div>
+</div>
+<div class="section-level-extent" id="Scope">
+<h3 class="section">6.3 Scope</h3>
+
+<p>The result data payload is stored under the symbol key for which it was loaded. It is kept in the cache until execution ascends from the execution stack level in which it was loaded.
+</p>
+<p>Consider the symbol <code class="code">foo</code> loaded at node <samp class="file">root/one/two</samp>. The symbol will still remain available in cache for e.g. node <samp class="file">root/one/two/three</samp>, but will be freed when entering <samp class="file">root/one</samp>.
+</p>
+
+<ul class="mini-toc">
+<li><a href="#Duplicate-LOAD" accesskey="1">Duplicate <code class="code">LOAD</code></a></li>
+</ul>
+<div class="subsection-level-extent" id="Duplicate-LOAD">
+<h4 class="subsection">6.3.1 Duplicate <code class="code">LOAD</code></h4>
+
+<p>If a <code class="code">LOAD</code> statement with the same symbol is issued twice within the same <em class="emph">scope</em>, it will fail and execution will terminate.
+</p>
+<p>If a <code class="code">LOAD</code> statement with the same symbol is issued twice in the same <em class="emph">node</em>, the latter will be ignored.
+</p>
+<p>For example, if <code class="code">LOAD</code> is called on node <samp class="file">foo/bar</samp>, then execution descends to <samp class="file">foo/bar/baz</samp> before returning to <samp class="file">foo/bar</samp>, the second time the <code class="code">LOAD</code> statement is encountered in <samp class="file">foo/bar</samp> will have no effect.
+</p>
+<p>However, if <code class="code">LOAD</code> is called on node <samp class="file">foo/bar/baz</samp>, then execution ascends to <samp class="file">foo/bar</samp> before returning to <samp class="file">foo/bar/baz</samp>, the <code class="code">LOAD</code> will be executed again.
+</p>
+
+</div>
+</div>
+<div class="section-level-extent" id="Refreshing-cache-contents">
+<h3 class="section">6.4 Refreshing cache contents</h3>
+
+<p>The <code class="code">RELOAD</code> instruction will trigger the <code class="code">LOAD</code> handler again. The <code class="code">RELOAD</code> instruction is bound to the same size constraint as the initial <code class="code">LOAD</code>.
+</p>
+<p>It is not possible for the handler code to distinguish between a <code class="code">LOAD</code> and a <code class="code">RELOAD</code> instruction.
+</p>
+<p>Note that using <code class="code">RELOAD</code> when rendering multi-page menus can have unpredictable consequences for the lateral navigation state.
+</p></div>
+</div>
+<hr>
+<div class="nav-panel">
+<p>
+Next: <a href="render.html">Rendering</a>, Previous: <a href="navigation.html">Navigation</a>, Up: <a href="index.html">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>
