@@ -1,4 +1,13 @@
-all: profile session helloworld validate
+all: bin examples doc
+
+examples: profile session helloworld validate
+
+bin:
+	mkdir -p build
+	go build -o build/interactive ./dev/interactive
+	go build -o build/gendata ./dev/gendata
+	go build -o build/asm ./dev/asm
+	go build -o build/disasm ./dev/disasm
 
 profile:
 	make -C examples/profile

@@ -18,7 +18,8 @@ Branching is defined using either the @code{CATCH} or @code{CROAK} instructions.
 The client specifies whether or not a set flag should be reset on next yield. If not, it is the responsiblity of the client to reset the flag when necessary.
 
 
-@section Builtin signal flags
+@anchor{builtin_flags}
+@section Built-in signal flags
 
 For the numeric values of the signals, please refer to the signals appendix.
 

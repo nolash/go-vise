@@ -1,0 +1,16 @@
+@node language
+@chapter Handling languages
+
+
+Templates, external code symbols and menu labels can be resolved differently depending on language.
+
+This is enabled by the @ref{execution_context, Execution context} of the engine. Through the context, the current language, if set, is always available to client code.
+
+Language specification is encapsulated by the @code{lang} module, using the ISO639 language identifier standard.
+
+
+@section Defining language
+
+The default language can be set in @code{engine.Config.Language}. 
+
+It may also be set as a side-effect of bytecode execution. This is done by executing @code{LOAD} with a symbol returning an @code{ISO639} language code, while setting the @code{LANG} signal flag (see @ref{builtin_flags, Built-in signal flags}.
