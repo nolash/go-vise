@@ -28,5 +28,6 @@ Released 2023 under AGPL3
 @include signals.texi
 @include instructions.texi
 @include navigation.texi
+@include cache.texi
 @include render.texi
 @include cookbook.texi

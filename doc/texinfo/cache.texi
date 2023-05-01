@@ -1,0 +1,71 @@
+@node cache
+@chapter External data
+
+The @code{LOAD} instruction enables the client implementer to define external data retrieval and processing code.
+
+It can be used to:
+
+@itemize
+@item Query and store data
+@item Alter the menu execution flow
+@item Change language
+@end itemize
+
+
+@section The @code{LOAD} handler
+
+In the @emph{golang} code, the handler of the @code{LOAD} instruction is an implementation of the @code{resource.Resource} interface.
+
+It uses the method @code{resource.Resource.FuncFor} to return a function pointer of type @code{resource.EntryFunc} that can resolve the symbol.
+
+The @code{resource.Result} value that it returns has the following capabilities:
+
+@itemize
+@item Returned data payload (can be empty).
+@item A client-defined status code.
+@item A list of client-defined signal flags to @emph{set}.
+@item A list of client-defined signal flags to @emph{unset}.
+@end itemize
+
+
+@section Size limits
+
+@code{LOAD} instructions include a size parameter.
+
+This indicates the maximum byte size of the result that will be allowed.
+
+If the returned data payload exceeds this size, execution will terminate.
+
+
+@subsection "Sink" symbols
+
+A sink is a symbol loaded with @code{size} parameter @code{0}.
+
+This allows the contents to expand to all remaining available space when rendering a template. See @ref{dynamic_templates, Dynamic templates} for details.
+
+
+@section Scope
+
+The result data payload is stored under the symbol key for which it was loaded. It is kept in the cache until execution ascends from the execution stack level in which it was loaded.
+
+Consider the symbol @code{foo} loaded at node @file{root/one/two}. The symbol will still remain available in cache for e.g. node @file{root/one/two/three}, but will be freed when entering @file{root/one}.
+
+
+@subsection Duplicate @code{LOAD}
+
+If a @code{LOAD} statement with the same symbol is issued twice within the same @emph{scope}, it will fail and execution will terminate.
+
+If a @code{LOAD} statement with the same symbol is issued twice in the same @emph{node}, the latter will be ignored.
+
+For example, if @code{LOAD} is called on node @file{foo/bar}, then execution descends to @file{foo/bar/baz} before returning to @file{foo/bar}, the second time the @code{LOAD} statement is encountered in @file{foo/bar} will have no effect.
+
+However, if @code{LOAD} is called on node @file{foo/bar/baz}, then execution ascends to @file{foo/bar} before returning to @file{foo/bar/baz}, the @code{LOAD} will be executed again.
+
+
+@section Refreshing cache contents
+
+The @code{RELOAD} instruction will trigger the @code{LOAD} handler again. The @code{RELOAD} instruction is bound to the same size constraint as the initial @code{LOAD}.
+
+It is not possible for the handler code to distinguish between a @code{LOAD} and a @code{RELOAD} instruction.
+
+Note that using @code{RELOAD} when rendering multi-page menus can have unpredictable consequences for the lateral navigation state.

@@ -6,6 +6,7 @@ Every node whose bytecode includes a @code{HALT} statement @strong{MUST} define 
 Templates may be either static or dynamic.
 
 
+@anchor{dynamic_templates}
 @section Dynamic templates
 
 Using placeholders, the content behind @code{MAP} calls in the current executing node may be embedded in the template.

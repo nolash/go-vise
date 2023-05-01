@@ -14,3 +14,6 @@ validate:
 
 longmenu:
 	make -C examples/longmenu
+
+doc:
+	make -C doc

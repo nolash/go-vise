@@ -1,3 +1,5 @@
 examples/**/*.bin
 examples/**/*.txt
 **/.state
+build/
+doc/**/*html
