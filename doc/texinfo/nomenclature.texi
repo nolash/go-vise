@@ -1,0 +1,19 @@
+@node nomenclature
+@chapter Nomenclature
+
+@section Common
+
+@table @samp
+@item client
+Code that generates input to the VM and processes its output. Examples of clients are the @code{engine} module, and the @file{/dev/interactive} executable.
+@end table
+
+
+@section Instructions and navigation
+
+@table @samp
+@item node
+A node in the execution flow that has both bytecode and template associated with it. May also have language translations.
+@item symbol
+Token used as key to load external content and trigger side-effects.
+@end table

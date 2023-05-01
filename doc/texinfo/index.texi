@@ -1,0 +1,32 @@
+\input texinfo
+@settitle vise
+
+@copying
+Released 2023 under AGPL3
+@end copying
+
+@titlepage
+@title vise
+@author Louis Holbrook
+
+@end titlepage
+
+@c
+@contents
+
+@ifnottex
+@node Top
+@top Introduction
+@end ifnottex
+@menu
+* overview ::
+* instructions :
+@end menu
+
+@include overview.texi
+@include nomenclature.texi
+@include signals.texi
+@include instructions.texi
+@include navigation.texi
+@include render.texi
+@include cookbook.texi

@@ -1,0 +1,58 @@
+@node signals
+@chapter Signal flags
+
+
+@section Client-defined signal flags
+
+The client can define any number of signal flags to use. The number of signals @strong{MUST} be declared explicitly in the client code, and @strong{MUST NOT} change in stateful or asynchronous execution environments.
+
+In the assembly code, signals may only be referred to by their numerical value. The numeric value of client-defined signals must have numeric value @code{8} or greater.
+
+
+@subsection Flow control
+
+Signal flags enables the client to control the execution flow as a side-effect of the execution of external code symbols.
+
+Branching is defined using either the @code{CATCH} or @code{CROAK} instructions.
+
+The client specifies whether or not a set flag should be reset on next yield. If not, it is the responsiblity of the client to reset the flag when necessary.
+
+
+@section Builtin signal flags
+
+For the numeric values of the signals, please refer to the signals appendix.
+
+@multitable @columnfractions .15 .20 .55 .10
+@headitem Flag name
+@tab Description
+@tab Lifetime
+@tab Writeable?
+@item @code{READIN}
+@tab Input is being processed. 
+@tab From first @code{INCMP} until: an @code{INCMP} match @emph{or} an invalid input exception is triggered.
+@tab no
+@item @code{INMATCH}
+@tab Input matched an @code{INCMP} instruction.
+@tab Next instruction.
+@tab no
+@item @code{TERMINATE}
+@tab Terminate execution before the following instruction.
+@tab Until explicit reseet.
+@tab no
+@item @code{DIRTY}
+@tab Rendered output is available.
+@tab Until output is processed.
+@tab no
+@item @code{WAIT}
+@tab Halt execution before the following instruction, and yield control to client.
+@tab Until control is yielded.
+@tab no
+@item @code{LOADFAIL}
+@tab An unexpected error has occurred during execution of an external code symbol.
+@tab Next instruction.
+@tab no
+@item @code{LANG}
+@tab Output from an external code symbol is a valid language code, and language should be changed accordingly.
+@tab Next instruction.
+@tab yes
+@end multitable

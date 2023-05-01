@@ -1,0 +1,5 @@
+@node render
+@chapter Rendering
+
+@anchor{render_multi}
+@section Multiple-page rendering

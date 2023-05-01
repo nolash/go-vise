@@ -1,0 +1,148 @@
+@node cookbook
+@chapter Common patterns
+
+
+@section Hello world
+
+@example
+HALT
+@end example
+
+Will render a template without any external symbols and terminate execution immediately.
+
+
+@anchor{handling_menus}
+@section Handling menus and inputs
+
+@example
+MOUT to_foo 0
+MOUT to_bar 1
+MOUT upup 2
+HALT
+INCMP foo 0
+INCMP bar 1
+INCMP _ 2
+@end example
+
+Create three menu items, resolving the menu symbols @code{to_foo}, @code{to_bar} and @code{upup} respectively to translated text and pairing with the selectors.
+
+Yield for client input. Then attempt to match input to selectors:
+
+@itemize
+@item if selector is @code{0}, execute node @code{foo}.
+@item if selector is @code{1}, execute node @code{bar}.
+@item if selector is @code{2}, execute previous node in stack.
+@end itemize
+
+
+@subsection Menu batch version
+
+@example
+DOWN foo 0 to_foo
+DOWN bar 1 to_bar
+UP 2 upup
+@end example
+
+This example produces exactly the same bytecode result as the @ref{handling_menus,previous example}.
+
+
+@section Signal flow control
+
+@example
+LOAD foo 1
+CATCH bar 8 1
+MOVE baz
+@end example
+
+If loading the external symbol @code{foo} sets the flag @code{8}, then immediately move to @code{bar}.
+
+Otherwise, move to @code{baz}.
+
+
+@anchor{multiple_pages}
+@section Multiple pages
+
+@example
+LOAD foo 0
+MNEXT to_fwd 11 
+MPREV to_back 22
+HALT
+INCMP > 11
+INCMP < 22
+@end example
+
+Load external symbol @code{foo} as a @emph{sink}.
+
+If content spans multiple pages, resolve @code{to_fwd} and @code{to_back} as labels for lateral navigation options in the menu.
+
+Also handle the lateral navigation inputs.
+
+@subsection Menu batch version
+
+@example
+LOAD foo 0
+NEXT 11 to_fwd
+PREVIOUS 22 to_back
+@end example
+
+This example produces exactly the same bytecode result as the @ref{multiple_pages,previous example}.
+
+
+@anchor{multiple_menus}
+@section Multi-page menus
+
+@example
+MSINK
+MNEXT to_fwd 11 
+MPREV to_back 22
+MOUT inky 0
+MOUT pinky 1
+MOUT blinky 2
+MOUT clyde 3
+MOUT tinkywinky 4
+MOUT dipsy 5
+MOUT lala 6
+MOUT pu 7
+HALT
+INCMP foo 0
+INCMP foo 1
+INCMP foo 2
+INCMP foo 3
+INCMP foo 4
+INCMP foo 5
+INCMP foo 6
+INCMP bar 7
+@end example
+
+Enable splitting menu over several pages, and route all valid inputs to the @code{foo} node, except for @code{7} which is routed to the @code{bar} node.
+
+
+@subsection Menu batch version
+
+@example
+MSINK
+MNEXT to_fwd 11 
+MPREV to_back 22
+DOWN foo 0 inky
+DOWN foo 1 pinky
+DOWN foo 2 blinky
+DOWN foo 3 clyde
+DOWN foo 4 tinkywinky
+DOWN foo 5 dipsy
+DOWN foo 6 lala
+DOWN bar 7 pu
+@end example
+
+This example produces exactly the same bytecode result as the @ref{multiple_menus,previous example}.
+
+
+@section Default input handler
+
+@example
+MOUT to_foo 0
+HALT
+INCMP foo 0
+INCMP bar *
+@end example
+
+If input is @code{0}, route to the @code{foo}. Any other input will route to the @code{bar} node.

@@ -1,0 +1,102 @@
+@node navigation
+@chapter Navigation
+
+
+Nodes are navigated by name, using a navigation stack.
+
+Every movement @emph{down} adds a node to the stack, and every movement @emph{up} removes one node from the stack.
+
+Additionally, @emph{lateral} movement is available, for nodes whose contents span mulitple pages.
+
+
+@section Entry point
+
+All VM executions require an @emph{entry point}.
+
+If not explicitly set in the code, the node name @code{root} is used.
+
+Attempting to navigate @emph{up} from the entry point node will fail and terminate execution.
+
+
+@section Lateral navigation
+
+Lateral navigation is only available for node output spanning multiple pages. See @ref{render_multi, Multi-page rendering} for details.
+
+Lateral navigation will fail and terminate execution when:
+
+@itemize
+@item executing a single-page node.
+@item attempting @emph{next} beyond the last page.
+@item attempting @emph{previous} on the first page.
+@end itemize
+
+
+@anchor{node_names}
+@section Node names
+
+Regular node names @emph{must} start with an alphabetical character. The rest of the string may contain alphanumeric characters and underscore.
+
+@subsection Special node names
+
+A selection of special node names are available for relative navigation. They are single-character tokens, listed below with their respective ASCII codes.
+
+@table @code
+@item . (0x2E)
+Repeat the same node.
+@item _ (0x5F)
+Go to the previous node in the stack.
+@item > (0x3E)
+Go to the next page of a multi-page node. Will fail if used in a single-page context and/or resulting page index is out of bounds.
+@item < (0x3C)
+Go to the next page of a multi-page node. Will fail if used on the first (or single) page.
+@item ^ (0x5E)
+Go to the topmost node. Will execute each intermediate node in the stack.
+@end table
+
+
+@subsection Builtin node names
+
+Uncaught exceptions in the code flow that should not halt execution are routed to a builtin node named @code{_catch}.
+
+
+@section Navigation stack
+
+Consider the following navigation example, illustrating the state of the stack for each step after execution.
+
+@multitable .25 .65 .10
+@headitem instruction
+@tab stack
+@tab page index
+@item @code{MOVE foo}
+@tab foo
+@tab 0
+@item @code{MOVE bar}
+@tab foo/bar
+@tab 0
+@item @code{MOVE baz}
+@tab foo/bar/baz
+@tab 0
+@item @code{MOVE >}
+@tab foo/bar/baz
+@tab 1
+@item @code{MOVE >}
+@tab foo/bar/baz
+@tab 2
+@item @code{MOVE <}
+@tab foo/bar/baz
+@tab 1
+@item @code{MOVE .}
+@tab foo/bar/baz
+@tab 1
+@item @code{MOVE _}
+@tab foo/bar
+@tab 0
+@item @code{MOVE baz}
+@tab foo/bar/baz
+@tab 0
+@item @code{MOVE ^}
+@tab foo
+@tab 0
+@end multitable
+
+

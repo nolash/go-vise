@@ -1,0 +1,224 @@
+@node instructions
+@chapter Instructions
+
+
+@section Data types
+
+
+@anchor{node_type}
+@subsection node
+
+A node name is a string.
+
+Both regular and special node names exist.
+
+@subsubsection Regular node 
+
+Must be one or more characters long.
+
+Starts with a 7-bit alphabetical character.
+
+The remainder of the string may contain 7-bit alphanumeric characters or underscore.
+
+
+@subsubsection Special node
+
+Special node names are a single character.
+
+See @ref{node_names, Node names} for details. 
+
+
+@subsection label
+
+Same rules as for @ref{symbol_type, symbol}.
+
+
+@subsection size
+
+Numerical value of any size.
+
+
+@subsection selector
+
+The selector @code{*} is used to catch any input.
+
+Apart from that, a valid selector is a string of 7-bit alphanumeric characters.
+
+
+@anchor{symbol_type}
+@subsection symbol
+
+Same rules as for @ref{node_type, regular node names}.
+
+
+@subsection signal
+
+Numerical value of any size.
+
+
+@subsection matchmode
+
+Binary numeric value, 0 or 1.
+
+
+@section Instruction list
+
+@subsection CATCH <node> <signal> <matchmode>
+
+Control flow using signal checking.
+
+If @code{matchmode} is 1, then jump to @code{node} if @code{signal} is @emph{set}.
+
+If @code{matchmode} is 0, then jump to @code{node} if @code{signal} is @emph{no set}.
+
+Existing bytecode in buffer is cleared before the jump.
+
+
+@subsection CROAK <signal> <matchmode>
+
+Clear state and restart execution from top if signal is matched.
+
+Signal match is the same as for @code{CATCH}.
+
+@subsection HALT
+
+Halt execution and yield control to client.
+
+Any remaining bytecode is kept in buffer. 
+
+
+@subsection INCMP <node> <selector>
+
+Compare registered input to @code{selector}.
+
+If match, it has the same side-effects as @code{MOVE}.
+
+In addition, any consecutive @code{INCMP} matches will be ignored until next @code{HALT} is encountered.
+
+
+@subsection LOAD <symbol> <size>
+
+Execute the code symbol @code{symbol} and cache the result.
+
+Result must be constrained to the given @code{size}.
+
+
+@subsection MAP <symbol>
+
+Expose result from @code{symbol} previously loaded by @code{LOAD} to the renderer.
+
+
+@subsection MNEXT <label> <selector>
+
+Activate the "next" part of lateral navigation.
+
+Define how to display the menu choice for advancing to the next page.
+
+
+@subsection MOUT <label> <selector>
+
+Add menu entry.
+
+Each entry should have a corresponding `INCMP` with matching @code{selector}.
+
+Attempt to resolve @code{label} to a language-enabled string to use as menu title, or by default use the @code{label} directly.
+
+
+@subsection MOVE <node>
+
+Load bytecode and template corresponding to @code{node}.
+
+The loaded bytecode is appended to existing bytecode in buffer.
+
+Invalidates effects of all preceding @code{MAP} calls.
+
+
+@subsection MPREV <label> <selector>
+
+Activate the "previous" part of lateral navigation.
+
+Define how to display the menu choice for going back to the previous page.
+
+
+@subsection MSINK
+
+If set, the menu is defined as the multi-page content sink.
+
+Cannot be used with an active @code{MAP} of a symbol with @code{LOAD} size @code{0}.
+
+
+@subsection RELOAD <symbol>
+
+Execute a code symbol already loaded by @code{LOAD} and overwrite the existing cache with the new results.
+
+Constrained to the previously given size for the same symbol.
+
+
+
+@section Batch instructions
+
+Some convenience instructions are made available for defining menus.
+
+There instruction @strong{MUST} be used at the @emph{end} of the node's assembly code, as they expand to code on either side of a @code{HALT} instruction.
+
+@table @code
+@item DOWN <symbol> <selector> <label>
+Descend to next frame and move to @code{symbol}.
+@item UP <selector> <label>
+Return to the previous frame.
+@item NEXT <selector> <label>
+Activate and set @emph{next} menu option for browsing multiple-page renders.
+@item PREVIOUS <selector> <label>
+Activate and set @emph{previuos} menu option for browsing multiple-page renders.  (If @code{MNEXT}/@code{NEXT} has not been defined this will not be rendered).
+@end table
+
+
+@subsection Batch menu expansion
+
+@multitable .50 .50
+@headitem Batch instruction
+@tab Expanded instruction
+@item @example
+DOWN foo 0 to_foo
+@end example
+@tab @example
+MOUT to_foo 0
+HALT
+INCMP foo 0
+@end example
+@item @example
+UP 1 back
+@end example
+@tab @example
+MOUT back 1
+HALT
+INCMP _ 1
+@end example
+@item @example
+NEXT 2 fwd
+@end example
+@tab @example
+MNEXT fwd 2
+HALT
+INCMP > 2
+@end example
+@item @example
+PREVIOUS 3 back
+@end example
+@tab @example
+MPREV back 3
+HALT
+INCMP < 3
+@end example
+@item @example
+DOWN foo 0 to_foo
+UP 1 back
+@end example
+@tab @example
+MOUT to_foo 0
+MOUT back 1
+HALT
+INCMP foo 0
+INCMP _ 1
+@end example
+@end multitable

@@ -1,0 +1,6 @@
+@node overview
+@chapter Overview
+
+An attempt at defining a small VM to handle menu interaction for size-constrained clients and servers.
+
+Original motivation was to create a simple templating renderer for USSD clients, combined with an agnostic data-retrieval reference that may conceal any level of complexity.
