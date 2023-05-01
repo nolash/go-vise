@@ -18,6 +18,7 @@ If not explicitly set in the code, the node name @code{root} is used.
 Attempting to navigate @emph{up} from the entry point node will fail and terminate execution.
 
 
+@anchor{lateral_navigation}
 @section Lateral navigation
 
 Lateral navigation is only available for node output spanning multiple pages. See @ref{render_multi, Multi-page rendering} for details.

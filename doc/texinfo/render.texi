@@ -1,5 +1,276 @@
 @node render
 @chapter Rendering
 
+Every node whose bytecode includes a @code{HALT} statement @strong{MUST} define a rendering template.
+
+Templates may be either static or dynamic.
+
+
+@section Dynamic templates
+
+Using placeholders, the content behind @code{MAP} calls in the current executing node may be embedded in the template.
+
+Placeholders have the following format:
+@verbatim
+{{.symbol}}
+@end verbatim
+where @code{symbol} is the corresponding argument to @code{MAP}.
+
+Note that @code{MAP} can only be called on symbols who have a corresponding @code{LOAD} on the same level or futher up the stack.
+
+@subsection Examples
+
+Consider the following instruction sequence:
+
+@example
+LOAD foo 32
+MAP foo
+HALT
+@end example
+
+If the template contains the placeholder @code{foo}, the contents of that placeholder will be replaced by the cached result of the @code{LOAD foo} external symbol.
+
+However:
+
+@example
+LOAD foo 32
+HALT
+@end example
+
+This will not work for the same template, because the @code{foo} symbol has not been exposed with a @code{MAP} call.
+
+
+@example
+LOAD foo 32
+MOVE bar
+# (bar bytecode follows)
+MAP foo
+HALT
+@end example
+
+If the template for the node @code{bar} contains the placeholder @code{foo}, the contents of that placeholder will be replaced by the cached result of the @code{LOAD foo} external symbol.
+
+This works because the @code{MAP} is encountered further down the node execution stack than where the @code{LOAD} was encountered.
+
+However:
+
+@example
+LOAD foo 32
+MOVE bar
+# (bar bytecode follows)
+MAP foo
+MOVE baz
+# (baz bytecode follows)
+HALT
+@end example
+
+Here, if the template for @code{baz} contains the placeholder @code{foo}, the execution will fail because the @code{MAP} in @code{bar} was invalidated by the @code{MOVE} to @code{baz}.
+
+
+@section Rendering pipeline
+
+The pipeline starts with the loading of the template corresponding to the current execution node.
+
+From there, three branches are possible:
+
+@enumerate
+@item No @emph{sink} has been defined.
+@item One of the encountered @code{MAP} symbols resolves to a @emph{sink}.
+@item @code{MSINK} has been encountered.
+@end enumerate
+
+If the resulting output from any of these branches is larger than the output size, failure ensues and execution is terminated.
+
+
+@subsection No sink
+
+@enumerate
+@item Expand all placeholders in the template.
+@item Expand all menu items
+@end enumerate
+
+
+@anchor{map_sink}
+@subsection MAP sink
+
+@enumerate
+@item Expand all non-sink placeholders in the template.
+@item Expand all menu items.
+@item Group sink items up to the remaining output size.
+@item If any item alone exceeds the remaining output size, fail and terminate execution.
+@item If any item together with the lateral navigation menu items exceed the remaining output size, fail and terminate execution.
+@item Check the page navigation index (see @ref{lateral_navigation, Lateral navigation}).
+@item Replace sink symbol result with group item corresponding to navigation index.
+@item Expand all sink placeholders in the template.
+@item Expand all menu items (including lateral navigation).
+@end enumerate
+
+
+@subsection Menu sink
+
+@enumerate
+@item Remove all menu items (any following menu expansion will only contain lateral navigation items, when and if they apply).
+@item Copy menu items to sink placeholder.
+@item Continue from @ref{map_sink, MAP sink}.
+@end enumerate
+
+
 @anchor{render_multi}
 @section Multiple-page rendering
+
+As indicated above, multiple-page rendering is activated when a @code{MAP} is issued to a symbol that is loaded with @code{0} size. (@code{LOAD <symbol> 0}).
+
+The result is split into rows using newline (@code{0x0a}) as separator.
+
+
+@subsection Missing navigation
+
+If no @emph{lateral navigation} has been activated, any sinks will still be processed.
+
+The sink placeholder will then be replaced with the first item in the group.
+
+
+@subsection Multi-page example
+
+Consider the following instruction sequence:
+
+@example
+LOAD foo 8
+LOAD bar 16
+LOAD baz 0
+MAP foo
+MAP bar
+MAP baz
+MOUT to_foo 0
+MOUT to_bar 1
+MNEXT to_next 11
+MPREV to_prev 22
+HALT
+INCMP foo 0
+INCMP bar 1
+INCMP > 11
+INCMP < 22
+@end example
+
+... and the following template (14 bytes, without the placeholders, including line break):
+
+@verbatim
+This is {{.foo}} and {{.bar}}
+{{.baz}}
+@end verbatim
+
+
+@subsubsection Data accounting
+
+Then consider that the symbols resolve as follows:
+
+@multitable .10 .25 .50 .15
+@headitem symbol
+@tab returned value
+@tab rendered value
+@tab bytes
+@item @code{foo}
+@tab @code{foobar}
+@tab @code{foobar}
+@tab 6
+@item @code{bar}
+@tab @code{barbarbar}
+@tab @code{barbarbar}
+@tab 9
+@item @code{baz}
+@tab @verbatim
+FOO 42
+BAR 13
+BAZ 666
+XYZZY 1984
+INKY 1
+PINKY 22
+BLINKY 333
+CLYDE 4444
+@end verbatim
+@tab (deferred)
+@tab (71)
+@item @code{to_foo}
+@tab @code{go to foo}
+@tab @code{0:go to foo}
+@tab 11
+@item @code{to_bar}
+@tab @code{visit the bar}
+@tab @code{1:visit the bar}
+@tab 15
+@item @code{to_next}
+@tab @code{next page}
+@tab @code{11:next page}
+@tab 12
+@item @code{to_prev}
+@tab @code{go back}
+@tab @code{22:go back}
+@tab 10
+@end multitable
+
+Given an output size limit of 94, static part of the template (14 bytes). this results in the following render possibilities for the sink content:
+
+@multitable .33 .33 .33
+@headitem navigation case
+@tab bytes left for sink
+@item no navigation 
+@tab 39
+@item next
+@tab 27
+@item previous
+@tab 29
+@item next + previous
+@tab 17
+@end multitable
+
+
+@subsubsection Rendering logic
+
+The total sink byte count is 72, whereas the maximum available sink capacity is 39. At least one extra page is needed.
+
+The first page (with @code{next}) has 27 bytes available, which covers the 3 first sink items (22 bytes, include line break). This results in the following output:
+
+@example
+This is foobar and barbarbar
+FOO 42
+BAR 13
+BAZ 666
+0:go to foo
+1:visit the bar
+11:next page
+@end example
+
+Any page that is not first page has maximum 29 bytes available. There are 49 bytes left to render from the sink. This means that more pages are needed, and therefore both @code{next} and @code{previous} are needed, leaving a capacity of 17 bytes. This is only sufficient for the next item (11 bytes, with line break), resulting in the following output:
+
+@example
+This is foobar and barbarbar
+XYZZY 1984
+0:go to foo
+1:visit the bar
+11:next page
+22:go back
+@end example
+
+For the next page we again compare with the maximum of 29 bytes. There are 38 bytes left to render. Another intermediate page is required, with the two next entries (16 bytes) fitting inside the capacity (17 bytes). The page then looks like this:
+
+@example
+This is foobar and barbarbar
+INKY 1
+PINKY 22
+0:go to foo
+1:visit the bar
+11:next page
+22:go back
+@end example
+
+Lastly, with 22 bytes left to go, we can render within the maximum available space of 29 bytes (only using @code{previous}). Thus:
+
+
+@example
+This is foobar and barbarbar
+BLINKY 333
+CLYDE 4444
+0:go to foo
+1:visit the bar
+22:go back
+@end example
