@@ -2,4 +2,4 @@ examples/**/*.bin
 examples/**/*.txt
 **/.state
 build/
-doc/**/*html
+doc/texinfo/**/*html

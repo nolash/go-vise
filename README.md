@@ -131,7 +131,7 @@ MAP something       # make the result from "something" available to the template
 HALT                # render template and wait for input
 INCMP > 11          # handle the "next" menu choice
 INCMP < 22          # handle to "back" menu choice
-INCMP ^ *           # move to the root node on any input
+INCMP _ *           # move to the root node on any input
 ```
 
 
@@ -230,7 +230,6 @@ Thanks for visiting foo and bar.
 You have written:
 foo bar
 baz bazbaz
-up:any
 11:next
 ```
 
@@ -240,7 +239,6 @@ You have written:
 inky pinky
 blinky
 clyde
-up:any
 22:back
 ```
 

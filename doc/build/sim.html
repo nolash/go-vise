@@ -198,7 +198,7 @@ MAP something       	# make the result from &quot;something&quot; available to t
 HALT                	# render template and wait for input
 INCMP &gt; 11          	# handle the &quot;next&quot; menu choice
 INCMP &lt; 22          	# handle to &quot;back&quot; menu choice
-INCMP ^ *           	# move to the root node on any input
+INCMP _ *           	# move to the root node on any input
 </pre>
 
 </div>
@@ -299,7 +299,6 @@ clyde
 You have written:
 foo bar
 baz bazbaz
-up:any
 11:next
 </pre>
 <pre class="verbatim">Thanks for visiting foo and bar.
@@ -307,7 +306,6 @@ You have written:
 inky pinky
 blinky
 clyde
-up:any
 22:back
 </pre>
 

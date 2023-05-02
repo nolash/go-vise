@@ -2,8 +2,7 @@ CATCH ouch 8 0
 MAP something
 MNEXT next 11
 MPREV back 22
-MOUT up any
 HALT
 INCMP > 11
 INCMP < 22
-INCMP ^ *
+INCMP _ *
