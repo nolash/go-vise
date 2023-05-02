@@ -7,14 +7,19 @@ Specifically, the original target enviromnent was USSD menu navigation and sessi
 
 @section Features
 
-@section Contents
-
-@subsection Virtual machine
-
-This component processes menu navigation from client input, and executes 
-
 @itemize
-@item Virtual machine to handle menu navigation.
-@item Assembly mini-language to script for the virtual machine.
-@item Code interface for external calls.
+@item Define and enforce max output size for every individual output.
+@item Allow one single data entry to fill remaining available size capacity.
+@item An assembly-like mini-language to define:
+@itemize
+@item external code execution.
+@item input validation and routing.
+@item menu definitions.
+@item flow control.
+@item exception handling.
+@end itemize
+@item templated output from results of external code execution.
+@item generate and navigate pages where data symbol contents are too long to display on a single page.
+@item pluggable function design for handling external code execution calls.
+@item Dedicated error string to prepend to template (e.g. on catch)
 @end itemize

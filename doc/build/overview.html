@@ -42,29 +42,26 @@ Next: <a href="sim.html" accesskey="n" rel="next">An example vise implementation
 </p>
 <ul class="mini-toc">
 <li><a href="#Features" accesskey="1">Features</a></li>
-<li><a href="#Contents" accesskey="2">Contents</a></li>
 </ul>
 <div class="section-level-extent" id="Features">
 <h3 class="section">1.1 Features</h3>
 
-</div>
-<div class="section-level-extent" id="Contents">
-<h3 class="section">1.2 Contents</h3>
-
-<ul class="mini-toc">
-<li><a href="#Virtual-machine" accesskey="1">Virtual machine</a></li>
-</ul>
-<div class="subsection-level-extent" id="Virtual-machine">
-<h4 class="subsection">1.2.1 Virtual machine</h4>
-
-<p>This component processes menu navigation from client input, and executes 
-</p>
 <ul class="itemize mark-bullet">
-<li>Virtual machine to handle menu navigation.
-</li><li>Assembly mini-language to script for the virtual machine.
-</li><li>Code interface for external calls.
+<li>Define and enforce max output size for every individual output.
+</li><li>Allow one single data entry to fill remaining available size capacity.
+</li><li>An assembly-like mini-language to define:
+<ul class="itemize mark-bullet">
+<li>external code execution.
+</li><li>input validation and routing.
+</li><li>menu definitions.
+</li><li>flow control.
+</li><li>exception handling.
 </li></ul>
-</div>
+</li><li>templated output from results of external code execution.
+</li><li>generate and navigate pages where data symbol contents are too long to display on a single page.
+</li><li>pluggable function design for handling external code execution calls.
+</li><li>Dedicated error string to prepend to template (e.g. on catch)
+</li></ul>
 </div>
 </div>
 
