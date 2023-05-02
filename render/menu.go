@@ -54,7 +54,7 @@ type Menu struct {
 }
 
 func(m Menu) String() string {
-	return fmt.Sprintf("pagecount: %v sink: %v next: %v prev: %v", m.pageCount, m.sink, m.canNext, m.canPrevious)
+	return fmt.Sprintf("pagecount: %v menusink: %v next: %v prev: %v", m.pageCount, m.sink, m.canNext, m.canPrevious)
 }
 
 // NewMenu creates a new Menu with an explicit page count.

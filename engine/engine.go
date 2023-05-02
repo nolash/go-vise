@@ -205,6 +205,7 @@ func(en *Engine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}
+	Logg.TraceCtxf(ctx, "render with state", "state", en.st)
 	r, err := en.vm.Render(ctx)
 	if err != nil {
 		return 0, err

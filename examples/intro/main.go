@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	testdataloader "github.com/peteole/testdata-loader"
 
@@ -24,18 +25,20 @@ var (
 	scriptDir = path.Join(baseDir, "examples", "intro")
 )
 
-type Counter struct {
+type introResource struct {
 	*resource.FsResource 
 	c int64
-	v string
+	v []string
 }
 
-func newCounter() Counter {
+func newintroResource() introResource {
 	fs := resource.NewFsResource(scriptDir)
-	return Counter{fs, 0, ""}
+	return introResource{fs, 0, []string{}}
 }
 
-func(c *Counter) count(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+// increment counter.
+// return a string representing the current value of the counter.
+func(c *introResource) count(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	s := "%v time"
 	if c.c != 1 {
 		s += "s"
@@ -47,10 +50,12 @@ func(c *Counter) count(ctx context.Context, sym string, input []byte) (resource.
 	return  r, nil
 }
 
-func(c *Counter) something(ctx context.Context, sym string, input []byte) (resource.Result, error) {
-	c.v = string(input)	
+// if input is suppled, append it to the stored string vector and set the HAVESOMETHING flag.
+// return the stored string vector value, one string per line.
+func(c *introResource) something(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	c.v = append(c.v, string(input))
 	r := resource.Result{
-		Content: c.v,
+		Content: strings.Join(c.v, "\n"),
 	}
 	if len(input) > 0 {
 		r.FlagSet = []uint32{USERFLAG_HAVESOMETHING}
@@ -70,7 +75,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
 	st := state.NewState(3)
-	rs := newCounter()
+	rs := newintroResource()
 	rs.AddLocalFunc("count", rs.count)
 	rs.AddLocalFunc("something", rs.something)
 	ca := cache.NewCache()

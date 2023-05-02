@@ -1,3 +1,6 @@
+- 0.1.15
+	* Add comprehensive documentation with texinfo.
+	* Prevent cursor leak in sizer.
 - 0.1.14
 	* Add language support for menus.
 	* Support for multi-page menus (only works for template renders without a sink).

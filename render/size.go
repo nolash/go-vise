@@ -95,6 +95,7 @@ func(szr *Sizer) GetAt(values map[string]string, idx uint16) (map[string]string,
 	}
 	outValues := make(map[string]string)
 	for k, v := range values {
+		Logg.Tracef("check values", "k", k, "v", v, "idx", idx, "cursors", szr.crsrs)
 		if szr.sink == k {
 			if idx >= uint16(len(szr.crsrs)) {
 				return nil, fmt.Errorf("no more values in index") 
@@ -111,4 +112,8 @@ func(szr *Sizer) GetAt(values map[string]string, idx uint16) (map[string]string,
 		outValues[k] = v
 	}
 	return outValues, nil
+}
+
+func(szr *Sizer) Reset() {
+	szr.crsrs = []uint32{}
 }

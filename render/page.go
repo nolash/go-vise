@@ -206,6 +206,9 @@ func(pg *Page) Reset() {
 	if pg.menu != nil {
 		pg.menu.Reset()
 	}
+	if pg.sizer != nil {
+		pg.sizer.Reset()
+	}
 }
 
 // extract sink values to separate array, and set the content of sink in values map to zero-length string.
