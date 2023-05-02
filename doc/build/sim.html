@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- Released 2023 under AGPL3 -->
+<title>sim (vise)</title>
+
+<meta name="description" content="sim (vise)">
+<meta name="keywords" content="sim (vise)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="index.html" rel="start" title="Top">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html" rel="up" title="Top">
+<link href="nomenclature.html" rel="next" title="nomenclature">
+<link href="overview.html" rel="prev" title="overview">
+<style type="text/css">
+<!--
+div.example {margin-left: 3.2em}
+ul.mark-bullet {list-style-type: disc}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<div class="chapter-level-extent" id="sim">
+<div class="nav-panel">
+<p>
+Next: <a href="nomenclature.html" accesskey="n" rel="next">Nomenclature</a>, Previous: <a href="overview.html" accesskey="p" rel="prev">Overview</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<h2 class="chapter" id="An-example-vise-implementation">2 An example vise implementation</h2>
+
+
+<p>Consider the following interaction:
+</p>
+<div class="example">
+<pre class="example-preformatted">This is the root page
+You have visited 1 time.
+0:foo
+1:bar
+
+$ 1
+Please visit foo first.
+Any input to return.
+
+$ x
+This is the root page.
+You have visited 2 times.
+0:foo
+1:bar
+
+$ 0
+Welcome to page foo.
+Please write seomthing.
+
+$ blah blah blah
+This is the root page.
+You have visited 3 times.
+0:foo
+1:bar
+
+$ 1
+Thanks for visiting foo and bar.
+You have written:
+blah blah blah
+</pre></div>
+
+<p>The simple interface above involves four different menu nodes.
+</p>
+<p>In order to engineer these using vise, three types of components are involved:
+</p>
+<ul class="itemize mark-bullet">
+<li>An assembly-like menu handling script.
+</li><li>A display template.
+</li><li>External code handlers for the counter and the &quot;something&quot; input.
+</li></ul>
+
+
+
+<p>The nodes are:
+</p>
+<dl class="table">
+<dt><code class="code">root</code></dt>
+<dd><p>The first page.
+</p></dd>
+<dt><code class="code">foo</code></dt>
+<dd><p>The &quot;foo&quot; page.
+</p></dd>
+<dt><code class="code">bar</code></dt>
+<dd><p>The &quot;bar&quot; page after &quot;foo&quot; has been visited.
+</p></dd>
+<dt><code class="code">ouch</code></dt>
+<dd><p>The &quot;bar&quot; page before &quot;foo&quot; has been visited.
+</p></dd>
+</dl>
+
+
+<ul class="mini-toc">
+<li><a href="#Templates" accesskey="1">Templates</a></li>
+<li><a href="#Scripts" accesskey="2">Scripts</a></li>
+<li><a href="#External-code-handlers" accesskey="3">External code handlers</a></li>
+<li><a href="#Handling-long-values" accesskey="4">Handling long values</a></li>
+<li><a href="#Working-example" accesskey="5">Working example</a></li>
+</ul>
+<div class="section-level-extent" id="Templates">
+<h3 class="section">2.1 Templates</h3>
+
+<p>Each page has a template that may or may not contain dynamic elements.
+</p>
+<p>In this example the <code class="code">root</code> and <code class="code">bar</code> nodes contains dynamic content.
+</p>
+<ul class="mini-toc">
+<li><a href="#root" accesskey="1">root</a></li>
+<li><a href="#foo" accesskey="2">foo</a></li>
+<li><a href="#bar" accesskey="3">bar</a></li>
+<li><a href="#ouch" accesskey="4">ouch</a></li>
+</ul>
+<div class="subsection-level-extent" id="root">
+<h4 class="subsection">2.1.1 root</h4>
+
+<pre class="verbatim">This is the root page
+You have visited {{.count}}.
+</pre>
+</div>
+<div class="subsection-level-extent" id="foo">
+<h4 class="subsection">2.1.2 foo</h4>
+
+<pre class="verbatim">Welcome to page foo.
+Please write something.
+</pre>
+</div>
+<div class="subsection-level-extent" id="bar">
+<h4 class="subsection">2.1.3 bar</h4>
+
+<pre class="verbatim">Thanks for visiting foo and bar.
+You wrote &quot;{{.something}}&quot; in foo.
+</pre>
+</div>
+<div class="subsection-level-extent" id="ouch">
+<h4 class="subsection">2.1.4 ouch</h4>
+
+<pre class="verbatim">Please visit foo first.
+Any input to return.
+</pre>
+
+</div>
+</div>
+<div class="section-level-extent" id="Scripts">
+<h3 class="section">2.2 Scripts</h3>
+
+<p>The scripts are responsible for defining menus, handling navigation flow control, and triggering external code handlers.
+</p>
+<ul class="mini-toc">
+<li><a href="#root-1" accesskey="1">root</a></li>
+<li><a href="#foo-1" accesskey="2">foo</a></li>
+<li><a href="#bar-1" accesskey="3">bar</a></li>
+<li><a href="#ouch-1" accesskey="4">ouch</a></li>
+</ul>
+<div class="subsection-level-extent" id="root-1">
+<h4 class="subsection">2.2.1 root</h4>
+
+<pre class="verbatim">LOAD count 8 		# trigger external code handler &quot;count&quot;
+LOAD something 0	# trigger external code handler &quot;something&quot;
+RELOAD count		# explicitly trigger &quot;count&quot; every time this code is executed.
+MAP count		# make the result from &quot;count&quot; available to the template renderer
+MOUT foo 0		# menu item
+MOUT bar 1		# menu item
+HALT			# render template and wait for input
+INCMP foo 0		# match menu selection 0, move to node &quot;foo&quot; on match
+INCMP bar 1		# match menu selection 1, move to node &quot;bar&quot; on match
+</pre>
+</div>
+<div class="subsection-level-extent" id="foo-1">
+<h4 class="subsection">2.2.2 foo</h4>
+
+<pre class="verbatim">HALT			# render template and wait for input
+RELOAD something    	# pass input to the &quot;something&quot; external code handler.
+                    	# The input will be appended to the stored value. 
+                    	# The &quot;HAVESOMETHING&quot; flag (8) will be set.
+MOVE _			# move up one level
+</pre>
+
+</div>
+<div class="subsection-level-extent" id="bar-1">
+<h4 class="subsection">2.2.3 bar</h4>
+
+<pre class="verbatim">CATCH ouch 8 0      	# if the &quot;HAVESOMETHING&quot; (8) flag has NOT (0) been set, move to &quot;ouch&quot;
+MNEXT next 11       	# menu choice to display for advancing one page
+MPREV back 22       	# menu choice to display for going back to the previous page
+MAP something       	# make the result from &quot;something&quot; available to the template renderer
+HALT                	# render template and wait for input
+INCMP &gt; 11          	# handle the &quot;next&quot; menu choice
+INCMP &lt; 22          	# handle to &quot;back&quot; menu choice
+INCMP ^ *           	# move to the root node on any input
+</pre>
+
+</div>
+<div class="subsection-level-extent" id="ouch-1">
+<h4 class="subsection">2.2.4 ouch</h4>
+
+<pre class="verbatim">HALT			# render template and wait for input
+INCMP ^ *		# move to the root node on any input
+</pre>
+
+</div>
+</div>
+<div class="section-level-extent" id="External-code-handlers">
+<h3 class="section">2.3 External code handlers</h3>
+
+<p>The script code contains <code class="code">LOAD</code> instructions for two different methods. 
+</p>
+<pre class="verbatim">import (
+	&quot;context&quot;
+	&quot;fmt&quot;
+	&quot;path&quot;
+	&quot;strings&quot;
+
+
+	testdataloader &quot;github.com/peteole/testdata-loader&quot;
+
+	&quot;git.defalsify.org/vise.git/state&quot;
+	&quot;git.defalsify.org/vise.git/resource&quot;
+)
+
+const (
+	USERFLAG_HAVESOMETHING = iota + state.FLAG_USERSTART
+)
+
+var (
+	baseDir = testdataloader.GetBasePath()
+	scriptDir = path.Join(baseDir, &quot;examples&quot;, &quot;intro&quot;)
+)
+
+type introResource struct {
+	*resource.FsResource 
+	c int64
+	v []string
+}
+
+func newintroResource() introResource {
+	fs := resource.NewFsResource(scriptDir)
+	return introResource{fs, 0, []string{}}
+}
+
+// increment counter.
+// return a string representing the current value of the counter.
+func(c *introResource) count(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	s := &quot;%v time&quot;
+	if c.c != 1 {
+		s += &quot;s&quot;
+	}
+	r := resource.Result{
+		Content: fmt.Sprintf(s, c.c),
+	}
+	c.c += 1 
+	return  r, nil
+}
+
+// if input is suppled, append it to the stored string vector and set the HAVESOMETHING flag.
+// return the stored string vector value, one string per line.
+func(c *introResource) something(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	c.v = append(c.v, string(input))
+	r := resource.Result{
+		Content: strings.Join(c.v, &quot;\n&quot;),
+	}
+	if len(input) &gt; 0 {
+		r.FlagSet = []uint32{USERFLAG_HAVESOMETHING}
+	}
+	return r, nil
+}
+</pre>
+
+<a class="anchor" id="long_005fvalues"></a></div>
+<div class="section-level-extent" id="Handling-long-values">
+<h3 class="section">2.4 Handling long values</h3>
+
+<p>In the above example, the more times the <code class="code">foo</code> page is supplied with a value, the longer the vector of values that need to be displayed by the <code class="code">bar</code> page will be.
+</p>
+<p>A core feature of <code class="code">vise</code> is to magically create browseable pages from these values, from a pre-defined maximum output capacity for each page. 
+</p>
+<p>Consider the case where the contents of the <code class="code">something</code> symbol has become:
+</p>
+<pre class="verbatim">foo bar
+baz bazbaz
+inky pinky
+blinky
+clyde
+</pre>
+<p>Given a size constaint of 90 characters, the display will be split into two pages:
+</p>
+<pre class="verbatim">Thanks for visiting foo and bar.
+You have written:
+foo bar
+baz bazbaz
+up:any
+11:next
+</pre>
+<pre class="verbatim">Thanks for visiting foo and bar.
+You have written:
+inky pinky
+blinky
+clyde
+up:any
+22:back
+</pre>
+
+</div>
+<div class="section-level-extent" id="Working-example">
+<h3 class="section">2.5 Working example</h3>
+
+<p>In the source code repository, a full working example of this menu can be found in <samp class="file">examples/intro</samp>.
+</p>
+<p>To run it:
+</p>
+<div class="example">
+<pre class="example-preformatted">make -B intro
+go run ./examples/intro
+</pre></div>
+
+<p>Use <code class="code">go run -tags logtrace ...</code> to peek at what is going on under the hood.
+</p>
+<p>To play the <a class="ref" href="#long_005fvalues">Long Values</a> case above, limit the output size by adding <code class="code">-s 90</code>.
+</p></div>
+</div>
+<hr>
+<div class="nav-panel">
+<p>
+Next: <a href="nomenclature.html">Nomenclature</a>, Previous: <a href="overview.html">Overview</a>, Up: <a href="index.html">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+
+
+
+</body>
+</html>
