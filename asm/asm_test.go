@@ -75,6 +75,22 @@ func TestParserRoute(t *testing.T) {
 	}
 
 	b = bytes.NewBuffer(nil)
+	s = "MNEXT inky 12\n"
+	Parse(s, b)
+	expect = vm.NewLine(nil, vm.MNEXT, []string{"inky", "12"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
+	s = "MPREV pinky 34\n"
+	Parse(s, b)
+	expect = vm.NewLine(nil, vm.MPREV, []string{"pinky", "34"}, nil, nil)
+	if !bytes.Equal(b.Bytes(), expect) {
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+	}
+
+	b = bytes.NewBuffer(nil)
 	s = "INCMP foo bar\n"
 	Parse(s, b)
 	expect = vm.NewLine(nil, vm.INCMP, []string{"foo", "bar"}, nil, nil)

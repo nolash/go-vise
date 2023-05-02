@@ -429,7 +429,7 @@ func(vm *Vm) runMOut(ctx context.Context, b []byte) ([]byte, error) {
 
 // executes the MNEXT opcode
 func(vm *Vm) runMNext(ctx context.Context, b []byte) ([]byte, error) {
-       selector, display, b, err := ParseMNext(b)
+       display, selector, b, err := ParseMNext(b)
        if err != nil {
 	       return b, err
        }
@@ -443,7 +443,7 @@ func(vm *Vm) runMNext(ctx context.Context, b []byte) ([]byte, error) {
 	
 // executes the MPREV opcode
 func(vm *Vm) runMPrev(ctx context.Context, b []byte) ([]byte, error) {
-       selector, display, b, err := ParseMPrev(b)
+       display, selector, b, err := ParseMPrev(b)
        if err != nil {
 	       return b, err
        }
