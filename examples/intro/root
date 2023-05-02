@@ -1,0 +1,2 @@
+This is the root page
+You have visited {{.count}}.

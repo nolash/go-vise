@@ -1,0 +1,4 @@
+CATCH ouch 8 0
+MAP something
+HALT
+INCMP ^ *

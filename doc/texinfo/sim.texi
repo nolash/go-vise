@@ -1,0 +1,212 @@
+@node sim
+@chapter An example vise implementation
+
+
+Consider the following interaction:
+
+@example
+This is the root page
+You have visited 1 time.
+0:foo
+1:bar
+
+$ 1
+Please visit foo first.
+Any input to return.
+
+$ x
+This is the root page.
+You have visited 2 times.
+0:foo
+1:bar
+
+$ 0
+Welcome to page foo.
+Please write seomthing.
+
+$ blah blah blah
+This is the root page.
+You have visited 3 times.
+0:foo
+1:bar
+
+$ 1
+Thanks for visiting foo and bar.
+You wrote "blah blah blah" in foo.
+@end example
+
+The simple interface above involves four different menu nodes.
+
+In order to engineer these using vise, three types of components are involved:
+
+@itemize
+@item An assembly-like menu handling script.
+@item A display template.
+@item External code handlers for the counter and the "something" input.
+@end itemize
+
+
+
+The nodes are:
+
+@table @code
+@item root
+The first page.
+@item foo
+The "foo" page.
+@item bar
+The "bar" page after "foo" has been visited.
+@item ouch
+The "bar" page before "foo" has been visited.
+@end table
+
+
+@section Templates
+
+Each page has a template that may or may not contain dynamic elements.
+
+In this example the @code{root} and @code{bar} nodes contains dynamic content.
+
+@subsection root
+
+@verbatim
+This is the root page
+You have visited {{.count}}.
+@end verbatim
+
+@subsection foo
+
+@verbatim
+Welcome to page foo.
+Please write something.
+@end verbatim
+
+@subsection bar
+
+@verbatim
+Thanks for visiting foo and bar.
+You wrote "{{.something}}" in foo.
+@end verbatim
+
+@subsection ouch
+
+@verbatim
+Please visit foo first.
+Any input to return.
+@end verbatim
+
+
+@section Scripts
+
+The scripts are responsible for defining menus, handling navigation flow control, and triggering external code handlers.
+
+@subsection root
+
+@verbatim
+LOAD count 8 		# trigger external code handler "count"
+LOAD something 0	# trigger external code handler "something"
+RELOAD count		# explicitly trigger "count" every time this code is executed.
+MAP count		# make the result from "count" available to the template renderer
+MOUT foo 0		# menu item
+MOUT bar 1		# menu item
+HALT			# render template and wait for input
+INCMP foo 0		# match menu selection 0, move to node "foo" on match
+INCMP bar 1		# match menu selection 1, move to node "bar" on match
+@end verbatim
+
+@subsection foo
+
+@verbatim
+HALT			# render template and wait for input
+RELOAD something	# pass input to the "something" external code handler. The "HAVESOMETHING" flag (8) will be set
+MOVE _			# move up one level
+@end verbatim
+
+
+@subsection bar
+
+@verbatim
+CATCH ouch 8 0		# if the "HAVESOMETHING" (8) flag has NOT (0) been set, move to "ouch"
+MAP something		# make the result from "something" available to the template renderer
+HALT			# render template and wait for input
+INCMP ^ *		# move to the root node on any input
+@end verbatim
+
+
+@subsection ouch
+
+@verbatim
+HALT			# render template and wait for input
+INCMP ^ *		# move to the root node on any input
+@end verbatim
+
+
+@section External code handlers
+
+The script code contains @code{LOAD} instructions for two different methods. 
+
+@verbatim
+import (
+	testdataloader "github.com/peteole/testdata-loader"
+
+	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/resource"
+)
+
+const (
+	USERFLAG_HAVESOMETHING = iota + state.FLAG_USERSTART
+)
+
+var (
+	baseDir = testdataloader.GetBasePath()
+	scriptDir = path.Join(baseDir, "examples", "intro")
+)
+
+type Counter struct {
+	*resource.FsResource 
+	c int64
+	v string
+}
+
+func newCounter() Counter {
+	fs := resource.NewFsResource(scriptDir)
+	return Counter{fs, 0, ""}
+}
+
+func(c *Counter) count(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	s := "%v time"
+	if c.c != 1 {
+		s += "s"
+	}
+	r := resource.Result{
+		Content: fmt.Sprintf(s, c.c),
+	}
+	c.c += 1 
+	return  r, nil
+}
+
+func(c *Counter) something(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	c.v = string(input)	
+	r := resource.Result{
+		Content: c.v,
+	}
+	if len(input) > 0 {
+		r.FlagSet = []uint32{USERFLAG_HAVESOMETHING}
+	}
+	return r, nil
+}
+@end verbatim
+
+
+@section Working example
+
+In the source code repository, a full working example of this menu can be found in @file{examples/intro}.
+
+To run it:
+
+@example
+make -B intro
+go run ./examples/intro
+@end example
+
+Use @code{go run -tags logtrace ...} to peek at what is going on under the hood.

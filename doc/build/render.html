@@ -34,7 +34,7 @@ div.example {margin-left: 3.2em}
 Next: <a href="language.html" accesskey="n" rel="next">Handling languages</a>, Previous: <a href="cache.html" accesskey="p" rel="prev">External data</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<h2 class="chapter" id="Rendering">7 Rendering</h2>
+<h2 class="chapter" id="Rendering">8 Rendering</h2>
 
 <p>Every node whose bytecode includes a <code class="code">HALT</code> statement <strong class="strong">MUST</strong> define a rendering template.
 </p>
@@ -47,7 +47,7 @@ Next: <a href="language.html" accesskey="n" rel="next">Handling languages</a>, P
 <li><a href="#Multiple_002dpage-rendering" accesskey="3">Multiple-page rendering</a></li>
 </ul>
 <div class="section-level-extent" id="Dynamic-templates">
-<h3 class="section">7.1 Dynamic templates</h3>
+<h3 class="section">8.1 Dynamic templates</h3>
 
 <p>Using placeholders, the content behind <code class="code">MAP</code> calls in the current executing node may be embedded in the template.
 </p>
@@ -61,7 +61,7 @@ Next: <a href="language.html" accesskey="n" rel="next">Handling languages</a>, P
 <li><a href="#Examples" accesskey="1">Examples</a></li>
 </ul>
 <div class="subsection-level-extent" id="Examples">
-<h4 class="subsection">7.1.1 Examples</h4>
+<h4 class="subsection">8.1.1 Examples</h4>
 
 <p>Consider the following instruction sequence:
 </p>
@@ -113,7 +113,7 @@ HALT
 </div>
 </div>
 <div class="section-level-extent" id="Rendering-pipeline">
-<h3 class="section">7.2 Rendering pipeline</h3>
+<h3 class="section">8.2 Rendering pipeline</h3>
 
 <p>The pipeline starts with the loading of the template corresponding to the current execution node.
 </p>
@@ -134,7 +134,7 @@ HALT
 <li><a href="#Menu-sink" accesskey="3">Menu sink</a></li>
 </ul>
 <div class="subsection-level-extent" id="No-sink">
-<h4 class="subsection">7.2.1 No sink</h4>
+<h4 class="subsection">8.2.1 No sink</h4>
 
 <ol class="enumerate">
 <li> Expand all placeholders in the template.
@@ -144,7 +144,7 @@ HALT
 
 <a class="anchor" id="map_005fsink"></a></div>
 <div class="subsection-level-extent" id="MAP-sink">
-<h4 class="subsection">7.2.2 MAP sink</h4>
+<h4 class="subsection">8.2.2 MAP sink</h4>
 
 <ol class="enumerate">
 <li> Expand all non-sink placeholders in the template.
@@ -161,7 +161,7 @@ HALT
 
 </div>
 <div class="subsection-level-extent" id="Menu-sink">
-<h4 class="subsection">7.2.3 Menu sink</h4>
+<h4 class="subsection">8.2.3 Menu sink</h4>
 
 <ol class="enumerate">
 <li> Remove all menu items (any following menu expansion will only contain lateral navigation items, when and if they apply).
@@ -173,7 +173,7 @@ HALT
 <a class="anchor" id="render_005fmulti"></a></div>
 </div>
 <div class="section-level-extent" id="Multiple_002dpage-rendering">
-<h3 class="section">7.3 Multiple-page rendering</h3>
+<h3 class="section">8.3 Multiple-page rendering</h3>
 
 <p>As indicated above, multiple-page rendering is activated when a <code class="code">MAP</code> is issued to a symbol that is loaded with <code class="code">0</code> size. (<code class="code">LOAD &lt;symbol&gt; 0</code>).
 </p>
@@ -185,7 +185,7 @@ HALT
 <li><a href="#Multi_002dpage-example" accesskey="2">Multi-page example</a></li>
 </ul>
 <div class="subsection-level-extent" id="Missing-navigation">
-<h4 class="subsection">7.3.1 Missing navigation</h4>
+<h4 class="subsection">8.3.1 Missing navigation</h4>
 
 <p>If no <em class="emph">lateral navigation</em> has been activated, any sinks will still be processed.
 </p>
@@ -194,7 +194,7 @@ HALT
 
 </div>
 <div class="subsection-level-extent" id="Multi_002dpage-example">
-<h4 class="subsection">7.3.2 Multi-page example</h4>
+<h4 class="subsection">8.3.2 Multi-page example</h4>
 
 <p>Consider the following instruction sequence:
 </p>
@@ -227,7 +227,7 @@ INCMP &lt; 22
 <li><a href="#Rendering-logic" accesskey="2">Rendering logic</a></li>
 </ul>
 <div class="subsubsection-level-extent" id="Data-accounting">
-<h4 class="subsubsection">7.3.2.1 Data accounting</h4>
+<h4 class="subsubsection">8.3.2.1 Data accounting</h4>
 
 <p>Then consider that the symbols resolve as follows:
 </p>
@@ -265,7 +265,7 @@ CLYDE 4444
 
 </div>
 <div class="subsubsection-level-extent" id="Rendering-logic">
-<h4 class="subsubsection">7.3.2.2 Rendering logic</h4>
+<h4 class="subsubsection">8.3.2.2 Rendering logic</h4>
 
 <p>The total sink byte count is 72, whereas the maximum available sink capacity is 39. At least one extra page is needed.
 </p>

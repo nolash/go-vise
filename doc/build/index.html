@@ -46,164 +46,187 @@ Next: <a href="overview.html" accesskey="n" rel="next">Overview</a> &nbsp; [<a h
 <ul class="toc-numbered-mark">
   <li><a id="toc-Overview" href="overview.html">1 Overview</a>
   <ul class="toc-numbered-mark">
-    <li><a id="toc-Synopsis" href="overview.html#Synopsis">1.1 Synopsis</a></li>
-  </ul></li>
-  <li><a id="toc-Nomenclature" href="nomenclature.html">2 Nomenclature</a>
-  <ul class="toc-numbered-mark">
-    <li><a id="toc-Common" href="nomenclature.html#Common">2.1 Common</a></li>
-    <li><a id="toc-Instructions-and-navigation" href="nomenclature.html#Instructions-and-navigation">2.2 Instructions and navigation</a></li>
-  </ul></li>
-  <li><a id="toc-Signal-flags" href="signals.html">3 Signal flags</a>
-  <ul class="toc-numbered-mark">
-    <li><a id="toc-Client_002ddefined-signal-flags" href="signals.html#Client_002ddefined-signal-flags">3.1 Client-defined signal flags</a>
+    <li><a id="toc-Features" href="overview.html#Features">1.1 Features</a></li>
+    <li><a id="toc-Contents" href="overview.html#Contents">1.2 Contents</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-Flow-control" href="signals.html#Flow-control">3.1.1 Flow control</a></li>
+      <li><a id="toc-Virtual-machine" href="overview.html#Virtual-machine">1.2.1 Virtual machine</a></li>
     </ul></li>
-    <li><a id="toc-Built_002din-signal-flags" href="signals.html#Built_002din-signal-flags">3.2 Built-in signal flags</a></li>
   </ul></li>
-  <li><a id="toc-Instructions" href="instructions.html">4 Instructions</a>
+  <li><a id="toc-An-example-vise-implementation" href="sim.html">2 An example vise implementation</a>
   <ul class="toc-numbered-mark">
-    <li><a id="toc-Data-types" href="instructions.html#Data-types">4.1 Data types</a>
+    <li><a id="toc-Templates" href="sim.html#Templates">2.1 Templates</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-node" href="instructions.html#node">4.1.1 node</a>
+      <li><a id="toc-root" href="sim.html#root">2.1.1 root</a></li>
+      <li><a id="toc-foo" href="sim.html#foo">2.1.2 foo</a></li>
+      <li><a id="toc-bar" href="sim.html#bar">2.1.3 bar</a></li>
+      <li><a id="toc-ouch" href="sim.html#ouch">2.1.4 ouch</a></li>
+    </ul></li>
+    <li><a id="toc-Scripts" href="sim.html#Scripts">2.2 Scripts</a>
+    <ul class="toc-numbered-mark">
+      <li><a id="toc-root-1" href="sim.html#root-1">2.2.1 root</a></li>
+      <li><a id="toc-foo-1" href="sim.html#foo-1">2.2.2 foo</a></li>
+      <li><a id="toc-bar-1" href="sim.html#bar-1">2.2.3 bar</a></li>
+      <li><a id="toc-ouch-1" href="sim.html#ouch-1">2.2.4 ouch</a></li>
+    </ul></li>
+    <li><a id="toc-External-code-handlers" href="sim.html#External-code-handlers">2.3 External code handlers</a></li>
+    <li><a id="toc-Working-example" href="sim.html#Working-example">2.4 Working example</a></li>
+  </ul></li>
+  <li><a id="toc-Nomenclature" href="nomenclature.html">3 Nomenclature</a>
+  <ul class="toc-numbered-mark">
+    <li><a id="toc-Common" href="nomenclature.html#Common">3.1 Common</a></li>
+    <li><a id="toc-Instructions-and-navigation" href="nomenclature.html#Instructions-and-navigation">3.2 Instructions and navigation</a></li>
+  </ul></li>
+  <li><a id="toc-Signal-flags" href="signals.html">4 Signal flags</a>
+  <ul class="toc-numbered-mark">
+    <li><a id="toc-Client_002ddefined-signal-flags" href="signals.html#Client_002ddefined-signal-flags">4.1 Client-defined signal flags</a>
+    <ul class="toc-numbered-mark">
+      <li><a id="toc-Flow-control" href="signals.html#Flow-control">4.1.1 Flow control</a></li>
+    </ul></li>
+    <li><a id="toc-Built_002din-signal-flags" href="signals.html#Built_002din-signal-flags">4.2 Built-in signal flags</a></li>
+  </ul></li>
+  <li><a id="toc-Instructions" href="instructions.html">5 Instructions</a>
+  <ul class="toc-numbered-mark">
+    <li><a id="toc-Data-types" href="instructions.html#Data-types">5.1 Data types</a>
+    <ul class="toc-numbered-mark">
+      <li><a id="toc-node" href="instructions.html#node">5.1.1 node</a>
       <ul class="toc-numbered-mark">
-        <li><a id="toc-Regular-node" href="instructions.html#Regular-node">4.1.1.1 Regular node</a></li>
-        <li><a id="toc-Special-node" href="instructions.html#Special-node">4.1.1.2 Special node</a></li>
+        <li><a id="toc-Regular-node" href="instructions.html#Regular-node">5.1.1.1 Regular node</a></li>
+        <li><a id="toc-Special-node" href="instructions.html#Special-node">5.1.1.2 Special node</a></li>
       </ul></li>
-      <li><a id="toc-label" href="instructions.html#label">4.1.2 label</a></li>
-      <li><a id="toc-size" href="instructions.html#size">4.1.3 size</a></li>
-      <li><a id="toc-selector" href="instructions.html#selector">4.1.4 selector</a></li>
-      <li><a id="toc-symbol" href="instructions.html#symbol">4.1.5 symbol</a></li>
-      <li><a id="toc-signal" href="instructions.html#signal">4.1.6 signal</a></li>
-      <li><a id="toc-matchmode" href="instructions.html#matchmode">4.1.7 matchmode</a></li>
+      <li><a id="toc-label" href="instructions.html#label">5.1.2 label</a></li>
+      <li><a id="toc-size" href="instructions.html#size">5.1.3 size</a></li>
+      <li><a id="toc-selector" href="instructions.html#selector">5.1.4 selector</a></li>
+      <li><a id="toc-symbol" href="instructions.html#symbol">5.1.5 symbol</a></li>
+      <li><a id="toc-signal" href="instructions.html#signal">5.1.6 signal</a></li>
+      <li><a id="toc-matchmode" href="instructions.html#matchmode">5.1.7 matchmode</a></li>
     </ul></li>
-    <li><a id="toc-Instruction-list" href="instructions.html#Instruction-list">4.2 Instruction list</a>
+    <li><a id="toc-Instruction-list" href="instructions.html#Instruction-list">5.2 Instruction list</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-CATCH-_003cnode_003e-_003csignal_003e-_003cmatchmode_003e" href="instructions.html#CATCH-_003cnode_003e-_003csignal_003e-_003cmatchmode_003e">4.2.1 CATCH &lt;node&gt; &lt;signal&gt; &lt;matchmode&gt;</a></li>
-      <li><a id="toc-CROAK-_003csignal_003e-_003cmatchmode_003e" href="instructions.html#CROAK-_003csignal_003e-_003cmatchmode_003e">4.2.2 CROAK &lt;signal&gt; &lt;matchmode&gt;</a></li>
-      <li><a id="toc-HALT" href="instructions.html#HALT">4.2.3 HALT</a></li>
-      <li><a id="toc-INCMP-_003cnode_003e-_003cselector_003e" href="instructions.html#INCMP-_003cnode_003e-_003cselector_003e">4.2.4 INCMP &lt;node&gt; &lt;selector&gt;</a></li>
-      <li><a id="toc-LOAD-_003csymbol_003e-_003csize_003e" href="instructions.html#LOAD-_003csymbol_003e-_003csize_003e">4.2.5 LOAD &lt;symbol&gt; &lt;size&gt;</a></li>
-      <li><a id="toc-MAP-_003csymbol_003e" href="instructions.html#MAP-_003csymbol_003e">4.2.6 MAP &lt;symbol&gt;</a></li>
-      <li><a id="toc-MNEXT-_003clabel_003e-_003cselector_003e" href="instructions.html#MNEXT-_003clabel_003e-_003cselector_003e">4.2.7 MNEXT &lt;label&gt; &lt;selector&gt;</a></li>
-      <li><a id="toc-MOUT-_003clabel_003e-_003cselector_003e" href="instructions.html#MOUT-_003clabel_003e-_003cselector_003e">4.2.8 MOUT &lt;label&gt; &lt;selector&gt;</a></li>
-      <li><a id="toc-MOVE-_003cnode_003e" href="instructions.html#MOVE-_003cnode_003e">4.2.9 MOVE &lt;node&gt;</a></li>
-      <li><a id="toc-MPREV-_003clabel_003e-_003cselector_003e" href="instructions.html#MPREV-_003clabel_003e-_003cselector_003e">4.2.10 MPREV &lt;label&gt; &lt;selector&gt;</a></li>
-      <li><a id="toc-MSINK" href="instructions.html#MSINK">4.2.11 MSINK</a></li>
-      <li><a id="toc-RELOAD-_003csymbol_003e" href="instructions.html#RELOAD-_003csymbol_003e">4.2.12 RELOAD &lt;symbol&gt;</a></li>
+      <li><a id="toc-CATCH-_003cnode_003e-_003csignal_003e-_003cmatchmode_003e" href="instructions.html#CATCH-_003cnode_003e-_003csignal_003e-_003cmatchmode_003e">5.2.1 CATCH &lt;node&gt; &lt;signal&gt; &lt;matchmode&gt;</a></li>
+      <li><a id="toc-CROAK-_003csignal_003e-_003cmatchmode_003e" href="instructions.html#CROAK-_003csignal_003e-_003cmatchmode_003e">5.2.2 CROAK &lt;signal&gt; &lt;matchmode&gt;</a></li>
+      <li><a id="toc-HALT" href="instructions.html#HALT">5.2.3 HALT</a></li>
+      <li><a id="toc-INCMP-_003cnode_003e-_003cselector_003e" href="instructions.html#INCMP-_003cnode_003e-_003cselector_003e">5.2.4 INCMP &lt;node&gt; &lt;selector&gt;</a></li>
+      <li><a id="toc-LOAD-_003csymbol_003e-_003csize_003e" href="instructions.html#LOAD-_003csymbol_003e-_003csize_003e">5.2.5 LOAD &lt;symbol&gt; &lt;size&gt;</a></li>
+      <li><a id="toc-MAP-_003csymbol_003e" href="instructions.html#MAP-_003csymbol_003e">5.2.6 MAP &lt;symbol&gt;</a></li>
+      <li><a id="toc-MNEXT-_003clabel_003e-_003cselector_003e" href="instructions.html#MNEXT-_003clabel_003e-_003cselector_003e">5.2.7 MNEXT &lt;label&gt; &lt;selector&gt;</a></li>
+      <li><a id="toc-MOUT-_003clabel_003e-_003cselector_003e" href="instructions.html#MOUT-_003clabel_003e-_003cselector_003e">5.2.8 MOUT &lt;label&gt; &lt;selector&gt;</a></li>
+      <li><a id="toc-MOVE-_003cnode_003e" href="instructions.html#MOVE-_003cnode_003e">5.2.9 MOVE &lt;node&gt;</a></li>
+      <li><a id="toc-MPREV-_003clabel_003e-_003cselector_003e" href="instructions.html#MPREV-_003clabel_003e-_003cselector_003e">5.2.10 MPREV &lt;label&gt; &lt;selector&gt;</a></li>
+      <li><a id="toc-MSINK" href="instructions.html#MSINK">5.2.11 MSINK</a></li>
+      <li><a id="toc-RELOAD-_003csymbol_003e" href="instructions.html#RELOAD-_003csymbol_003e">5.2.12 RELOAD &lt;symbol&gt;</a></li>
     </ul></li>
-    <li><a id="toc-Batch-instructions" href="instructions.html#Batch-instructions">4.3 Batch instructions</a>
+    <li><a id="toc-Batch-instructions" href="instructions.html#Batch-instructions">5.3 Batch instructions</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-Batch-menu-expansion" href="instructions.html#Batch-menu-expansion">4.3.1 Batch menu expansion</a></li>
+      <li><a id="toc-Batch-menu-expansion" href="instructions.html#Batch-menu-expansion">5.3.1 Batch menu expansion</a></li>
     </ul></li>
   </ul></li>
-  <li><a id="toc-Navigation" href="navigation.html">5 Navigation</a>
+  <li><a id="toc-Navigation" href="navigation.html">6 Navigation</a>
   <ul class="toc-numbered-mark">
-    <li><a id="toc-Entry-point" href="navigation.html#Entry-point">5.1 Entry point</a></li>
-    <li><a id="toc-Lateral-navigation" href="navigation.html#Lateral-navigation">5.2 Lateral navigation</a></li>
-    <li><a id="toc-Node-names" href="navigation.html#Node-names">5.3 Node names</a>
+    <li><a id="toc-Entry-point" href="navigation.html#Entry-point">6.1 Entry point</a></li>
+    <li><a id="toc-Lateral-navigation" href="navigation.html#Lateral-navigation">6.2 Lateral navigation</a></li>
+    <li><a id="toc-Node-names" href="navigation.html#Node-names">6.3 Node names</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-Special-node-names" href="navigation.html#Special-node-names">5.3.1 Special node names</a></li>
-      <li><a id="toc-Builtin-node-names" href="navigation.html#Builtin-node-names">5.3.2 Builtin node names</a></li>
+      <li><a id="toc-Special-node-names" href="navigation.html#Special-node-names">6.3.1 Special node names</a></li>
+      <li><a id="toc-Builtin-node-names" href="navigation.html#Builtin-node-names">6.3.2 Builtin node names</a></li>
     </ul></li>
-    <li><a id="toc-Navigation-stack" href="navigation.html#Navigation-stack">5.4 Navigation stack</a></li>
+    <li><a id="toc-Navigation-stack" href="navigation.html#Navigation-stack">6.4 Navigation stack</a></li>
   </ul></li>
-  <li><a id="toc-External-data" href="cache.html">6 External data</a>
+  <li><a id="toc-External-data" href="cache.html">7 External data</a>
   <ul class="toc-numbered-mark">
-    <li><a id="toc-The-LOAD-handler" href="cache.html#The-LOAD-handler">6.1 The <code class="code">LOAD</code> handler</a></li>
-    <li><a id="toc-Size-limits" href="cache.html#Size-limits">6.2 Size limits</a>
+    <li><a id="toc-The-LOAD-handler" href="cache.html#The-LOAD-handler">7.1 The <code class="code">LOAD</code> handler</a></li>
+    <li><a id="toc-Size-limits" href="cache.html#Size-limits">7.2 Size limits</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-_0022Sink_0022-symbols" href="cache.html#g_t_0022Sink_0022-symbols">6.2.1 &quot;Sink&quot; symbols</a></li>
+      <li><a id="toc-_0022Sink_0022-symbols" href="cache.html#g_t_0022Sink_0022-symbols">7.2.1 &quot;Sink&quot; symbols</a></li>
     </ul></li>
-    <li><a id="toc-Scope" href="cache.html#Scope">6.3 Scope</a>
+    <li><a id="toc-Scope" href="cache.html#Scope">7.3 Scope</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-Duplicate-LOAD" href="cache.html#Duplicate-LOAD">6.3.1 Duplicate <code class="code">LOAD</code></a></li>
+      <li><a id="toc-Duplicate-LOAD" href="cache.html#Duplicate-LOAD">7.3.1 Duplicate <code class="code">LOAD</code></a></li>
     </ul></li>
-    <li><a id="toc-Refreshing-cache-contents" href="cache.html#Refreshing-cache-contents">6.4 Refreshing cache contents</a></li>
+    <li><a id="toc-Refreshing-cache-contents" href="cache.html#Refreshing-cache-contents">7.4 Refreshing cache contents</a></li>
   </ul></li>
-  <li><a id="toc-Rendering" href="render.html">7 Rendering</a>
+  <li><a id="toc-Rendering" href="render.html">8 Rendering</a>
   <ul class="toc-numbered-mark">
-    <li><a id="toc-Dynamic-templates" href="render.html#Dynamic-templates">7.1 Dynamic templates</a>
+    <li><a id="toc-Dynamic-templates" href="render.html#Dynamic-templates">8.1 Dynamic templates</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-Examples" href="render.html#Examples">7.1.1 Examples</a></li>
+      <li><a id="toc-Examples" href="render.html#Examples">8.1.1 Examples</a></li>
     </ul></li>
-    <li><a id="toc-Rendering-pipeline" href="render.html#Rendering-pipeline">7.2 Rendering pipeline</a>
+    <li><a id="toc-Rendering-pipeline" href="render.html#Rendering-pipeline">8.2 Rendering pipeline</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-No-sink" href="render.html#No-sink">7.2.1 No sink</a></li>
-      <li><a id="toc-MAP-sink" href="render.html#MAP-sink">7.2.2 MAP sink</a></li>
-      <li><a id="toc-Menu-sink" href="render.html#Menu-sink">7.2.3 Menu sink</a></li>
+      <li><a id="toc-No-sink" href="render.html#No-sink">8.2.1 No sink</a></li>
+      <li><a id="toc-MAP-sink" href="render.html#MAP-sink">8.2.2 MAP sink</a></li>
+      <li><a id="toc-Menu-sink" href="render.html#Menu-sink">8.2.3 Menu sink</a></li>
     </ul></li>
-    <li><a id="toc-Multiple_002dpage-rendering" href="render.html#Multiple_002dpage-rendering">7.3 Multiple-page rendering</a>
+    <li><a id="toc-Multiple_002dpage-rendering" href="render.html#Multiple_002dpage-rendering">8.3 Multiple-page rendering</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-Missing-navigation" href="render.html#Missing-navigation">7.3.1 Missing navigation</a></li>
-      <li><a id="toc-Multi_002dpage-example" href="render.html#Multi_002dpage-example">7.3.2 Multi-page example</a>
+      <li><a id="toc-Missing-navigation" href="render.html#Missing-navigation">8.3.1 Missing navigation</a></li>
+      <li><a id="toc-Multi_002dpage-example" href="render.html#Multi_002dpage-example">8.3.2 Multi-page example</a>
       <ul class="toc-numbered-mark">
-        <li><a id="toc-Data-accounting" href="render.html#Data-accounting">7.3.2.1 Data accounting</a></li>
-        <li><a id="toc-Rendering-logic" href="render.html#Rendering-logic">7.3.2.2 Rendering logic</a></li>
-      </ul></li>
-    </ul></li>
-  </ul></li>
-  <li><a id="toc-Handling-languages" href="language.html">8 Handling languages</a>
-  <ul class="toc-numbered-mark">
-    <li><a id="toc-Defining-language" href="language.html#Defining-language">8.1 Defining language</a></li>
-  </ul></li>
-  <li><a id="toc-Common-patterns" href="cookbook.html">9 Common patterns</a>
-  <ul class="toc-numbered-mark">
-    <li><a id="toc-Hello-world" href="cookbook.html#Hello-world">9.1 Hello world</a></li>
-    <li><a id="toc-Handling-menus-and-inputs" href="cookbook.html#Handling-menus-and-inputs">9.2 Handling menus and inputs</a>
-    <ul class="toc-numbered-mark">
-      <li><a id="toc-Menu-batch-version" href="cookbook.html#Menu-batch-version">9.2.1 Menu batch version</a></li>
-    </ul></li>
-    <li><a id="toc-Signal-flow-control" href="cookbook.html#Signal-flow-control">9.3 Signal flow control</a></li>
-    <li><a id="toc-Multiple-pages" href="cookbook.html#Multiple-pages">9.4 Multiple pages</a>
-    <ul class="toc-numbered-mark">
-      <li><a id="toc-Menu-batch-version-1" href="cookbook.html#Menu-batch-version-1">9.4.1 Menu batch version</a></li>
-    </ul></li>
-    <li><a id="toc-Multi_002dpage-menus" href="cookbook.html#Multi_002dpage-menus">9.5 Multi-page menus</a>
-    <ul class="toc-numbered-mark">
-      <li><a id="toc-Menu-batch-version-2" href="cookbook.html#Menu-batch-version-2">9.5.1 Menu batch version</a></li>
-    </ul></li>
-    <li><a id="toc-Default-input-handler" href="cookbook.html#Default-input-handler">9.6 Default input handler</a></li>
-  </ul></li>
-  <li><a id="toc-Developing-with-vise" href="dev.html">10 Developing with vise</a>
-  <ul class="toc-numbered-mark">
-    <li><a id="toc-Code-repository-structure" href="dev.html#Code-repository-structure">10.1 Code repository structure</a></li>
-    <li><a id="toc-Interacting-with-vise" href="dev.html#Interacting-with-vise">10.2 Interacting with <code class="code">vise</code></a>
-    <ul class="toc-numbered-mark">
-      <li><a id="toc-Modes-of-operation" href="dev.html#Modes-of-operation">10.2.1 Modes of operation</a>
-      <ul class="toc-numbered-mark">
-        <li><a id="toc-Manual-operation" href="dev.html#Manual-operation">10.2.1.1 Manual operation</a></li>
-        <li><a id="toc-Synchronous-loop" href="dev.html#Synchronous-loop">10.2.1.2 Synchronous loop</a></li>
-        <li><a id="toc-Asynchronous-one_002dshot" href="dev.html#Asynchronous-one_002dshot">10.2.1.3 Asynchronous one-shot</a></li>
-      </ul></li>
-      <li><a id="toc-Configuration" href="dev.html#Configuration">10.2.2 Configuration</a></li>
-      <li><a id="toc-Sessions" href="dev.html#Sessions">10.2.3 Sessions</a></li>
-      <li><a id="toc-Execution-context" href="dev.html#Execution-context">10.2.4 Execution context</a></li>
-    </ul></li>
-    <li><a id="toc-Resolving-resources" href="dev.html#Resolving-resources">10.3 Resolving resources</a>
-    <ul class="toc-numbered-mark">
-      <li><a id="toc-Memory-resource-implementation" href="dev.html#Memory-resource-implementation">10.3.1 Memory resource implementation</a></li>
-      <li><a id="toc-Filesystem-resource-implementation" href="dev.html#Filesystem-resource-implementation">10.3.2 Filesystem resource implementation</a>
-      <ul class="toc-numbered-mark">
-        <li><a id="toc-Bytecode-_0028resource_002eResource_002eGetCode_0029" href="dev.html#Bytecode-_0028resource_002eResource_002eGetCode_0029">10.3.2.1 Bytecode (<code class="code">resource.Resource.GetCode</code>)</a></li>
-        <li><a id="toc-Templates-_0028resource_002eResource_002eGetTemplate_0029" href="dev.html#Templates-_0028resource_002eResource_002eGetTemplate_0029">10.3.2.2 Templates (<code class="code">resource.Resource.GetTemplate</code>)</a></li>
-        <li><a id="toc-Menus-_0028resource_002eResource_002eGetMenu_0029" href="dev.html#Menus-_0028resource_002eResource_002eGetMenu_0029">10.3.2.3 Menus (<code class="code">resource.Resource.GetMenu</code>)</a></li>
-        <li><a id="toc-External-symbols-_0028resource_002eResource_002eFuncFor_0029" href="dev.html#External-symbols-_0028resource_002eResource_002eFuncFor_0029">10.3.2.4 External symbols (<code class="code">resource.Resource.FuncFor</code>)</a></li>
+        <li><a id="toc-Data-accounting" href="render.html#Data-accounting">8.3.2.1 Data accounting</a></li>
+        <li><a id="toc-Rendering-logic" href="render.html#Rendering-logic">8.3.2.2 Rendering logic</a></li>
       </ul></li>
     </ul></li>
-    <li><a id="toc-Logging" href="dev.html#Logging">10.4 Logging</a></li>
-    <li><a id="toc-Tools" href="dev.html#Tools">10.5 Tools</a>
+  </ul></li>
+  <li><a id="toc-Handling-languages" href="language.html">9 Handling languages</a>
+  <ul class="toc-numbered-mark">
+    <li><a id="toc-Defining-language" href="language.html#Defining-language">9.1 Defining language</a></li>
+  </ul></li>
+  <li><a id="toc-Common-patterns" href="cookbook.html">10 Common patterns</a>
+  <ul class="toc-numbered-mark">
+    <li><a id="toc-Hello-world" href="cookbook.html#Hello-world">10.1 Hello world</a></li>
+    <li><a id="toc-Handling-menus-and-inputs" href="cookbook.html#Handling-menus-and-inputs">10.2 Handling menus and inputs</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-Test-data-generation" href="dev.html#Test-data-generation">10.5.1 Test data generation</a></li>
-      <li><a id="toc-Interactive-runner" href="dev.html#Interactive-runner">10.5.2 Interactive runner</a></li>
-      <li><a id="toc-Assembler" href="dev.html#Assembler">10.5.3 Assembler</a></li>
-      <li><a id="toc-Disassembler" href="dev.html#Disassembler">10.5.4 Disassembler</a></li>
-      <li><a id="toc-Interactive-case-examples" href="dev.html#Interactive-case-examples">10.5.5 Interactive case examples</a></li>
+      <li><a id="toc-Menu-batch-version" href="cookbook.html#Menu-batch-version">10.2.1 Menu batch version</a></li>
     </ul></li>
-    <li><a id="toc-Assembly-examples" href="dev.html#Assembly-examples">10.6 Assembly examples</a></li>
-    <li><a id="toc-Bytecode-example" href="dev.html#Bytecode-example">10.7 Bytecode example</a>
+    <li><a id="toc-Signal-flow-control" href="cookbook.html#Signal-flow-control">10.3 Signal flow control</a></li>
+    <li><a id="toc-Multiple-pages" href="cookbook.html#Multiple-pages">10.4 Multiple pages</a>
     <ul class="toc-numbered-mark">
-      <li><a id="toc-Example" href="dev.html#Example">10.7.1 Example</a></li>
+      <li><a id="toc-Menu-batch-version-1" href="cookbook.html#Menu-batch-version-1">10.4.1 Menu batch version</a></li>
+    </ul></li>
+    <li><a id="toc-Multi_002dpage-menus" href="cookbook.html#Multi_002dpage-menus">10.5 Multi-page menus</a>
+    <ul class="toc-numbered-mark">
+      <li><a id="toc-Menu-batch-version-2" href="cookbook.html#Menu-batch-version-2">10.5.1 Menu batch version</a></li>
+    </ul></li>
+    <li><a id="toc-Default-input-handler" href="cookbook.html#Default-input-handler">10.6 Default input handler</a></li>
+  </ul></li>
+  <li><a id="toc-Developing-with-vise" href="dev.html">11 Developing with vise</a>
+  <ul class="toc-numbered-mark">
+    <li><a id="toc-Code-repository-structure" href="dev.html#Code-repository-structure">11.1 Code repository structure</a></li>
+    <li><a id="toc-Interacting-with-vise" href="dev.html#Interacting-with-vise">11.2 Interacting with <code class="code">vise</code></a>
+    <ul class="toc-numbered-mark">
+      <li><a id="toc-Modes-of-operation" href="dev.html#Modes-of-operation">11.2.1 Modes of operation</a>
+      <ul class="toc-numbered-mark">
+        <li><a id="toc-Manual-operation" href="dev.html#Manual-operation">11.2.1.1 Manual operation</a></li>
+        <li><a id="toc-Synchronous-loop" href="dev.html#Synchronous-loop">11.2.1.2 Synchronous loop</a></li>
+        <li><a id="toc-Asynchronous-one_002dshot" href="dev.html#Asynchronous-one_002dshot">11.2.1.3 Asynchronous one-shot</a></li>
+      </ul></li>
+      <li><a id="toc-Configuration" href="dev.html#Configuration">11.2.2 Configuration</a></li>
+      <li><a id="toc-Sessions" href="dev.html#Sessions">11.2.3 Sessions</a></li>
+      <li><a id="toc-Execution-context" href="dev.html#Execution-context">11.2.4 Execution context</a></li>
+    </ul></li>
+    <li><a id="toc-Resolving-resources" href="dev.html#Resolving-resources">11.3 Resolving resources</a>
+    <ul class="toc-numbered-mark">
+      <li><a id="toc-Memory-resource-implementation" href="dev.html#Memory-resource-implementation">11.3.1 Memory resource implementation</a></li>
+      <li><a id="toc-Filesystem-resource-implementation" href="dev.html#Filesystem-resource-implementation">11.3.2 Filesystem resource implementation</a>
+      <ul class="toc-numbered-mark">
+        <li><a id="toc-Bytecode-_0028resource_002eResource_002eGetCode_0029" href="dev.html#Bytecode-_0028resource_002eResource_002eGetCode_0029">11.3.2.1 Bytecode (<code class="code">resource.Resource.GetCode</code>)</a></li>
+        <li><a id="toc-Templates-_0028resource_002eResource_002eGetTemplate_0029" href="dev.html#Templates-_0028resource_002eResource_002eGetTemplate_0029">11.3.2.2 Templates (<code class="code">resource.Resource.GetTemplate</code>)</a></li>
+        <li><a id="toc-Menus-_0028resource_002eResource_002eGetMenu_0029" href="dev.html#Menus-_0028resource_002eResource_002eGetMenu_0029">11.3.2.3 Menus (<code class="code">resource.Resource.GetMenu</code>)</a></li>
+        <li><a id="toc-External-symbols-_0028resource_002eResource_002eFuncFor_0029" href="dev.html#External-symbols-_0028resource_002eResource_002eFuncFor_0029">11.3.2.4 External symbols (<code class="code">resource.Resource.FuncFor</code>)</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a id="toc-Logging" href="dev.html#Logging">11.4 Logging</a></li>
+    <li><a id="toc-Tools" href="dev.html#Tools">11.5 Tools</a>
+    <ul class="toc-numbered-mark">
+      <li><a id="toc-Test-data-generation" href="dev.html#Test-data-generation">11.5.1 Test data generation</a></li>
+      <li><a id="toc-Interactive-runner" href="dev.html#Interactive-runner">11.5.2 Interactive runner</a></li>
+      <li><a id="toc-Assembler" href="dev.html#Assembler">11.5.3 Assembler</a></li>
+      <li><a id="toc-Disassembler" href="dev.html#Disassembler">11.5.4 Disassembler</a></li>
+      <li><a id="toc-Interactive-case-examples" href="dev.html#Interactive-case-examples">11.5.5 Interactive case examples</a></li>
+    </ul></li>
+    <li><a id="toc-Assembly-examples" href="dev.html#Assembly-examples">11.6 Assembly examples</a></li>
+    <li><a id="toc-Bytecode-example" href="dev.html#Bytecode-example">11.7 Bytecode example</a>
+    <ul class="toc-numbered-mark">
+      <li><a id="toc-Example" href="dev.html#Example">11.7.1 Example</a></li>
     </ul></li>
   </ul></li>
 </ul>

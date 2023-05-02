@@ -280,6 +280,11 @@ func(vm *Vm) runLoad(ctx context.Context, b []byte) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
+	_, err = vm.ca.Get(sym)
+	if err == nil {
+		Logg.DebugCtxf(ctx, "skip already loaded symbol", "symbol", sym)
+		return b, nil
+	}
 	r, err := vm.refresh(sym, vm.rs, ctx)
 	if err != nil {
 		return b, err
@@ -475,6 +480,8 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 
 // retrieve and cache data for key
 func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
+	var err error
+	
 	fn, err := rs.FuncFor(key)
 	if err != nil {
 		return "", err

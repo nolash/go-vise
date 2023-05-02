@@ -1,11 +1,20 @@
 @node overview
 @chapter Overview
 
-An attempt at defining a small VM to handle menu interaction for size-constrained clients and servers.
+@code{vise} is a virtual machine specialized for generating output for clients that have strict output size constaints.
 
-Original motivation was to create a simple templating renderer for USSD clients, combined with an agnostic data-retrieval reference that may conceal any level of complexity.
+Specifically, the original target enviromnent was USSD menu navigation and session handling.
 
+@section Features
 
-@section Synopsis
+@section Contents
 
-TODO
+@subsection Virtual machine
+
+This component processes menu navigation from client input, and executes 
+
+@itemize
+@item Virtual machine to handle menu navigation.
+@item Assembly mini-language to script for the virtual machine.
+@item Code interface for external calls.
+@end itemize

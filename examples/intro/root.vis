@@ -1,0 +1,9 @@
+LOAD count 8
+LOAD something 0
+RELOAD count
+MAP count
+MOUT foo 0
+MOUT bar 1
+HALT
+INCMP foo 0
+INCMP bar 1

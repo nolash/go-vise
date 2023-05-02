@@ -1,6 +1,6 @@
 all: bin examples doc
 
-examples: profile session helloworld validate
+examples: profile session helloworld validate intro
 
 bin:
 	mkdir -p build
@@ -23,6 +23,9 @@ validate:
 
 longmenu:
 	make -C examples/longmenu
+
+intro:
+	make -C examples/intro
 
 doc:
 	make -C doc
