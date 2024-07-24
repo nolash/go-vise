@@ -165,7 +165,7 @@ This is {{.foo}} and {{.bar}}
 
 Then consider that the symbols resolve as follows:
 
-@multitable .10 .25 .50 .15
+@multitable @columnfractions .10 .25 .50 .15
 @headitem symbol
 @tab returned value
 @tab rendered value
@@ -211,7 +211,7 @@ CLYDE 4444
 
 Given an output size limit of 94, static part of the template (14 bytes). this results in the following render possibilities for the sink content:
 
-@multitable .33 .33 .33
+@multitable @columnfractions .33 .33 .33
 @headitem navigation case
 @tab bytes left for sink
 @item no navigation 

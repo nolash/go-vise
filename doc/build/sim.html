@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<!-- Created by GNU Texinfo 7.1, https://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <!-- Released 2023 under AGPL3 -->
@@ -20,7 +20,9 @@
 <link href="overview.html" rel="prev" title="overview">
 <style type="text/css">
 <!--
+a.copiable-link {visibility: hidden; text-decoration: none; line-height: 0em}
 div.example {margin-left: 3.2em}
+span:hover a.copiable-link {visibility: visible}
 ul.mark-bullet {list-style-type: disc}
 -->
 </style>
@@ -35,7 +37,7 @@ ul.mark-bullet {list-style-type: disc}
 Next: <a href="nomenclature.html" accesskey="n" rel="next">Nomenclature</a>, Previous: <a href="overview.html" accesskey="p" rel="prev">Overview</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<h2 class="chapter" id="An-example-vise-implementation">2 An example vise implementation</h2>
+<h2 class="chapter" id="An-example-vise-implementation"><span>2 An example vise implementation<a class="copiable-link" href="#An-example-vise-implementation"> &para;</a></span></h2>
 
 
 <p>Consider the following interaction:
@@ -110,7 +112,7 @@ blah blah blah
 <li><a href="#Working-example" accesskey="5">Working example</a></li>
 </ul>
 <div class="section-level-extent" id="Templates">
-<h3 class="section">2.1 Templates</h3>
+<h3 class="section"><span>2.1 Templates<a class="copiable-link" href="#Templates"> &para;</a></span></h3>
 
 <p>Each page has a template that may or may not contain dynamic elements.
 </p>
@@ -123,28 +125,28 @@ blah blah blah
 <li><a href="#ouch" accesskey="4">ouch</a></li>
 </ul>
 <div class="subsection-level-extent" id="root">
-<h4 class="subsection">2.1.1 root</h4>
+<h4 class="subsection"><span>2.1.1 root<a class="copiable-link" href="#root"> &para;</a></span></h4>
 
 <pre class="verbatim">This is the root page
 You have visited {{.count}}.
 </pre>
 </div>
 <div class="subsection-level-extent" id="foo">
-<h4 class="subsection">2.1.2 foo</h4>
+<h4 class="subsection"><span>2.1.2 foo<a class="copiable-link" href="#foo"> &para;</a></span></h4>
 
 <pre class="verbatim">Welcome to page foo.
 Please write something.
 </pre>
 </div>
 <div class="subsection-level-extent" id="bar">
-<h4 class="subsection">2.1.3 bar</h4>
+<h4 class="subsection"><span>2.1.3 bar<a class="copiable-link" href="#bar"> &para;</a></span></h4>
 
 <pre class="verbatim">Thanks for visiting foo and bar.
 You wrote &quot;{{.something}}&quot; in foo.
 </pre>
 </div>
 <div class="subsection-level-extent" id="ouch">
-<h4 class="subsection">2.1.4 ouch</h4>
+<h4 class="subsection"><span>2.1.4 ouch<a class="copiable-link" href="#ouch"> &para;</a></span></h4>
 
 <pre class="verbatim">Please visit foo first.
 Any input to return.
@@ -153,7 +155,7 @@ Any input to return.
 </div>
 </div>
 <div class="section-level-extent" id="Scripts">
-<h3 class="section">2.2 Scripts</h3>
+<h3 class="section"><span>2.2 Scripts<a class="copiable-link" href="#Scripts"> &para;</a></span></h3>
 
 <p>The scripts are responsible for defining menus, handling navigation flow control, and triggering external code handlers.
 </p>
@@ -164,7 +166,7 @@ Any input to return.
 <li><a href="#ouch-1" accesskey="4">ouch</a></li>
 </ul>
 <div class="subsection-level-extent" id="root-1">
-<h4 class="subsection">2.2.1 root</h4>
+<h4 class="subsection"><span>2.2.1 root<a class="copiable-link" href="#root-1"> &para;</a></span></h4>
 
 <pre class="verbatim">LOAD count 8 		# trigger external code handler &quot;count&quot;
 LOAD something 0	# trigger external code handler &quot;something&quot;
@@ -178,7 +180,7 @@ INCMP bar 1		# match menu selection 1, move to node &quot;bar&quot; on match
 </pre>
 </div>
 <div class="subsection-level-extent" id="foo-1">
-<h4 class="subsection">2.2.2 foo</h4>
+<h4 class="subsection"><span>2.2.2 foo<a class="copiable-link" href="#foo-1"> &para;</a></span></h4>
 
 <pre class="verbatim">HALT			# render template and wait for input
 RELOAD something    	# pass input to the &quot;something&quot; external code handler.
@@ -189,7 +191,7 @@ MOVE _			# move up one level
 
 </div>
 <div class="subsection-level-extent" id="bar-1">
-<h4 class="subsection">2.2.3 bar</h4>
+<h4 class="subsection"><span>2.2.3 bar<a class="copiable-link" href="#bar-1"> &para;</a></span></h4>
 
 <pre class="verbatim">CATCH ouch 8 0      	# if the &quot;HAVESOMETHING&quot; (8) flag has NOT (0) been set, move to &quot;ouch&quot;
 MNEXT next 11       	# menu choice to display for advancing one page
@@ -203,7 +205,7 @@ INCMP _ *           	# move to the root node on any input
 
 </div>
 <div class="subsection-level-extent" id="ouch-1">
-<h4 class="subsection">2.2.4 ouch</h4>
+<h4 class="subsection"><span>2.2.4 ouch<a class="copiable-link" href="#ouch-1"> &para;</a></span></h4>
 
 <pre class="verbatim">HALT			# render template and wait for input
 INCMP ^ *		# move to the root node on any input
@@ -212,7 +214,7 @@ INCMP ^ *		# move to the root node on any input
 </div>
 </div>
 <div class="section-level-extent" id="External-code-handlers">
-<h3 class="section">2.3 External code handlers</h3>
+<h3 class="section"><span>2.3 External code handlers<a class="copiable-link" href="#External-code-handlers"> &para;</a></span></h3>
 
 <p>The script code contains <code class="code">LOAD</code> instructions for two different methods. 
 </p>
@@ -279,7 +281,7 @@ func(c *introResource) something(ctx context.Context, sym string, input []byte) 
 
 <a class="anchor" id="long_005fvalues"></a></div>
 <div class="section-level-extent" id="Handling-long-values">
-<h3 class="section">2.4 Handling long values</h3>
+<h3 class="section"><span>2.4 Handling long values<a class="copiable-link" href="#Handling-long-values"> &para;</a></span></h3>
 
 <p>In the above example, the more times the <code class="code">foo</code> page is supplied with a value, the longer the vector of values that need to be displayed by the <code class="code">bar</code> page will be.
 </p>
@@ -311,7 +313,7 @@ clyde
 
 </div>
 <div class="section-level-extent" id="Working-example">
-<h3 class="section">2.5 Working example</h3>
+<h3 class="section"><span>2.5 Working example<a class="copiable-link" href="#Working-example"> &para;</a></span></h3>
 
 <p>In the source code repository, a full working example of this menu can be found in <samp class="file">examples/intro</samp>.
 </p>

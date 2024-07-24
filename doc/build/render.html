@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<!-- Created by GNU Texinfo 7.1, https://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <!-- Released 2023 under AGPL3 -->
@@ -20,7 +20,9 @@
 <link href="cache.html" rel="prev" title="cache">
 <style type="text/css">
 <!--
+a.copiable-link {visibility: hidden; text-decoration: none; line-height: 0em}
 div.example {margin-left: 3.2em}
+span:hover a.copiable-link {visibility: visible}
 -->
 </style>
 
@@ -34,7 +36,7 @@ div.example {margin-left: 3.2em}
 Next: <a href="language.html" accesskey="n" rel="next">Handling languages</a>, Previous: <a href="cache.html" accesskey="p" rel="prev">External data</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<h2 class="chapter" id="Rendering">8 Rendering</h2>
+<h2 class="chapter" id="Rendering"><span>8 Rendering<a class="copiable-link" href="#Rendering"> &para;</a></span></h2>
 
 <p>Every node whose bytecode includes a <code class="code">HALT</code> statement <strong class="strong">MUST</strong> define a rendering template.
 </p>
@@ -47,7 +49,7 @@ Next: <a href="language.html" accesskey="n" rel="next">Handling languages</a>, P
 <li><a href="#Multiple_002dpage-rendering" accesskey="3">Multiple-page rendering</a></li>
 </ul>
 <div class="section-level-extent" id="Dynamic-templates">
-<h3 class="section">8.1 Dynamic templates</h3>
+<h3 class="section"><span>8.1 Dynamic templates<a class="copiable-link" href="#Dynamic-templates"> &para;</a></span></h3>
 
 <p>Using placeholders, the content behind <code class="code">MAP</code> calls in the current executing node may be embedded in the template.
 </p>
@@ -61,7 +63,7 @@ Next: <a href="language.html" accesskey="n" rel="next">Handling languages</a>, P
 <li><a href="#Examples" accesskey="1">Examples</a></li>
 </ul>
 <div class="subsection-level-extent" id="Examples">
-<h4 class="subsection">8.1.1 Examples</h4>
+<h4 class="subsection"><span>8.1.1 Examples<a class="copiable-link" href="#Examples"> &para;</a></span></h4>
 
 <p>Consider the following instruction sequence:
 </p>
@@ -113,7 +115,7 @@ HALT
 </div>
 </div>
 <div class="section-level-extent" id="Rendering-pipeline">
-<h3 class="section">8.2 Rendering pipeline</h3>
+<h3 class="section"><span>8.2 Rendering pipeline<a class="copiable-link" href="#Rendering-pipeline"> &para;</a></span></h3>
 
 <p>The pipeline starts with the loading of the template corresponding to the current execution node.
 </p>
@@ -134,7 +136,7 @@ HALT
 <li><a href="#Menu-sink" accesskey="3">Menu sink</a></li>
 </ul>
 <div class="subsection-level-extent" id="No-sink">
-<h4 class="subsection">8.2.1 No sink</h4>
+<h4 class="subsection"><span>8.2.1 No sink<a class="copiable-link" href="#No-sink"> &para;</a></span></h4>
 
 <ol class="enumerate">
 <li> Expand all placeholders in the template.
@@ -144,7 +146,7 @@ HALT
 
 <a class="anchor" id="map_005fsink"></a></div>
 <div class="subsection-level-extent" id="MAP-sink">
-<h4 class="subsection">8.2.2 MAP sink</h4>
+<h4 class="subsection"><span>8.2.2 MAP sink<a class="copiable-link" href="#MAP-sink"> &para;</a></span></h4>
 
 <ol class="enumerate">
 <li> Expand all non-sink placeholders in the template.
@@ -161,7 +163,7 @@ HALT
 
 </div>
 <div class="subsection-level-extent" id="Menu-sink">
-<h4 class="subsection">8.2.3 Menu sink</h4>
+<h4 class="subsection"><span>8.2.3 Menu sink<a class="copiable-link" href="#Menu-sink"> &para;</a></span></h4>
 
 <ol class="enumerate">
 <li> Remove all menu items (any following menu expansion will only contain lateral navigation items, when and if they apply).
@@ -173,7 +175,7 @@ HALT
 <a class="anchor" id="render_005fmulti"></a></div>
 </div>
 <div class="section-level-extent" id="Multiple_002dpage-rendering">
-<h3 class="section">8.3 Multiple-page rendering</h3>
+<h3 class="section"><span>8.3 Multiple-page rendering<a class="copiable-link" href="#Multiple_002dpage-rendering"> &para;</a></span></h3>
 
 <p>As indicated above, multiple-page rendering is activated when a <code class="code">MAP</code> is issued to a symbol that is loaded with <code class="code">0</code> size. (<code class="code">LOAD &lt;symbol&gt; 0</code>).
 </p>
@@ -185,7 +187,7 @@ HALT
 <li><a href="#Multi_002dpage-example" accesskey="2">Multi-page example</a></li>
 </ul>
 <div class="subsection-level-extent" id="Missing-navigation">
-<h4 class="subsection">8.3.1 Missing navigation</h4>
+<h4 class="subsection"><span>8.3.1 Missing navigation<a class="copiable-link" href="#Missing-navigation"> &para;</a></span></h4>
 
 <p>If no <em class="emph">lateral navigation</em> has been activated, any sinks will still be processed.
 </p>
@@ -194,7 +196,7 @@ HALT
 
 </div>
 <div class="subsection-level-extent" id="Multi_002dpage-example">
-<h4 class="subsection">8.3.2 Multi-page example</h4>
+<h4 class="subsection"><span>8.3.2 Multi-page example<a class="copiable-link" href="#Multi_002dpage-example"> &para;</a></span></h4>
 
 <p>Consider the following instruction sequence:
 </p>
@@ -227,15 +229,15 @@ INCMP &lt; 22
 <li><a href="#Rendering-logic" accesskey="2">Rendering logic</a></li>
 </ul>
 <div class="subsubsection-level-extent" id="Data-accounting">
-<h4 class="subsubsection">8.3.2.1 Data accounting</h4>
+<h4 class="subsubsection"><span>8.3.2.1 Data accounting<a class="copiable-link" href="#Data-accounting"> &para;</a></span></h4>
 
 <p>Then consider that the symbols resolve as follows:
 </p>
 <table class="multitable">
-<thead><tr><th>symbol</th><th>returned value</th><th>rendered value</th><th>bytes</th></tr></thead>
-<tbody><tr><td><code class="code">foo</code></td><td><code class="code">foobar</code></td><td><code class="code">foobar</code></td><td>6</td></tr>
-<tr><td><code class="code">bar</code></td><td><code class="code">barbarbar</code></td><td><code class="code">barbarbar</code></td><td>9</td></tr>
-<tr><td><code class="code">baz</code></td><td><pre class="verbatim">FOO 42
+<thead><tr><th width="10%">symbol</th><th width="25%">returned value</th><th width="50%">rendered value</th><th width="15%">bytes</th></tr></thead>
+<tbody><tr><td width="10%"><code class="code">foo</code></td><td width="25%"><code class="code">foobar</code></td><td width="50%"><code class="code">foobar</code></td><td width="15%">6</td></tr>
+<tr><td width="10%"><code class="code">bar</code></td><td width="25%"><code class="code">barbarbar</code></td><td width="50%"><code class="code">barbarbar</code></td><td width="15%">9</td></tr>
+<tr><td width="10%"><code class="code">baz</code></td><td width="25%"><pre class="verbatim">FOO 42
 BAR 13
 BAZ 666
 XYZZY 1984
@@ -243,29 +245,29 @@ INKY 1
 PINKY 22
 BLINKY 333
 CLYDE 4444
-</pre></td><td>(deferred)</td><td>(71)</td></tr>
-<tr><td><code class="code">to_foo</code></td><td><code class="code">go to foo</code></td><td><code class="code">0:go to foo</code></td><td>11</td></tr>
-<tr><td><code class="code">to_bar</code></td><td><code class="code">visit the bar</code></td><td><code class="code">1:visit the bar</code></td><td>15</td></tr>
-<tr><td><code class="code">to_next</code></td><td><code class="code">next page</code></td><td><code class="code">11:next page</code></td><td>12</td></tr>
-<tr><td><code class="code">to_prev</code></td><td><code class="code">go back</code></td><td><code class="code">22:go back</code></td><td>10</td></tr>
+</pre></td><td width="50%">(deferred)</td><td width="15%">(71)</td></tr>
+<tr><td width="10%"><code class="code">to_foo</code></td><td width="25%"><code class="code">go to foo</code></td><td width="50%"><code class="code">0:go to foo</code></td><td width="15%">11</td></tr>
+<tr><td width="10%"><code class="code">to_bar</code></td><td width="25%"><code class="code">visit the bar</code></td><td width="50%"><code class="code">1:visit the bar</code></td><td width="15%">15</td></tr>
+<tr><td width="10%"><code class="code">to_next</code></td><td width="25%"><code class="code">next page</code></td><td width="50%"><code class="code">11:next page</code></td><td width="15%">12</td></tr>
+<tr><td width="10%"><code class="code">to_prev</code></td><td width="25%"><code class="code">go back</code></td><td width="50%"><code class="code">22:go back</code></td><td width="15%">10</td></tr>
 </tbody>
 </table>
 
 <p>Given an output size limit of 94, static part of the template (14 bytes). this results in the following render possibilities for the sink content:
 </p>
 <table class="multitable">
-<thead><tr><th>navigation case</th><th>bytes left for sink</th></tr></thead>
-<tbody><tr><td>no navigation</td><td>39</td></tr>
-<tr><td>next</td><td>27</td></tr>
-<tr><td>previous</td><td>29</td></tr>
-<tr><td>next + previous</td><td>17</td></tr>
+<thead><tr><th width="33%">navigation case</th><th width="33%">bytes left for sink</th></tr></thead>
+<tbody><tr><td width="33%">no navigation</td><td width="33%">39</td></tr>
+<tr><td width="33%">next</td><td width="33%">27</td></tr>
+<tr><td width="33%">previous</td><td width="33%">29</td></tr>
+<tr><td width="33%">next + previous</td><td width="33%">17</td></tr>
 </tbody>
 </table>
 
 
 </div>
 <div class="subsubsection-level-extent" id="Rendering-logic">
-<h4 class="subsubsection">8.3.2.2 Rendering logic</h4>
+<h4 class="subsubsection"><span>8.3.2.2 Rendering logic<a class="copiable-link" href="#Rendering-logic"> &para;</a></span></h4>
 
 <p>The total sink byte count is 72, whereas the maximum available sink capacity is 39. At least one extra page is needed.
 </p>

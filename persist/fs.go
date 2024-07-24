@@ -44,23 +44,23 @@ func(p *FsPersister) GetState() *state.State {
 	return p.State
 }
 
-// GetState implements the Persister interface.
+// GetMemory implements the Persister interface.
 func(p *FsPersister) GetMemory() cache.Memory {
 	return p.Memory
 }
 
-// GetState implements the Persister interface.
+// Serialize implements the Persister interface.
 func(p *FsPersister) Serialize() ([]byte, error) {
 	return cbor.Marshal(p)
 }
 
-// GetState implements the Persister interface.
+// Deserialize implements the Persister interface.
 func(p *FsPersister) Deserialize(b []byte) error {
 	err := cbor.Unmarshal(b, p)
 	return err
 }
 
-// GetState implements the Persister interface.
+// Save implements the Persister interface.
 func(p *FsPersister) Save(key string) error {
 	b, err := p.Serialize()
 	if err != nil {
@@ -71,7 +71,7 @@ func(p *FsPersister) Save(key string) error {
 	return ioutil.WriteFile(fp, b, 0600)
 }
 
-// GetState implements the Persister interface.
+// Load implements the Persister interface.
 func(p *FsPersister) Load(key string) error {
 	fp := path.Join(p.dir, key)
 	b, err := ioutil.ReadFile(fp)

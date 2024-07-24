@@ -69,7 +69,7 @@ Control flow using signal checking.
 
 If @code{matchmode} is 1, then jump to @code{node} if @code{signal} is @emph{set}.
 
-If @code{matchmode} is 0, then jump to @code{node} if @code{signal} is @emph{no set}.
+If @code{matchmode} is 0, then jump to @code{node} if @code{signal} is @emph{not set}.
 
 Existing bytecode in buffer is cleared before the jump.
 
@@ -101,6 +101,8 @@ In addition, any consecutive @code{INCMP} matches will be ignored until next @co
 Execute the code symbol @code{symbol} and cache the result.
 
 Result must be constrained to the given @code{size}.
+
+This is a noop if symbol has already been loaded in the current scope.
 
 
 @subsection MAP <symbol>
@@ -175,7 +177,7 @@ Activate and set @emph{previuos} menu option for browsing multiple-page renders.
 
 @subsection Batch menu expansion
 
-@multitable .50 .50
+@multitable @columnfractions .50 .50
 @headitem Batch instruction
 @tab Expanded instruction
 @item @example

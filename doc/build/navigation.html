@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<!-- Created by GNU Texinfo 7.1, https://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <!-- Released 2023 under AGPL3 -->
@@ -20,6 +20,8 @@
 <link href="instructions.html" rel="prev" title="instructions">
 <style type="text/css">
 <!--
+a.copiable-link {visibility: hidden; text-decoration: none; line-height: 0em}
+span:hover a.copiable-link {visibility: visible}
 ul.mark-bullet {list-style-type: disc}
 -->
 </style>
@@ -34,7 +36,7 @@ ul.mark-bullet {list-style-type: disc}
 Next: <a href="cache.html" accesskey="n" rel="next">External data</a>, Previous: <a href="instructions.html" accesskey="p" rel="prev">Instructions</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<h2 class="chapter" id="Navigation">6 Navigation</h2>
+<h2 class="chapter" id="Navigation"><span>6 Navigation<a class="copiable-link" href="#Navigation"> &para;</a></span></h2>
 
 
 <p>Nodes are navigated by name, using a navigation stack.
@@ -51,7 +53,7 @@ Next: <a href="cache.html" accesskey="n" rel="next">External data</a>, Previous:
 <li><a href="#Navigation-stack" accesskey="4">Navigation stack</a></li>
 </ul>
 <div class="section-level-extent" id="Entry-point">
-<h3 class="section">6.1 Entry point</h3>
+<h3 class="section"><span>6.1 Entry point<a class="copiable-link" href="#Entry-point"> &para;</a></span></h3>
 
 <p>All VM executions require an <em class="emph">entry point</em>.
 </p>
@@ -62,7 +64,7 @@ Next: <a href="cache.html" accesskey="n" rel="next">External data</a>, Previous:
 
 <a class="anchor" id="lateral_005fnavigation"></a></div>
 <div class="section-level-extent" id="Lateral-navigation">
-<h3 class="section">6.2 Lateral navigation</h3>
+<h3 class="section"><span>6.2 Lateral navigation<a class="copiable-link" href="#Lateral-navigation"> &para;</a></span></h3>
 
 <p>Lateral navigation is only available for node output spanning multiple pages. See <a class="ref" href="render.html#render_005fmulti">Multi-page rendering</a> for details.
 </p>
@@ -77,7 +79,7 @@ Next: <a href="cache.html" accesskey="n" rel="next">External data</a>, Previous:
 
 <a class="anchor" id="node_005fnames"></a></div>
 <div class="section-level-extent" id="Node-names">
-<h3 class="section">6.3 Node names</h3>
+<h3 class="section"><span>6.3 Node names<a class="copiable-link" href="#Node-names"> &para;</a></span></h3>
 
 <p>Regular node names <em class="emph">must</em> start with an alphabetical character. The rest of the string may contain alphanumeric characters and underscore.
 </p>
@@ -86,7 +88,7 @@ Next: <a href="cache.html" accesskey="n" rel="next">External data</a>, Previous:
 <li><a href="#Builtin-node-names" accesskey="2">Builtin node names</a></li>
 </ul>
 <div class="subsection-level-extent" id="Special-node-names">
-<h4 class="subsection">6.3.1 Special node names</h4>
+<h4 class="subsection"><span>6.3.1 Special node names<a class="copiable-link" href="#Special-node-names"> &para;</a></span></h4>
 
 <p>A selection of special node names are available for relative navigation. They are single-character tokens, listed below with their respective ASCII codes.
 </p>
@@ -111,7 +113,7 @@ Next: <a href="cache.html" accesskey="n" rel="next">External data</a>, Previous:
 
 </div>
 <div class="subsection-level-extent" id="Builtin-node-names">
-<h4 class="subsection">6.3.2 Builtin node names</h4>
+<h4 class="subsection"><span>6.3.2 Builtin node names<a class="copiable-link" href="#Builtin-node-names"> &para;</a></span></h4>
 
 <p>Uncaught exceptions in the code flow that should not halt execution are routed to a builtin node named <code class="code">_catch</code>.
 </p>
@@ -119,22 +121,22 @@ Next: <a href="cache.html" accesskey="n" rel="next">External data</a>, Previous:
 </div>
 </div>
 <div class="section-level-extent" id="Navigation-stack">
-<h3 class="section">6.4 Navigation stack</h3>
+<h3 class="section"><span>6.4 Navigation stack<a class="copiable-link" href="#Navigation-stack"> &para;</a></span></h3>
 
 <p>Consider the following navigation example, illustrating the state of the stack for each step after execution.
 </p>
 <table class="multitable">
-<thead><tr><th>instruction</th><th>stack</th><th>page index</th></tr></thead>
-<tbody><tr><td><code class="code">MOVE foo</code></td><td>foo</td><td>0</td></tr>
-<tr><td><code class="code">MOVE bar</code></td><td>foo/bar</td><td>0</td></tr>
-<tr><td><code class="code">MOVE baz</code></td><td>foo/bar/baz</td><td>0</td></tr>
-<tr><td><code class="code">MOVE &gt;</code></td><td>foo/bar/baz</td><td>1</td></tr>
-<tr><td><code class="code">MOVE &gt;</code></td><td>foo/bar/baz</td><td>2</td></tr>
-<tr><td><code class="code">MOVE &lt;</code></td><td>foo/bar/baz</td><td>1</td></tr>
-<tr><td><code class="code">MOVE .</code></td><td>foo/bar/baz</td><td>1</td></tr>
-<tr><td><code class="code">MOVE _</code></td><td>foo/bar</td><td>0</td></tr>
-<tr><td><code class="code">MOVE baz</code></td><td>foo/bar/baz</td><td>0</td></tr>
-<tr><td><code class="code">MOVE ^</code></td><td>foo</td><td>0</td></tr>
+<thead><tr><th width="25%">instruction</th><th width="65%">stack</th><th width="10%">page index</th></tr></thead>
+<tbody><tr><td width="25%"><code class="code">MOVE foo</code></td><td width="65%">foo</td><td width="10%">0</td></tr>
+<tr><td width="25%"><code class="code">MOVE bar</code></td><td width="65%">foo/bar</td><td width="10%">0</td></tr>
+<tr><td width="25%"><code class="code">MOVE baz</code></td><td width="65%">foo/bar/baz</td><td width="10%">0</td></tr>
+<tr><td width="25%"><code class="code">MOVE &gt;</code></td><td width="65%">foo/bar/baz</td><td width="10%">1</td></tr>
+<tr><td width="25%"><code class="code">MOVE &gt;</code></td><td width="65%">foo/bar/baz</td><td width="10%">2</td></tr>
+<tr><td width="25%"><code class="code">MOVE &lt;</code></td><td width="65%">foo/bar/baz</td><td width="10%">1</td></tr>
+<tr><td width="25%"><code class="code">MOVE .</code></td><td width="65%">foo/bar/baz</td><td width="10%">1</td></tr>
+<tr><td width="25%"><code class="code">MOVE _</code></td><td width="65%">foo/bar</td><td width="10%">0</td></tr>
+<tr><td width="25%"><code class="code">MOVE baz</code></td><td width="65%">foo/bar/baz</td><td width="10%">0</td></tr>
+<tr><td width="25%"><code class="code">MOVE ^</code></td><td width="65%">foo</td><td width="10%">0</td></tr>
 </tbody>
 </table>
 

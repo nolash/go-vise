@@ -82,7 +82,7 @@ func(m MenuResource) GetTemplate(ctx context.Context, sym string) (string, error
 	return m.templateFunc(ctx, sym)
 }
 
-// GetCode implements Resource interface
+// GetMenu implements Resource interface
 func(m MenuResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	return m.menuFunc(ctx, sym)
 }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<!-- Created by GNU Texinfo 7.1, https://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <!-- Released 2023 under AGPL3 -->
@@ -20,6 +20,8 @@
 <link href="navigation.html" rel="prev" title="navigation">
 <style type="text/css">
 <!--
+a.copiable-link {visibility: hidden; text-decoration: none; line-height: 0em}
+span:hover a.copiable-link {visibility: visible}
 ul.mark-bullet {list-style-type: disc}
 -->
 </style>
@@ -34,7 +36,7 @@ ul.mark-bullet {list-style-type: disc}
 Next: <a href="render.html" accesskey="n" rel="next">Rendering</a>, Previous: <a href="navigation.html" accesskey="p" rel="prev">Navigation</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<h2 class="chapter" id="External-data">7 External data</h2>
+<h2 class="chapter" id="External-data"><span>7 External data<a class="copiable-link" href="#External-data"> &para;</a></span></h2>
 
 <p>The <code class="code">LOAD</code> instruction enables the client implementer to define external data retrieval and processing code.
 </p>
@@ -54,7 +56,7 @@ Next: <a href="render.html" accesskey="n" rel="next">Rendering</a>, Previous: <a
 <li><a href="#Refreshing-cache-contents" accesskey="4">Refreshing cache contents</a></li>
 </ul>
 <div class="section-level-extent" id="The-LOAD-handler">
-<h3 class="section">7.1 The <code class="code">LOAD</code> handler</h3>
+<h3 class="section"><span>7.1 The <code class="code">LOAD</code> handler<a class="copiable-link" href="#The-LOAD-handler"> &para;</a></span></h3>
 
 <p>In the <em class="emph">golang</em> code, the handler of the <code class="code">LOAD</code> instruction is an implementation of the <code class="code">resource.Resource</code> interface.
 </p>
@@ -72,7 +74,7 @@ Next: <a href="render.html" accesskey="n" rel="next">Rendering</a>, Previous: <a
 
 </div>
 <div class="section-level-extent" id="Size-limits">
-<h3 class="section">7.2 Size limits</h3>
+<h3 class="section"><span>7.2 Size limits<a class="copiable-link" href="#Size-limits"> &para;</a></span></h3>
 
 <p><code class="code">LOAD</code> instructions include a size parameter.
 </p>
@@ -85,7 +87,7 @@ Next: <a href="render.html" accesskey="n" rel="next">Rendering</a>, Previous: <a
 <li><a href="#g_t_0022Sink_0022-symbols" accesskey="1">&quot;Sink&quot; symbols</a></li>
 </ul>
 <div class="subsection-level-extent" id="g_t_0022Sink_0022-symbols">
-<h4 class="subsection">7.2.1 &quot;Sink&quot; symbols</h4>
+<h4 class="subsection"><span>7.2.1 &quot;Sink&quot; symbols<a class="copiable-link" href="#g_t_0022Sink_0022-symbols"> &para;</a></span></h4>
 
 <p>A sink is a symbol loaded with <code class="code">size</code> parameter <code class="code">0</code>.
 </p>
@@ -95,7 +97,7 @@ Next: <a href="render.html" accesskey="n" rel="next">Rendering</a>, Previous: <a
 </div>
 </div>
 <div class="section-level-extent" id="Scope">
-<h3 class="section">7.3 Scope</h3>
+<h3 class="section"><span>7.3 Scope<a class="copiable-link" href="#Scope"> &para;</a></span></h3>
 
 <p>The result data payload is stored under the symbol key for which it was loaded. It is kept in the cache until execution ascends from the execution stack level in which it was loaded.
 </p>
@@ -106,7 +108,7 @@ Next: <a href="render.html" accesskey="n" rel="next">Rendering</a>, Previous: <a
 <li><a href="#Duplicate-LOAD" accesskey="1">Duplicate <code class="code">LOAD</code></a></li>
 </ul>
 <div class="subsection-level-extent" id="Duplicate-LOAD">
-<h4 class="subsection">7.3.1 Duplicate <code class="code">LOAD</code></h4>
+<h4 class="subsection"><span>7.3.1 Duplicate <code class="code">LOAD</code><a class="copiable-link" href="#Duplicate-LOAD"> &para;</a></span></h4>
 
 <p>If a <code class="code">LOAD</code> statement with the same symbol is issued twice within the same <em class="emph">scope</em>, it will fail and execution will terminate.
 </p>
@@ -120,7 +122,7 @@ Next: <a href="render.html" accesskey="n" rel="next">Rendering</a>, Previous: <a
 </div>
 </div>
 <div class="section-level-extent" id="Refreshing-cache-contents">
-<h3 class="section">7.4 Refreshing cache contents</h3>
+<h3 class="section"><span>7.4 Refreshing cache contents<a class="copiable-link" href="#Refreshing-cache-contents"> &para;</a></span></h3>
 
 <p>The <code class="code">RELOAD</code> instruction will trigger the <code class="code">LOAD</code> handler again. The <code class="code">RELOAD</code> instruction is bound to the same size constraint as the initial <code class="code">LOAD</code>.
 </p>

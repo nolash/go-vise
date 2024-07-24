@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<!-- Created by GNU Texinfo 7.0.2, https://www.gnu.org/software/texinfo/ -->
+<!-- Created by GNU Texinfo 7.1, https://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <!-- Released 2023 under AGPL3 -->
@@ -19,7 +19,9 @@
 <link href="cookbook.html" rel="prev" title="cookbook">
 <style type="text/css">
 <!--
+a.copiable-link {visibility: hidden; text-decoration: none; line-height: 0em}
 div.example {margin-left: 3.2em}
+span:hover a.copiable-link {visibility: visible}
 ul.mark-bullet {list-style-type: disc}
 -->
 </style>
@@ -34,7 +36,7 @@ ul.mark-bullet {list-style-type: disc}
 Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, Up: <a href="index.html" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
 </div>
 <hr>
-<h2 class="chapter" id="Developing-with-vise">11 Developing with vise</h2>
+<h2 class="chapter" id="Developing-with-vise"><span>11 Developing with vise<a class="copiable-link" href="#Developing-with-vise"> &para;</a></span></h2>
 
 
 <ul class="mini-toc">
@@ -47,7 +49,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 <li><a href="#Bytecode-example" accesskey="7">Bytecode example</a></li>
 </ul>
 <div class="section-level-extent" id="Code-repository-structure">
-<h3 class="section">11.1 Code repository structure</h3>
+<h3 class="section"><span>11.1 Code repository structure<a class="copiable-link" href="#Code-repository-structure"> &para;</a></span></h3>
 
 <dl class="table">
 <dt><code class="code">asm</code></dt>
@@ -85,7 +87,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="section-level-extent" id="Interacting-with-vise">
-<h3 class="section">11.2 Interacting with <code class="code">vise</code></h3>
+<h3 class="section"><span>11.2 Interacting with <code class="code">vise</code><a class="copiable-link" href="#Interacting-with-vise"> &para;</a></span></h3>
 
 <p>Implementers of <code class="code">vise</code> should interface with the system using the <code class="code">engine</code> module.
 </p>
@@ -99,7 +101,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 <li><a href="#Execution-context" accesskey="4">Execution context</a></li>
 </ul>
 <div class="subsection-level-extent" id="Modes-of-operation">
-<h4 class="subsection">11.2.1 Modes of operation</h4>
+<h4 class="subsection"><span>11.2.1 Modes of operation<a class="copiable-link" href="#Modes-of-operation"> &para;</a></span></h4>
 
 <p>The <code class="code">engine</code> module provides three different modes of operation for the engine implementations.
 </p>
@@ -110,7 +112,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 <li><a href="#Asynchronous-one_002dshot" accesskey="3">Asynchronous one-shot</a></li>
 </ul>
 <div class="subsubsection-level-extent" id="Manual-operation">
-<h4 class="subsubsection">11.2.1.1 Manual operation</h4>
+<h4 class="subsubsection"><span>11.2.1.1 Manual operation<a class="copiable-link" href="#Manual-operation"> &para;</a></span></h4>
 
 <p>Directly interaction with an <code class="code">engine.Engine</code> instance.
 </p>
@@ -123,7 +125,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsubsection-level-extent" id="Synchronous-loop">
-<h4 class="subsubsection">11.2.1.2 Synchronous loop</h4>
+<h4 class="subsubsection"><span>11.2.1.2 Synchronous loop<a class="copiable-link" href="#Synchronous-loop"> &para;</a></span></h4>
 
 <p>Receives input from a reader and writes into to a writer, and executes the underlying <code class="code">engine.Engine</code> with given inputs until execution is terminated.
 </p>
@@ -134,7 +136,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsubsection-level-extent" id="Asynchronous-one_002dshot">
-<h4 class="subsubsection">11.2.1.3 Asynchronous one-shot</h4>
+<h4 class="subsubsection"><span>11.2.1.3 Asynchronous one-shot<a class="copiable-link" href="#Asynchronous-one_002dshot"> &para;</a></span></h4>
 
 <p>Compatible with e.g. a network socket or HTTP frontend. The <code class="code">engine.RunPersisted</code> method restores a persisted state and runs one single input until VM yield after which the new state is persisted.
 </p>
@@ -144,7 +146,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 </div>
 </div>
 <div class="subsection-level-extent" id="Configuration">
-<h4 class="subsection">11.2.2 Configuration</h4>
+<h4 class="subsection"><span>11.2.2 Configuration<a class="copiable-link" href="#Configuration"> &para;</a></span></h4>
 
 <p>The engine configuration defines the top-level parameters for the execution environment, including maximum output size, default language, execution entry point and more.
 </p>
@@ -153,7 +155,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsection-level-extent" id="Sessions">
-<h4 class="subsection">11.2.3 Sessions</h4>
+<h4 class="subsection"><span>11.2.3 Sessions<a class="copiable-link" href="#Sessions"> &para;</a></span></h4>
 
 <p>The <code class="code">engine.Config.SessionId</code> is used to disambiguate the end-user that is interacting with the engine.
 </p>
@@ -162,7 +164,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 <a class="anchor" id="execution_005fcontext"></a></div>
 <div class="subsection-level-extent" id="Execution-context">
-<h4 class="subsection">11.2.4 Execution context</h4>
+<h4 class="subsection"><span>11.2.4 Execution context<a class="copiable-link" href="#Execution-context"> &para;</a></span></h4>
 
 <p>The engine stores the <code class="code">SessionId</code> aswell as the current chosen <code class="code">lang.Language</code> in the execution context. This is passed through to the VM operation, and is available for client code, specifically:
 </p>
@@ -176,7 +178,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 </div>
 </div>
 <div class="section-level-extent" id="Resolving-resources">
-<h3 class="section">11.3 Resolving resources</h3>
+<h3 class="section"><span>11.3 Resolving resources<a class="copiable-link" href="#Resolving-resources"> &para;</a></span></h3>
 
 <p>The core of implementation code is defined by implementing the <code class="code">resource.Resource</code> interface. This is also described in the <a class="ref" href="cache.html#load_005fhandler">LOAD handler</a> section.
 </p>
@@ -187,7 +189,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 <li><a href="#Filesystem-resource-implementation" accesskey="2">Filesystem resource implementation</a></li>
 </ul>
 <div class="subsection-level-extent" id="Memory-resource-implementation">
-<h4 class="subsection">11.3.1 Memory resource implementation</h4>
+<h4 class="subsection"><span>11.3.1 Memory resource implementation<a class="copiable-link" href="#Memory-resource-implementation"> &para;</a></span></h4>
 
 <p>One of two reference implementations of <code class="code">resource.Resource</code> is the <code class="code">resource.MemResource</code> class. It enables the client to register all node and symbol resolutions at runtime, using its functions prefixed with <code class="code">Add...</code>. 
 </p>
@@ -196,7 +198,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsection-level-extent" id="Filesystem-resource-implementation">
-<h4 class="subsection">11.3.2 Filesystem resource implementation</h4>
+<h4 class="subsection"><span>11.3.2 Filesystem resource implementation<a class="copiable-link" href="#Filesystem-resource-implementation"> &para;</a></span></h4>
 
 <p>The Filesystem based resource implemementation is used by the <code class="code">dev/interactive</code> tool, aswell as the executable examples in <samp class="file">examples/</samp> directory.
 </p>
@@ -210,14 +212,14 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 <li><a href="#External-symbols-_0028resource_002eResource_002eFuncFor_0029" accesskey="4">External symbols (<code class="code">resource.Resource.FuncFor</code>)</a></li>
 </ul>
 <div class="subsubsection-level-extent" id="Bytecode-_0028resource_002eResource_002eGetCode_0029">
-<h4 class="subsubsection">11.3.2.1 Bytecode (<code class="code">resource.Resource.GetCode</code>)</h4>
+<h4 class="subsubsection"><span>11.3.2.1 Bytecode (<code class="code">resource.Resource.GetCode</code>)<a class="copiable-link" href="#Bytecode-_0028resource_002eResource_002eGetCode_0029"> &para;</a></span></h4>
 
 <p>Read from <samp class="file">basedir/&lt;node&gt;.bin</samp>.
 </p>
 
 </div>
 <div class="subsubsection-level-extent" id="Templates-_0028resource_002eResource_002eGetTemplate_0029">
-<h4 class="subsubsection">11.3.2.2 Templates (<code class="code">resource.Resource.GetTemplate</code>)</h4>
+<h4 class="subsubsection"><span>11.3.2.2 Templates (<code class="code">resource.Resource.GetTemplate</code>)<a class="copiable-link" href="#Templates-_0028resource_002eResource_002eGetTemplate_0029"> &para;</a></span></h4>
 
 <p>If language has been set, the template will be read from <samp class="file">basedir/&lt;node&gt;_&lt;lang&gt;</samp>. For example, the <em class="emph">norwegian</em> template for the node <code class="code">root</code> will be read from <samp class="file">basedir/root_nor</samp>.
 </p>
@@ -228,7 +230,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsubsection-level-extent" id="Menus-_0028resource_002eResource_002eGetMenu_0029">
-<h4 class="subsubsection">11.3.2.3 Menus (<code class="code">resource.Resource.GetMenu</code>)</h4>
+<h4 class="subsubsection"><span>11.3.2.3 Menus (<code class="code">resource.Resource.GetMenu</code>)<a class="copiable-link" href="#Menus-_0028resource_002eResource_002eGetMenu_0029"> &para;</a></span></h4>
 
 <p>If language has been set, the template will be read from <samp class="file">basedir/&lt;label&gt;_&lt;lang&gt;_menu</samp>. For example, the <em class="emph">norwegian</em> template for the menu label <code class="code">foo</code> will be read from <samp class="file">basedir/foo_nor_menu</samp>.
 </p>
@@ -239,7 +241,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsubsection-level-extent" id="External-symbols-_0028resource_002eResource_002eFuncFor_0029">
-<h4 class="subsubsection">11.3.2.4 External symbols (<code class="code">resource.Resource.FuncFor</code>)</h4>
+<h4 class="subsubsection"><span>11.3.2.4 External symbols (<code class="code">resource.Resource.FuncFor</code>)<a class="copiable-link" href="#External-symbols-_0028resource_002eResource_002eFuncFor_0029"> &para;</a></span></h4>
 
 <p>The implementation allows setting resolver functions for symbols at runtime, using the <code class="code">resource.FsResource.AddLocalFunc</code> method. This registers an <code class="code">resource.FsResource.EntryFunc</code> with the lookup symbol as key. Note that the <code class="code">EntryFunc</code> receives the language setting through the execution context.
 </p>
@@ -256,7 +258,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 </div>
 </div>
 <div class="section-level-extent" id="Logging">
-<h3 class="section">11.4 Logging</h3>
+<h3 class="section"><span>11.4 Logging<a class="copiable-link" href="#Logging"> &para;</a></span></h3>
 
 <p>Loglevels are set at compile-time using the following build tags:
 </p>
@@ -278,7 +280,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="section-level-extent" id="Tools">
-<h3 class="section">11.5 Tools</h3>
+<h3 class="section"><span>11.5 Tools<a class="copiable-link" href="#Tools"> &para;</a></span></h3>
 
 <p>Located in the <samp class="file">dev/</samp> directory of the source code repository. 
 </p>
@@ -291,7 +293,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 <li><a href="#Interactive-case-examples" accesskey="5">Interactive case examples</a></li>
 </ul>
 <div class="subsection-level-extent" id="Test-data-generation">
-<h4 class="subsection">11.5.1 Test data generation</h4>
+<h4 class="subsection"><span>11.5.1 Test data generation<a class="copiable-link" href="#Test-data-generation"> &para;</a></span></h4>
 
 <div class="example">
 <pre class="example-preformatted">go run ./dev/gendata/ &lt;directory&gt;
@@ -302,7 +304,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsection-level-extent" id="Interactive-runner">
-<h4 class="subsection">11.5.2 Interactive runner</h4>
+<h4 class="subsection"><span>11.5.2 Interactive runner<a class="copiable-link" href="#Interactive-runner"> &para;</a></span></h4>
 
 <div class="example">
 <pre class="example-preformatted">go run ./dev/interactive [-d &lt;data_directory&gt;] [--root &lt;root_symbol&gt;] [--session-id &lt;session_id&gt;] [--persist]
@@ -323,7 +325,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsection-level-extent" id="Assembler">
-<h4 class="subsection">11.5.3 Assembler</h4>
+<h4 class="subsection"><span>11.5.3 Assembler<a class="copiable-link" href="#Assembler"> &para;</a></span></h4>
 
 <div class="example">
 <pre class="example-preformatted">go run ./dev/asm &lt;assembly_file&gt;
@@ -334,7 +336,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsection-level-extent" id="Disassembler">
-<h4 class="subsection">11.5.4 Disassembler</h4>
+<h4 class="subsection"><span>11.5.4 Disassembler<a class="copiable-link" href="#Disassembler"> &para;</a></span></h4>
 
 <div class="example">
 <pre class="example-preformatted">go run ./dev/disasm/ &lt;binary_file&gt;
@@ -345,7 +347,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 
 </div>
 <div class="subsection-level-extent" id="Interactive-case-examples">
-<h4 class="subsection">11.5.5 Interactive case examples</h4>
+<h4 class="subsection"><span>11.5.5 Interactive case examples<a class="copiable-link" href="#Interactive-case-examples"> &para;</a></span></h4>
 
 <p>Found in <samp class="file">examples/</samp>.
 </p>
@@ -386,14 +388,14 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 </div>
 </div>
 <div class="section-level-extent" id="Assembly-examples">
-<h3 class="section">11.6 Assembly examples</h3>
+<h3 class="section"><span>11.6 Assembly examples<a class="copiable-link" href="#Assembly-examples"> &para;</a></span></h3>
 
 <p>See <samp class="file">testdata/*.vis</samp>
 </p>
 
 </div>
 <div class="section-level-extent" id="Bytecode-example">
-<h3 class="section">11.7 Bytecode example</h3>
+<h3 class="section"><span>11.7 Bytecode example<a class="copiable-link" href="#Bytecode-example"> &para;</a></span></h3>
 
 <p>Currently the following rules apply for encoding in version <code class="code">0</code>:
 </p>
@@ -409,7 +411,7 @@ Previous: <a href="cookbook.html" accesskey="p" rel="prev">Common patterns</a>, 
 <li><a href="#Example" accesskey="1">Example</a></li>
 </ul>
 <div class="subsection-level-extent" id="Example">
-<h4 class="subsection">11.7.1 Example</h4>
+<h4 class="subsection"><span>11.7.1 Example<a class="copiable-link" href="#Example"> &para;</a></span></h4>
 
 <p>(Minimal, WIP)
 </p>

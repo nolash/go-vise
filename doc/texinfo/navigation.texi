@@ -64,7 +64,7 @@ Uncaught exceptions in the code flow that should not halt execution are routed t
 
 Consider the following navigation example, illustrating the state of the stack for each step after execution.
 
-@multitable .25 .65 .10
+@multitable @columnfractions .25 .65 .10
 @headitem instruction
 @tab stack
 @tab page index
