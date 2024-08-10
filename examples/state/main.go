@@ -56,7 +56,6 @@ func (fsd *fsData) poke(ctx context.Context, sym string, input []byte) (resource
 	if len(res.FlagSet) == 0 {
 		res.FlagSet = append(res.FlagSet, 8)
 	}
-	res.FlagSet = append(res.FlagSet, state.FLAG_DIRTY)
 	res.Content = string(r)
 	return res, nil
 }
