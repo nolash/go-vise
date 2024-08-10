@@ -24,7 +24,22 @@ const (
 
 type fsData struct {
 	path string
-	state *state.State
+	persister persist.Persister
+}
+
+func (fsd *fsData) peek(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	res := resource.Result{}
+	fp := fsd.path + "_data"
+	f, err := os.Open(fp)
+	if err != nil {
+		return res, err
+	}
+	r, err := ioutil.ReadAll(f)
+	if err != nil {
+		return res, err
+	}
+	res.Content = string(r)
+	return res, nil
 }
 
 func (fsd *fsData) poke(ctx context.Context, sym string, input []byte) (resource.Result, error) {
@@ -36,18 +51,13 @@ func (fsd *fsData) poke(ctx context.Context, sym string, input []byte) (resource
 	}
 	f.Write([]byte("*"))
 	f.Close()
-	f, err = os.Open(fp)
-	if err != nil {
-		return res, err
-	}
-	r, err := ioutil.ReadAll(f)
-	if err != nil {
-		return res, err
-	}
-	st := fsd.state
+
+	st := fsd.persister.GetState()
 	for i := 8; i < 12; i++ {
 		v := uint32(i)
+		engine.Logg.DebugCtxf(ctx, "checking flag", "flag", v)
 		if st.MatchFlag(v, true) {
+			engine.Logg.DebugCtxf(ctx, "match on flag", "flag", v)
 			res.FlagReset = append(res.FlagReset, v)
 			res.FlagSet = append(res.FlagSet, v + 1)
 			break
@@ -56,7 +66,6 @@ func (fsd *fsData) poke(ctx context.Context, sym string, input []byte) (resource
 	if len(res.FlagSet) == 0 {
 		res.FlagSet = append(res.FlagSet, 8)
 	}
-	res.Content = string(r)
 	return res, nil
 }
 
@@ -103,9 +112,10 @@ func main() {
 	fp := path.Join(dp, sessionId)
 	aux := &fsData{
 		path: fp,
-		state: &st,
+		persister: pr,
 	}
-	rs.AddLocalFunc("count", aux.poke)
+	rs.AddLocalFunc("poke", aux.poke)
+	rs.AddLocalFunc("peek", aux.peek)
 
 	cont, err := en.Init(ctx)
 	if err != nil {
@@ -118,6 +128,9 @@ func main() {
 			fmt.Fprintf(os.Stderr, "dead init write error: %v\n", err)
 			os.Exit(1)
 		}
+		stnew := pr.GetState()
+		stnew.ResetFlag(state.FLAG_TERMINATE)
+		stnew.Up()
 		err = en.Finish()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "engine finish error: %v\n", err)

@@ -183,6 +183,25 @@ func parseSized(b *bytes.Buffer, arg Arg) (int, error) {
 	return rn, nil
 }
 
+func parseFlagged(b *bytes.Buffer, arg Arg) (int, error) {
+	var rn int
+
+	n, err := writeSize(b, *arg.Size)
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	n, err = b.Write([]byte{uint8(*arg.Flag)})
+	rn += n
+	if err != nil {
+		return rn, err
+	}
+
+	return rn, nil
+
+}
+
 func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) {
 	a := instruction.OpArg
 	var n_buf int
@@ -226,25 +245,33 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 	// Catch CATCH, LOAD and twosyms with integer-as-string
 	if a.Size != nil {
 		log.Printf("have size %v", instruction)
-		if a.Flag != nil {
-			n, err := parseSig(b, a)
-			n_buf += n
-			if err != nil {
-				return n_out, err
-			}
-		} else if op == vm.LOAD {
-			n, err := parseSized(b, a)
+		if a.Sym == nil {
+			n, err := parseFlagged(b, a)
 			n_buf += n
 			if err != nil {
 				return n_out, err
 			}
 		} else {
-			n, err := parseTwoSym(b, a)
-			n_buf += n
-			if err != nil {
-				return n_out, err
-			}
+			if a.Flag != nil {
+				n, err := parseSig(b, a)
+				n_buf += n
+				if err != nil {
+					return n_out, err
+				}
+			} else if op == vm.LOAD {
+				n, err := parseSized(b, a)
+				n_buf += n
+				if err != nil {
+					return n_out, err
+				}
+			} else {
+				n, err := parseTwoSym(b, a)
+				n_buf += n
+				if err != nil {
+					return n_out, err
+				}
 
+			}
 		}
 		return flush(b, w)
 	}

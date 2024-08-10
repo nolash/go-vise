@@ -1,6 +1,3 @@
 CATCH complete 11 1
-LOAD count 0
-RELOAD count
-MAP count
-HALT
-INCMP ^ *
+LOAD poke 0
+CROAK 11 0

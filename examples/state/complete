@@ -1,1 +1,1 @@
-done!
+yes: {{.peek}}

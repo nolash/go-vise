@@ -1,1 +1,3 @@
+LOAD peek 0
+MAP peek
 HALT
