@@ -19,6 +19,7 @@ func newFlagDebugger() flagDebugger {
 	fd.register(FLAG_DIRTY, "INTERNAL_DIRTY")
 	fd.register(FLAG_WAIT, "INTERNAL_WAIT")
 	fd.register(FLAG_LOADFAIL, "INTERNAL_LOADFAIL")
+	fd.register(FLAG_LANG, "INTERNAL_LANG")
 	return fd
 }
 
@@ -35,6 +36,10 @@ func(fd *flagDebugger) Register(flag uint32, name string) error {
 }
 
 func(fd *flagDebugger) AsString(flags []byte, length uint32) string {
+	return strings.Join(fd.AsList(flags, length), ",")
+}
+
+func(fd *flagDebugger) AsList(flags []byte, length uint32) []string {
 	var r []string
 	var i uint32
 	for i = 0; i < length + 8; i++ {
@@ -43,7 +48,7 @@ func(fd *flagDebugger) AsString(flags []byte, length uint32) string {
 			r = append(r, s)
 		}
 	}
-	return strings.Join(r, ",")
+	return r
 }
 
 var (
