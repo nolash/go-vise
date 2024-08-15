@@ -59,7 +59,8 @@ func main() {
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
-	st := state.NewState(0).WithDebug()
+	st := state.NewState(0)
+	st.UseDebug()
 	rs := resource.NewFsResource(scriptDir)
 	rs.AddLocalFunc("do_save", save)
 	ca := cache.NewCache()

@@ -39,7 +39,6 @@ func(l *langController) lang(ctx context.Context, sym string, input []byte) (res
 	}
 	rs.Content = lang
 	rs.FlagSet = append(rs.FlagSet, state.FLAG_LANG)
-	fmt.Fprintf(os.Stderr, "langcontroller flag %x resource %v\n", l.State.Flags, rs)
 	return rs, nil
 }
 

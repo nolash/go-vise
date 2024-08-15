@@ -68,7 +68,8 @@ func main() {
 	root := "root"
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
-	st := state.NewState(3).WithDebug()
+	st := state.NewState(3)
+	st.UseDebug()
 	rs := resource.NewFsResource(scriptDir)
 	ca := cache.NewCache()
 	cfg := engine.Config{
