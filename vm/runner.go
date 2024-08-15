@@ -265,7 +265,7 @@ func(vm *Vm) runCroak(ctx context.Context, b []byte) ([]byte, error) {
 	}
 	r := vm.st.MatchFlag(sig, mode)
 	if r {
-		Logg.InfoCtxf(ctx, "croak at flag %v, purging and moving to top", "signal", sig)
+		Logg.InfoCtxf(ctx, "croak! purging and moving to top", "signal", sig)
 		vm.Reset()
 		vm.pg.Reset()
 		vm.ca.Reset()

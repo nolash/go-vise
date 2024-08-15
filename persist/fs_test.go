@@ -102,3 +102,29 @@ func TestSaveLoad(t *testing.T) {
 		t.Fatalf("expected %v, got %v", prnew.Memory, pr.Memory)
 	}
 }
+
+func TestSaveLoadFlags(t *testing.T) {
+	st := state.NewState(2)
+	st.SetFlag(8)
+	ca := cache.NewCache()
+
+	dir, err := ioutil.TempDir("", "vise_persist")
+	if err != nil {
+		t.Error(err)
+	}
+	pr := NewFsPersister(dir).WithContent(&st, ca)
+	err = pr.Save("xyzzy")
+	if err != nil {
+		t.Error(err)
+	}
+
+	prnew := NewFsPersister(dir)
+	err = prnew.Load("xyzzy")
+	if err != nil {
+		t.Error(err)
+	}
+	stnew := prnew.GetState()
+	if !stnew.GetFlag(8) {
+		t.Fatalf("expected flag 8 set")
+	}
+}

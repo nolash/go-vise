@@ -106,11 +106,13 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 	if sym == "" {
 		return false, fmt.Errorf("start sym empty")
 	}
+
 	inSave, _ := en.st.GetInput()
 	err := en.st.SetInput([]byte{})
 	if err != nil {
 		return false, err
 	}
+
 	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
 	Logg.DebugCtxf(ctx, "start new init VM run", "code", b)
 	b, err = en.vm.Run(ctx, b)
