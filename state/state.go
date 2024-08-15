@@ -75,9 +75,8 @@ func NewState(BitSize uint32) State {
 	return st
 }
 
-func(st State) WithDebug() State {
+func(st *State) UseDebug() {
 	st.debug = true
-	return st
 }
 
 // SetFlag sets the flag at the given bit field index

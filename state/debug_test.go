@@ -38,7 +38,8 @@ func TestDebugState(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	st := NewState(1).WithDebug()
+	st := NewState(1)
+	st.UseDebug()
 	st.SetFlag(FLAG_DIRTY)
 	st.SetFlag(8)
 	st.Down("root")

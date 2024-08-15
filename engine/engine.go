@@ -87,7 +87,7 @@ func(en *Engine) restore() {
 		return
 	}
 	if en.root != location {
-		Logg.Infof("restoring state: %s", location)
+		Logg.Infof("restoring state", "sym", location)
 		en.root = "."
 	}
 }
@@ -232,5 +232,5 @@ func(en *Engine) reset(ctx context.Context) (bool, error) {
 	}
 	en.st.Restart()
 	en.initd = false
-	return en.Init(ctx)
+	return false, nil
 }

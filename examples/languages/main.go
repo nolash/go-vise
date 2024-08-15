@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	USERFLAG_HAVESOMETHING = iota + state.FLAG_USERSTART
+	USERFLAG_FLIP = iota + state.FLAG_USERSTART
 )
 
 var (
@@ -24,17 +24,30 @@ var (
 	scriptDir = path.Join(baseDir, "examples", "languages")
 )
 
-func lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
-	return resource.Result{
-		Content: "nor",
-		FlagSet: []uint32{state.FLAG_LANG},
-	}, nil
+type langController struct {
+	State *state.State
+}
+
+func(l *langController) lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	lang := "nor"
+	var rs resource.Result
+	if l.State.MatchFlag(USERFLAG_FLIP, true) {
+		lang = "eng"
+		rs.FlagReset = append(rs.FlagReset, USERFLAG_FLIP)
+	} else {
+		rs.FlagSet = append(rs.FlagSet, USERFLAG_FLIP)
+	}
+	rs.Content = lang
+	rs.FlagSet = append(rs.FlagSet, state.FLAG_LANG)
+	fmt.Fprintf(os.Stderr, "langcontroller flag %x resource %v\n", l.State.Flags, rs)
+	return rs, nil
 }
 
 func main() {
-	st := state.NewState(0)
+	st := state.NewState(1)
+	state.FlagDebugger.Register(USERFLAG_FLIP, "FLIP")
 	rs := resource.NewFsResource(scriptDir)
-	rs.AddLocalFunc("swaplang", lang)
+
 	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
@@ -60,6 +73,12 @@ func main() {
 		}
 		en, err = engine.NewPersistedEngine(ctx, cfg, pr, rs)
 	}
+	pr.State.UseDebug()
+
+	aux := &langController{
+		State: pr.State,
+	}
+	rs.AddLocalFunc("swaplang", aux.lang)
 
 	_, err = en.Init(ctx)
 	if err != nil {

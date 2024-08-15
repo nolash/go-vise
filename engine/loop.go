@@ -19,12 +19,13 @@ import (
 // Rendered output is written to the provided writer.
 func Loop(ctx context.Context, en EngineIsh, reader io.Reader, writer io.Writer) error {
 	defer en.Finish()
-	var err error
-	_, err = en.WriteResult(ctx, writer)
+	l, err := en.WriteResult(ctx, writer)
 	if err != nil {
 		return err
 	}
-	writer.Write([]byte{0x0a})
+	if l > 0 {
+		writer.Write([]byte{0x0a})
+	}
 
 	running := true
 	bufReader := bufio.NewReader(reader)
@@ -42,12 +43,13 @@ func Loop(ctx context.Context, en EngineIsh, reader io.Reader, writer io.Writer)
 		if err != nil {
 			return fmt.Errorf("unexpected termination: %v\n", err)
 		}
-		_, err = en.WriteResult(ctx, writer)
+		l, err := en.WriteResult(ctx, writer)
 		if err != nil {
 			return err
 		}
-		writer.Write([]byte{0x0a})
-
+		if l > 0 {
+			writer.Write([]byte{0x0a})
+		}
 	}
 	return nil
 }

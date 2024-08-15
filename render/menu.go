@@ -184,8 +184,7 @@ func(m *Menu) Render(ctx context.Context, idx uint16) (string, error) {
 	r := ""
 	for true {
 		l := len(r)
-		//choice, title, err := m.shiftMenu()
-		title, choice, err := m.shiftMenu()
+		choice, title, err := m.shiftMenu()
 		if err != nil {
 			break
 		}

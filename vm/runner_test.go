@@ -48,16 +48,16 @@ func NewTestResource(st *state.State) TestResource {
 	b = NewLine(nil, HALT, nil, nil, nil)
 	tr.AddBytecode("one", b)
 
-	b = NewLine(nil, MOUT, []string{"0", "repent"}, nil, nil)
+	b = NewLine(nil, MOUT, []string{"repent", "0"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	tr.AddBytecode("_catch", b)
 
-	b = NewLine(nil, MOUT, []string{"0", "repent"}, nil, nil)
+	b = NewLine(nil, MOUT, []string{"repent", "0"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	b = NewLine(b, MOVE, []string{"_"}, nil, nil)
 	tr.AddBytecode("flagCatch", b)
 
-	b = NewLine(nil, MOUT, []string{"1", "oo"}, nil, nil)
+	b = NewLine(nil, MOUT, []string{"oo", "1"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	tr.AddBytecode("ouf", b)
 	
@@ -155,16 +155,16 @@ func(r TestResource) getCode(sym string) ([]byte, error) {
 	var b []byte
 	switch sym {
 	case "_catch":
-		b = NewLine(b, MOUT, []string{"0", "repent"}, nil, nil)
+		b = NewLine(b, MOUT, []string{"repent", "0"}, nil, nil)
 		b = NewLine(b, HALT, nil, nil, nil)
 	case "flagCatch":
-		b = NewLine(b, MOUT, []string{"0", "repent"}, nil, nil)
+		b = NewLine(b, MOUT, []string{"repent", "0"}, nil, nil)
 		b = NewLine(b, HALT, nil, nil, nil)
 		b = NewLine(b, MOVE, []string{"_"}, nil, nil)
 	case "root":
 		b = r.RootCode
 	case "ouf":
-		b = NewLine(b, MOUT, []string{"1", "oo"}, nil, nil)
+		b = NewLine(b, MOUT, []string{"oo", "1"}, nil, nil)
 		b = NewLine(b, HALT, nil, nil, nil)
 	}
 
@@ -420,8 +420,8 @@ func TestRunMenu(t *testing.T) {
 
 	rs.AddBytecode("foo", []byte{})
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
-	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
-	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
+	b = NewLine(b, MOUT, []string{"one", "0"}, nil, nil)
+	b = NewLine(b, MOUT, []string{"two", "1"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
 	b, err = vm.Run(ctx, b)
@@ -456,8 +456,8 @@ func TestRunMenuBrowse(t *testing.T) {
 
 	rs.AddBytecode("foo", []byte{})
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
-	b = NewLine(b, MOUT, []string{"0", "one"}, nil, nil)
-	b = NewLine(b, MOUT, []string{"1", "two"}, nil, nil)
+	b = NewLine(b, MOUT, []string{"one", "0"}, nil, nil)
+	b = NewLine(b, MOUT, []string{"two", "1"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
 	b, err = vm.Run(ctx, b)
@@ -703,7 +703,8 @@ func TestSetLang(t *testing.T) {
 }
 
 func TestLoadError(t *testing.T) {
-	st := state.NewState(0).WithDebug()
+	st := state.NewState(0)
+	st.UseDebug()
 	rs := NewTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
