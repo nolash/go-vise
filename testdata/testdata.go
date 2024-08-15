@@ -51,9 +51,9 @@ func out(sym string, b []byte, tpl string, data map[string]string) error {
 
 func root() error {
 	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"1", "do the foo"}, nil, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"2", "go to the bar"}, nil, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"3", "language template"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"do the foo", "1"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"go to the bar", "2"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"language template", "3"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"foo", "1"}, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"bar", "2"}, nil, nil)
@@ -66,9 +66,9 @@ func root() error {
 
 func foo() error {
 	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"0", "to foo"}, nil, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"1", "go bar"}, nil, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"2", "see long"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"to foo", "0"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"go bar", "1"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"see long", "2"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"inky"}, []byte{20}, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"_", "0"}, nil, nil)
@@ -111,9 +111,9 @@ func baz() error {
 
 func long() error {
 	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
-	b = vm.NewLine(b, vm.MNEXT, []string{"00", "nexxt"}, nil, nil)
-	b = vm.NewLine(b, vm.MPREV, []string{"11", "prevvv"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"back", "0"}, nil, nil)
+	b = vm.NewLine(b, vm.MNEXT, []string{"nexxt", "00"}, nil, nil)
+	b = vm.NewLine(b, vm.MPREV, []string{"prevvv", "11"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"longdata"}, []byte{0x00}, nil)
 	b = vm.NewLine(b, vm.MAP, []string{"longdata"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
@@ -140,7 +140,7 @@ POO 222
 
 func defaultCatch() error {
 	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"back", "0"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
 	b = vm.NewLine(b, vm.INCMP, []string{"_", "*"}, nil, nil)
 
@@ -151,7 +151,7 @@ func defaultCatch() error {
 
 func lang() error {
 	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"0", "back"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"back", "0"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"inky"}, []byte{20}, nil)
 	b = vm.NewLine(b, vm.MAP, []string{"inky"}, nil, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)

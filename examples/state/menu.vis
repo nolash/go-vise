@@ -1,0 +1,11 @@
+RELOAD states
+MAP states
+MOUT foo 0
+MOUT bar 1
+MOUT baz 2
+MOUT this_sucks_i_quit 99
+HALT
+INCMP foo 0
+INCMP bar 1
+INCMP baz 2
+INCMP quit *

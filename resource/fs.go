@@ -70,6 +70,7 @@ func(fsr FsResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	fp := path.Join(fsr.Path, sym + "_menu")
 	fpl := fp
 	v := ctx.Value("Language")
+	Logg.DebugCtxf(ctx, "getmenu", "lang", v, "path", fp)
 	if v != nil {
 		lang := v.(lang.Language)
 		fpl += "_" + lang.Code

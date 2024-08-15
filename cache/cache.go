@@ -5,11 +5,13 @@ import (
 )
 
 // Cache stores loaded content, enforcing size limits and keeping track of size usage.
+// TODO: hide values from client, while allowing cbor serialization
 type Cache struct {
 	CacheSize uint32 // Total allowed cumulative size of values (not code) in cache
 	CacheUseSize uint32 // Currently used bytes by all values (not code) in cache
 	Cache []map[string]string // All loaded cache items
 	Sizes map[string]uint16 // Size limits for all loaded symbols.
+	LastValue string // last inserted value
 }
 
 // NewCache creates a new ready-to-use cache object
@@ -63,6 +65,7 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	ca.Cache[len(ca.Cache)-1][key] = value
 	ca.CacheUseSize += sz
 	ca.Sizes[key] = sizeLimit
+	ca.LastValue = value
 	return nil
 }
 
@@ -168,6 +171,16 @@ func(ca *Cache) Check(key string) bool {
 	return ca.frameOf(key) == -1
 }
 
+// Last returns the last inserted value
+//
+// The stored last inserter value will be reset to an empty string
+// TODO: needs to be invalidated when out of scope
+func(ca *Cache) Last() string {
+	s := ca.LastValue
+	ca.LastValue = ""
+	return s
+}
+
 // bytes that will be added to cache use size for string
 // returns 0 if capacity would be exceeded
 func(ca *Cache) checkCapacity(v string) uint32 {
@@ -191,4 +204,16 @@ func(ca *Cache) frameOf(key string) int {
 		}
 	}
 	return -1
+}
+
+func(ca *Cache) Levels() uint32 {
+	return uint32(len(ca.Cache))
+}
+
+func(ca *Cache) Keys(level uint32) []string {
+	var r []string
+	for k := range ca.Cache[level] {
+		r = append(r, k)
+	}
+	return r
 }

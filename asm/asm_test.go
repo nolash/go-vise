@@ -338,6 +338,16 @@ func TestParseSig(t *testing.T) {
 	}
 }
 
+func TestParseCroak(t *testing.T) {
+	b := bytes.NewBuffer(nil)
+	s := "CROAK 2 1\n"
+	Parse(s, b)
+	expect := vm.NewLine(nil, vm.CROAK, nil, []byte{0x02}, []uint8{0x1})
+	if !bytes.Equal(b.Bytes(), expect) {
+		t.Fatalf("expected %x, got %x", expect, b)
+	}
+}
+
 func TestParseNoarg(t *testing.T) {
 	var b []byte
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)

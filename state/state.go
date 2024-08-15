@@ -75,9 +75,8 @@ func NewState(BitSize uint32) State {
 	return st
 }
 
-func(st State) WithDebug() State {
+func(st *State) UseDebug() {
 	st.debug = true
-	return st
 }
 
 // SetFlag sets the flag at the given bit field index
@@ -145,7 +144,7 @@ func(st *State) FlagByteSize() uint8 {
 //
 // The flag is specified given its bit index in the bit field.
 //
-// If invertMatch is set, a positive result will be returned if the flag is not set.
+// If matchSet is not set, a positive result will be returned if the flag is not set.
 func(st *State) MatchFlag(sig uint32, matchSet bool) bool {
 	r := st.GetFlag(sig)
 	return matchSet == r
