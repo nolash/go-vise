@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 
@@ -32,7 +31,7 @@ func save(ctx context.Context, sym string, input []byte) (resource.Result, error
 	}
 	fp := path.Join(sessionDir, "data.txt")
 	if len(input) > 0 {
-		log.Printf("write data %s session %s", input, sessionId)
+		engine.Logg.Debugf("write data %s session %s", input, sessionId)
 		err = ioutil.WriteFile(fp, input, 0600)
 		if err != nil {
 			return emptyResult, err
@@ -60,7 +59,7 @@ func main() {
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
-	st := state.NewState(0)
+	st := state.NewState(0).WithDebug()
 	rs := resource.NewFsResource(scriptDir)
 	rs.AddLocalFunc("do_save", save)
 	ca := cache.NewCache()

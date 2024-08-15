@@ -192,3 +192,15 @@ func(ca *Cache) frameOf(key string) int {
 	}
 	return -1
 }
+
+func(ca *Cache) Levels() uint32 {
+	return uint32(len(ca.Cache))
+}
+
+func(ca *Cache) Keys(level uint32) []string {
+	var r []string
+	for k := range ca.Cache[level] {
+		r = append(r, k)
+	}
+	return r
+}

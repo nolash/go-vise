@@ -36,6 +36,7 @@ type Engine struct {
 	rs resource.Resource
 	ca cache.Memory
 	vm *vm.Vm
+	dbg Debug
 	root string
 	session string
 	initd bool
@@ -72,6 +73,10 @@ func NewEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Res
 		st.SetFlag(state.FLAG_LANG)
 	}
 	return engine
+}
+
+func (en *Engine) SetDebugger(debugger Debug) {
+	en.dbg = debugger
 }
 
 // Finish implements EngineIsh interface
@@ -193,6 +198,10 @@ func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
 		Logg.Infof("runner finished with no remaining code")
 		_, err = en.reset(ctx)
 		return false, err
+	}
+
+	if en.dbg != nil {
+		en.dbg.Break(en.st, en.ca)
 	}
 	return true, nil
 }
