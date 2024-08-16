@@ -172,9 +172,13 @@ func(ca *Cache) Check(key string) bool {
 }
 
 // Last returns the last inserted value
+//
+// The stored last inserter value will be reset to an empty string
 // TODO: needs to be invalidated when out of scope
 func(ca *Cache) Last() string {
-	return ca.LastValue
+	s := ca.LastValue
+	ca.LastValue = ""
+	return s
 }
 
 // bytes that will be added to cache use size for string
