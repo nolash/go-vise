@@ -11,4 +11,5 @@ type Memory interface {
 	Reset()
 	Levels() uint32
 	Keys(level uint32) []string
+	Last() string
 }

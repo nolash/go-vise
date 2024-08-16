@@ -40,6 +40,7 @@ type Engine struct {
 	root string
 	session string
 	initd bool
+	exit string
 }
 
 // NewEngine creates a new Engine
@@ -195,7 +196,11 @@ func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
 
 	en.st.SetCode(code)
 	if len(code) == 0 {
-		Logg.Infof("runner finished with no remaining code")
+		Logg.Infof("runner finished with no remaining code", "state", en.st)
+		if en.st.MatchFlag(state.FLAG_DIRTY, true) {
+			Logg.Debugf("have output for quitting")
+			en.exit = en.ca.Last()
+		}
 		_, err = en.reset(ctx)
 		return false, err
 	}
@@ -213,6 +218,7 @@ func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
 // - the template for the given node point is note available for retrieval using the resource.Resource implementer.
 // - the supplied writer fails to process the writes.
 func(en *Engine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
+	var l int
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}
@@ -221,7 +227,21 @@ func(en *Engine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	return io.WriteString(w, r)
+	if len(r) > 0 {
+		l, err = io.WriteString(w, r)
+		if err != nil {
+			return l, err
+		}
+	}
+	if len(en.exit) > 0 {
+		Logg.TraceCtxf(ctx, "have exit", "exit", en.exit)
+		n, err := io.WriteString(w, en.exit)
+		if err != nil {
+			return l, err
+		}
+		l += n
+	}
+	return l, nil
 }
 
 // start execution over at top node while keeping current state of client error flags.

@@ -144,7 +144,7 @@ func(st *State) FlagByteSize() uint8 {
 //
 // The flag is specified given its bit index in the bit field.
 //
-// If invertMatch is set, a positive result will be returned if the flag is not set.
+// If matchSet is not set, a positive result will be returned if the flag is not set.
 func(st *State) MatchFlag(sig uint32, matchSet bool) bool {
 	r := st.GetFlag(sig)
 	return matchSet == r
