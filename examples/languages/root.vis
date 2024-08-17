@@ -1,4 +1,2 @@
-MOUT swap 0
-HALT
-INCMP swaplang 0
-INCMP quit *
+LOAD msg 0
+MOVE first

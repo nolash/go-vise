@@ -1,0 +1,6 @@
+RELOAD msg
+MAP msg
+MOUT swap 0
+HALT
+INCMP swaplang 0
+INCMP quit *

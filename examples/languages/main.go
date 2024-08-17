@@ -9,6 +9,7 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/lang"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
@@ -40,6 +41,29 @@ func(l *langController) lang(ctx context.Context, sym string, input []byte) (res
 	rs.Content = lang
 	rs.FlagSet = append(rs.FlagSet, state.FLAG_LANG)
 	return rs, nil
+}
+
+func msg(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	var r resource.Result
+	var code string
+	engine.Logg.DebugCtxf(ctx, "in msg", "ctx", ctx, "val", code)
+	if ctx.Value("Language") != nil {
+		lang := ctx.Value("Language").(lang.Language)
+		code = lang.Code
+	}
+	switch code {
+	case "nor":
+		r.Content = "Denne meldingen er fra en ekstern funksjon"
+	default:
+		r.Content = "This message is from an external function"
+	}
+	return r, nil
+}
+
+func empty(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	return resource.Result{
+		Content: "",
+	}, nil
 }
 
 func main() {
@@ -78,6 +102,8 @@ func main() {
 		State: pr.State,
 	}
 	rs.AddLocalFunc("swaplang", aux.lang)
+	rs.AddLocalFunc("msg", msg)
+	rs.AddLocalFunc("empty", empty)
 
 	_, err = en.Init(ctx)
 	if err != nil {
