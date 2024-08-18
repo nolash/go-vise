@@ -7,6 +7,7 @@ import (
 	"path"
 
 	testdataloader "github.com/peteole/testdata-loader"
+	gotext "gopkg.in/leonelquinteros/gotext.v1"
 
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/lang"
@@ -23,9 +24,21 @@ const (
 var (
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "languages")
+	translationDir = path.Join(scriptDir, "locale")
 )
 
+func codeFromCtx(ctx context.Context) string {
+	var code string
+	engine.Logg.DebugCtxf(ctx, "in msg", "ctx", ctx, "val", code)
+	if ctx.Value("Language") != nil {
+		lang := ctx.Value("Language").(lang.Language)
+		code = lang.Code
+	}
+	return code
+}
+
 type langController struct {
+	translations map[string]gotext.Locale
 	State *state.State
 }
 
@@ -45,18 +58,22 @@ func(l *langController) lang(ctx context.Context, sym string, input []byte) (res
 
 func msg(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
-	var code string
-	engine.Logg.DebugCtxf(ctx, "in msg", "ctx", ctx, "val", code)
-	if ctx.Value("Language") != nil {
-		lang := ctx.Value("Language").(lang.Language)
-		code = lang.Code
-	}
-	switch code {
+	switch codeFromCtx(ctx)	{
 	case "nor":
 		r.Content = "Denne meldingen er fra en ekstern funksjon"
 	default:
 		r.Content = "This message is from an external function"
 	}
+	return r, nil
+}
+
+func(l *langController) moMsg(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	var r resource.Result
+	code := codeFromCtx(ctx)
+	o := gotext.NewLocale(translationDir, code)
+	o.AddDomain("default")	
+	r.Content = o.Get("This message is translated using gettext")
+	engine.Logg.DebugCtxf(ctx, "lang", "code", code, "translateor", o)
 	return r, nil
 }
 
@@ -103,6 +120,7 @@ func main() {
 	}
 	rs.AddLocalFunc("swaplang", aux.lang)
 	rs.AddLocalFunc("msg", msg)
+	rs.AddLocalFunc("momsg", aux.moMsg)
 	rs.AddLocalFunc("empty", empty)
 
 	_, err = en.Init(ctx)

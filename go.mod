@@ -9,4 +9,8 @@ require (
 	github.com/peteole/testdata-loader v0.3.0
 )
 
-require github.com/x448/float16 v0.8.4 // indirect
+require (
+	github.com/mattn/kinako v0.0.0-20170717041458-332c0a7e205a // indirect
+	github.com/x448/float16 v0.8.4 // indirect
+	gopkg.in/leonelquinteros/gotext.v1 v1.3.1 // indirect
+)

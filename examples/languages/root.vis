@@ -1,2 +1,3 @@
-LOAD msg 0
+LOAD msg 50
+LOAD momsg 0
 MOVE first
