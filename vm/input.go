@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	inputRegexStr = "^[a-zA-Z0-9].*$"
+	inputRegexStr = "^\\+?[a-zA-Z0-9].*$"
 	inputRegex = regexp.MustCompile(inputRegexStr)
 	ctrlRegexStr = "^[><_^.]$"
 	ctrlRegex = regexp.MustCompile(ctrlRegexStr)

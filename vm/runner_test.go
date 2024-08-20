@@ -670,11 +670,10 @@ func TestCatchCleanMenu(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r, err := vm.Render(ctx)
+	_, err = vm.Render(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("Result:\n%s", r)
 }
 
 func TestSetLang(t *testing.T) {
