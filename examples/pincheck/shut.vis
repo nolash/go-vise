@@ -1,4 +1,4 @@
-LOAD pincheck 0 
+LOAD pincheck 0
 CATCH continue 8 1
 MOUT cancel 0
 MAP pincheck

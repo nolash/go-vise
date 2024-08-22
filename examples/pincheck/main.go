@@ -18,7 +18,6 @@ import (
 
 const (
 	USERFLAG_VALIDPIN = iota + state.FLAG_USERSTART
-	USERFLAG_INVALIDPIN
 	USERFLAG_QUERYPIN
 )
 
@@ -45,7 +44,7 @@ func(rs *pinResource) pinCheck(ctx context.Context, sym string, input []byte) (r
 
 	if rs.st.MatchFlag(USERFLAG_QUERYPIN, false) {
 		r.Content = "Please enter PIN"
-		r.FlagReset = []uint32{USERFLAG_INVALIDPIN, USERFLAG_VALIDPIN}
+		r.FlagReset = []uint32{USERFLAG_VALIDPIN}
 		r.FlagSet = []uint32{USERFLAG_QUERYPIN}
 		return r, nil
 	}
@@ -53,7 +52,6 @@ func(rs *pinResource) pinCheck(ctx context.Context, sym string, input []byte) (r
 		r.FlagSet = []uint32{USERFLAG_VALIDPIN}
 		engine.Logg.DebugCtxf(ctx, "pin match", "state", rs.st, "rs", r.FlagSet, "rr", r.FlagReset)
 	} else {
-		r.FlagSet = []uint32{USERFLAG_INVALIDPIN}
 		r.Content = "Wrong PIN please try again"
 	}
 	return r, nil
@@ -61,7 +59,7 @@ func(rs *pinResource) pinCheck(ctx context.Context, sym string, input []byte) (r
 
 func(rs *pinResource) pinClear(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
-	r.FlagReset = []uint32{USERFLAG_INVALIDPIN, USERFLAG_VALIDPIN, USERFLAG_QUERYPIN}
+	r.FlagReset = []uint32{USERFLAG_VALIDPIN, USERFLAG_QUERYPIN}
 	return r, nil
 }
 
@@ -73,7 +71,6 @@ func main() {
 	st := state.NewState(3)
 	st.UseDebug()
 	state.FlagDebugger.Register(USERFLAG_VALIDPIN, "VALIDPIN")
-	state.FlagDebugger.Register(USERFLAG_INVALIDPIN, "INVALIDPIN")
 	state.FlagDebugger.Register(USERFLAG_QUERYPIN, "QUERYPIN")
 	rsf := resource.NewFsResource(scriptDir)
 	rs := newPinResource(rsf, &st)
