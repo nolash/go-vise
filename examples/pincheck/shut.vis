@@ -1,0 +1,7 @@
+LOAD pincheck 0
+CATCH continue 8 1
+MOUT cancel 0
+MAP pincheck
+HALT
+INCMP cancel 0
+INCMP check *
