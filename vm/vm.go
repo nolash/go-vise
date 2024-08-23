@@ -216,8 +216,8 @@ func instructionSplit(b []byte) (string, []byte, error) {
 	if sz == 0 {
 		return "", nil, fmt.Errorf("zero-length argument")
 	}
-	bSz := uint8(len(b))
-	if bSz < sz {
+	bSz := len(b)
+	if bSz < int(sz) {
 		return "", nil, fmt.Errorf("corrupt instruction, len %v less than symbol length: %v", bSz, sz)
 	}
 	r := string(b[1:1+sz])
