@@ -20,7 +20,6 @@ type arg struct {
 	One *string `(@Sym | @NumFirst)`
 	Two *string `((@Sym | @NumFirst) Whitespace?)?`
 	Three *string `((@Sym | @NumFirst) Whitespace?)?`
-	//Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
 }
 
 type instruction struct {
