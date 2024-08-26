@@ -1,0 +1,3 @@
+LOAD do_bar 0
+MAP do_bar
+HALT
