@@ -246,7 +246,7 @@ func(vm *Vm) runCatch(ctx context.Context, b []byte) ([]byte, error) {
 		if err != nil {
 			return b, err
 		}
-		Logg.InfoCtxf(ctx, "catch!", "flag", sig, "sym", sym, "target", actualSym)
+		Logg.InfoCtxf(ctx, "catch!", "flag", sig, "sym", sym, "target", actualSym, "mode", mode)
 		sym = actualSym
 		bh, err := vm.rs.GetCode(sym)
 		if err != nil {
@@ -270,7 +270,7 @@ func(vm *Vm) runCroak(ctx context.Context, b []byte) ([]byte, error) {
 		vm.ca.Reset()
 		b = []byte{}
 	}
-	return []byte{}, nil
+	return b, nil
 }
 
 // executes the LOAD opcode
@@ -494,17 +494,17 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 		_ = vm.st.SetFlag(state.FLAG_LOADFAIL)
 		return "", NewExternalCodeError(key, err).WithCode(r.Status)
 	}
-	for _, flag := range r.FlagSet {
-		if !state.IsWriteableFlag(flag) {
-			continue
-		}
-		vm.st.SetFlag(flag)
-	}
 	for _, flag := range r.FlagReset {
 		if !state.IsWriteableFlag(flag) {
 			continue
 		}
 		vm.st.ResetFlag(flag)
+	}
+	for _, flag := range r.FlagSet {
+		if !state.IsWriteableFlag(flag) {
+			continue
+		}
+		vm.st.SetFlag(flag)
 	}
 
 	haveLang := vm.st.MatchFlag(state.FLAG_LANG, true)

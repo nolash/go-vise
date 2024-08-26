@@ -125,23 +125,22 @@ func(pp *preProcessor) run(b []byte) ([]byte, error) {
 	b = []byte{}
 	for _, v := range ast.Instructions {
 		s := []string{v.OpCode}
-		if v.OpArg.One == nil {
-			continue
-		}
-		switch v.OpCode {
-			case "CATCH":
-				s = append(s, *v.OpArg.One)
-				s, err = pp.processFlag(s, v.OpArg.Two, v.OpArg.Three)
-				if err != nil {
-					return nil, err
-				}
-			case "CROAK":
-				s, err = pp.processFlag(s, v.OpArg.One, v.OpArg.Two)
-				if err != nil {
-					return nil, err
-				}
-			default:
-				s = pp.pass(s, v.OpArg)
+		if v.OpArg.One != nil {
+			switch v.OpCode {
+				case "CATCH":
+					s = append(s, *v.OpArg.One)
+					s, err = pp.processFlag(s, v.OpArg.Two, v.OpArg.Three)
+					if err != nil {
+						return nil, err
+					}
+				case "CROAK":
+					s, err = pp.processFlag(s, v.OpArg.One, v.OpArg.Two)
+					if err != nil {
+						return nil, err
+					}
+				default:
+					s = pp.pass(s, v.OpArg)
+			}
 		}
 		b = append(b, []byte(strings.Join(s, " "))...)
 		b = append(b, 0x0a)
