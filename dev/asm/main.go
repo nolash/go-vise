@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/csv"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -35,65 +33,40 @@ type asmAsm struct {
 	Instructions []*instruction `@@*`
 }
 
-type preProcessor struct {
-	flags map[string]string
-}
+type processor struct {
+	*asm.PreProcessor
+	
+} 
 
-func newPreProcessor() *preProcessor {
-	return &preProcessor{
-		flags: make(map[string]string),
+func newProcessor(fp string) (*processor, error) {
+	o := &processor{
+		asm.NewPreProcessor(),
 	}
-}
-
-func(pp *preProcessor) load(fp string) (int, error) {
-	var i int
-	f, err := os.Open(fp)
-	if err != nil {
-		return 0, err
-	}
-	defer f.Close()
-	r := csv.NewReader(f)
-	for i = 0; true; i++ {
-		r, err := r.Read()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return 0, err
-		}
-		if r[0] == "flag" {
-			if len(r) < 3 {
-				return 0, fmt.Errorf("Not enough fields for flag setting in line %d", i)
-			}
-			_, err = strconv.Atoi(r[2])
-			if err != nil {
-				return 0, fmt.Errorf("Flag translation value must be numeric")
-			}
-			pp.flags[r[1]] = r[2]
-			log.Printf("added flag translation %s -> %s", r[1], r[2])
-		}
-	}	
-
-	return i, nil
+	_, err := o.Load(fp)
+	return o, err
 }
 
 
-func(pp *preProcessor) processFlag(s []string, one *string, two *string) ([]string, error) {
+func(p *processor) processFlag(s []string, one *string, two *string) ([]string, error) {
 	_, err := strconv.Atoi(*one)
 	if err != nil {
-		r, ok := pp.flags[*one]
-		if !ok {
-			return nil, fmt.Errorf("No flag translation found for '%s'", *one)
+		//r, ok := p.flags[*one]
+		//if !ok {
+		//	return nil, fmt.Errorf("No flag translation found for '%s'", *one)
+		//}
+		r, err := p.Get(*one)
+		if err != nil {
+			return nil, err
 		}
 		log.Printf("translated flag %s to %s", *one, r)
-		s = append(s, r)	
+		s = append(s, r)
 	} else {
 		s = append(s, *one)
 	}
 	return append(s, *two), nil
 }
 
-func(pp *preProcessor) pass(s []string, a arg) []string {
+func(p *processor) pass(s []string, a arg) []string {
 	for _, r := range []*string{a.One, a.Two, a.Three} {
 		if r == nil {
 			break
@@ -103,7 +76,7 @@ func(pp *preProcessor) pass(s []string, a arg) []string {
 	return s
 }
 
-func(pp *preProcessor) run(b []byte) ([]byte, error) {
+func(pp *processor) run(b []byte) ([]byte, error) {
 	asmLexer := lexer.MustSimple([]lexer.SimpleRule{
 		{"Comment", `(?:#)[^\n]*`},
 		{"Ident", `^[A-Z]+`},
@@ -164,8 +137,7 @@ func main() {
 	}
 
 	if len(ppfp) > 0 {
-		pp := newPreProcessor()
-		_, err := pp.load(ppfp)
+		pp, err := newProcessor(ppfp)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "preprocessor load error: %v\n", err)
 			os.Exit(1)
