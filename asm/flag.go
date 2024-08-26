@@ -9,17 +9,19 @@ import (
 )
 
 type FlagParser struct {
-	flags map[string]string
+	flag map[string]string
+	flagDescription map[uint32]string
 }
 
 func NewFlagParser() *FlagParser {
 	return &FlagParser{
-		flags: make(map[string]string),
+		flag: make(map[string]string),
+		flagDescription: make(map[uint32]string),
 	}
 }
 
 func(pp *FlagParser) Get(key string) (string, error) {
-	v, ok := pp.flags[key]
+	v, ok := pp.flag[key]
 	if !ok {
 		return "", fmt.Errorf("no flag registered under key: %s", key)
 	}
@@ -34,24 +36,31 @@ func(pp *FlagParser) Load(fp string) (int, error) {
 	}
 	defer f.Close()
 	r := csv.NewReader(f)
+	r.FieldsPerRecord = -1
 	for i = 0; true; i++ {
-		r, err := r.Read()
+		v, err := r.Read()
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
 			return 0, err
 		}
-		if r[0] == "flag" {
-			if len(r) < 3 {
+		if v[0] == "flag" {
+			if len(v) < 3 {
 				return 0, fmt.Errorf("Not enough fields for flag setting in line %d", i)
 			}
-			_, err = strconv.Atoi(r[2])
+			fl, err := strconv.Atoi(v[2])
 			if err != nil {
 				return 0, fmt.Errorf("Flag translation value must be numeric")
 			}
-			pp.flags[r[1]] = r[2]
-			Logg.Debugf("added flag translation", "from", r[1], "to", r[2])
+			pp.flag[v[1]] = v[2]
+			
+			if (len(v) > 3) {
+				pp.flagDescription[uint32(fl)] = v[3]
+				Logg.Debugf("added flag translation", "from", v[1], "to", v[2], "description", v[3])
+			} else {
+				Logg.Debugf("added flag translation", "from", v[1], "to", v[2])
+			}
 		}
 	}	
 
