@@ -8,11 +8,15 @@ import (
 	"strconv"
 )
 
+// FlagParser is used to resolve flag strings to corresponding
+// flag index integer values.
 type FlagParser struct {
 	flag map[string]string
 	flagDescription map[uint32]string
+	hi uint32
 }
 
+// NewFlagParser creates a new FlagParser
 func NewFlagParser() *FlagParser {
 	return &FlagParser{
 		flag: make(map[string]string),
@@ -20,6 +24,10 @@ func NewFlagParser() *FlagParser {
 	}
 }
 
+// GetFlag returns the flag index value for a given flag string
+// as a numeric string.
+//
+// If flag string has not been registered, an error is returned.
 func(pp *FlagParser) GetAsString(key string) (string, error) {
 	v, ok := pp.flag[key]
 	if !ok {
@@ -28,6 +36,10 @@ func(pp *FlagParser) GetAsString(key string) (string, error) {
 	return v, nil
 }
 
+// GetFlag returns the flag index integer value for a given
+// flag string
+//
+// If flag string has not been registered, an error is returned.
 func(pp *FlagParser) GetFlag(key string) (uint32, error) {
 	v, err := pp.GetAsString(key)
 	if err != nil {
@@ -37,6 +49,10 @@ func(pp *FlagParser) GetFlag(key string) (uint32, error) {
 	return uint32(r), nil
 }
 
+// GetDescription returns a flag description for a given flag index,
+// if available.
+//
+// If no description has been provided, an error is returned.
 func(pp *FlagParser) GetDescription(idx uint32) (string, error) {
 	v, ok := pp.flagDescription[idx]
 	if !ok {
@@ -45,6 +61,20 @@ func(pp *FlagParser) GetDescription(idx uint32) (string, error) {
 	return v, nil
 }
 
+// Last returns the highest registered flag index value
+func(pp *FlagParser) Last() uint32 {
+	return pp.hi	
+}
+
+// Load parses a Comma Seperated Value file under the given filepath
+// to provide mappings between flag strings and flag indices.
+//
+// The expected format is:
+// 
+// Field 1: The literal string "flag"
+// Field 2: Flag string
+// Field 3: Flag index
+// Field 4: Flag description (optional)
 func(pp *FlagParser) Load(fp string) (int, error) {
 	var i int
 	f, err := os.Open(fp)
@@ -66,11 +96,15 @@ func(pp *FlagParser) Load(fp string) (int, error) {
 			if len(v) < 3 {
 				return 0, fmt.Errorf("Not enough fields for flag setting in line %d", i)
 			}
-			fl, err := strconv.Atoi(v[2])
+			vv, err := strconv.Atoi(v[2])
 			if err != nil {
 				return 0, fmt.Errorf("Flag translation value must be numeric")
 			}
+			fl := uint32(vv)
 			pp.flag[v[1]] = v[2]
+			if fl > pp.hi {
+				pp.hi = fl
+			}
 			
 			if (len(v) > 3) {
 				pp.flagDescription[uint32(fl)] = v[3]
@@ -83,5 +117,3 @@ func(pp *FlagParser) Load(fp string) (int, error) {
 
 	return i, nil
 }
-
-
