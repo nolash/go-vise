@@ -1,3 +1,3 @@
 flag,foo,8
-flag,bar,10
+flag,bar,10,and this is the description of the flag 'bar'
 flag,baz,12

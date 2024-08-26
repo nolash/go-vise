@@ -20,10 +20,27 @@ func NewFlagParser() *FlagParser {
 	}
 }
 
-func(pp *FlagParser) Get(key string) (string, error) {
+func(pp *FlagParser) GetAsString(key string) (string, error) {
 	v, ok := pp.flag[key]
 	if !ok {
 		return "", fmt.Errorf("no flag registered under key: %s", key)
+	}
+	return v, nil
+}
+
+func(pp *FlagParser) GetFlag(key string) (uint32, error) {
+	v, err := pp.GetAsString(key)
+	if err != nil {
+		return 0, err
+	}
+	r, err := strconv.Atoi(v) // cannot fail
+	return uint32(r), nil
+}
+
+func(pp *FlagParser) GetDescription(idx uint32) (string, error) {
+	v, ok := pp.flagDescription[idx]
+	if !ok {
+		return "", fmt.Errorf("no description for flag idx: %v", idx)
 	}
 	return v, nil
 }

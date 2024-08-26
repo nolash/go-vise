@@ -49,11 +49,7 @@ func newProcessor(fp string) (*processor, error) {
 func(p *processor) processFlag(s []string, one *string, two *string) ([]string, error) {
 	_, err := strconv.Atoi(*one)
 	if err != nil {
-		//r, ok := p.flags[*one]
-		//if !ok {
-		//	return nil, fmt.Errorf("No flag translation found for '%s'", *one)
-		//}
-		r, err := p.Get(*one)
+		r, err := p.GetAsString(*one)
 		if err != nil {
 			return nil, err
 		}
