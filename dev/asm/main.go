@@ -17,7 +17,7 @@ import (
 
 
 type arg struct {
-	One *string `@Sym`
+	One *string `(@Sym | @NumFirst)`
 	Two *string `((@Sym | @NumFirst) Whitespace?)?`
 	Three *string `((@Sym | @NumFirst) Whitespace?)?`
 	//Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
@@ -34,13 +34,13 @@ type asmAsm struct {
 }
 
 type processor struct {
-	*asm.PreProcessor
+	*asm.FlagParser
 	
 } 
 
 func newProcessor(fp string) (*processor, error) {
 	o := &processor{
-		asm.NewPreProcessor(),
+		asm.NewFlagParser(),
 	}
 	_, err := o.Load(fp)
 	return o, err
