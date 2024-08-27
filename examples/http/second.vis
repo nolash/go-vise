@@ -3,4 +3,3 @@ MAP echo
 MOUT quit 0
 HALT
 INCMP third 0
-INCMP end *
