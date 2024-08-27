@@ -21,6 +21,26 @@ var (
 	Logg logging.Logger = logging.NewVanilla().WithDomain("http")
 )
 
+type LocalHandler struct {
+	sessionId string
+}	
+
+func NewLocalHandler() *LocalHandler {
+	return &LocalHandler{
+		sessionId: "",
+	}
+}
+
+func(h* LocalHandler) SetSession(sessionId string) {
+	h.sessionId = sessionId
+}
+
+func(h* LocalHandler) AddSession(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	return resource.Result{
+		Content: h.sessionId + ":" + string(input),
+	}, nil
+}
+
 type RequestParser interface {
 	GetSessionId(*http.Request) (string, error)
 	GetInput(*http.Request) ([]byte, error)
@@ -50,10 +70,14 @@ type DefaultSessionHandler struct {
 	cfgTemplate engine.Config
 	rp RequestParser
 	rs resource.Resource
+	rh *LocalHandler
 	peBase string
 }
 
 func NewDefaultSessionHandler(persistBase string, resourceBase string, rp RequestParser, outputSize uint32, cacheSize uint32, flagCount uint32) *DefaultSessionHandler {
+	rs := resource.NewFsResource(resourceBase)
+	rh := NewLocalHandler()
+	rs.AddLocalFunc("echo", rh.AddSession)
 	return &DefaultSessionHandler{
 		cfgTemplate: engine.Config{
 			OutputSize: outputSize,
@@ -61,7 +85,8 @@ func NewDefaultSessionHandler(persistBase string, resourceBase string, rp Reques
 			FlagCount: flagCount,
 			CacheSize: cacheSize,
 		},
-		rs: resource.NewFsResource(resourceBase),
+		rs: rs,
+		rh: rh,
 		rp: rp,
 	}
 }
@@ -75,6 +100,7 @@ func(f *DefaultSessionHandler) GetEngine(ctx context.Context, sessionId string) 
 	if err != nil {
 		return nil, err
 	}
+	f.rh.SetSession(sessionId)
 
 	pe := persist.NewFsPersister(persistPath)
 	en, err := engine.NewPersistedEngine(ctx, cfg, pe, f.rs)

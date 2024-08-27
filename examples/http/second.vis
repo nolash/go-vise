@@ -1,2 +1,6 @@
+LOAD echo 0
+MAP echo 
+MOUT quit 0
 HALT
-INCMP third *
+INCMP third 0
+INCMP end *
