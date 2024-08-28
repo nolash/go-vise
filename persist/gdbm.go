@@ -1,73 +1,74 @@
 package persist
 
 import (
-	"io/ioutil"
-	"path"
-	"path/filepath"
 	"github.com/fxamacker/cbor/v2"
+	gdbm "github.com/graygnuorg/go-gdbm"
 
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/db"
 )
 
-// FsPersister is an implementation of Persister that saves state to the file system.
-type FsPersister struct {
+// gdbmPersister is an implementation of Persister that saves state to the file system.
+type gdbmPersister struct {
 	State *state.State
 	Memory *cache.Cache
-	dir string
+	db *gdbm.Database
 }
 
-// NewFsPersister creates a new FsPersister.
-//
-// The filesystem store will be at the given directory. The directory must exist.
-func NewFsPersister(dir string) *FsPersister {
-	fp, err := filepath.Abs(dir)
+func NewGdbmPersiser(fp string) *gdbmPersister {
+	gdb, err := gdbm.Open(fp, gdbm.ModeReader)
 	if err != nil {
 		panic(err)
 	}
-	return &FsPersister{
-		dir: fp,
+	return NewGdbmPersisterFromDatabase(gdb)
+}
+
+func NewGdbmPersisterFromDatabase(gdb *gdbm.Database) *gdbmPersister {
+	return &gdbmPersister{
+		db: gdb,
 	}
 }
 
 // WithContent sets a current State and Cache object.
 //
 // This method is normally called before Serialize / Save.
-func(p *FsPersister) WithContent(st *state.State, ca *cache.Cache) *FsPersister {
+func(p *gdbmPersister) WithContent(st *state.State, ca *cache.Cache) *gdbmPersister {
 	p.State = st
 	p.Memory = ca
 	return p
 }
 
+// TODO: DRY
 // GetState implements the Persister interface.
-func(p *FsPersister) GetState() *state.State {
+func(p *gdbmPersister) GetState() *state.State {
 	return p.State
 }
 
 // GetMemory implements the Persister interface.
-func(p *FsPersister) GetMemory() cache.Memory {
+func(p *gdbmPersister) GetMemory() cache.Memory {
 	return p.Memory
 }
 
 // Serialize implements the Persister interface.
-func(p *FsPersister) Serialize() ([]byte, error) {
+func(p *gdbmPersister) Serialize() ([]byte, error) {
 	return cbor.Marshal(p)
 }
 
 // Deserialize implements the Persister interface.
-func(p *FsPersister) Deserialize(b []byte) error {
+func(p *gdbmPersister) Deserialize(b []byte) error {
 	err := cbor.Unmarshal(b, p)
 	return err
 }
 
 // Save implements the Persister interface.
-func(p *FsPersister) Save(key string) error {
+func(p *gdbmPersister) Save(key string) error {
 	b, err := p.Serialize()
 	if err != nil {
 		return err
 	}
-	fp := path.Join(p.dir, key)
-	err = ioutil.WriteFile(fp, b, 0600)
+	k := db.ToDbKey(db.DATATYPE_STATE, key, nil)
+	err = p.db.Store(k, b, true)
 	if err != nil {
 		return err
 	}
@@ -76,9 +77,9 @@ func(p *FsPersister) Save(key string) error {
 }
 
 // Load implements the Persister interface.
-func(p *FsPersister) Load(key string) error {
-	fp := path.Join(p.dir, key)
-	b, err := ioutil.ReadFile(fp)
+func(p *gdbmPersister) Load(key string) error {
+	k := db.ToDbKey(db.DATATYPE_STATE, key, nil)
+	b, err := p.db.Fetch(k)
 	if err != nil {
 		return err
 	}

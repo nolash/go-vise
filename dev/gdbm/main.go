@@ -12,7 +12,7 @@ import (
 
 	gdbm "github.com/graygnuorg/go-gdbm"
 
-	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/db"
 )
 
 var (
@@ -45,7 +45,7 @@ func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 	if err != nil {
 		return err
 	}
-	typ = resource.FSRESOURCETYPE_UNKNOWN
+	typ = db.DATATYPE_UNKNOWN
 	if d.IsDir() {
 		return nil
 	}
@@ -53,9 +53,9 @@ func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 	fb := path.Base(fp)
 	switch fx {
 		case binaryPrefix:
-			typ = resource.FSRESOURCETYPE_BIN
+			typ = db.DATATYPE_BIN
 		case templatePrefix:
-			typ = resource.FSRESOURCETYPE_TEMPLATE
+			typ = db.DATATYPE_TEMPLATE
 		default:
 			log.Printf("skip foreign file: %s", fp)
 			return nil
@@ -72,7 +72,7 @@ func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 
 	log.Printf("fx fb %s %s", fx, fb)
 	ft := fb[:len(fb)-len(fx)]
-	k := resource.ToDbKey(typ, ft, nil)
+	k := db.ToDbKey(typ, ft, nil)
 	err = sc.db.Store(k, v, true)
 	if err != nil {
 		return err

@@ -6,8 +6,8 @@ import (
 
 	gdbm "github.com/graygnuorg/go-gdbm"
 	"git.defalsify.org/vise.git/lang"
+	"git.defalsify.org/vise.git/db"
 )
-
 
 type gdbmResource struct {
 	db *gdbm.Database
@@ -15,23 +15,18 @@ type gdbmResource struct {
 }
 
 func NewGdbmResource(fp string) *gdbmResource {
-	db, err := gdbm.Open(fp, gdbm.ModeReader)
+	gdb, err := gdbm.Open(fp, gdbm.ModeReader)
 	if err != nil {
 		panic(err)
 	}
+	return NewGdbmResourceFromDatabase(gdb)
+}
+
+func NewGdbmResourceFromDatabase(gdb *gdbm.Database) *gdbmResource {
 	return &gdbmResource{
-		db: db,
+		db: gdb,
 	}
 }
-
-func ToDbKey(typ uint8, s string, l *lang.Language) []byte {
-	k := []byte{typ}
-	if l != nil && l.Code != "" {
-		s += "_" + l.Code
-	}
-	return append(k, []byte(s)...)
-}
-
 
 func(dbr *gdbmResource) GetTemplate(ctx context.Context, sym string) (string, error) {
 	var ln lang.Language
@@ -39,11 +34,11 @@ func(dbr *gdbmResource) GetTemplate(ctx context.Context, sym string) (string, er
 	if v != nil {
 		ln = v.(lang.Language)
 	}
-	k := ToDbKey(FSRESOURCETYPE_TEMPLATE, sym, &ln)
+	k := db.ToDbKey(db.DATATYPE_TEMPLATE, sym, &ln)
 	r, err := dbr.db.Fetch(k)
 	if err != nil {
 		if err.(*gdbm.GdbmError).Is(gdbm.ErrItemNotFound) {
-			k = ToDbKey(FSRESOURCETYPE_TEMPLATE, sym, nil)
+			k = db.ToDbKey(db.DATATYPE_TEMPLATE, sym, nil)
 			r, err = dbr.db.Fetch(k)
 			if err != nil {
 				return "", err
@@ -54,7 +49,7 @@ func(dbr *gdbmResource) GetTemplate(ctx context.Context, sym string) (string, er
 }
 
 func(dbr *gdbmResource) GetCode(sym string) ([]byte, error) {
-	k := ToDbKey(FSRESOURCETYPE_BIN, sym, nil)
+	k := db.ToDbKey(db.DATATYPE_BIN, sym, nil)
 	return dbr.db.Fetch(k)
 }
 
@@ -65,7 +60,7 @@ func(dbr *gdbmResource) GetMenu(ctx context.Context, sym string) (string, error)
 	if v != nil {
 		ln = v.(lang.Language)
 	}
-	k := ToDbKey(FSRESOURCETYPE_TEMPLATE, msym, &ln)
+	k := db.ToDbKey(db.DATATYPE_TEMPLATE, msym, &ln)
 	r, err := dbr.db.Fetch(k)
 	if err != nil {
 		if err.(*gdbm.GdbmError).Is(gdbm.ErrItemNotFound) {

@@ -1,0 +1,5 @@
+MOUT again 0
+MOUT quit 1
+HALT
+INCMP ^ 0
+INCMP aiee 1

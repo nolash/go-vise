@@ -13,12 +13,6 @@ import (
 	"git.defalsify.org/vise.git/lang"
 )
 
-const (
-	FSRESOURCETYPE_UNKNOWN = iota
-	FSRESOURCETYPE_BIN
-	FSRESOURCETYPE_TEMPLATE
-)
-
 type FsResource struct {
 	MenuResource
 	Path string
