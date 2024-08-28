@@ -3,7 +3,6 @@ package resource
 import (
 	"context"
 	"fmt"
-	"log"
 
 	gdbm "github.com/graygnuorg/go-gdbm"
 	"git.defalsify.org/vise.git/lang"
@@ -41,10 +40,15 @@ func(dbr *gdbmResource) GetTemplate(ctx context.Context, sym string) (string, er
 		ln = v.(lang.Language)
 	}
 	k := ToDbKey(FSRESOURCETYPE_TEMPLATE, sym, &ln)
-	log.Printf("db fetch %x for %s", k, sym)
 	r, err := dbr.db.Fetch(k)
 	if err != nil {
-		return "", err
+		if err.(*gdbm.GdbmError).Is(gdbm.ErrItemNotFound) {
+			k = ToDbKey(FSRESOURCETYPE_TEMPLATE, sym, nil)
+			r, err = dbr.db.Fetch(k)
+			if err != nil {
+				return "", err
+			}
+		}
 	}
 	return string(r), nil
 }
@@ -64,7 +68,6 @@ func(dbr *gdbmResource) GetMenu(ctx context.Context, sym string) (string, error)
 	k := ToDbKey(FSRESOURCETYPE_TEMPLATE, msym, &ln)
 	r, err := dbr.db.Fetch(k)
 	if err != nil {
-		log.Printf("fetch %x", k)
 		if err.(*gdbm.GdbmError).Is(gdbm.ErrItemNotFound) {
 			return sym, nil
 		}
