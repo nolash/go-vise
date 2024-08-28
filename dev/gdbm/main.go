@@ -11,6 +11,8 @@ import (
 	"path"
 
 	gdbm "github.com/graygnuorg/go-gdbm"
+
+	"git.defalsify.org/vise.git/resource"
 )
 
 var (
@@ -19,11 +21,6 @@ var (
 	scan = make(map[string]string)
 )
 
-const (
-	RESOURCETYPE_UNKNOWN = iota
-	RESOURCETYPE_BIN
-	RESOURCETYPE_TEMPLATE
-)
 
 type scanner struct {
 	db *gdbm.Database
@@ -44,10 +41,11 @@ func(sc *scanner) Close() error {
 }
 
 func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error { 
+	var typ uint8
 	if err != nil {
 		return err
 	}
-	typ := RESOURCETYPE_UNKNOWN
+	typ = resource.FSRESOURCETYPE_UNKNOWN
 	if d.IsDir() {
 		return nil
 	}
@@ -55,9 +53,9 @@ func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 	fb := path.Base(fp)
 	switch fx {
 		case binaryPrefix:
-			typ = RESOURCETYPE_BIN
+			typ = resource.FSRESOURCETYPE_BIN
 		case templatePrefix:
-			typ = RESOURCETYPE_TEMPLATE
+			typ = resource.FSRESOURCETYPE_TEMPLATE
 		default:
 			log.Printf("skip foreign file: %s", fp)
 			return nil
@@ -72,10 +70,15 @@ func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 		return err
 	}
 
-	ft := path.Base(fb)
-	k := []byte{uint8(typ)}
-	k = append(k, []byte(ft)...)
-	return sc.db.Store(k, v, true)
+	log.Printf("fx fb %s %s", fx, fb)
+	ft := fb[:len(fb)-len(fx)]
+	k := resource.ToDbKey(typ, ft, nil)
+	err = sc.db.Store(k, v, true)
+	if err != nil {
+		return err
+	}
+	log.Printf("stored key %x for %s (%s)", k, fp, ft)
+	return nil
 }
 
 func main() {
