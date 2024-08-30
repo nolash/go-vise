@@ -67,7 +67,7 @@ func(p *gdbmPersister) Save(key string) error {
 	if err != nil {
 		return err
 	}
-	k := db.ToDbKey(db.DATATYPE_STATE, key, nil)
+	k := db.ToDbKey(db.DATATYPE_STATE, []byte(key), nil)
 	err = p.db.Store(k, b, true)
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func(p *gdbmPersister) Save(key string) error {
 
 // Load implements the Persister interface.
 func(p *gdbmPersister) Load(key string) error {
-	k := db.ToDbKey(db.DATATYPE_STATE, key, nil)
+	k := db.ToDbKey(db.DATATYPE_STATE, []byte(key), nil)
 	b, err := p.db.Fetch(k)
 	if err != nil {
 		return err

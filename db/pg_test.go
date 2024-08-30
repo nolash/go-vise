@@ -7,7 +7,7 @@ import (
 )
 
 func TestPutGetPg(t *testing.T) {
-	//t.Skip("need postgresql mock")
+	t.Skip("need postgresql mock")
 	ses := "xyzzy"
 	db := NewPgDb().WithSchema("vvise")
 	db.SetPrefix(DATATYPE_USERSTART)

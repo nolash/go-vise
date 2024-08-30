@@ -103,7 +103,7 @@ func(pp *FlagParser) Load(fp string) (int, error) {
 				return 0, fmt.Errorf("Flag translation value must be numeric")
 			}
 			if vv < state.FLAG_USERSTART {
-				return 0, fmt.Errorf("Minimum flag value is FLAG_USERSTART (%d)", FLAG_USERSTART)
+				return 0, fmt.Errorf("Minimum flag value is FLAG_USERSTART (%d)", state.FLAG_USERSTART)
 			}
 			fl := uint32(vv)
 			pp.flag[v[1]] = v[2]

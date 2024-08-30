@@ -34,11 +34,11 @@ func(dbr *gdbmResource) GetTemplate(ctx context.Context, sym string) (string, er
 	if v != nil {
 		ln = v.(lang.Language)
 	}
-	k := db.ToDbKey(db.DATATYPE_TEMPLATE, sym, &ln)
+	k := db.ToDbKey(db.DATATYPE_TEMPLATE, []byte(sym), &ln)
 	r, err := dbr.db.Fetch(k)
 	if err != nil {
 		if err.(*gdbm.GdbmError).Is(gdbm.ErrItemNotFound) {
-			k = db.ToDbKey(db.DATATYPE_TEMPLATE, sym, nil)
+			k = db.ToDbKey(db.DATATYPE_TEMPLATE, []byte(sym), nil)
 			r, err = dbr.db.Fetch(k)
 			if err != nil {
 				return "", err
@@ -49,7 +49,7 @@ func(dbr *gdbmResource) GetTemplate(ctx context.Context, sym string) (string, er
 }
 
 func(dbr *gdbmResource) GetCode(sym string) ([]byte, error) {
-	k := db.ToDbKey(db.DATATYPE_BIN, sym, nil)
+	k := db.ToDbKey(db.DATATYPE_BIN, []byte(sym), nil)
 	return dbr.db.Fetch(k)
 }
 
@@ -60,7 +60,7 @@ func(dbr *gdbmResource) GetMenu(ctx context.Context, sym string) (string, error)
 	if v != nil {
 		ln = v.(lang.Language)
 	}
-	k := db.ToDbKey(db.DATATYPE_TEMPLATE, msym, &ln)
+	k := db.ToDbKey(db.DATATYPE_TEMPLATE, []byte(msym), &ln)
 	r, err := dbr.db.Fetch(k)
 	if err != nil {
 		if err.(*gdbm.GdbmError).Is(gdbm.ErrItemNotFound) {

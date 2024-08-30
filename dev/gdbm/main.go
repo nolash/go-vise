@@ -72,7 +72,7 @@ func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 
 	log.Printf("fx fb %s %s", fx, fb)
 	ft := fb[:len(fb)-len(fx)]
-	k := db.ToDbKey(typ, ft, nil)
+	k := db.ToDbKey(typ, []byte(ft), nil)
 	err = sc.db.Store(k, v, true)
 	if err != nil {
 		return err
