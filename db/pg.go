@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -41,6 +42,9 @@ func(pdb *PgDb) Connect(ctx context.Context, connStr string) error {
 
 // Put implements Db.
 func(pdb *PgDb) Put(ctx context.Context, key []byte, val []byte) error {
+	if !pdb.checkPut() {
+		return errors.New("unsafe put and safety set")
+	}
 	k, err := pdb.ToKey(key)
 	if err != nil {
 		return err

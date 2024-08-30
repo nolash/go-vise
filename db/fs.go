@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path"
@@ -46,6 +47,9 @@ func(fdb *FsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 
 // Put implements Db
 func(fdb *FsDb) Put(ctx context.Context, key []byte, val []byte) error {
+	if !fdb.checkPut() {
+		return errors.New("unsafe put and safety set")
+	}
 	fp, err := fdb.pathFor(key)
 	if err != nil {
 		return err

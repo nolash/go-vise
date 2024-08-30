@@ -37,6 +37,9 @@ func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
 
 // Put implements Db
 func(gdb *GdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
+	if !gdb.checkPut() {
+		return errors.New("unsafe put and safety set")
+	}
 	k, err := gdb.ToKey(key)
 	if err != nil {
 		return err

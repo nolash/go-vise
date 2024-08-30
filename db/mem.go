@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 )
 
 // MemDb is a memory backend implementation of the Db interface.
@@ -50,6 +51,9 @@ func(mdb *MemDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 
 // Put implements Db
 func(mdb *MemDb) Put(ctx context.Context, key []byte, val []byte) error {
+	if !mdb.checkPut() {
+		return errors.New("unsafe put and safety set")
+	}
 	k, err := mdb.toHexKey(key)
 	if err != nil {
 		return err

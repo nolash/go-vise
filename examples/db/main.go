@@ -102,6 +102,7 @@ func main() {
 	store.Connect(ctx, dataDir)
 	store.SetSession("xyzzy")
 
+	store.SetSafety(false)
 	err := genCode(ctx, store)
 	if err != nil {
 		panic(err)
@@ -116,6 +117,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	store.SetSafety(true)
 
 	tg, err := resource.NewDbFuncGetter(store, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU, db.DATATYPE_BIN)
 	if err != nil {
@@ -124,7 +126,6 @@ func main() {
 	rs := resource.NewMenuResource()
 	rs.WithTemplateGetter(tg.GetTemplate)
 	rs.WithMenuGetter(tg.GetMenu)
-	rs.WithCodeGetter(tg.GetCode)
 	rs.WithCodeGetter(tg.GetCode)
 	rs.AddLocalFunc("say", say)
 

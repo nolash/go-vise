@@ -23,11 +23,18 @@ func TestDb(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
+
 	store.SetPrefix(db.DATATYPE_TEMPLATE)
+	err = store.Put(ctx, []byte("foo"), []byte("bar"))
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	store.SetSafety(false)
 	err = store.Put(ctx, []byte("foo"), []byte("bar"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	store.SetSafety(true)
 	s, err = rs.GetTemplate(ctx, "foo")
 	if err != nil {
 		t.Fatal(err)
@@ -38,10 +45,12 @@ func TestDb(t *testing.T) {
 
 	// test support check
 	store.SetPrefix(db.DATATYPE_BIN)
+	store.SetSafety(false)
 	err = store.Put(ctx, []byte("xyzzy"), []byte("deadbeef"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	store.SetSafety(true)
 
 	rs.WithCodeGetter(tg.GetCode)
 	b, err := rs.GetCode(ctx, "xyzzy")
@@ -69,10 +78,12 @@ func TestDb(t *testing.T) {
 		t.Fatal(err)
 	}
 	store.SetPrefix(db.DATATYPE_MENU)
+	store.SetSafety(false)
 	err = store.Put(ctx, []byte("inky"), []byte("pinky"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	store.SetSafety(true)
 	rs.WithMenuGetter(tg.GetMenu)
 
 }

@@ -54,6 +54,7 @@ func ToDbKey(typ uint8, b []byte, l *lang.Language) []byte {
 type BaseDb struct {
 	pfx uint8
 	sid []byte
+	unsafe bool
 }
 
 // SetPrefix implements Db.
@@ -64,6 +65,17 @@ func(db *BaseDb) SetPrefix(pfx uint8) {
 // SetSession implements Db.
 func(db *BaseDb) SetSession(sessionId string) {
 	db.sid = append([]byte(sessionId), 0x2E)
+}
+
+func(db *BaseDb) SetSafety(safe bool) {
+	db.unsafe = !safe
+}
+
+func(db *BaseDb) checkPut() bool {
+	if db.unsafe {
+		return true
+	}
+	return db.pfx > datatype_sessioned_threshold
 }
 
 // ToKey creates a DbKey within the current session context.
