@@ -15,6 +15,7 @@ type MemDb struct {
 // NewMemDb returns an already allocated 
 func NewMemDb(ctx context.Context) *MemDb {
 	db := &MemDb{}
+	db.BaseDb.defaultLock()
 	_ = db.Connect(ctx, "")
 	return db
 }

@@ -14,6 +14,12 @@ type FsDb struct {
 	dir string
 }
 
+func NewFsDb() *FsDb {
+	db := &FsDb{}
+	db.BaseDb.defaultLock()
+	return db
+}
+
 // Connect implements Db
 func(fdb *FsDb) Connect(ctx context.Context, connStr string) error {
 	if fdb.dir != "" {

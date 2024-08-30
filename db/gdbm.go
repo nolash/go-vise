@@ -15,6 +15,12 @@ type GdbmDb struct {
 	prefix uint8
 }
 
+func NewGdbmDb() *GdbmDb {
+	db := &GdbmDb{}
+	db.BaseDb.defaultLock()
+	return db
+}
+
 // Connect implements Db
 func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
 	var db *gdbm.Database

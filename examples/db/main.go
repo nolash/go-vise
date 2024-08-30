@@ -102,7 +102,7 @@ func main() {
 	store.Connect(ctx, dataDir)
 	store.SetSession("xyzzy")
 
-	store.SetSafety(false)
+	store.SetLock(db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN, false)
 	err := genCode(ctx, store)
 	if err != nil {
 		panic(err)
@@ -117,7 +117,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	store.SetSafety(true)
+	store.SetLock(db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN, true)
 
 	tg, err := resource.NewDbFuncGetter(store, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU, db.DATATYPE_BIN)
 	if err != nil {

@@ -18,9 +18,11 @@ type PgDb struct {
 
 // NewPgDb creates a new PgDb reference.
 func NewPgDb() *PgDb {
-	return &PgDb{
+	db := &PgDb{
 		schema: "public",
 	}
+	db.BaseDb.defaultLock()
+	return db
 }
 
 // WithSchema sets the Postgres schema to use for the storage table.
