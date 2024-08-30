@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"strconv"
+
+	"git.defalsify.org/vise.git/state"
 )
 
 // FlagParser is used to resolve flag strings to corresponding
@@ -99,6 +101,9 @@ func(pp *FlagParser) Load(fp string) (int, error) {
 			vv, err := strconv.Atoi(v[2])
 			if err != nil {
 				return 0, fmt.Errorf("Flag translation value must be numeric")
+			}
+			if vv < state.FLAG_USERSTART {
+				return 0, fmt.Errorf("Minimum flag value is FLAG_USERSTART (%d)", FLAG_USERSTART)
 			}
 			fl := uint32(vv)
 			pp.flag[v[1]] = v[2]
