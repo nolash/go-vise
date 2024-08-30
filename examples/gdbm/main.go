@@ -12,6 +12,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/db"
 )
 
 var (
@@ -27,12 +28,30 @@ func do(ctx context.Context, sym string, input []byte) (resource.Result, error) 
 }
 	     
 func main() {
-	var err error
+	ctx := context.Background()
 	root := "root"
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
 	st := state.NewState(0)
-	rs := resource.NewGdbmResource(dbFile)
+	store := &db.GdbmDb{}
+	err := store.Connect(ctx, dbFile)
+	if err != nil {
+		panic(err)
+	}
+
+	tg, err := resource.NewDbFuncGetter(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN)
+	if err != nil {
+		panic(err)
+	}
+	rs := resource.NewMenuResource()
+	rs = rs.WithTemplateGetter(tg.GetTemplate)
+	rs = rs.WithCodeGetter(tg.GetCode)
+
+	rsf := resource.NewFsResource(scriptDir)
+	rsf.AddLocalFunc("do", do)
+	rs = rs.WithMenuGetter(rsf.GetMenu)
+	rs = rs.WithEntryFuncGetter(rsf.FuncFor)
+
 	ca := cache.NewCache()
 	if err != nil {
 		panic(err)
@@ -41,10 +60,8 @@ func main() {
 		Root: "root",
 		Language: "nor",
 	}
-	ctx := context.Background()
 	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
 
-	rs.AddLocalFunc("do", do)
 
 	_, err = en.Init(ctx)
 	if err != nil {

@@ -87,3 +87,4 @@ func(m MenuResource) GetTemplate(ctx context.Context, sym string) (string, error
 func(m MenuResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	return m.menuFunc(ctx, sym)
 }
+

@@ -248,7 +248,7 @@ func(vm *Vm) runCatch(ctx context.Context, b []byte) ([]byte, error) {
 		}
 		Logg.InfoCtxf(ctx, "catch!", "flag", sig, "sym", sym, "target", actualSym, "mode", mode)
 		sym = actualSym
-		bh, err := vm.rs.GetCode(sym)
+		bh, err := vm.rs.GetCode(ctx, sym)
 		if err != nil {
 			return b, err
 		}
@@ -323,7 +323,7 @@ func(vm *Vm) runMove(ctx context.Context, b []byte) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	code, err := vm.rs.GetCode(sym)
+	code, err := vm.rs.GetCode(ctx, sym)
 	if err != nil {
 		return b, err
 	}
@@ -385,7 +385,7 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 
 	vm.Reset()
 
-	code, err := vm.rs.GetCode(sym)
+	code, err := vm.rs.GetCode(ctx, sym)
 	if err != nil {
 		return b, err
 	}

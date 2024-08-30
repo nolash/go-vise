@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"os"
 
 	gdbm "github.com/graygnuorg/go-gdbm"
 )
@@ -16,7 +17,17 @@ type GdbmDb struct {
 
 // Connect implements Db
 func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
-	db, err := gdbm.Open(connStr, gdbm.ModeWrcreat)
+	var db *gdbm.Database
+	_, err := os.Stat(connStr)
+	if err != nil {
+		if !errors.Is(os.ErrNotExist, err) {
+			return err
+		}
+		db, err = gdbm.Open(connStr, gdbm.ModeWrcreat)
+	} else {
+		db, err = gdbm.Open(connStr, gdbm.ModeWriter | gdbm.ModeReader)
+	}
+
 	if err != nil {
 		return err
 	}

@@ -60,7 +60,7 @@ func(fsr FsResource) GetTemplate(ctx context.Context, sym string) (string, error
 	return strings.TrimSpace(s), err
 }
 
-func(fsr FsResource) GetCode(sym string) ([]byte, error) {
+func(fsr FsResource) GetCode(ctx context.Context, sym string) ([]byte, error) {
 	fb := sym + ".bin"
 	fp := path.Join(fsr.Path, fb)
 	return ioutil.ReadFile(fp)
@@ -95,12 +95,6 @@ func(fsr FsResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	return strings.TrimSpace(s), err
 }
 
-func(fsr *FsResource) AddLocalFunc(sym string, fn EntryFunc) {
-	if fsr.fns == nil {
-		fsr.fns = make(map[string]EntryFunc)
-	}
-	fsr.fns[sym] = fn
-}
 
 func(fsr FsResource) FuncFor(sym string) (EntryFunc, error) {
 	fn, ok := fsr.fns[sym]
@@ -153,4 +147,11 @@ func(fsr FsResource) getFuncNoCtx(sym string, input []byte, language *lang.Langu
 	return Result{
 		Content: strings.TrimSpace(s),
 	}, nil
+}
+
+func(fsr *FsResource) AddLocalFunc(sym string, fn EntryFunc) {
+	if fsr.fns == nil {
+		fsr.fns = make(map[string]EntryFunc)
+	}
+	fsr.fns[sym] = fn
 }
