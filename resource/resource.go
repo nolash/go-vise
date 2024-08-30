@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"fmt"
 )
 
 
@@ -37,11 +38,14 @@ type MenuResource struct {
 	templateFunc TemplateFunc
 	menuFunc MenuFunc
 	funcFunc FuncForFunc
+	fns map[string]EntryFunc
 }
 
 // NewMenuResource creates a new MenuResource instance.
 func NewMenuResource() *MenuResource {
-	return &MenuResource{}
+	rs := &MenuResource{}
+	rs.funcFunc = rs.FallbackFunc
+	return rs
 }
 
 // WithCodeGetter sets the code symbol resolver method.
@@ -88,3 +92,17 @@ func(m MenuResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	return m.menuFunc(ctx, sym)
 }
 
+func(m *MenuResource) AddLocalFunc(sym string, fn EntryFunc) {
+	if m.fns == nil {
+		m.fns = make(map[string]EntryFunc)
+	}
+	m.fns[sym] = fn
+}
+
+func(m *MenuResource) FallbackFunc(sym string) (EntryFunc, error) {
+	fn, ok := m.fns[sym]
+	if !ok {
+		return nil, fmt.Errorf("unknown function: %s", sym)
+	}
+	return fn, nil
+}

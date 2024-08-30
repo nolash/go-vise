@@ -16,7 +16,6 @@ import (
 type FsResource struct {
 	MenuResource
 	Path string
-	fns map[string]EntryFunc
 //	languageStrict bool
 }
 
@@ -97,11 +96,11 @@ func(fsr FsResource) GetMenu(ctx context.Context, sym string) (string, error) {
 
 
 func(fsr FsResource) FuncFor(sym string) (EntryFunc, error) {
-	fn, ok := fsr.fns[sym]
-	if ok {
+	fn, err := fsr.MenuResource.FallbackFunc(sym)
+	if err == nil {
 		return fn, nil
 	}
-	_, err := fsr.getFuncNoCtx(sym, nil, nil)
+	_, err = fsr.getFuncNoCtx(sym, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unknown sym: %s", sym)
 	}
@@ -147,11 +146,4 @@ func(fsr FsResource) getFuncNoCtx(sym string, input []byte, language *lang.Langu
 	return Result{
 		Content: strings.TrimSpace(s),
 	}, nil
-}
-
-func(fsr *FsResource) AddLocalFunc(sym string, fn EntryFunc) {
-	if fsr.fns == nil {
-		fsr.fns = make(map[string]EntryFunc)
-	}
-	fsr.fns[sym] = fn
 }
