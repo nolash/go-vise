@@ -12,18 +12,17 @@ type memDb struct {
 	store map[string][]byte
 }
 
-// NewmemDb returns an already allocated 
+// NewmemDb returns an already allocated memory backend (volatile) Db implementation.
 func NewMemDb(ctx context.Context) *memDb {
 	db := &memDb{}
 	db.baseDb.defaultLock()
-	_ = db.Connect(ctx, "")
 	return db
 }
 
 // Connect implements Db
 func(mdb *memDb) Connect(ctx context.Context, connStr string) error {
 	if mdb.store != nil {
-		return nil
+		panic("already connected")
 	}
 	mdb.store = make(map[string][]byte)
 	return nil

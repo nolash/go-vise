@@ -11,6 +11,7 @@ import (
 func TestDb(t *testing.T) {
 	ctx := context.Background()
 	store := db.NewMemDb(ctx)
+	store.Connect(ctx, "")
 	tg, err := NewDbFuncGetter(store, db.DATATYPE_TEMPLATE)
 	if err != nil {
 		t.Fatal(err)

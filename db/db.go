@@ -22,7 +22,7 @@ const (
 
 // Db abstracts all data storage and retrieval as a key-value store
 type Db interface {
-	// Connect prepares the storage backend for use
+	// Connect prepares the storage backend for use. May panic or error if called more than once.
 	Connect(ctx context.Context, connStr string) error
 	// Close implements io.Closer
 	Close() error

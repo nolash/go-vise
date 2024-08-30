@@ -8,12 +8,13 @@ import (
 	"path"
 )
 
-// fsDb is a pure filesystem backend implementation if the Db interface.
+// pure filesystem backend implementation if the Db interface.
 type fsDb struct {
 	baseDb
 	dir string
 }
 
+// NewFsDb creates a filesystem backed Db implementation.
 func NewFsDb() *fsDb {
 	db := &fsDb{}
 	db.baseDb.defaultLock()
@@ -23,7 +24,7 @@ func NewFsDb() *fsDb {
 // Connect implements Db
 func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 	if fdb.dir != "" {
-		return nil
+		panic("already connected")
 	}
 	err := os.MkdirAll(connStr, 0700)
 	if err != nil {

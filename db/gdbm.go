@@ -23,6 +23,9 @@ func NewGdbmDb() *gdbmDb {
 
 // Connect implements Db
 func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
+	if gdb.conn != nil {
+		panic("already connected")
+	}
 	var db *gdbm.Database
 	_, err := os.Stat(connStr)
 	if err != nil {

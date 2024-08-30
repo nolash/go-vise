@@ -16,7 +16,7 @@ type pgDb struct {
 	prefix uint8
 }
 
-// NewpgDb creates a new pgDb reference.
+// NewpgDb creates a new postgres backed Db implementation.
 func NewPgDb() *pgDb {
 	db := &pgDb{
 		schema: "public",
@@ -33,6 +33,9 @@ func(pdb *pgDb) WithSchema(schema string) *pgDb {
 
 // Connect implements Db.
 func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
+	if pdb.conn != nil {
+		panic("already connected")
+	}
 	var err error
 	conn, err := pgxpool.New(ctx, connStr)
 	if err != nil {

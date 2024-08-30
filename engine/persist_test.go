@@ -13,6 +13,7 @@ import (
 
 func TestRunPersist(t *testing.T) {
 	generateTestData(t)
+	ctx := context.Background()
 	cfg := Config{
 		OutputSize: 83,
 		SessionId: "xyzzy",
@@ -23,10 +24,11 @@ func TestRunPersist(t *testing.T) {
 	st := state.NewState(3)
 	ca := cache.NewCache().WithCacheSize(1024)
 	store := db.NewMemDb(context.Background())
+	store.Connect(ctx, "")
 	pr := persist.NewPersister(store).WithContent(&st, ca)
 
 	w := os.Stdout
-	ctx := context.TODO()
+	ctx = context.Background()
 
 	st = state.NewState(cfg.FlagCount)
 	ca = cache.NewCache()
@@ -69,6 +71,7 @@ func TestRunPersist(t *testing.T) {
 
 func TestEnginePersist(t *testing.T) {
 	generateTestData(t)
+	ctx := context.Background()
 	cfg := Config{
 		OutputSize: 83,
 		SessionId: "xyzzy",
@@ -79,10 +82,8 @@ func TestEnginePersist(t *testing.T) {
 	st := state.NewState(3)
 	ca := cache.NewCache().WithCacheSize(1024)
 	store := db.NewMemDb(context.Background())
+	store.Connect(ctx, "")
 	pr := persist.NewPersister(store).WithContent(&st, ca)
-
-	//w := os.Stdout
-	ctx := context.TODO()
 
 	st = state.NewState(cfg.FlagCount)
 	ca = cache.NewCache()
