@@ -8,16 +8,11 @@ import (
 )
 
 type GdbmDb struct {
+	BaseDb
 	conn *gdbm.Database
 	prefix uint8
 }
 
-func NewGdbmDb() *GdbmDb {
-	return &GdbmDb{
-		prefix: DATATYPE_USERSTART,
-	}
-		
-}
 func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
 	db, err := gdbm.Open(connStr, gdbm.ModeWrcreat)
 	if err != nil {
@@ -27,20 +22,19 @@ func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
 	return nil
 }
 
-// TODO: DRY
-func(gdb *GdbmDb) dbKey(sessionId string, key []byte) []byte {
-	b := append([]byte(sessionId), 0x2E)
-	b = append(b, key...)
-	return ToDbKey(gdb.prefix, b, nil)
-}
-
 func(gdb *GdbmDb) Put(ctx context.Context, sessionId string, key []byte, val []byte) error {
-	k := gdb.dbKey(sessionId, key)
+	k, err := gdb.ToKey(sessionId, key)
+	if err != nil {
+		return err
+	}
 	return gdb.conn.Store(k, val, true)
 }
 
 func(gdb *GdbmDb) Get(ctx context.Context, sessionId string, key []byte) ([]byte, error) {
-	k := gdb.dbKey(sessionId, key)
+	k, err := gdb.ToKey(sessionId, key)
+	if err != nil {
+		return nil, err
+	}
 	v, err := gdb.conn.Fetch(k)
 	if err != nil {
 		if errors.Is(gdbm.ErrItemNotFound, err) {

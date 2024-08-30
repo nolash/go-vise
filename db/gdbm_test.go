@@ -14,7 +14,8 @@ func TestPutGetGdbm(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	db := NewGdbmDb()
+	db := &GdbmDb{}
+	db.SetPrefix(DATATYPE_USERSTART)
 	err = db.Connect(ctx, f.Name())
 	if err != nil {
 		t.Fatal(err)

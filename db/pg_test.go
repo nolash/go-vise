@@ -9,6 +9,7 @@ import (
 func TestCreate(t *testing.T) {
 	t.Skip("need postgresql mock")
 	db := NewPgDb().WithSchema("vvise")
+	db.SetPrefix(DATATYPE_USERSTART)
 	ctx := context.Background()
 	err := db.Connect(ctx, "postgres://vise:esiv@localhost:5432/visedb")
 	if err != nil {

@@ -9,7 +9,7 @@ import (
 )
 
 type FsDb struct {
-	ready bool
+	BaseDb
 	dir string
 }
 
@@ -26,7 +26,10 @@ func(fdb *FsDb) Connect(ctx context.Context, connStr string) error {
 }
 
 func(fdb *FsDb) Get(ctx context.Context, sessionId string, key []byte) ([]byte, error) {
-	fp := fdb.pathFor(sessionId, key)
+	fp, err := fdb.pathFor(sessionId, key)
+	if err != nil {
+		return nil, err
+	}
 	f, err := os.Open(fp)
 	if err != nil {
 		return nil, err
@@ -40,7 +43,10 @@ func(fdb *FsDb) Get(ctx context.Context, sessionId string, key []byte) ([]byte, 
 }
 
 func(fdb *FsDb) Put(ctx context.Context, sessionId string, key []byte, val []byte) error {
-	fp := fdb.pathFor(sessionId, key)
+	fp, err := fdb.pathFor(sessionId, key)
+	if err != nil {
+		return err
+	}
 	return ioutil.WriteFile(fp, val, 0600)
 }
 
@@ -48,11 +54,11 @@ func(fdb *FsDb) Close() error {
 	return nil
 }	
  
-func(fdb *FsDb) pathFor(sessionId string, key []byte) string{
-	k := append([]byte(sessionId), 0x2E)
-	k = append(k, key...)
-	kb := ToDbKey(DATATYPE_USERSTART, k, nil)
+func(fdb *FsDb) pathFor(sessionId string, key []byte) (string, error) {
+	kb, err := fdb.ToKey(sessionId, key)
+	if err != nil {
+		return "", err
+	}
 	kb[0] += 30
-	return path.Join(fdb.dir, string(kb))
+	return path.Join(fdb.dir, string(kb)), nil
 }
-

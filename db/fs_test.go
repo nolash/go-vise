@@ -15,6 +15,7 @@ func TestPutGetFs(t *testing.T) {
 		t.Fatal(err)
 	}
 	db := &FsDb{}
+	db.SetPrefix(DATATYPE_USERSTART)
 	err = db.Connect(ctx, d)
 	if err != nil {
 		t.Fatal(err)

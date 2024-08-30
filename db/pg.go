@@ -3,13 +3,12 @@ package db
 import (
 	"context"
 	"fmt"
-//	"errors"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-//	pgx "github.com/jackc/pgx/v5"
 )
 
 type PgDb struct {
+	BaseDb
 	conn *pgxpool.Pool
 	schema string
 	prefix uint8
@@ -18,21 +17,12 @@ type PgDb struct {
 func NewPgDb() *PgDb {
 	return &PgDb{
 		schema: "public",
-		prefix: DATATYPE_USERSTART,
 	}
 }
 
 func(pdb *PgDb) WithSchema(schema string) *PgDb {
 	pdb.schema = schema
 	return pdb
-}
-
-func(pdb *PgDb) SetPrefix(pfx uint8) error {
-	if pfx < DATATYPE_USERSTART {
-		return fmt.Errorf("prefix cannot be < %d", DATATYPE_USERSTART)
-	}
-	pdb.prefix = pfx
-	return nil
 }
 
 func(pdb *PgDb) Connect(ctx context.Context, connStr string) error {
@@ -100,14 +90,11 @@ func(pdb *PgDb) prepare(ctx context.Context) error {
 	return nil
 }
 
-func(pdb *PgDb) dbKey(sessionId string, key []byte) []byte {
-	b := append([]byte(sessionId), 0x2E)
-	b = append(b, key...)
-	return ToDbKey(pdb.prefix, b, nil)
-}
-
 func(pdb *PgDb) Put(ctx context.Context, sessionId string, key []byte, val []byte) error {
-	k := pdb.dbKey(sessionId, key)
+	k, err := pdb.ToKey(sessionId, key)
+	if err != nil {
+		return err
+	}
 	tx, err := pdb.conn.Begin(ctx)
 	if err != nil {
 		return err
@@ -123,7 +110,10 @@ func(pdb *PgDb) Put(ctx context.Context, sessionId string, key []byte, val []byt
 }
 
 func(pdb *PgDb) Get(ctx context.Context, sessionId string, key []byte) ([]byte, error) {
-	k := pdb.dbKey(sessionId, key)
+	k, err := pdb.ToKey(sessionId, key)
+	if err != nil {
+		return nil, err
+	}
 	tx, err := pdb.conn.Begin(ctx)
 	if err != nil {
 		return nil, err
