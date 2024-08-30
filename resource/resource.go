@@ -72,26 +72,27 @@ func(m *MenuResource) WithMenuGetter(menuGetter MenuFunc) *MenuResource {
 	return m
 }
 
-// FuncFor implements Resource interface
+// FuncFor implements Resource interface.
 func(m MenuResource) FuncFor(sym string) (EntryFunc, error) {
 	return m.funcFunc(sym)
 }
 
-// GetCode implements Resource interface
+// GetCode implements Resource interface.
 func(m MenuResource) GetCode(ctx context.Context, sym string) ([]byte, error) {
 	return m.codeFunc(ctx, sym)
 }
 
-// GetTemplate implements Resource interface
+// GetTemplate implements Resource interface.
 func(m MenuResource) GetTemplate(ctx context.Context, sym string) (string, error) {
 	return m.templateFunc(ctx, sym)
 }
 
-// GetMenu implements Resource interface
+// GetMenu implements Resource interface.
 func(m MenuResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	return m.menuFunc(ctx, sym)
 }
 
+// AddLocalFunc associates a handler function with a external function symbol to be returned by FallbackFunc.
 func(m *MenuResource) AddLocalFunc(sym string, fn EntryFunc) {
 	if m.fns == nil {
 		m.fns = make(map[string]EntryFunc)
@@ -99,6 +100,7 @@ func(m *MenuResource) AddLocalFunc(sym string, fn EntryFunc) {
 	m.fns[sym] = fn
 }
 
+// FallbackFunc returns the default handler function for a given external function symbol.
 func(m *MenuResource) FallbackFunc(sym string) (EntryFunc, error) {
 	fn, ok := m.fns[sym]
 	if !ok {

@@ -12,6 +12,7 @@ import (
 	"git.defalsify.org/vise.git/asm"
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/db"
@@ -20,8 +21,8 @@ import (
 var (
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "db")
-	ctx = context.Background()
-	store = db.NewMemDb(ctx)
+	store = &db.FsDb{}
+	pr = persist.NewPersister(store)
 	data_selector = []byte("my_data")
 )
 
@@ -29,6 +30,12 @@ func say(ctx context.Context, sym string, input []byte) (resource.Result, error)
 	var r resource.Result
 	store.SetPrefix(db.DATATYPE_USERSTART)
 
+	st := pr.GetState()
+	if st.MatchFlag(state.FLAG_USERSTART, false) {
+		r.FlagSet = []uint32{8}
+		r.Content = "0"
+		return r, nil
+	}
 	if len(input) > 0 {
 		err := store.Put(ctx, data_selector, input)
 		if err != nil {
@@ -48,12 +55,11 @@ func say(ctx context.Context, sym string, input []byte) (resource.Result, error)
 func genCode(ctx context.Context, store db.Db) error {
 	b := bytes.NewBuffer(nil)
 	asm.Parse("LOAD say 0\n", b)
-	asm.Parse("RELOAD say\n", b)
 	asm.Parse("MAP say\n", b)
 	asm.Parse("MOUT quit 0\n", b)
 	asm.Parse("HALT\n", b)
 	asm.Parse("INCMP argh 0\n", b)
-	asm.Parse("INCMP ^ *\n", b)
+	asm.Parse("INCMP update *\n", b)
 	store.SetPrefix(db.DATATYPE_BIN)
 	err := store.Put(ctx, []byte("root"), b.Bytes())
 	if err != nil {
@@ -62,7 +68,19 @@ func genCode(ctx context.Context, store db.Db) error {
 
 	b = bytes.NewBuffer(nil)
 	asm.Parse("HALT\n", b)
-	return store.Put(ctx, []byte("argh"), b.Bytes())
+	err = store.Put(ctx, []byte("argh"), b.Bytes())
+	if err != nil {
+		return err
+	}
+
+	b = bytes.NewBuffer(nil)
+	asm.Parse("RELOAD say\n", b)
+	asm.Parse("MOVE _\n", b)
+	err = store.Put(ctx, []byte("update"), b.Bytes())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func genMenu(ctx context.Context, store db.Db) error {
@@ -76,19 +94,15 @@ func genTemplate(ctx context.Context, store db.Db) error {
 }
 
 func main() {
+	ctx := context.Background()
 	root := "root"
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
-	st := state.NewState(1)
-
+	dataDir := path.Join(scriptDir, ".store")
+	store.Connect(ctx, dataDir)
 	store.SetSession("xyzzy")
-	store.SetPrefix(db.DATATYPE_USERSTART)
-	err := store.Put(ctx, data_selector, []byte("0"))
-	if err != nil {
-		panic(err)
-	}
 
-	err = genCode(ctx, store)
+	err := genCode(ctx, store)
 	if err != nil {
 		panic(err)
 	}
@@ -121,7 +135,19 @@ func main() {
 	cfg := engine.Config{
 		Root: "root",
 	}
-	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
+
+	st := state.NewState(1)
+	en, err := engine.NewPersistedEngine(ctx, cfg, pr, rs)
+	if err != nil {
+		engine.Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
+		pr = pr.WithContent(&st, ca)
+		err = pr.Save(cfg.SessionId)
+		if err != nil {
+			engine.Logg.ErrorCtxf(ctx, "fail state save", "err", err)
+			os.Exit(1)
+		}
+		en, err = engine.NewPersistedEngine(ctx, cfg, pr, rs)
+	}
 
 	_, err = en.Init(ctx)
 	if err != nil {
