@@ -12,17 +12,27 @@ import (
 type PgDb struct {
 	conn *pgxpool.Pool
 	schema string
+	prefix uint8
 }
 
 func NewPgDb() *PgDb {
 	return &PgDb{
 		schema: "public",
+		prefix: DATATYPE_USERSTART,
 	}
 }
 
 func(pdb *PgDb) WithSchema(schema string) *PgDb {
 	pdb.schema = schema
 	return pdb
+}
+
+func(pdb *PgDb) SetPrefix(pfx uint8) error {
+	if pfx < DATATYPE_USERSTART {
+		return fmt.Errorf("prefix cannot be < %d", DATATYPE_USERSTART)
+	}
+	pdb.prefix = pfx
+	return nil
 }
 
 func(pdb *PgDb) Connect(ctx context.Context, connStr string) error {
@@ -41,27 +51,39 @@ func(pdb *PgDb) prepare(ctx context.Context) error {
 		tx.Rollback(ctx)
 		return err
 	}
-	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise_domain (
-		id SERIAL PRIMARY KEY,
-		name VARCHAR(256) NOT NULL
+//	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise_domain (
+//		id SERIAL PRIMARY KEY,
+//		name VARCHAR(256) NOT NULL
+//	);
+//`, pdb.schema)
+//	_, err = tx.Exec(ctx, query)
+//	if err != nil {
+//		tx.Rollback(ctx)
+//		return err
+//	}
+//
+//	query = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise (
+//		id SERIAL NOT NULL,
+//		domain_id INT NOT NULL,
+//		key VARCHAR(256) NOT NULL,
+//		value BYTEA NOT NULL,
+//		constraint fk_domain
+//			FOREIGN KEY (domain_id)
+//			REFERENCES %s.kv_vise_domain(id)
+//	);
+//`, pdb.schema, pdb.schema)
+//	_, err = tx.Exec(ctx, query)
+//	if err != nil {
+//		tx.Rollback(ctx)
+//		return err
+//	}
+
+	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise (
+		id SERIAL NOT NULL,
+		key BYTEA NOT NULL UNIQUE,
+		value BYTEA NOT NULL
 	);
 `, pdb.schema)
-	_, err = tx.Exec(ctx, query)
-	if err != nil {
-		tx.Rollback(ctx)
-		return err
-	}
-
-	query = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise (
-		id SERIAL NOT NULL,
-		domain_id INT NOT NULL,
-		key VARCHAR(256) NOT NULL,
-		value BYTEA NOT NULL,
-		constraint fk_domain
-			FOREIGN KEY (domain_id)
-			REFERENCES %s.kv_vise_domain(id)
-	);
-`, pdb.schema, pdb.schema)
 	_, err = tx.Exec(ctx, query)
 	if err != nil {
 		tx.Rollback(ctx)
@@ -78,14 +100,50 @@ func(pdb *PgDb) prepare(ctx context.Context) error {
 	return nil
 }
 
-func(pdb *PgDb) domainId(ctx context.Context, domain string) {
-
+func(pdb *PgDb) dbKey(sessionId string, key []byte) []byte {
+	b := append([]byte(sessionId), 0x2E)
+	b = append(b, key...)
+	return ToDbKey(pdb.prefix, b, nil)
 }
 
 func(pdb *PgDb) Put(ctx context.Context, sessionId string, key []byte, val []byte) error {
+	k := pdb.dbKey(sessionId, key)
+	tx, err := pdb.conn.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	query := fmt.Sprintf("INSERT INTO %s.kv_vise (key, value) VALUES ($1, $2) ON CONFLICT(key) DO UPDATE SET value = $2;", pdb.schema)
+	_, err = tx.Exec(ctx, query, k, val)
+	if err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+	tx.Commit(ctx)
 	return nil
 }
 
 func(pdb *PgDb) Get(ctx context.Context, sessionId string, key []byte) ([]byte, error) {
-	return nil, nil
+	k := pdb.dbKey(sessionId, key)
+	tx, err := pdb.conn.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
+	rs, err := tx.Query(ctx, query, k)
+	if err != nil {
+		return nil, err
+	}
+	defer rs.Close()
+	if !rs.Next() {
+		return nil, NewErrNotFound(k)
+
+	}
+	r := rs.RawValues()
+	b := r[0]
+	return b, nil
+}
+
+func(pdb *PgDb) Close() error {
+	pdb.Close()
+	return nil
 }

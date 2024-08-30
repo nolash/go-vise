@@ -44,9 +44,15 @@ func(fdb *FsDb) Put(ctx context.Context, sessionId string, key []byte, val []byt
 	return ioutil.WriteFile(fp, val, 0600)
 }
 
+func(fdb *FsDb) Close() error {
+	return nil
+}	
+ 
 func(fdb *FsDb) pathFor(sessionId string, key []byte) string{
-	k := sessionId + "." + string(key)
+	k := append([]byte(sessionId), 0x2E)
+	k = append(k, key...)
 	kb := ToDbKey(DATATYPE_USERSTART, k, nil)
 	kb[0] += 30
 	return path.Join(fdb.dir, string(kb))
 }
+
