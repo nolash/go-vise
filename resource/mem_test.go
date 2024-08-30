@@ -36,7 +36,8 @@ func TestMemResourceCode(t *testing.T) {
 	rs := NewMemResource()
 	rs.AddBytecode("foo", []byte("bar"))
 
-	r, err := rs.GetCode("foo")
+	ctx := context.Background()
+	r, err := rs.GetCode(ctx, "foo")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +45,7 @@ func TestMemResourceCode(t *testing.T) {
 		fmt.Errorf("expected 'bar', got %x", r)
 	}
 
-	_, err = rs.GetCode("bar")
+	_, err = rs.GetCode(ctx, "bar")
 	if err == nil {
 		t.Fatalf("expected error")
 	}

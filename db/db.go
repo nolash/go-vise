@@ -8,11 +8,16 @@ import (
 )
 
 const (
-	DATATYPE_UNKNOWN = iota
-	DATATYPE_BIN
-	DATATYPE_TEMPLATE
-	DATATYPE_STATE
-	DATATYPE_USERSTART
+	DATATYPE_UNKNOWN = 0
+	DATATYPE_BIN = 1
+	DATATYPE_MENU = 2
+	DATATYPE_TEMPLATE = 4
+	DATATYPE_STATE = 8
+	DATATYPE_USERSTART = 16
+)
+
+const (
+	datatype_sessioned_threshold = DATATYPE_TEMPLATE
 )
 
 // Db abstracts all data storage and retrieval as a key-value store
@@ -63,9 +68,14 @@ func(db *BaseDb) SetSession(sessionId string) {
 
 // ToKey creates a DbKey within the current session context.
 func(db *BaseDb) ToKey(key []byte) ([]byte, error) {
+	var b []byte
 	if db.pfx == DATATYPE_UNKNOWN {
 		return nil, errors.New("datatype prefix cannot be UNKNOWN")
 	}
-	b := append(db.sid, key...)
+	if (db.pfx > datatype_sessioned_threshold) {
+		b = append(db.sid, key...)
+	} else {
+		b = key
+	}
 	return ToDbKey(db.pfx, b, nil), nil
 }
