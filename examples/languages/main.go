@@ -15,6 +15,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/db"
 )
 
 const (
@@ -96,19 +97,20 @@ func main() {
 	ctx := context.Background()
 
 	dp := path.Join(scriptDir, ".state")
-	err := os.MkdirAll(dp, 0700)
+	store := &db.FsDb{}
+	err := store.Connect(ctx, dp)
 	if err != nil {
-		engine.Logg.ErrorCtxf(ctx, "cannot create state dir", "err", err)
+		engine.Logg.ErrorCtxf(ctx, "db connect fail", "err", err)
 		os.Exit(1)
 	}
-	pr := persist.NewFsPersister(dp)
+	pr := persist.NewPersister(store)
 	en, err := engine.NewPersistedEngine(ctx, cfg, pr, rs)
 	if err != nil {
 		engine.Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
 		pr = pr.WithContent(&st, ca)
 		err = pr.Save(cfg.SessionId)
 		if err != nil {
-			engine.Logg.ErrorCtxf(ctx, "fail state save: %v", err)
+			engine.Logg.ErrorCtxf(ctx, "fail state save", "err", err)
 			os.Exit(1)
 		}
 		en, err = engine.NewPersistedEngine(ctx, cfg, pr, rs)

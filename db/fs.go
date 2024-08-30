@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -19,12 +18,9 @@ func(fdb *FsDb) Connect(ctx context.Context, connStr string) error {
 	if fdb.dir != "" {
 		return nil
 	}
-	fi, err := os.Stat(connStr)
+	err := os.MkdirAll(connStr, 0700)
 	if err != nil {
 		return err
-	}
-	if !fi.IsDir()  {
-		return fmt.Errorf("fs db %s is not a directory", connStr)
 	}
 	fdb.dir = connStr
 	return nil
@@ -68,6 +64,6 @@ func(fdb *FsDb) pathFor(key []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	kb[0] += 30
+	kb[0] += 0x30
 	return path.Join(fdb.dir, string(kb)), nil
 }

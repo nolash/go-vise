@@ -13,6 +13,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/persist"
+	"git.defalsify.org/vise.git/db"
 )
 
 const (
@@ -24,7 +25,7 @@ const (
 
 type fsData struct {
 	path string
-	persister persist.Persister
+	persister *persist.Persister
 }
 
 func (fsd *fsData) peek(ctx context.Context, sym string, input []byte) (resource.Result, error) {
@@ -91,14 +92,15 @@ func main() {
 	}
 
 	dp := path.Join(dir, ".state")
-	
-	err := os.MkdirAll(dp, 0700)
+	store := &db.FsDb{}
+	err := store.Connect(ctx, dp)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "state dir create exited with error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "db connect fail: %s", err)
 		os.Exit(1)
 	}
-	pr := persist.NewFsPersister(dp)
+	pr := persist.NewPersister(store)
 	en, err := engine.NewPersistedEngine(ctx, cfg, pr, rs)
+
 	if err != nil {
 		pr = pr.WithContent(&st, ca)
 		err = pr.Save(cfg.SessionId)
