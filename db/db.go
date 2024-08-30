@@ -50,29 +50,29 @@ func ToDbKey(typ uint8, b []byte, l *lang.Language) []byte {
 	return append(k, b...)
 }
 
-// BaseDb is a base class for all Db implementations.
-type BaseDb struct {
+// baseDb is a base class for all Db implementations.
+type baseDb struct {
 	pfx uint8
 	sid []byte
 	lock uint8
 }
 
-func(db *BaseDb) defaultLock() {
+func(db *baseDb) defaultLock() {
 	db.lock = DATATYPE_BIN | DATATYPE_MENU | DATATYPE_TEMPLATE
 }
 
 // SetPrefix implements Db.
-func(db *BaseDb) SetPrefix(pfx uint8) {
+func(db *baseDb) SetPrefix(pfx uint8) {
 	db.pfx = pfx
 }
 
 // SetSession implements Db.
-func(db *BaseDb) SetSession(sessionId string) {
+func(db *baseDb) SetSession(sessionId string) {
 	db.sid = append([]byte(sessionId), 0x2E)
 }
 
 // SetSafety disables modification of data that 
-func(db *BaseDb) SetLock(pfx uint8, lock bool) {
+func(db *baseDb) SetLock(pfx uint8, lock bool) {
 	if lock {
 		db.lock	|= pfx
 	} else {
@@ -80,12 +80,12 @@ func(db *BaseDb) SetLock(pfx uint8, lock bool) {
 	}
 }
 
-func(db *BaseDb) checkPut() bool {
+func(db *baseDb) checkPut() bool {
 	return db.pfx & db.lock == 0
 }
 
 // ToKey creates a DbKey within the current session context.
-func(db *BaseDb) ToKey(key []byte) ([]byte, error) {
+func(db *baseDb) ToKey(key []byte) ([]byte, error) {
 	var b []byte
 	if db.pfx == DATATYPE_UNKNOWN {
 		return nil, errors.New("datatype prefix cannot be UNKNOWN")

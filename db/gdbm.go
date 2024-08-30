@@ -8,21 +8,21 @@ import (
 	gdbm "github.com/graygnuorg/go-gdbm"
 )
 
-// GdbmDb is a gdbm backend implementation of the Db interface.
-type GdbmDb struct {
-	BaseDb
+// gdbmDb is a gdbm backend implementation of the Db interface.
+type gdbmDb struct {
+	baseDb
 	conn *gdbm.Database
 	prefix uint8
 }
 
-func NewGdbmDb() *GdbmDb {
-	db := &GdbmDb{}
-	db.BaseDb.defaultLock()
+func NewGdbmDb() *gdbmDb {
+	db := &gdbmDb{}
+	db.baseDb.defaultLock()
 	return db
 }
 
 // Connect implements Db
-func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
+func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 	var db *gdbm.Database
 	_, err := os.Stat(connStr)
 	if err != nil {
@@ -42,7 +42,7 @@ func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
 }
 
 // Put implements Db
-func(gdb *GdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
+func(gdb *gdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !gdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
@@ -54,7 +54,7 @@ func(gdb *GdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 }
 
 // Get implements Db
-func(gdb *GdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	k, err := gdb.ToKey(key)
 	if err != nil {
 		return nil, err
@@ -70,6 +70,6 @@ func(gdb *GdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Close implements Db
-func(gdb *GdbmDb) Close() error {
+func(gdb *gdbmDb) Close() error {
 	return gdb.Close()
 }

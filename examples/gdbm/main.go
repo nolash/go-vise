@@ -33,7 +33,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
 	st := state.NewState(0)
-	store := &db.GdbmDb{}
+	store := db.NewGdbmDb()
 	err := store.Connect(ctx, dbFile)
 	if err != nil {
 		panic(err)

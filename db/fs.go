@@ -8,20 +8,20 @@ import (
 	"path"
 )
 
-// FsDb is a pure filesystem backend implementation if the Db interface.
-type FsDb struct {
-	BaseDb
+// fsDb is a pure filesystem backend implementation if the Db interface.
+type fsDb struct {
+	baseDb
 	dir string
 }
 
-func NewFsDb() *FsDb {
-	db := &FsDb{}
-	db.BaseDb.defaultLock()
+func NewFsDb() *fsDb {
+	db := &fsDb{}
+	db.baseDb.defaultLock()
 	return db
 }
 
 // Connect implements Db
-func(fdb *FsDb) Connect(ctx context.Context, connStr string) error {
+func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 	if fdb.dir != "" {
 		return nil
 	}
@@ -34,7 +34,7 @@ func(fdb *FsDb) Connect(ctx context.Context, connStr string) error {
 }
 
 // Get implements Db
-func(fdb *FsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	fp, err := fdb.pathFor(key)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func(fdb *FsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Put implements Db
-func(fdb *FsDb) Put(ctx context.Context, key []byte, val []byte) error {
+func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !fdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
@@ -64,12 +64,12 @@ func(fdb *FsDb) Put(ctx context.Context, key []byte, val []byte) error {
 }
 
 // Close implements Db
-func(fdb *FsDb) Close() error {
+func(fdb *fsDb) Close() error {
 	return nil
 }	
 
 // create a key safe for the filesystem
-func(fdb *FsDb) pathFor(key []byte) (string, error) {
+func(fdb *fsDb) pathFor(key []byte) (string, error) {
 	kb, err := fdb.ToKey(key)
 	if err != nil {
 		return "", err

@@ -21,7 +21,7 @@ import (
 var (
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "db")
-	store = &db.FsDb{}
+	store = db.NewFsDb()
 	pr = persist.NewPersister(store)
 	data_selector = []byte("my_data")
 )

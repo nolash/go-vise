@@ -10,7 +10,7 @@ func TestPutGetMem(t *testing.T) {
 	var dbi Db
 	ctx := context.Background()
 	sid := "ses"
-	db := &MemDb{}
+	db := NewMemDb(ctx)
 	db.SetPrefix(DATATYPE_USERSTART)
 	db.SetSession(sid)
 

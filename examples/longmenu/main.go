@@ -33,7 +33,7 @@ func main() {
 
 	ctx := context.Background()
 	dp := path.Join(scriptDir, ".state")
-	store := &db.FsDb{}
+	store := db.NewFsDb()
 	err := store.Connect(ctx, dp)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "db connect error: %v", err)

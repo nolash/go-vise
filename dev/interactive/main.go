@@ -27,7 +27,7 @@ func main() {
 
 	ctx := context.Background()
 	if persist != "" {
-		store = &db.FsDb{}
+		store = db.NewFsDb()
 		err := store.Connect(ctx, persist)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "db connect error: %v", err)

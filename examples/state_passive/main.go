@@ -92,7 +92,7 @@ func main() {
 	}
 
 	dp := path.Join(dir, ".state")
-	store := &db.FsDb{}
+	store := db.NewFsDb()
 	err := store.Connect(ctx, dp)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "db connect fail: %s", err)

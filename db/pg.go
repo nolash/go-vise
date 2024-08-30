@@ -8,31 +8,31 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// PgDb is a Postgresql backend implementation of the Db interface.
-type PgDb struct {
-	BaseDb
+// pgDb is a Postgresql backend implementation of the Db interface.
+type pgDb struct {
+	baseDb
 	conn *pgxpool.Pool
 	schema string
 	prefix uint8
 }
 
-// NewPgDb creates a new PgDb reference.
-func NewPgDb() *PgDb {
-	db := &PgDb{
+// NewpgDb creates a new pgDb reference.
+func NewPgDb() *pgDb {
+	db := &pgDb{
 		schema: "public",
 	}
-	db.BaseDb.defaultLock()
+	db.baseDb.defaultLock()
 	return db
 }
 
 // WithSchema sets the Postgres schema to use for the storage table.
-func(pdb *PgDb) WithSchema(schema string) *PgDb {
+func(pdb *pgDb) WithSchema(schema string) *pgDb {
 	pdb.schema = schema
 	return pdb
 }
 
 // Connect implements Db.
-func(pdb *PgDb) Connect(ctx context.Context, connStr string) error {
+func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 	var err error
 	conn, err := pgxpool.New(ctx, connStr)
 	if err != nil {
@@ -43,7 +43,7 @@ func(pdb *PgDb) Connect(ctx context.Context, connStr string) error {
 }
 
 // Put implements Db.
-func(pdb *PgDb) Put(ctx context.Context, key []byte, val []byte) error {
+func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !pdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
@@ -66,7 +66,7 @@ func(pdb *PgDb) Put(ctx context.Context, key []byte, val []byte) error {
 }
 
 // Get implements Db.
-func(pdb *PgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+func(pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	k, err := pdb.ToKey(key)
 	if err != nil {
 		return nil, err
@@ -91,13 +91,13 @@ func(pdb *PgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Close implements Db.
-func(pdb *PgDb) Close() error {
+func(pdb *pgDb) Close() error {
 	pdb.Close()
 	return nil
 }
 
 // set up table
-func(pdb *PgDb) prepare(ctx context.Context) error {
+func(pdb *pgDb) prepare(ctx context.Context) error {
 	tx, err := pdb.conn.Begin(ctx)
 	if err != nil {
 		tx.Rollback(ctx)
