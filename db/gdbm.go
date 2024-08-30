@@ -22,16 +22,16 @@ func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
 	return nil
 }
 
-func(gdb *GdbmDb) Put(ctx context.Context, sessionId string, key []byte, val []byte) error {
-	k, err := gdb.ToKey(sessionId, key)
+func(gdb *GdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
+	k, err := gdb.ToKey(key)
 	if err != nil {
 		return err
 	}
 	return gdb.conn.Store(k, val, true)
 }
 
-func(gdb *GdbmDb) Get(ctx context.Context, sessionId string, key []byte) ([]byte, error) {
-	k, err := gdb.ToKey(sessionId, key)
+func(gdb *GdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+	k, err := gdb.ToKey(key)
 	if err != nil {
 		return nil, err
 	}

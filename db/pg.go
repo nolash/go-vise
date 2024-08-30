@@ -90,8 +90,8 @@ func(pdb *PgDb) prepare(ctx context.Context) error {
 	return nil
 }
 
-func(pdb *PgDb) Put(ctx context.Context, sessionId string, key []byte, val []byte) error {
-	k, err := pdb.ToKey(sessionId, key)
+func(pdb *PgDb) Put(ctx context.Context, key []byte, val []byte) error {
+	k, err := pdb.ToKey(key)
 	if err != nil {
 		return err
 	}
@@ -109,8 +109,8 @@ func(pdb *PgDb) Put(ctx context.Context, sessionId string, key []byte, val []byt
 	return nil
 }
 
-func(pdb *PgDb) Get(ctx context.Context, sessionId string, key []byte) ([]byte, error) {
-	k, err := pdb.ToKey(sessionId, key)
+func(pdb *PgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+	k, err := pdb.ToKey(key)
 	if err != nil {
 		return nil, err
 	}
