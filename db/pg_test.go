@@ -7,12 +7,17 @@ import (
 )
 
 func TestPutGetPg(t *testing.T) {
-	t.Skip("need postgresql mock")
+	var dbi Db
 	ses := "xyzzy"
 	db := NewPgDb().WithSchema("vvise")
 	db.SetPrefix(DATATYPE_USERSTART)
 	db.SetSession(ses)
 	ctx := context.Background()
+
+	dbi = db
+	_ = dbi
+
+	t.Skip("need postgresql mock")
 	err := db.Connect(ctx, "postgres://vise:esiv@localhost:5432/visedb")
 	if err != nil {
 		t.Fatal(err)

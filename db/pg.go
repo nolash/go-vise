@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// PgDb is a Postgresql backend implementation of the Db interface.
 type PgDb struct {
 	BaseDb
 	conn *pgxpool.Pool
@@ -14,17 +15,20 @@ type PgDb struct {
 	prefix uint8
 }
 
+// NewPgDb creates a new PgDb reference.
 func NewPgDb() *PgDb {
 	return &PgDb{
 		schema: "public",
 	}
 }
 
+// WithSchema sets the Postgres schema to use for the storage table.
 func(pdb *PgDb) WithSchema(schema string) *PgDb {
 	pdb.schema = schema
 	return pdb
 }
 
+// Connect implements Db.
 func(pdb *PgDb) Connect(ctx context.Context, connStr string) error {
 	var err error
 	conn, err := pgxpool.New(ctx, connStr)
@@ -35,61 +39,7 @@ func(pdb *PgDb) Connect(ctx context.Context, connStr string) error {
 	return pdb.prepare(ctx)
 }
 
-func(pdb *PgDb) prepare(ctx context.Context) error {
-	tx, err := pdb.conn.Begin(ctx)
-	if err != nil {
-		tx.Rollback(ctx)
-		return err
-	}
-//	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise_domain (
-//		id SERIAL PRIMARY KEY,
-//		name VARCHAR(256) NOT NULL
-//	);
-//`, pdb.schema)
-//	_, err = tx.Exec(ctx, query)
-//	if err != nil {
-//		tx.Rollback(ctx)
-//		return err
-//	}
-//
-//	query = fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise (
-//		id SERIAL NOT NULL,
-//		domain_id INT NOT NULL,
-//		key VARCHAR(256) NOT NULL,
-//		value BYTEA NOT NULL,
-//		constraint fk_domain
-//			FOREIGN KEY (domain_id)
-//			REFERENCES %s.kv_vise_domain(id)
-//	);
-//`, pdb.schema, pdb.schema)
-//	_, err = tx.Exec(ctx, query)
-//	if err != nil {
-//		tx.Rollback(ctx)
-//		return err
-//	}
-
-	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise (
-		id SERIAL NOT NULL,
-		key BYTEA NOT NULL UNIQUE,
-		value BYTEA NOT NULL
-	);
-`, pdb.schema)
-	_, err = tx.Exec(ctx, query)
-	if err != nil {
-		tx.Rollback(ctx)
-		return err
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		//if !errors.Is(pgx.ErrTxCommitRollback) {
-			tx.Rollback(ctx)
-			return err
-		//}
-	}
-	return nil
-}
-
+// Put implements Db.
 func(pdb *PgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	k, err := pdb.ToKey(key)
 	if err != nil {
@@ -109,6 +59,7 @@ func(pdb *PgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	return nil
 }
 
+// Get implements Db.
 func(pdb *PgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	k, err := pdb.ToKey(key)
 	if err != nil {
@@ -133,7 +84,35 @@ func(pdb *PgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	return b, nil
 }
 
+// Close implements Db.
 func(pdb *PgDb) Close() error {
 	pdb.Close()
+	return nil
+}
+
+// set up table
+func(pdb *PgDb) prepare(ctx context.Context) error {
+	tx, err := pdb.conn.Begin(ctx)
+	if err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise (
+		id SERIAL NOT NULL,
+		key BYTEA NOT NULL UNIQUE,
+		value BYTEA NOT NULL
+	);
+`, pdb.schema)
+	_, err = tx.Exec(ctx, query)
+	if err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
 	return nil
 }

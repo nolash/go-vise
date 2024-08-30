@@ -8,6 +8,7 @@ import (
 )
 
 func TestPutGetGdbm(t *testing.T) {
+	var dbi Db
 	ctx := context.Background()
 	sid := "ses"
 	f, err := ioutil.TempFile("", "vise-db-*")
@@ -17,6 +18,10 @@ func TestPutGetGdbm(t *testing.T) {
 	db := &GdbmDb{}
 	db.SetPrefix(DATATYPE_USERSTART)
 	db.SetSession(sid)
+
+	dbi = db
+	_ = dbi
+
 	err = db.Connect(ctx, f.Name())
 	if err != nil {
 		t.Fatal(err)

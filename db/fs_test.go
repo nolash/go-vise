@@ -8,6 +8,7 @@ import (
 )
 
 func TestPutGetFs(t *testing.T) {
+	var dbi Db
 	ctx := context.Background()
 	sid := "ses"
 	d, err := ioutil.TempDir("", "vise-db-*")
@@ -17,6 +18,10 @@ func TestPutGetFs(t *testing.T) {
 	db := &FsDb{}
 	db.SetPrefix(DATATYPE_USERSTART)
 	db.SetSession(sid)
+
+	dbi = db
+	_ = dbi
+
 	err = db.Connect(ctx, d)
 	if err != nil {
 		t.Fatal(err)

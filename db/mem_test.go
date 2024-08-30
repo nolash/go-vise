@@ -7,11 +7,16 @@ import (
 )
 
 func TestPutGetMem(t *testing.T) {
+	var dbi Db
 	ctx := context.Background()
 	sid := "ses"
 	db := &MemDb{}
 	db.SetPrefix(DATATYPE_USERSTART)
 	db.SetSession(sid)
+
+	dbi = db
+	_ = dbi
+
 	err := db.Connect(ctx, "")
 	if err != nil {
 		t.Fatal(err)

@@ -7,12 +7,14 @@ import (
 	gdbm "github.com/graygnuorg/go-gdbm"
 )
 
+// GdbmDb is a gdbm backend implementation of the Db interface.
 type GdbmDb struct {
 	BaseDb
 	conn *gdbm.Database
 	prefix uint8
 }
 
+// Connect implements Db
 func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
 	db, err := gdbm.Open(connStr, gdbm.ModeWrcreat)
 	if err != nil {
@@ -22,6 +24,7 @@ func(gdb *GdbmDb) Connect(ctx context.Context, connStr string) error {
 	return nil
 }
 
+// Put implements Db
 func(gdb *GdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 	k, err := gdb.ToKey(key)
 	if err != nil {
@@ -30,6 +33,7 @@ func(gdb *GdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 	return gdb.conn.Store(k, val, true)
 }
 
+// Get implements Db
 func(gdb *GdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	k, err := gdb.ToKey(key)
 	if err != nil {
@@ -45,6 +49,7 @@ func(gdb *GdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	return v, nil
 }
 
+// Close implements Db
 func(gdb *GdbmDb) Close() error {
 	return gdb.Close()
 }

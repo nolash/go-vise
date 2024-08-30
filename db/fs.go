@@ -8,11 +8,13 @@ import (
 	"path"
 )
 
+// FsDb is a pure filesystem backend implementation if the Db interface.
 type FsDb struct {
 	BaseDb
 	dir string
 }
 
+// Connect implements Db
 func(fdb *FsDb) Connect(ctx context.Context, connStr string) error {
 	fi, err := os.Stat(connStr)
 	if err != nil {
@@ -25,6 +27,7 @@ func(fdb *FsDb) Connect(ctx context.Context, connStr string) error {
 	return nil
 }
 
+// Get implements Db
 func(fdb *FsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	fp, err := fdb.pathFor(key)
 	if err != nil {
@@ -42,6 +45,7 @@ func(fdb *FsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	return b, nil
 }
 
+// Put implements Db
 func(fdb *FsDb) Put(ctx context.Context, key []byte, val []byte) error {
 	fp, err := fdb.pathFor(key)
 	if err != nil {
@@ -50,10 +54,12 @@ func(fdb *FsDb) Put(ctx context.Context, key []byte, val []byte) error {
 	return ioutil.WriteFile(fp, val, 0600)
 }
 
+// Close implements Db
 func(fdb *FsDb) Close() error {
 	return nil
 }	
- 
+
+// create a key safe for the filesystem
 func(fdb *FsDb) pathFor(key []byte) (string, error) {
 	kb, err := fdb.ToKey(key)
 	if err != nil {
