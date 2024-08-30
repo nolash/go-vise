@@ -1,0 +1,6 @@
+MOUT foo 0
+MOUT bar 1
+HALT
+INCMP foo 0
+INCMP bar 1
+INCMP ^ *

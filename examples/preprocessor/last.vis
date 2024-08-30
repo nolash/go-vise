@@ -1,0 +1,4 @@
+LOAD flag_bar 0
+HALT
+RELOAD flag_schmag
+INCMP ^ *

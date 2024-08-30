@@ -1,0 +1,5 @@
+CROAK baz 1
+CATCH last bar 1
+CATCH first foo 0
+LOAD flag_schmag 0
+MOVE mid

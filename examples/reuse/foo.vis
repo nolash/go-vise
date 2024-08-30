@@ -1,0 +1,3 @@
+LOAD do_foo 0
+MAP do_foo
+HALT
