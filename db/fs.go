@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,7 +13,7 @@ type FsDb struct {
 	dir string
 }
 
-func(fds *FsDb) Connect(connStr string) error {
+func(fdb *FsDb) Connect(ctx context.Context, connStr string) error {
 	fi, err := os.Stat(connStr)
 	if err != nil {
 		return err
@@ -20,16 +21,12 @@ func(fds *FsDb) Connect(connStr string) error {
 	if !fi.IsDir()  {
 		return fmt.Errorf("fs db %s is not a directory", connStr)
 	}
-	fds.dir = connStr
+	fdb.dir = connStr
 	return nil
 }
 
-func(fsd *FsDb) pathFor(key []byte) string{
-	return path.Join(fsd.dir, string(key))
-}
-
-func(fsd *FsDb) Get(key []byte) ([]byte, error) {
-	fp := fsd.pathFor(key)
+func(fdb *FsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+	fp := fdb.pathFor(key)
 	f, err := os.Open(fp)
 	if err != nil {
 		return nil, err
@@ -42,7 +39,11 @@ func(fsd *FsDb) Get(key []byte) ([]byte, error) {
 	return b, nil
 }
 
-func(fsd *FsDb) Put(key []byte, val []byte) error {
-	fp := fsd.pathFor(key)
+func(fdb *FsDb) Put(ctx context.Context, key []byte, val []byte) error {
+	fp := fdb.pathFor(key)
 	return ioutil.WriteFile(fp, val, 0600)
+}
+
+func(fdb *FsDb) pathFor(key []byte) string{
+	return path.Join(fdb.dir, string(key))
 }
