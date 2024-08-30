@@ -25,6 +25,10 @@ type Db interface {
 	Get(ctx context.Context, key []byte) ([]byte, error)
 	// Put stores a value under a key. Any existing value will be replaced. Errors if the value could not be stored.
 	Put(ctx context.Context, key []byte, val []byte) error
+	// SetPrefix sets the storage context prefix to use for consecutive Get and Put operations.
+	SetPrefix(pfx uint8)
+	// SetSession sets the session context to use for consecutive Get and Put operations.
+	SetSession(sessionId string)
 }
 
 // ToDbKey generates a key to use Db to store a value for a particular context.
@@ -47,12 +51,12 @@ type BaseDb struct {
 	sid []byte
 }
 
-// SetPrefix sets the storage context prefix to use for consecutive Get and Put operations.
+// SetPrefix implements Db.
 func(db *BaseDb) SetPrefix(pfx uint8) {
 	db.pfx = pfx
 }
 
-// SetSession sets the session context to use for consecutive Get and Put operations.
+// SetSession implements Db.
 func(db *BaseDb) SetSession(sessionId string) {
 	db.sid = append([]byte(sessionId), 0x2E)
 }

@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"fmt"
+	"encoding/hex"
 )
 
 // MemDb is a memory backend implementation of the Db interface.
@@ -11,8 +11,18 @@ type MemDb struct {
 	store map[string][]byte
 }
 
+// NewMemDb returns an already allocated 
+func NewMemDb(ctx context.Context) *MemDb {
+	db := &MemDb{}
+	_ = db.Connect(ctx, "")
+	return db
+}
+
 // Connect implements Db
 func(mdb *MemDb) Connect(ctx context.Context, connStr string) error {
+	if mdb.store != nil {
+		return nil
+	}
 	mdb.store = make(map[string][]byte)
 	return nil
 }
@@ -20,7 +30,7 @@ func(mdb *MemDb) Connect(ctx context.Context, connStr string) error {
 // convert to a supported map key type
 func(mdb *MemDb) toHexKey(key []byte) (string, error) {
 	k, err := mdb.ToKey(key)
-	return fmt.Sprintf("%x", k), err
+	return hex.EncodeToString(k), err
 }
 
 // Get implements Db
@@ -29,9 +39,11 @@ func(mdb *MemDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	Logg.TraceCtxf(ctx, "mem get", "k", k)
 	v, ok := mdb.store[k]
 	if !ok {
-		return nil, NewErrNotFound([]byte(k))
+		b, _ := hex.DecodeString(k)
+		return nil, NewErrNotFound(b)
 	}
 	return v, nil
 }
@@ -43,6 +55,7 @@ func(mdb *MemDb) Put(ctx context.Context, key []byte, val []byte) error {
 		return err
 	}
 	mdb.store[k] = val
+	Logg.TraceCtxf(ctx, "mem put", "k",  k, "v", val)
 	return nil
 }
 
