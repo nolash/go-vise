@@ -32,7 +32,7 @@ func(fdb *FsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	}
 	f, err := os.Open(fp)
 	if err != nil {
-		return nil, err
+		return nil, NewErrNotFound([]byte(fp))
 	}
 	defer f.Close()
 	b, err := ioutil.ReadAll(f)
