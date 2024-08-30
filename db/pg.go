@@ -78,10 +78,14 @@ func(pdb *PgDb) prepare(ctx context.Context) error {
 	return nil
 }
 
-func(pdb *PgDb) Put(ctx context.Context, key []byte, val []byte) error {
+func(pdb *PgDb) domainId(ctx context.Context, domain string) {
+
+}
+
+func(pdb *PgDb) Put(ctx context.Context, sessionId string, key []byte, val []byte) error {
 	return nil
 }
 
-func(pdb *PgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+func(pdb *PgDb) Get(ctx context.Context, sessionId string, key []byte) ([]byte, error) {
 	return nil, nil
 }

@@ -9,6 +9,7 @@ import (
 
 func TestPutGet(t *testing.T) {
 	ctx := context.Background()
+	sid := "ses"
 	d, err := ioutil.TempDir("", "vise-db-*")
 	if err != nil {
 		t.Fatal(err)
@@ -18,18 +19,18 @@ func TestPutGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = db.Put(ctx, []byte("foo"), []byte("bar"))
+	err = db.Put(ctx, sid, []byte("foo"), []byte("bar"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	v, err := db.Get(ctx, []byte("foo"))
+	v, err := db.Get(ctx, sid, []byte("foo"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(v, []byte("bar")) {
 		t.Fatalf("expected value 'bar', found '%s'", v)
 	}
-	_, err = db.Get(ctx, []byte("bar"))
+	_, err = db.Get(ctx, sid, []byte("bar"))
 	if err == nil {
 		t.Fatal("expected get error for key 'bar'")
 	}
