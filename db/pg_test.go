@@ -7,7 +7,7 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-//	t.Skip("need postgresql mock")
+	t.Skip("need postgresql mock")
 	db := NewPgDb().WithSchema("vvise")
 	ctx := context.Background()
 	err := db.Connect(ctx, "postgres://vise:esiv@localhost:5432/visedb")

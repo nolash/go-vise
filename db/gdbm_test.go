@@ -7,15 +7,15 @@ import (
 	"testing"
 )
 
-func TestPutGetFs(t *testing.T) {
+func TestPutGetGdbm(t *testing.T) {
 	ctx := context.Background()
 	sid := "ses"
-	d, err := ioutil.TempDir("", "vise-db-*")
+	f, err := ioutil.TempFile("", "vise-db-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-	db := &FsDb{}
-	err = db.Connect(ctx, d)
+	db := NewGdbmDb()
+	err = db.Connect(ctx, f.Name())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,4 +34,5 @@ func TestPutGetFs(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected get error for key 'bar'")
 	}
+
 }
