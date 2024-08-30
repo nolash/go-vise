@@ -16,6 +16,9 @@ type FsDb struct {
 
 // Connect implements Db
 func(fdb *FsDb) Connect(ctx context.Context, connStr string) error {
+	if fdb.dir != "" {
+		return nil
+	}
 	fi, err := os.Stat(connStr)
 	if err != nil {
 		return err

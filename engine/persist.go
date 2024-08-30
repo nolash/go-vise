@@ -11,12 +11,12 @@ import (
 // PersistedEngine adds persisted state to the Engine object. It provides a persisted state option for synchronous/interactive clients.
 type PersistedEngine struct {
 	*Engine
-	pr persist.Persister
+	pr *persist.Persister
 }
 
 
 // NewPersistedEngine creates a new PersistedEngine
-func NewPersistedEngine(ctx context.Context, cfg Config, pr persist.Persister, rs resource.Resource) (PersistedEngine, error) {
+func NewPersistedEngine(ctx context.Context, cfg Config, pr *persist.Persister, rs resource.Resource) (PersistedEngine, error) {
 	err := pr.Load(cfg.SessionId)
 	if err != nil {
 		return PersistedEngine{}, err
@@ -58,7 +58,7 @@ func(pe PersistedEngine) Finish() error {
 // initialized state actually is available for the identifier, otherwise the method will fail.
 //
 // It will also fail if execution by the underlying Engine fails.
-func RunPersisted(cfg Config, rs resource.Resource, pr persist.Persister, input []byte, w io.Writer, ctx context.Context) error {
+func RunPersisted(cfg Config, rs resource.Resource, pr *persist.Persister, input []byte, w io.Writer, ctx context.Context) error {
 	err := pr.Load(cfg.SessionId)
 	if err != nil {
 		return err
