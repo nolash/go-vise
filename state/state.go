@@ -7,12 +7,9 @@ import (
 	"git.defalsify.org/vise.git/lang"
 )
 
-type IndexError struct {
-}
-
-func(err *IndexError) Error() string {
-	return fmt.Sprintf("already at first index")
-}
+var (
+	IndexError = fmt.Errorf("already at first index")
+)
 
 // State holds the command stack, error condition of a unique execution session.
 //
@@ -20,9 +17,9 @@ func(err *IndexError) Error() string {
 //
 // Cached values are linked to the command stack level it which they were loaded. When they go out of scope they are freed.
 //
-// Values must be mapped to a level in order to be available for retrieval and count towards size
+// It can hold a single argument, which is freed once it is read.
 //
-// It can hold a single argument, which is freed once it is read
+// Values must be mapped to a level in order to be available for retrieval and count towards size.
 //
 // Symbols are loaded with individual size limitations. The limitations apply if a load symbol is updated. Symbols may be added with a 0-value for limits, called a "sink." If mapped, the sink will consume all net remaining size allowance unused by other symbols. Only one sink may be mapped per level.
 //
@@ -90,6 +87,7 @@ func NewState(BitSize uint32) State {
 	return st
 }
 
+// UseDebug enables rendering of registered string values of state flags in the string representation.
 func(st *State) UseDebug() {
 	st.debug = true
 }
@@ -215,7 +213,7 @@ func(st *State) Next() (uint16, error) {
 	}
 	st.SizeIdx += 1
 	s, idx := st.Where()
-	Logg.Debugf("next page", "location", s, "index", idx)
+	logg.Debugf("next page", "location", s, "index", idx)
 	st.Moves += 1
 	return st.SizeIdx, nil
 }
@@ -232,11 +230,11 @@ func(st *State) Previous() (uint16, error) {
 		return 0, fmt.Errorf("state root node not yet defined")
 	}
 	if st.SizeIdx == 0 {
-		return 0, &IndexError{} // ("already at first index")
+		return 0, IndexError
 	}
 	st.SizeIdx -= 1
 	s, idx := st.Where()
-	Logg.Debugf("previous page", "location", s, "index", idx)
+	logg.Debugf("previous page", "location", s, "index", idx)
 	st.Moves += 1
 	return st.SizeIdx, nil
 }
@@ -249,7 +247,7 @@ func(st *State) Sides() (bool, bool) {
 		return false, false
 	}
 	next := true
-	Logg.Tracef("sides", "index", st.SizeIdx)
+	logg.Tracef("sides", "index", st.SizeIdx)
 	if st.SizeIdx == 0 {
 		return next, false	
 	}
@@ -288,14 +286,14 @@ func(st *State) Up() (string, error) {
 	if l == 0 {
 		return "", fmt.Errorf("exit called beyond top frame")
 	}
-	Logg.Tracef("execpath before", "path", st.ExecPath)
+	logg.Tracef("execpath before", "path", st.ExecPath)
 	st.ExecPath = st.ExecPath[:l-1]
 	sym := ""
 	if len(st.ExecPath) > 0 {
 		sym = st.ExecPath[len(st.ExecPath)-1]
 	}
 	st.SizeIdx = 0
-	Logg.Tracef("execpath after", "path", st.ExecPath)
+	logg.Tracef("execpath after", "path", st.ExecPath)
 	st.Moves += 1
 	return sym, nil
 }
@@ -308,13 +306,13 @@ func(st *State) Depth() uint8 {
 // Appendcode adds the given bytecode to the end of the existing code.
 func(st *State) AppendCode(b []byte) error {
 	st.Code = append(st.Code, b...)
-	Logg.Debugf("code changed (append)", "code", b)
+	logg.Debugf("code changed (append)", "code", b)
 	return nil
 }
 
 // SetCode replaces the current bytecode with the given bytecode.
 func(st *State) SetCode(b []byte) {
-	Logg.Debugf("code changed (set)", "code", b)
+	logg.Debugf("code changed (set)", "code", b)
 	st.Code = b
 }
 
@@ -362,7 +360,7 @@ func(st *State) SetLanguage(code string) error {
 		return err
 	}
 	st.Language = &l
-	Logg.Infof("language set", "language", l)
+	logg.Infof("language set", "language", l)
 	return nil
 }
 

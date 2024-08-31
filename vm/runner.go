@@ -2,6 +2,7 @@ package vm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"git.defalsify.org/vise.git/cache"
@@ -358,9 +359,10 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 	vm.st.ResetFlag(state.FLAG_READIN)
 
 	newSym, _, err := applyTarget([]byte(sym), vm.st, vm.ca, ctx)
-	
-	_, ok := err.(*state.IndexError)
-	if ok {
+
+	//_, ok := err.(*state.IndexError)
+	//if ok {
+	if errors.Is(err, state.IndexError) {
 		vm.st.SetFlag(state.FLAG_READIN)
 		return b, nil
 	} else if err != nil {

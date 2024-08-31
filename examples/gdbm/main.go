@@ -40,7 +40,7 @@ func main() {
 		panic(err)
 	}
 
-	tg, err := resource.NewDbFuncGetter(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN)
+	tg, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN)
 	if err != nil {
 		panic(err)
 	}

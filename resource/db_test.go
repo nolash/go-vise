@@ -9,13 +9,17 @@ import (
 )
 
 func TestDb(t *testing.T) {
+	var rsifc Resource
 	ctx := context.Background()
 	store := db.NewMemDb(ctx)
 	store.Connect(ctx, "")
-	tg, err := NewDbFuncGetter(store, db.DATATYPE_TEMPLATE)
+	tg, err := NewDbResource(store, db.DATATYPE_TEMPLATE)
 	if err != nil {
 		t.Fatal(err)
 	}
+	// check that it fulfills interface
+	rsifc = tg
+	_ = rsifc
 	rs := NewMenuResource()
 	rs.WithTemplateGetter(tg.GetTemplate)
 
@@ -59,7 +63,7 @@ func TestDb(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-	tg, err = NewDbFuncGetter(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN)
+	tg, err = NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +78,7 @@ func TestDb(t *testing.T) {
 		t.Fatalf("expected 'deadbeef', got %x", b)
 	}
 
-	tg, err = NewDbFuncGetter(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
+	tg, err = NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+const (
+	unknown_flag_description = "?unreg?"
+)
+
 type flagDebugger struct {
 	flagStrings map[uint32]string
 }
@@ -44,7 +48,11 @@ func(fd *flagDebugger) AsList(flags []byte, length uint32) []string {
 	var i uint32
 	for i = 0; i < length + 8; i++ {
 		if getFlag(i, flags) {
-			s := fmt.Sprintf("%s(%v)", fd.flagStrings[i], i)
+			v, ok := fd.flagStrings[i]
+			if !ok {
+				v = unknown_flag_description
+			}
+			s := fmt.Sprintf("%s(%v)", v, i)
 			r = append(r, s)
 		}
 	}

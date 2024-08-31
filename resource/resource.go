@@ -14,19 +14,33 @@ type Result struct {
 	FlagReset []uint32 // request caller to reset error flags at given indices.
 }
 
-// EntryFunc is a function signature for retrieving value for a key
-type EntryFunc func(ctx context.Context, sym string, input []byte) (Result, error)
-type CodeFunc func(ctx context.Context, sym string) ([]byte, error)
-type MenuFunc func(ctx context.Context, sym string) (string, error)
-type TemplateFunc func(ctx context.Context, sym string) (string, error)
-type FuncForFunc func(sym string) (EntryFunc, error)
+// EntryFunc is a function signature for a function that resolves the symbol of a LOAD instruction.
+//
+// The EntryFunc receives the current input buffer from the client, aswell as the symbol of the current state node being executed.
+//
+// The implementer MUST NOT modify state flags or cache inside the function. The resource.Result object MUST be used instead.
+type EntryFunc func(ctx context.Context, nodeSym string, input []byte) (Result, error)
+// CodeFunc is the function signature for retrieving bytecode for a given symbol.
+type CodeFunc func(ctx context.Context, nodeSym string) ([]byte, error)
+// MenuFunc is the function signature for retrieving menu symbol resolution.
+type MenuFunc func(ctx context.Context, menuSym string) (string, error)
+// TemplateFunc is the function signature for retrieving a render template for a given symbol.
+type TemplateFunc func(ctx context.Context, nodeSym string) (string, error)
+// FuncForFunc is a function that returns an EntryFunc associated with a LOAD instruction symbol.
+type FuncForFunc func(loadSym string) (EntryFunc, error)
 
 // Resource implementation are responsible for retrieving values and templates for symbols, and can render templates from value dictionaries.
+//
+// All methods must fail if the symbol cannot be resolved.
 type Resource interface {
-	GetTemplate(ctx context.Context, sym string) (string, error) // Get the template for a given symbol.
-	GetCode(ctx context.Context, sym string) ([]byte, error) // Get the bytecode for the given symbol.
-	GetMenu(ctx context.Context, sym string) (string, error) // Receive menu test for menu symbol.
-	FuncFor(sym string) (EntryFunc, error) // Resolve symbol content point for.
+	// GetTemplate retrieves a render template associated with the given symbol.
+	GetTemplate(ctx context.Context, nodeSym string) (string, error)
+	// GetCode retrieves the bytecode associated with the given symbol.
+	GetCode(ctx context.Context, nodeSym string) ([]byte, error)
+	// GetMenu retrieves the menu label associated with the given symbol.
+	GetMenu(ctx context.Context, menuSym string) (string, error)
+	// FuncFor retrieves the external function (EntryFunc) associated with the given symbol.
+	FuncFor(loadSym string) (EntryFunc, error)
 }
 
 // MenuResource contains the base definition for building Resource implementations.
