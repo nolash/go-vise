@@ -117,7 +117,7 @@ func(en *Engine) runFirst(ctx context.Context) (bool, error) {
 		// TODO: typed error
 		err = fmt.Errorf("Pre-VM code cannot have remaining bytecode after execution, had: %x", b)
 	} else {
-		if en.st.MatchFlag(state.FLAG_BLOCK, true) {
+		if en.st.MatchFlag(state.FLAG_TERMINATE, true) {
 			en.exit = en.ca.Last()
 			Logg.InfoCtxf(ctx, "Pre-VM check says not to continue execution", "state", en.st)
 		} else {
@@ -128,7 +128,7 @@ func(en *Engine) runFirst(ctx context.Context) (bool, error) {
 		en.st.Invalidate()
 		en.ca.Invalidate()
 	}
-	en.st.ResetFlag(state.FLAG_BLOCK)
+	en.st.ResetFlag(state.FLAG_TERMINATE)
 	Logg.DebugCtxf(ctx, "end pre-VM check")
 	return r, err
 }
