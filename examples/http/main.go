@@ -15,6 +15,7 @@ import (
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/logging"
+	"git.defalsify.org/vise.git/db"
 )
 
 var (
@@ -96,13 +97,15 @@ func(f *DefaultSessionHandler) GetEngine(ctx context.Context, sessionId string) 
 	cfg.SessionId = sessionId
 	
 	persistPath := path.Join(f.peBase, sessionId)
-	err := os.MkdirAll(persistPath, 0700)
+	store := db.NewFsDb()
+	err := store.Connect(ctx, persistPath)
 	if err != nil {
 		return nil, err
 	}
+
 	f.rh.SetSession(sessionId)
 
-	pe := persist.NewFsPersister(persistPath)
+	pe := persist.NewPersister(store)
 	en, err := engine.NewPersistedEngine(ctx, cfg, pe, f.rs)
 	if err != nil {
 		st := state.NewState(cfg.FlagCount)
