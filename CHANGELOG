@@ -1,5 +1,13 @@
 - 0.1.0
-	* Data storage interface with implementations for memory, filesystem, gdbm and Postgres
+	* Data storage interface with implementations for memory (db.MemDb), filesystem (db.FsDb), gdbm (db.GdbmDb) and Postgres (db.PgDb).
+	* Pre-VM EntryFunc hook to allow execution prevention (e.g. blocked access).
+	* Base HTTP server engine interface.
+	* Tool to collect templates, code, menus with translations to a single gdbm file, usable with db.GdbmDb.
+	* Invalidation option for state and cache to prevent accidental persistence when not desired.
+	* Flag parser that loads flags with string identifiers, values and descriptions from a csv file.
+	* Add preprocessor to assembler tool to enable use of flag parser (CATCH and CROAK statements).
+	* Use last cached value on clean exit without remaining code.
+	* Add missing go.sum file.
 - 0.0.15
 	* Add comprehensive documentation with texinfo.
 	* Prevent cursor leak in sizer.
