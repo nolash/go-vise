@@ -12,4 +12,6 @@ type Memory interface {
 	Levels() uint32
 	Keys(level uint32) []string
 	Last() string
+	Invalidate()
+	Invalid() bool
 }

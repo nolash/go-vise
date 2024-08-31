@@ -356,7 +356,7 @@ func preBlock(ctx context.Context, sym string, input []byte) (resource.Result, e
 	log.Printf("executing preBlock")
 	return resource.Result{
 		Content: "None shall pass",
-		FlagSet: []uint32{state.FLAG_TERMINATE},
+		FlagSet: []uint32{state.FLAG_BLOCK},
 	}, nil
 }
 

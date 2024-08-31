@@ -12,6 +12,7 @@ type Cache struct {
 	Cache []map[string]string // All loaded cache items
 	Sizes map[string]uint16 // Size limits for all loaded symbols.
 	LastValue string // last inserted value
+	invalid bool
 }
 
 // NewCache creates a new ready-to-use cache object
@@ -21,6 +22,20 @@ func NewCache() *Cache {
 		Sizes: make(map[string]uint16),
 	}
 	return ca
+}
+
+// Invalidate marks a cache as invalid.
+//
+// An invalid cache should not be persisted or propagated
+func(ca *Cache) Invalidate() {
+	ca.invalid = true
+}
+
+// Invalid returns true if cache is invalid.
+//
+// An invalid cache should not be persisted or propagated
+func(ca *Cache) Invalid() bool {
+	return ca.invalid
 }
 
 // WithCacheSize applies a cumulative cache size limitation for all cached items.

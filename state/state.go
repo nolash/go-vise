@@ -39,6 +39,7 @@ type State struct {
 	Language *lang.Language // Language selector for rendering
 	input []byte // Last input
 	debug bool // Make string representation more human friendly
+	invalid bool
 }
 
 // number of bytes necessary to represent a bitfield of the given size.
@@ -51,6 +52,20 @@ func toByteSize(BitSize uint32) uint8 {
 		BitSize += (8 - n)
 	}
 	return uint8(BitSize / 8)
+}
+
+// Invalidate marks a state as invalid.
+//
+// An invalid state should not be persisted or propagated
+func(st *State) Invalidate() {
+	st.invalid = true
+}
+
+// Invalid returns true if state is invalid.
+//
+// An invalid state should not be persisted or propagated
+func(st *State) Invalid() bool {
+	return st.invalid
 }
 
 //// Retrieve the state of a state flag
