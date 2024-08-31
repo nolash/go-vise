@@ -3,17 +3,17 @@ package state
 const (
 	FLAG_READIN = iota
 	FLAG_INMATCH 
-	FLAG_TERMINATE 
 	FLAG_DIRTY
 	FLAG_WAIT
 	FLAG_LOADFAIL
+	FLAG_TERMINATE 
 	FLAG_RESERVED
 	FLAG_LANG
 	FLAG_USERSTART = 8
 )
 
 func IsWriteableFlag(flag uint32) bool {
-	if flag > 6 {
+	if flag > 4 {
 		return true
 	}
 	//if flag & FLAG_WRITEABLE > 0 {

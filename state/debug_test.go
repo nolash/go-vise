@@ -27,7 +27,7 @@ func TestDebugFlagString(t *testing.T) {
 	}
 	flags := []byte{0x06, 0x09}
 	r := FlagDebugger.AsString(flags, 4)
-	expect := "INTERNAL_INMATCH(1),INTERNAL_TERMINATE(2),FOO(8),BAZ(11)" 
+	expect := "INTERNAL_INMATCH(1),INTERNAL_DIRTY(2),FOO(8),BAZ(11)" 
 	if r != expect {
 		t.Fatalf("expected '%s', got '%s'", expect, r)
 	}
@@ -45,7 +45,7 @@ func TestDebugState(t *testing.T) {
 	st.Down("root")
 
 	r := fmt.Sprintf("%s", st)
-	expect := "moves: 1 idx: 0 flags: INTERNAL_DIRTY(3),FOO(8) path: root lang: (default)"
+	expect := "moves: 1 idx: 0 flags: INTERNAL_DIRTY(2),FOO(8) path: root lang: (default)"
 	if r != expect {
 		t.Fatalf("expected '%s', got '%s'", expect, r)
 	}

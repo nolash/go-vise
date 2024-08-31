@@ -27,6 +27,7 @@ type Engine struct {
 	ca cache.Memory
 	vm *vm.Vm
 	dbg Debug
+	first resource.EntryFunc
 	root string
 	session string
 	initd bool
@@ -46,7 +47,7 @@ func NewEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Res
 		ca: ca,
 		vm: vm.NewVm(st, rs, ca, szr),
 	}
-	engine.root = cfg.Root	
+	engine.root = cfg.Root
 	engine.session = cfg.SessionId
 
 	var err error
@@ -70,11 +71,17 @@ func (en *Engine) SetDebugger(debugger Debug) {
 	en.dbg = debugger
 }
 
+// SetFirst sets a function which will be executed before bytecode
+func(en *Engine) SetFirst(fn resource.EntryFunc) {
+	en.first = fn
+}
+
 // Finish implements EngineIsh interface
 func(en *Engine) Finish() error {
 	Logg.Tracef("that's a wrap", "engine", en)
 	return nil
 }
+
 
 // change root to current state location if non-empty.
 func(en *Engine) restore() {
@@ -86,6 +93,40 @@ func(en *Engine) restore() {
 		Logg.Infof("restoring state", "sym", location)
 		en.root = "."
 	}
+}
+
+// execute the first function, if set
+func(en *Engine) runFirst(ctx context.Context) (bool, error) {
+	var err error
+	var r bool
+	if en.first == nil {
+		return true, nil
+	}
+	Logg.DebugCtxf(ctx, "start pre-VM check")
+	rs := resource.NewMenuResource()
+	rs.AddLocalFunc("_first", en.first)
+	en.st.Down("_first")
+	pvm := vm.NewVm(en.st, rs, en.ca, nil)
+	b := vm.NewLine(nil, vm.LOAD, []string{"_first"}, []byte{0}, nil)
+	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
+	b, err = pvm.Run(ctx, b)
+	if err != nil {
+		return false, err
+	}
+	if len(b) > 0 {
+		// TODO: typed error
+		err = fmt.Errorf("Pre-VM code cannot have remaining bytecode after execution, had: %x", b)
+	} else {
+		if en.st.MatchFlag(state.FLAG_TERMINATE, true) {
+			en.exit = en.ca.Last()
+			Logg.InfoCtxf(ctx, "Pre-VM check says not to continue execution", "state", en.st)
+		} else {
+			r = true
+		}
+	}
+	en.st.ResetFlag(state.FLAG_TERMINATE)
+	Logg.DebugCtxf(ctx, "end pre-VM check")
+	return r, nil
 }
 
 // Init must be explicitly called before using the Engine instance.
@@ -107,6 +148,14 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 	err := en.st.SetInput([]byte{})
 	if err != nil {
 		return false, err
+	}
+
+	r, err := en.runFirst(ctx)
+	if err != nil {
+		return false, err
+	}
+	if !r {
+		return false, nil
 	}
 
 	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)

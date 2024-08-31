@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"path"
 	"testing"
 
@@ -103,7 +104,7 @@ func generateTestData(t *testing.T) {
 func TestEngineInit(t *testing.T) {
 	var err error
 	generateTestData(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	st := state.NewState(17)
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
@@ -161,7 +162,7 @@ it has more lines
 
 func TestEngineExecInvalidInput(t *testing.T) {
 	generateTestData(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	st := state.NewState(17)
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
@@ -183,7 +184,7 @@ func TestEngineExecInvalidInput(t *testing.T) {
 
 func TestEngineResumeTerminated(t *testing.T) {
 	generateTestData(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	st := state.NewState(17)
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
@@ -219,7 +220,7 @@ func TestEngineResumeTerminated(t *testing.T) {
 
 func TestLanguageSet(t *testing.T) {
 	generateTestData(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	st := state.NewState(0)
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
@@ -272,7 +273,7 @@ func TestLanguageSet(t *testing.T) {
 
 func TestLanguageRender(t *testing.T) {
 	generateTestData(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	st := state.NewState(0)
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache()
@@ -312,7 +313,7 @@ func TestLanguageRender(t *testing.T) {
 
 func TestConfigLanguageRender(t *testing.T) {
 	generateTestData(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	st := state.NewState(0)
 	rs := NewFsWrapper(dataDir, &st)
 	ca := cache.NewCache()
@@ -348,5 +349,62 @@ func TestConfigLanguageRender(t *testing.T) {
 	r := br.String()
 	if r != expect {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s", expect, r)
+	}
+}
+
+func preBlock(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	log.Printf("executing preBlock")
+	return resource.Result{
+		Content: "None shall pass",
+		FlagSet: []uint32{state.FLAG_TERMINATE},
+	}, nil
+}
+
+func preAllow(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	log.Printf("executing preAllow")
+	return resource.Result{}, nil
+}
+
+func TestPreVm(t *testing.T) {
+	var b []byte
+	var out *bytes.Buffer
+	generateTestData(t)
+	ctx := context.Background()
+	st := state.NewState(0)
+	st.UseDebug()
+	rs := NewFsWrapper(dataDir, &st)
+	ca := cache.NewCache()
+
+	cfg := Config{
+		Root: "root",
+	}
+	en := NewEngine(ctx, cfg, &st, &rs, ca)
+	en.SetFirst(preBlock)
+	r, err := en.Init(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r {
+		t.Fatalf("expected init to return 'not continue'")
+	}
+	out = bytes.NewBuffer(b)
+	_, err = en.WriteResult(ctx, out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(out.Bytes(), []byte("None shall pass")) {
+		t.Fatalf("expected writeresult 'None shall pass', got %s", out)
+	}
+
+	st = state.NewState(0)
+	ca = cache.NewCache()
+	en = NewEngine(ctx, cfg, &st, &rs, ca)
+	en.SetFirst(preAllow)
+	r, err = en.Init(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !r {
+		t.Fatalf("expected init to return 'continue'")
 	}
 }
