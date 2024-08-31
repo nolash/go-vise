@@ -1,3 +1,4 @@
+// Example: Graceful termination that will be resumed from top on next execution.
 package main
 
 import (

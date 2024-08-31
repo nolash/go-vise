@@ -1,3 +1,4 @@
+// Example: Basic flags and input processing, and symbol execution.
 package main
 
 import (

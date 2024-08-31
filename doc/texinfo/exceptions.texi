@@ -1,0 +1,66 @@
+@node exceptions
+@chapter Exceptional states
+
+
+@section Ending execution
+
+The @code{vise} VM will terminate execution when it runs out of bytecode.
+
+There may be several different causes of this. 
+
+Each case described below references the way the Engine implementation handles an ending execution.
+
+
+@subsection Halting
+
+If the last instruction executed was @code{HALT}, the template of the node where execution terminated should be displayed.
+
+If the template is missing or empty, the last value of the last returned unprocessed symbol from @code{LOAD} (or @code{RELOAD}) should be displayed instead.
+
+If neither exists, it will be considered an @ref{abnormal_termination, abnormal termination} instead.
+
+Otherwise, the execution is considered to have terminated gracefully.
+
+After ending, VM run should start from the topmost node, equivalent to an @code{MOVE ^} instruction.
+
+@anchor{abnormal_termination}
+@subsection Termination
+
+When the VM runs out of bytecode, and the last instruction execution was @emph{not} @code{HALT}, then the @code{TERMINATE} flag will be set.
+
+This will block any future execution of the VM, until the @code{TERMINATE} flag has been explicitly reset.
+
+
+@anchor{default_error}
+@subsection Default error case
+
+When encountering unhandled error states (e.g. external code that returns errors and thus sets @code{LOADFAIL}), the remaining bytecode is purged, and execution is moved to a builtin node called @code{_catch}.
+
+The node has no bytecode by default. If encountered, and if no bytecode has been provided, execution will be stuck on the node @code{_catch} forever.
+
+
+@subsection The @code{CROAK} instruction
+
+The @code{CROAK} instruction may have one of two outcomes.
+
+If encountered while not input (i.e. signal flag @code{READIN} is not set), this will cause a @ref{abnormal_termination, termination}.
+
+Otherwise, it will execute the @ref{default_error, default error case}.
+
+
+
+@section Resuming execution
+
+Depending on the state of the execution end, certain explicit steps may be required.
+
+
+@subsection Graceful exit
+
+Execution will resume from the topmode node, and all flags that are not user-defined will have been reset.
+
+
+@subsection After termination
+
+The @code{TERMINATE} flag, once set, will block any further execution by the VM until it is cleared explicitly by code outside the VM (and the engine).
+
+This is the case even if additional bytecode has been loaded into the state.

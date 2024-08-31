@@ -12,7 +12,7 @@ type memDb struct {
 	store map[string][]byte
 }
 
-// NewmemDb returns an already allocated memory backend (volatile) Db implementation.
+// NewmemDb returns an in-process volatile Db implementation.
 func NewMemDb(ctx context.Context) *memDb {
 	db := &memDb{}
 	db.baseDb.defaultLock()

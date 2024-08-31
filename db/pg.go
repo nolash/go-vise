@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// pgDb is a Postgresql backend implementation of the Db interface.
+// pgDb is a Postgres backend implementation of the Db interface.
 type pgDb struct {
 	baseDb
 	conn *pgxpool.Pool
@@ -16,7 +16,7 @@ type pgDb struct {
 	prefix uint8
 }
 
-// NewpgDb creates a new postgres backed Db implementation.
+// NewpgDb creates a new Postgres backed Db implementation.
 func NewPgDb() *pgDb {
 	db := &pgDb{
 		schema: "public",

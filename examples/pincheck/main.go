@@ -1,3 +1,4 @@
+// Example: States and branching to check a PIN for access.
 package main
 
 import (

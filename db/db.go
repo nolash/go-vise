@@ -8,11 +8,17 @@ import (
 )
 
 const (
+	// Invalid datatype, must raise error if attempted used.
 	DATATYPE_UNKNOWN = 0
+	// Bytecode
 	DATATYPE_BIN = 1
+	// Menu symbol
 	DATATYPE_MENU = 2
+	// Template symbol
 	DATATYPE_TEMPLATE = 4
+	// State and cache from persister
 	DATATYPE_STATE = 8
+	// Application data
 	DATATYPE_USERSTART = 16
 )
 
@@ -24,7 +30,7 @@ const (
 type Db interface {
 	// Connect prepares the storage backend for use. May panic or error if called more than once.
 	Connect(ctx context.Context, connStr string) error
-	// Close implements io.Closer
+	// Close implements io.Closer. MUST be called before termination after a Connect().
 	Close() error
 	// Get retrieves the value belonging to a key. Errors if the key does not exist, or if the retrieval otherwise fails.
 	Get(ctx context.Context, key []byte) ([]byte, error)
@@ -33,6 +39,9 @@ type Db interface {
 	// SetPrefix sets the storage context prefix to use for consecutive Get and Put operations.
 	SetPrefix(pfx uint8)
 	// SetSession sets the session context to use for consecutive Get and Put operations.
+	// Session only affects the following datatypes:
+	// * DATATYPE_STATE
+	// * DATATYPE_USERSTART
 	SetSession(sessionId string)
 }
 
@@ -57,6 +66,7 @@ type baseDb struct {
 	lock uint8
 }
 
+// ensures default locking of read-only entries
 func(db *baseDb) defaultLock() {
 	db.lock = DATATYPE_BIN | DATATYPE_MENU | DATATYPE_TEMPLATE
 }

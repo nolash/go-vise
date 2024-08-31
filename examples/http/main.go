@@ -1,3 +1,4 @@
+// Example: HTTP server wrapper (to be used with manual client).
 package main
 
 import (

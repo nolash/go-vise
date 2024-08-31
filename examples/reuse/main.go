@@ -1,3 +1,4 @@
+// Example: Reuse go functions for multiple LOAD symbols.
 package main
 
 import (

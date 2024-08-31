@@ -1,3 +1,4 @@
+// Example: Assemble and retrieve state flags using string identifiers specified in csv file.
 package main
 
 import (

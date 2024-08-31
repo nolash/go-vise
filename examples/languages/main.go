@@ -1,3 +1,4 @@
+// Example: Set and apply language translation based on input, with and without Gettext.
 package main
 
 import (

@@ -1,3 +1,4 @@
+// Example: Input checker.
 package main
 
 import (

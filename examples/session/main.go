@@ -1,3 +1,4 @@
+// Example: Manual data storage using session id provided to engine.
 package main
 
 import (

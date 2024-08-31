@@ -1,3 +1,4 @@
+// Example: Use db.Db provider for all local data.
 package main
 
 import (

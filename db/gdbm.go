@@ -15,6 +15,7 @@ type gdbmDb struct {
 	prefix uint8
 }
 
+// Creates a new gdbm backed Db implementation.
 func NewGdbmDb() *gdbmDb {
 	db := &gdbmDb{}
 	db.baseDb.defaultLock()

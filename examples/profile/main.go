@@ -1,3 +1,4 @@
+// Example: Profile data completion menu.
 package main
 
 import (

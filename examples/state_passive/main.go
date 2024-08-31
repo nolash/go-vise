@@ -1,3 +1,4 @@
+// Example: Asynchronous state persistence.
 package main
 
 import (

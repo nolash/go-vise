@@ -1,3 +1,4 @@
+// Example: Toggling states with external functions.
 package main
 
 import (

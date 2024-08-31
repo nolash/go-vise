@@ -1,3 +1,4 @@
+// Example: Pagination of long resource result content.
 package main
 
 import (

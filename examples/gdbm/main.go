@@ -1,3 +1,4 @@
+// Example: Use gdbm backend to retrieve resources.
 package main
 
 import (
