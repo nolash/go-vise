@@ -107,6 +107,7 @@ func(fsr FsResource) FuncFor(sym string) (EntryFunc, error) {
 	return fsr.getFunc, nil
 }
 
+// String implements the String interface.
 func(fsr FsResource) String() string {
 	return fmt.Sprintf("fs resource at path: %s", fsr.Path)
 }

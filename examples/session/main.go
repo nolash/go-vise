@@ -15,9 +15,11 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/logging"
 )
 
 var (
+	logg = logging.NewVanilla()
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "session")
 	emptyResult = resource.Result{}
@@ -32,7 +34,7 @@ func save(ctx context.Context, sym string, input []byte) (resource.Result, error
 	}
 	fp := path.Join(sessionDir, "data.txt")
 	if len(input) > 0 {
-		engine.Logg.Debugf("write data %s session %s", input, sessionId)
+		logg.Debugf("write data %s session %s", input, sessionId)
 		err = ioutil.WriteFile(fp, input, 0600)
 		if err != nil {
 			return emptyResult, err

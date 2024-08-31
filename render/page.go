@@ -11,7 +11,7 @@ import (
 	"git.defalsify.org/vise.git/resource"
 )
 
-// Page exectues output rendering into pages constrained by size.
+// Page executes output rendering into pages constrained by size.
 type Page struct {
 	cacheMap map[string]string // Mapped content symbols
 	cache cache.Memory // Content store.
@@ -56,7 +56,7 @@ func(pg *Page) WithError(err error) *Page {
 	return pg
 }
 
-// Error implements error interface.
+// Error implements the Error interface.
 func(pg *Page) Error() string {
 	if pg.err != nil {
 		return pg.err.Error()
@@ -111,7 +111,7 @@ func(pg *Page) Map(key string) error {
 			return err
 		}
 	}
-	Logg.Tracef("mapped", "key", key)
+	logg.Tracef("mapped", "key", key)
 	return nil
 }
 
@@ -154,7 +154,7 @@ func(pg *Page) RenderTemplate(ctx context.Context, sym string, values map[string
 	tpl += pg.extra
 	if pg.err != nil {
 		derr := pg.Error()
-		Logg.DebugCtxf(ctx, "prepending error", "err", pg.err, "display", derr)
+		logg.DebugCtxf(ctx, "prepending error", "err", pg.err, "display", derr)
 		if len(tpl) == 0 {
 			tpl = derr
 		} else {
@@ -169,7 +169,7 @@ func(pg *Page) RenderTemplate(ctx context.Context, sym string, values map[string
 	} else if idx > 0 {
 		return "", fmt.Errorf("sizer needed for indexed render")
 	}
-	Logg.Debugf("render for", "index", idx)
+	logg.Debugf("render for", "index", idx)
 	
 	tp, err := template.New("tester").Option("missingkey=error").Parse(tpl)
 	if err != nil {
@@ -228,13 +228,13 @@ func(pg *Page) split(sym string, values map[string]string) (map[string]string, s
 			sink = k
 			sinkValues = strings.Split(v, "\n")
 			v = ""
-			Logg.Infof("found sink", "sym", sym, "sink", k)
+			logg.Infof("found sink", "sym", sym, "sink", k)
 		}
 		noSinkValues[k] = v
 	}
 	
 	if sink == "" {
-		Logg.Tracef("no sink found", "sym", sym)
+		logg.Tracef("no sink found", "sym", sym)
 		return values, "", nil, nil
 	}
 	return noSinkValues, sink, sinkValues, nil
@@ -261,7 +261,7 @@ func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint
 
 	for i, v := range sinkValues {
 		l += len(v)
-		Logg.Tracef("processing sink", "idx", i, "value", v, "netremaining", netRemaining, "l", l)
+		logg.Tracef("processing sink", "idx", i, "value", v, "netremaining", netRemaining, "l", l)
 		if uint32(l) > netRemaining - 1 {
 			if tb.Len() == 0 {
 				return "", 0, fmt.Errorf("capacity insufficient for sink field %v", i)
@@ -329,7 +329,7 @@ func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string
 			pg.extra = "\n{{._menu}}"
 			pg.sizer.sink = sink
 			noSinkValues[sink] = ""
-			Logg.DebugCtxf(ctx, "menu is sink", "items", len(sinkValues))
+			logg.DebugCtxf(ctx, "menu is sink", "items", len(sinkValues))
 		}
 	}
 
@@ -355,7 +355,7 @@ func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string
 			return nil, err
 		}
 	}
-	Logg.Debugf("calculated pre-navigation allocation", "bytes", remaining, "menusizes", menuSizes)
+	logg.Debugf("calculated pre-navigation allocation", "bytes", remaining, "menusizes", menuSizes)
 
 	// process sink values array into newline-separated string
 	sinkString, count, err := pg.joinSink(sinkValues, remaining, menuSizes)
@@ -371,7 +371,7 @@ func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string
 
 	// write all sink values to log.
 	for i, v := range strings.Split(sinkString, "\n") {
-		Logg.Tracef("nosinkvalue", "idx", i, "value", v)
+		logg.Tracef("nosinkvalue", "idx", i, "value", v)
 	}
 
 	return noSinkValues, nil
@@ -385,7 +385,7 @@ func(pg *Page) render(ctx context.Context, sym string, values map[string]string,
 	if err != nil {
 		return "", err
 	}
-	Logg.Debugf("rendered template", "bytes", len(s))
+	logg.Debugf("rendered template", "bytes", len(s))
 	r += s
 
 	if pg.menu != nil {
@@ -394,7 +394,7 @@ func(pg *Page) render(ctx context.Context, sym string, values map[string]string,
 			return "", err
 		}
 		l := len(s)
-		Logg.Debugf("rendered menu", "bytes", l)
+		logg.Debugf("rendered menu", "bytes", l)
 		if l > 0 {
 			r += "\n" + s
 		}

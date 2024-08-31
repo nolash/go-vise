@@ -11,18 +11,18 @@ type BatchCode uint16
 
 const (
 	_MENU_OFFSET = 256
-	MENU_DOWN = _MENU_OFFSET
-	MENU_UP = _MENU_OFFSET + 1
-	MENU_NEXT = _MENU_OFFSET + 2
-	MENU_PREVIOUS = _MENU_OFFSET + 3
+	_MENU_DOWN = _MENU_OFFSET
+	_MENU_UP = _MENU_OFFSET + 1
+	_MENU_NEXT = _MENU_OFFSET + 2
+	_MENU_PREVIOUS = _MENU_OFFSET + 3
 )
 
 var (
 	batchCode = map[string]BatchCode{
-		"DOWN": MENU_DOWN,
-		"UP": MENU_UP,
-		"NEXT": MENU_NEXT,
-		"PREVIOUS": MENU_PREVIOUS,
+		"DOWN": _MENU_DOWN,
+		"UP": _MENU_UP,
+		"NEXT": _MENU_NEXT,
+		"PREVIOUS": _MENU_PREVIOUS,
 	}
 )
 
@@ -54,7 +54,7 @@ func(mp *MenuProcessor) Add(bop string, choice string, display string, target st
 	if bopCode == 0 {
 		return fmt.Errorf("unknown menu instruction: %v", bop)
 	}
-	if len(target) > 0 && bopCode != MENU_DOWN {
+	if len(target) > 0 && bopCode != _MENU_DOWN {
 		return fmt.Errorf("target is only valid for DOWN")
 	}
 	m := menuItem{
@@ -74,13 +74,13 @@ func (mp *MenuProcessor) ToLines() []byte {
 
 	for _, v := range mp.items {
 		switch v.code {
-		case MENU_UP:
+		case _MENU_UP:
 			preLines = vm.NewLine(preLines, vm.MOUT, []string{v.display, v.choice}, nil, nil)
 			postLines = vm.NewLine(postLines, vm.INCMP, []string{"_", v.choice}, nil, nil)
-		case MENU_NEXT:
+		case _MENU_NEXT:
 			preLines = vm.NewLine(preLines, vm.MNEXT, []string{v.display, v.choice}, nil, nil)
 			postLines = vm.NewLine(postLines, vm.INCMP, []string{">", v.choice}, nil, nil)
-		case MENU_PREVIOUS:
+		case _MENU_PREVIOUS:
 			preLines = vm.NewLine(preLines, vm.MPREV, []string{v.display, v.choice}, nil, nil)
 			postLines = vm.NewLine(postLines, vm.INCMP, []string{"<", v.choice}, nil, nil)
 		default:

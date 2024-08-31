@@ -30,7 +30,7 @@ func NewInvalidInputError(input string) error {
 	return InvalidInputError{input}
 }
 
-// Error implements error interface.
+// Error implements the Error interface.
 func(e InvalidInputError) Error() string {
 	return fmt.Sprintf("invalid input: '%s'", e.input)
 }

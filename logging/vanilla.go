@@ -4,8 +4,14 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"path"
 	"runtime"
+)
+
+var (
+	// LogWriter is used as io.Writer the Vanilla Logger implementation.
+	LogWriter = os.Stderr
 )
 
 // Vanilla is a basic single-line structured output logger for terminal output.
@@ -86,47 +92,47 @@ func(v Vanilla) Tracef(msg string, args ...any) {
 	v.printf(LVL_TRACE, msg, args...)
 }
 
-// Tracef logs a line with level DEBUG to the global writer.
+// Debugf logs a line with level DEBUG to the global writer.
 func(v Vanilla) Debugf(msg string, args ...any) {
 	v.printf(LVL_DEBUG, msg, args...)
 }
 
-// Tracef logs a line with level INFO to the global writer.
+// Infof logs a line with level INFO to the global writer.
 func(v Vanilla) Infof(msg string, args ...any) {
 	v.printf(LVL_INFO, msg, args...)
 }
 
-// Tracef logs a line with level WARN to the global writer.
+// Warnf logs a line with level WARN to the global writer.
 func(v Vanilla) Warnf(msg string, args ...any) {
 	v.printf(LVL_WARN, msg, args...)
 }
 
-// Tracef logs a line with level ERROR to the global writer.
+// Errorf logs a line with level ERROR to the global writer.
 func(v Vanilla) Errorf(msg string, args ...any) {
 	v.printf(LVL_ERROR, msg, args...)
 }
 
-// Tracef logs a line with context with level TRACE to the global writer.
+// TraceCtxf logs a line with context with level TRACE to the global writer.
 func(v Vanilla) TraceCtxf(ctx context.Context, msg string, args ...any) {
 	v.printCtxf(ctx, LVL_TRACE, msg, args...)
 }
 
-// Tracef logs a line with context with level DEBUG to the global writer.
+// DebugCtxf logs a line with context with level DEBUG to the global writer.
 func(v Vanilla) DebugCtxf(ctx context.Context, msg string, args ...any) {
 	v.printCtxf(ctx, LVL_DEBUG, msg, args...)
 }
 
-// Tracef logs a line with context with level INFO to the global writer.
+// InfoCtxf logs a line with context with level INFO to the global writer.
 func(v Vanilla) InfoCtxf(ctx context.Context, msg string, args ...any) {
 	v.printCtxf(ctx, LVL_INFO, msg, args...)
 }
 
-// Tracef logs a line with context with level WARN to the global writer.
+// WarnCtxf logs a line with context with level WARN to the global writer.
 func(v Vanilla) WarnCtxf(ctx context.Context, msg string, args ...any) {
 	v.printCtxf(ctx, LVL_WARN, msg, args...)
 }
 
-// Tracef logs a line with context with level ERROR to the global writer.
+// ErrorCtxf logs a line with context with level ERROR to the global writer.
 func(v Vanilla) ErrorCtxf(ctx context.Context, msg string, args ...any) {
 	v.printCtxf(ctx, LVL_ERROR, msg, args...)
 }

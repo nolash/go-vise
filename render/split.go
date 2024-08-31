@@ -2,10 +2,8 @@ package render
 
 import (
 	"fmt"
-	"log"
 	"strings"
 )
-
 
 func bookmark(values []string) []uint32 {
 	var c int
@@ -95,7 +93,7 @@ func paginate(bookmarks []uint32, capacity uint32, nextSize uint32, prevSize uin
 		var z int
 		currentPage := len(pages) - 1
 		for i < lastIndex {
-			log.Printf("have item %v:%v (%v) index %v prevsize %v nextsize %v remain %v cap %v", bookmarks[i], lookAhead[i], lookAhead[i] - bookmarks[i], i, prevSize, nextSize, remaining, capacity)
+			logg.Tracef("have render", "bookmark", bookmarks[i], "lookahead", lookAhead[i], "diff", lookAhead[i] - bookmarks[i], "index", i, "prevsize", prevSize, "nextsize", nextSize, "remain", remaining, "capacity", capacity)
 
 			v := lookAhead[i]
 			delta := int((v - c) + 1)
@@ -112,7 +110,7 @@ func paginate(bookmarks []uint32, capacity uint32, nextSize uint32, prevSize uin
 			c = v
 			i += 1
 		}
-		log.Printf("more %v remaining %v c %v last %v pages %v", haveMore, remaining, c, last, pages)
+		logg.Tracef("render more", "have", haveMore, "remain", remaining, "c", c, "last", last, "pages", pages)
 
 		if haveMore {
 			pages = append(pages, []uint32{})
@@ -146,7 +144,7 @@ func explode(values []string, pages [][]uint32) string {
 			}
 			end = c - z
 			v := s[start:end]
-			log.Printf("page %v part %v %v %s", i, start, end, v)
+			logg.Tracef("explode", "page", i, "part start", start, "part end", end, "part str", v)
 			v = s[start:end]
 			sb.WriteString(v)
 			start = end

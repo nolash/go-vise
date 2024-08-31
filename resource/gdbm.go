@@ -87,6 +87,7 @@ func(dbr *gdbmResource) AddLocalFunc(sym string, fn EntryFunc) {
 	dbr.fns[sym] = fn
 }
 
+// String implements the String interface.
 func(dbr *gdbmResource) String() string {
 	return fmt.Sprintf("gdbm: %v", dbr.db)
 }

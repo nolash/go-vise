@@ -9,7 +9,9 @@ import (
 
 // BrowseError is raised when browsing outside the page range of a rendered node.
 type BrowseError struct {
+	// The lateral page index where the error occurred.
 	Idx uint16
+	// The total number of lateral page indicies.
 	PageCount uint16
 }
 
@@ -20,15 +22,21 @@ func(err *BrowseError) Error() string {
 
 // BrowseConfig defines the availability and display parameters for page browsing.
 type BrowseConfig struct {
+	// Set if a consecutive page is available for lateral navigation.
 	NextAvailable bool
+	// Menu selector used to navigate to next page.
 	NextSelector string
+	// Menu title used to label selector for next page.
 	NextTitle string
+	// Set if a previous page is available for lateral navigation.
 	PreviousAvailable bool
+	// Menu selector used to navigate to previous page.
 	PreviousSelector string
+	// Menu title used to label selector for previous page.
 	PreviousTitle string
 }
 
-// Default browse settings for convenience.
+// Create a BrowseConfig with default values.
 func DefaultBrowseConfig() BrowseConfig {
 	return BrowseConfig{
 		NextAvailable: true,
@@ -40,7 +48,9 @@ func DefaultBrowseConfig() BrowseConfig {
 	}
 }
 
-// Menu renders menus. May be included in a Page object to render menus for pages.
+// Menu renders menus.
+//
+// May be included in a Page object to render menus for pages.
 type Menu struct {
 	rs resource.Resource
 	menu [][2]string // selector and title for menu items.
@@ -53,6 +63,9 @@ type Menu struct {
 	keep bool
 }
 
+// String implements the String interface.
+//
+// It returns debug representation of menu.
 func(m Menu) String() string {
 	return fmt.Sprintf("pagecount: %v menusink: %v next: %v prev: %v", m.pageCount, m.sink, m.canNext, m.canPrevious)
 }
@@ -64,12 +77,15 @@ func NewMenu() *Menu {
 	}
 }
 
-// WithBrowseConfig defines the criteria for page browsing.
+// WithPageCount is a chainable function that defines the number of allowed pages for browsing.
 func(m *Menu) WithPageCount(pageCount uint16) *Menu {
 	m.pageCount = pageCount
 	return m
 }
 
+// WithPages is a chainable function which activates pagination in the menu.
+//
+// It is equivalent to WithPageCount(1)
 func(m *Menu) WithPages() *Menu {
 	if m.pageCount == 0 {
 		m.pageCount = 1
@@ -77,11 +93,17 @@ func(m *Menu) WithPages() *Menu {
 	return m
 }
 
+// WithSink is a chainable function that informs the menu that a content sink exists in the render.
+//
+// A content sink receives priority to consume all remaining space after all non-sink items have been rendered.
 func(m *Menu) WithSink() *Menu {
 	m.sink = true
 	return m
 }
 
+// WithDispose is a chainable function that preserves the menu after render is complete.
+//
+// It is used for multi-page content.
 func(m *Menu) WithDispose() *Menu {
 	m.keep = false
 	return m
@@ -129,7 +151,11 @@ func(m *Menu) Put(selector string, title string) error {
 //	return m.outputSize
 //}
 
- // mainSize, prevsize, nextsize, nextsize+prevsize
+// Sizes returns the size limitations for each part of the render, as a four-element array:
+// 	1. mainSize
+//	2. prevsize
+//	3. nextsize
+//	4. nextsize + prevsize
 func(m *Menu) Sizes(ctx context.Context) ([4]uint32, error) {
 	var menuSizes [4]uint32
 	cfg := m.GetBrowseConfig()
@@ -154,6 +180,7 @@ func(m *Menu) Sizes(ctx context.Context) ([4]uint32, error) {
 	return menuSizes, nil
 }
 
+// title corresponding to the menu symbol.
 func(m *Menu) titleFor(ctx context.Context, title string) (string, error) {
 	if m.rs == nil {
 		return title, nil
@@ -223,7 +250,7 @@ func(m *Menu) applyPage(idx uint16) error {
 	if idx == 0 {
 		m.canPrevious = false
 	}
-	Logg.Debugf("applypage", "m", m, "idx", idx)
+	logg.Debugf("applypage", "m", m, "idx", idx)
 
 	if m.canNext {
 		err := m.Put(m.browse.NextSelector, m.browse.NextTitle)
@@ -261,6 +288,7 @@ func(m *Menu) reset() {
 	}
 }
 
+// Reset clears all current state from the menu object, making it ready for re-use in a new render.
 func(m *Menu) Reset() {
 	m.menu = [][2]string{}
 	m.sink = false

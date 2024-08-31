@@ -100,6 +100,6 @@ func(p *Persister) Load(key string) error {
 	if err != nil {
 		return err
 	}
-	Logg.Debugf("loaded state and cache", "key", key, "bytecode", p.State.Code)
+	logg.Debugf("loaded state and cache", "key", key, "bytecode", p.State.Code)
 	return nil
 }

@@ -17,6 +17,7 @@ import (
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/logging"
 )
 
 const (
@@ -24,6 +25,7 @@ const (
 )
 
 var (
+	logg = logging.NewVanilla()
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "languages")
 	translationDir = path.Join(scriptDir, "locale")
@@ -31,7 +33,7 @@ var (
 
 func codeFromCtx(ctx context.Context) string {
 	var code string
-	engine.Logg.DebugCtxf(ctx, "in msg", "ctx", ctx, "val", code)
+	logg.DebugCtxf(ctx, "in msg", "ctx", ctx, "val", code)
 	if ctx.Value("Language") != nil {
 		lang := ctx.Value("Language").(lang.Language)
 		code = lang.Code
@@ -75,7 +77,7 @@ func(l *langController) moMsg(ctx context.Context, sym string, input []byte) (re
 	o := gotext.NewLocale(translationDir, code)
 	o.AddDomain("default")	
 	r.Content = o.Get("This message is translated using gettext")
-	engine.Logg.DebugCtxf(ctx, "lang", "code", code, "translateor", o)
+	logg.DebugCtxf(ctx, "lang", "code", code, "translateor", o)
 	return r, nil
 }
 
@@ -101,17 +103,17 @@ func main() {
 	store := db.NewFsDb()
 	err := store.Connect(ctx, dp)
 	if err != nil {
-		engine.Logg.ErrorCtxf(ctx, "db connect fail", "err", err)
+		logg.ErrorCtxf(ctx, "db connect fail", "err", err)
 		os.Exit(1)
 	}
 	pr := persist.NewPersister(store)
 	en, err := engine.NewPersistedEngine(ctx, cfg, pr, rs)
 	if err != nil {
-		engine.Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
+		logg.Infof("persisted engine create error. trying again with persisting empty state first...")
 		pr = pr.WithContent(&st, ca)
 		err = pr.Save(cfg.SessionId)
 		if err != nil {
-			engine.Logg.ErrorCtxf(ctx, "fail state save", "err", err)
+			logg.ErrorCtxf(ctx, "fail state save", "err", err)
 			os.Exit(1)
 		}
 		en, err = engine.NewPersistedEngine(ctx, cfg, pr, rs)

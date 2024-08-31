@@ -5,5 +5,5 @@ import (
 )
 
 var (
-	Logg logging.Logger = logging.NewVanilla().WithDomain("engine")
+	logg logging.Logger = logging.NewVanilla().WithDomain("engine")
 )

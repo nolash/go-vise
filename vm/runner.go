@@ -30,7 +30,7 @@ func(e *ExternalCodeError) WithCode(code int) *ExternalCodeError {
 	return e
 }
 
-// Error implements error interface
+// Error implements the Error interface.
 func(e ExternalCodeError) Error() string {
 	Logg.Errorf("external code error: %v", e.err)
 	return fmt.Sprintf("error %v:%v", e.sym, e.code)

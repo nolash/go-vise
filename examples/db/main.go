@@ -17,9 +17,11 @@ import (
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/logging"
 )
 
 var (
+	logg = logging.NewVanilla()
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "db")
 	store = db.NewFsDb()
@@ -141,11 +143,11 @@ func main() {
 	st := state.NewState(1)
 	en, err := engine.NewPersistedEngine(ctx, cfg, pr, rs)
 	if err != nil {
-		engine.Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
+		logg.Infof("persisted engine create error. trying again with persisting empty state first...")
 		pr = pr.WithContent(&st, ca)
 		err = pr.Save(cfg.SessionId)
 		if err != nil {
-			engine.Logg.ErrorCtxf(ctx, "fail state save", "err", err)
+			logg.ErrorCtxf(ctx, "fail state save", "err", err)
 			os.Exit(1)
 		}
 		en, err = engine.NewPersistedEngine(ctx, cfg, pr, rs)

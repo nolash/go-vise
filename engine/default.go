@@ -31,7 +31,7 @@ func NewDefaultEngine(dir string, persistDb db.Db, session *string) (EngineIsh, 
 		pr := persist.NewPersister(persistDb)
 		en, err = NewPersistedEngine(ctx, cfg, pr, rs)
 		if err != nil {
-			Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
+			logg.Infof("persisted engine create error. trying again with persisting empty state first...")
 			pr = pr.WithContent(&st, ca)
 			err = pr.Save(cfg.SessionId)
 			if err != nil {
@@ -67,7 +67,7 @@ func NewSizedEngine(dir string, size uint32, persistDb db.Db, session *string) (
 		pr := persist.NewPersister(persistDb)
 		en, err = NewPersistedEngine(ctx, cfg, pr, rs)
 		if err != nil {
-			Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
+			logg.Infof("persisted engine create error. trying again with persisting empty state first...")
 			pr = pr.WithContent(&st, ca)
 			err = pr.Save(cfg.SessionId)
 			if err != nil {

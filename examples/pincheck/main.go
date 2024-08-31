@@ -15,6 +15,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/logging"
 )
 
 const (
@@ -23,6 +24,7 @@ const (
 )
 
 var (
+	logg = logging.NewVanilla()
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "pincheck")
 	pin = []byte("1234")
@@ -51,7 +53,7 @@ func(rs *pinResource) pinCheck(ctx context.Context, sym string, input []byte) (r
 	}
 	if bytes.Equal(input, pin) {
 		r.FlagSet = []uint32{USERFLAG_VALIDPIN}
-		engine.Logg.DebugCtxf(ctx, "pin match", "state", rs.st, "rs", r.FlagSet, "rr", r.FlagReset)
+		logg.DebugCtxf(ctx, "pin match", "state", rs.st, "rs", r.FlagSet, "rr", r.FlagReset)
 	} else {
 		r.Content = "Wrong PIN please try again"
 	}

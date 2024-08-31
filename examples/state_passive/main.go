@@ -15,6 +15,7 @@ import (
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/logging"
 )
 
 const (
@@ -22,6 +23,10 @@ const (
 	USERFLAG_TWO
 	USERFLAG_THREE
 	USERFLAG_DONE
+)
+
+var (
+	logg = logging.NewVanilla()
 )
 
 type fsData struct {
@@ -57,9 +62,9 @@ func (fsd *fsData) poke(ctx context.Context, sym string, input []byte) (resource
 	st := fsd.persister.GetState()
 	for i := 8; i < 12; i++ {
 		v := uint32(i)
-		engine.Logg.DebugCtxf(ctx, "checking flag", "flag", v)
+		logg.DebugCtxf(ctx, "checking flag", "flag", v)
 		if st.MatchFlag(v, true) {
-			engine.Logg.DebugCtxf(ctx, "match on flag", "flag", v)
+			logg.DebugCtxf(ctx, "match on flag", "flag", v)
 			res.FlagReset = append(res.FlagReset, v)
 			res.FlagSet = append(res.FlagSet, v + 1)
 			break

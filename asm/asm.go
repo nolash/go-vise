@@ -18,11 +18,15 @@ import (
 
 
 // Asm assembles bytecode from the vise assembly mini-language.
+//
+// TODO: Conceal from outside use
 type Asm struct {
 	Instructions []*Instruction `@@*`
 }
 
 // Arg holds all parsed argument elements of a single line of assembly code.
+//
+// TODO: Conceal from outside use
 type Arg struct {
 	Sym *string `(@Sym Whitespace?)?`
 	Size *uint32 `(@Size Whitespace?)?`
@@ -32,6 +36,7 @@ type Arg struct {
 	//Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
 }
 
+// writes the parsed instruction bytes to output.
 func flush(b *bytes.Buffer, w io.Writer) (int, error) {
 	if w != nil {
 		return w.Write(b.Bytes())
@@ -309,13 +314,15 @@ func (a Arg) String() string {
 }
 
 // Instruction represents one full line of assembly code.
+//
+// TODO: Conceal from outside use
 type Instruction struct {
 	OpCode string `@Ident`
 	OpArg Arg `(Whitespace @@)?`
 	Comment string `Comment? EOL`
 }
 
-// String implement the String interface.
+// String implements the String interface.
 func (i Instruction) String() string {
 	return fmt.Sprintf("%s %s", i.OpCode, i.OpArg)
 }

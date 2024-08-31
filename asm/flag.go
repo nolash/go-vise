@@ -113,9 +113,9 @@ func(pp *FlagParser) Load(fp string) (int, error) {
 			
 			if (len(v) > 3) {
 				pp.flagDescription[uint32(fl)] = v[3]
-				Logg.Debugf("added flag translation", "from", v[1], "to", v[2], "description", v[3])
+				logg.Debugf("added flag translation", "from", v[1], "to", v[2], "description", v[3])
 			} else {
-				Logg.Debugf("added flag translation", "from", v[1], "to", v[2])
+				logg.Debugf("added flag translation", "from", v[1], "to", v[2])
 			}
 		}
 	}	

@@ -1,4 +1,4 @@
-// Example: Toggling states with external functions.
+// Example: Toggling states with external functions, with engine debugger.
 package main
 
 import (
@@ -13,6 +13,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/logging"
 )
 
 const (
@@ -22,6 +23,7 @@ const (
 )
 
 var (
+	logg = logging.NewVanilla()
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "state")
 )
@@ -40,7 +42,7 @@ func(f *flagResource) get(ctx context.Context, sym string, input []byte) (resour
 func(f *flagResource) do(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
 
-	engine.Logg.DebugCtxf(ctx, "in do", "sym", sym)
+	logg.DebugCtxf(ctx, "in do", "sym", sym)
 
 	switch(sym) {
 	case "do_foo":

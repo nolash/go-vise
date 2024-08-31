@@ -14,7 +14,7 @@ func NewErrNotFound(k []byte) error {
 	return ErrNotFound{k}
 }
 
-// Error implements error.
+// Error implements Error.
 func(e ErrNotFound) Error() string {
 	return fmt.Sprintf("key not found: %x", e.k)
 }

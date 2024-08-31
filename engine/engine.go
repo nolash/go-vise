@@ -57,7 +57,7 @@ func NewEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Res
 			if err != nil {
 				panic(err)
 			}
-			Logg.InfoCtxf(ctx, "set language from config", "language", cfg.Language)
+			logg.InfoCtxf(ctx, "set language from config", "language", cfg.Language)
 		}
 	}
 
@@ -67,6 +67,9 @@ func NewEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Res
 	return engine
 }
 
+// SetDebugger sets a debugger to use.
+//
+// No debugger is set by default.
 func (en *Engine) SetDebugger(debugger Debug) {
 	en.dbg = debugger
 }
@@ -78,7 +81,7 @@ func(en *Engine) SetFirst(fn resource.EntryFunc) {
 
 // Finish implements EngineIsh interface
 func(en *Engine) Finish() error {
-	Logg.Tracef("that's a wrap", "engine", en)
+	logg.Tracef("that's a wrap", "engine", en)
 	return nil
 }
 
@@ -90,7 +93,7 @@ func(en *Engine) restore() {
 		return
 	}
 	if en.root != location {
-		Logg.Infof("restoring state", "sym", location)
+		logg.Infof("restoring state", "sym", location)
 		en.root = "."
 	}
 }
@@ -102,7 +105,7 @@ func(en *Engine) runFirst(ctx context.Context) (bool, error) {
 	if en.first == nil {
 		return true, nil
 	}
-	Logg.DebugCtxf(ctx, "start pre-VM check")
+	logg.DebugCtxf(ctx, "start pre-VM check")
 	rs := resource.NewMenuResource()
 	rs.AddLocalFunc("_first", en.first)
 	en.st.Down("_first")
@@ -119,7 +122,7 @@ func(en *Engine) runFirst(ctx context.Context) (bool, error) {
 	} else {
 		if en.st.MatchFlag(state.FLAG_TERMINATE, true) {
 			en.exit = en.ca.Last()
-			Logg.InfoCtxf(ctx, "Pre-VM check says not to continue execution", "state", en.st)
+			logg.InfoCtxf(ctx, "Pre-VM check says not to continue execution", "state", en.st)
 		} else {
 			r = true
 		}
@@ -130,7 +133,7 @@ func(en *Engine) runFirst(ctx context.Context) (bool, error) {
 	}
 	en.st.ResetFlag(state.FLAG_TERMINATE)
 	en.st.ResetFlag(state.FLAG_DIRTY)
-	Logg.DebugCtxf(ctx, "end pre-VM check")
+	logg.DebugCtxf(ctx, "end pre-VM check")
 	return r, err
 }
 
@@ -140,7 +143,7 @@ func(en *Engine) runFirst(ctx context.Context) (bool, error) {
 func(en *Engine) Init(ctx context.Context) (bool, error) {
 	en.restore()
 	if en.initd {
-		Logg.DebugCtxf(ctx, "already initialized")
+		logg.DebugCtxf(ctx, "already initialized")
 		return true, nil
 	}
 	
@@ -164,13 +167,13 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 	}
 
 	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
-	Logg.DebugCtxf(ctx, "start new init VM run", "code", b)
+	logg.DebugCtxf(ctx, "start new init VM run", "code", b)
 	b, err = en.vm.Run(ctx, b)
 	if err != nil {
 		return false, err
 	}
 	
-	Logg.DebugCtxf(ctx, "end new init VM run", "code", b)
+	logg.DebugCtxf(ctx, "end new init VM run", "code", b)
 	en.st.SetCode(b)
 	err = en.st.SetInput(inSave)
 	if err != nil {
@@ -214,7 +217,7 @@ func (en *Engine) Exec(ctx context.Context, input []byte) (bool, error) {
 
 // backend for Exec, after the input validity check
 func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
-	Logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
+	logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
 	code, err := en.st.GetCode()
 	if err != nil {
 		return false, err
@@ -223,26 +226,26 @@ func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
 		return false, fmt.Errorf("no code to execute")
 	}
 
-	Logg.Debugf("start new VM run", "code", code)
+	logg.Debugf("start new VM run", "code", code)
 	code, err = en.vm.Run(ctx, code)
 	if err != nil {
 		return false, err
 	}
-	Logg.Debugf("end new VM run", "code", code)
+	logg.Debugf("end new VM run", "code", code)
 
 	v := en.st.MatchFlag(state.FLAG_TERMINATE, true)
 	if v {
 		if len(code) > 0 {
-			Logg.Debugf("terminated with code remaining", "code", code)
+			logg.Debugf("terminated with code remaining", "code", code)
 		}
 		return false, err
 	}
 
 	en.st.SetCode(code)
 	if len(code) == 0 {
-		Logg.Infof("runner finished with no remaining code", "state", en.st)
+		logg.Infof("runner finished with no remaining code", "state", en.st)
 		if en.st.MatchFlag(state.FLAG_DIRTY, true) {
-			Logg.Debugf("have output for quitting")
+			logg.Debugf("have output for quitting")
 			en.exit = en.ca.Last()
 		}
 		_, err = en.reset(ctx)
@@ -266,7 +269,7 @@ func(en *Engine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}
-	Logg.TraceCtxf(ctx, "render with state", "state", en.st)
+	logg.TraceCtxf(ctx, "render with state", "state", en.st)
 	r, err := en.vm.Render(ctx)
 	if err != nil {
 		return 0, err
@@ -278,7 +281,7 @@ func(en *Engine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
 		}
 	}
 	if len(en.exit) > 0 {
-		Logg.TraceCtxf(ctx, "have exit", "exit", en.exit)
+		logg.TraceCtxf(ctx, "have exit", "exit", en.exit)
 		n, err := io.WriteString(w, en.exit)
 		if err != nil {
 			return l, err

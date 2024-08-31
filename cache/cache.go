@@ -5,17 +5,23 @@ import (
 )
 
 // Cache stores loaded content, enforcing size limits and keeping track of size usage.
+//
 // TODO: hide values from client, while allowing cbor serialization
 type Cache struct {
-	CacheSize uint32 // Total allowed cumulative size of values (not code) in cache
-	CacheUseSize uint32 // Currently used bytes by all values (not code) in cache
-	Cache []map[string]string // All loaded cache items
-	Sizes map[string]uint16 // Size limits for all loaded symbols.
-	LastValue string // last inserted value
+	// Total allowed cumulative size of values (not code) in cache
+	CacheSize uint32
+	// Currently used bytes by all values (not code) in cache
+	CacheUseSize uint32
+	// All loaded cache items
+	Cache []map[string]string
+	// Size limits for all loaded symbols.
+	Sizes map[string]uint16
+	// Last inserted value (regardless of scope)
+	LastValue string 
 	invalid bool
 }
 
-// NewCache creates a new ready-to-use cache object
+// NewCache creates a new ready-to-use Cache object
 func NewCache() *Cache {
 	ca := &Cache{
 		Cache: []map[string]string{make(map[string]string)},
@@ -24,34 +30,23 @@ func NewCache() *Cache {
 	return ca
 }
 
-// Invalidate marks a cache as invalid.
-//
-// An invalid cache should not be persisted or propagated
+// Invalidate implements the Memory interface.
 func(ca *Cache) Invalidate() {
 	ca.invalid = true
 }
 
-// Invalid returns true if cache is invalid.
-//
-// An invalid cache should not be persisted or propagated
+// Invalid implements the Memory interface.
 func(ca *Cache) Invalid() bool {
 	return ca.invalid
 }
 
-// WithCacheSize applies a cumulative cache size limitation for all cached items.
+// WithCacheSize is a chainable method that applies a cumulative cache size limitation for all cached items.
 func(ca *Cache) WithCacheSize(cacheSize uint32) *Cache {
 	ca.CacheSize = cacheSize
 	return ca
 }
 
-// Add adds a cache value under a cache symbol key.
-//
-// Also stores the size limitation of for key for later updates.
-//
-// Fails if:
-// - key already defined
-// - value is longer than size limit
-// - adding value exceeds cumulative cache capacity
+// Add implements the Memory interface.
 func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	if sizeLimit > 0 {
 		l := uint16(len(value))
@@ -63,7 +58,7 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	if checkFrame > -1 {
 		thisFrame := len(ca.Cache) - 1
 		if checkFrame == thisFrame {
-			Logg.Debugf("Ignoring load request on frame that has symbol already loaded")
+			logg.Debugf("Ignoring load request on frame that has symbol already loaded")
 			return nil
 		}
 		return fmt.Errorf("key %v already defined in frame %v, this is frame %v", key, checkFrame, thisFrame)
@@ -75,8 +70,8 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 			return fmt.Errorf("Cache capacity exceeded %v of %v", ca.CacheUseSize + sz, ca.CacheSize)
 		}
 	}
-	Logg.Infof("Cache add", "key", key, "size", sz, "limit", sizeLimit)
-	Logg.Tracef("", "Cache add data", value)
+	logg.Infof("Cache add", "key", key, "size", sz, "limit", sizeLimit)
+	logg.Tracef("", "Cache add data", value)
 	ca.Cache[len(ca.Cache)-1][key] = value
 	ca.CacheUseSize += sz
 	ca.Sizes[key] = sizeLimit
@@ -84,7 +79,7 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	return nil
 }
 
-// ReservedSize returns the maximum byte size available for the given symbol.
+// ReservedSize implements the Memory interface.
 func(ca *Cache) ReservedSize(key string) (uint16, error) {
 	v, ok := ca.Sizes[key]
 	if !ok {
@@ -93,14 +88,7 @@ func(ca *Cache) ReservedSize(key string) (uint16, error) {
 	return v, nil
 }
 
-// Update sets a new value for an existing key.
-//
-// Uses the size limitation from when the key was added.
-//
-// Fails if:
-// - key not defined
-// - value is longer than size limit
-// - replacing value exceeds cumulative cache capacity
+// Update implements the Memory interface.
 func(ca *Cache) Update(key string, value string) error {
 	sizeLimit := ca.Sizes[key]
 	if ca.Sizes[key] > 0 {
@@ -129,9 +117,7 @@ func(ca *Cache) Update(key string, value string) error {
 	return nil
 }
 
-// Get the content currently loaded for a single key, loaded at any level.
-//
-// Fails if key has not been loaded.
+// Get implements the Memory interface.
 func(ca *Cache) Get(key string) (string, error) {
 	i := ca.frameOf(key)
 	if i == -1 {
@@ -144,7 +130,7 @@ func(ca *Cache) Get(key string) (string, error) {
 	return r, nil
 }
 
-// Reset flushes all state contents below the top level.
+// Reset implements the Memory interface.
 func(ca *Cache) Reset() {
 	if len(ca.Cache) == 0 {
 		return
@@ -153,17 +139,14 @@ func(ca *Cache) Reset() {
 	ca.CacheUseSize = 0
 	return
 }
-
-// Push adds a new level to the cache.
+// Push implements the Memory interface.
 func (ca *Cache) Push() error {
 	m := make(map[string]string)
 	ca.Cache = append(ca.Cache, m)
 	return nil
 }
 
-// Pop frees the cache of the current level and makes the previous level the current level.
-//
-// Fails if already on top level.
+// Pop implements the Memory interface.
 func (ca *Cache) Pop() error {
 	l := len(ca.Cache)
 	if l == 0 {
@@ -174,7 +157,7 @@ func (ca *Cache) Pop() error {
 	for k, v := range m {
 		sz := len(v)
 		ca.CacheUseSize -= uint32(sz)
-		Logg.Debugf("Cache free", "frame", l, "key", k, "size", sz)
+		logg.Debugf("Cache free", "frame", l, "key", k, "size", sz)
 	}
 	ca.Cache = ca.Cache[:l]
 	//ca.resetCurrent()
@@ -186,9 +169,8 @@ func(ca *Cache) Check(key string) bool {
 	return ca.frameOf(key) == -1
 }
 
-// Last returns the last inserted value
+// Last implements the Memory interface.
 //
-// The stored last inserter value will be reset to an empty string
 // TODO: needs to be invalidated when out of scope
 func(ca *Cache) Last() string {
 	s := ca.LastValue
@@ -221,10 +203,12 @@ func(ca *Cache) frameOf(key string) int {
 	return -1
 }
 
+// Levels implements the Memory interface.
 func(ca *Cache) Levels() uint32 {
 	return uint32(len(ca.Cache))
 }
 
+// Keys implements the Memory interface.
 func(ca *Cache) Keys(level uint32) []string {
 	var r []string
 	for k := range ca.Cache[level] {

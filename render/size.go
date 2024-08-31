@@ -45,8 +45,8 @@ func(szr *Sizer) Check(s string) (uint32, bool) {
 	l := uint32(len(s))
 	if szr.outputSize > 0 {
 		if l > szr.outputSize {
-			Logg.Infof("sized check fails", "length", l, "sizer", szr)
-			Logg.Tracef("", "sizer contents", s)
+			logg.Infof("sized check fails", "length", l, "sizer", szr)
+			logg.Tracef("", "sizer contents", s)
 			return 0, false
 		}
 		l = szr.outputSize - l
@@ -55,6 +55,8 @@ func(szr *Sizer) Check(s string) (uint32, bool) {
 }
 
 // String implements the String interface.
+//
+// It outputs a representation of the Sizer fit for debug output.
 func(szr *Sizer) String() string {
 //	var diff uint32
 //	if szr.outputSize > 0 {
@@ -82,7 +84,7 @@ func(szr *Sizer) Size(s string) (uint16, error) {
 
 // AddCursor adds a pagination cursor for the paged sink content.
 func(szr *Sizer) AddCursor(c uint32) {
-	Logg.Debugf("Added cursor", "offset", c)
+	logg.Debugf("Added cursor", "offset", c)
 	szr.crsrs = append(szr.crsrs, c)
 }
 
@@ -95,7 +97,7 @@ func(szr *Sizer) GetAt(values map[string]string, idx uint16) (map[string]string,
 	}
 	outValues := make(map[string]string)
 	for k, v := range values {
-		Logg.Tracef("check values", "k", k, "v", v, "idx", idx, "cursors", szr.crsrs)
+		logg.Tracef("check values", "k", k, "v", v, "idx", idx, "cursors", szr.crsrs)
 		if szr.sink == k {
 			if idx >= uint16(len(szr.crsrs)) {
 				return nil, fmt.Errorf("no more values in index") 
@@ -114,6 +116,7 @@ func(szr *Sizer) GetAt(values map[string]string, idx uint16) (map[string]string,
 	return outValues, nil
 }
 
+// Reset flushes all size measurements, making the sizer available for reuse.
 func(szr *Sizer) Reset() {
 	szr.crsrs = []uint32{}
 }
