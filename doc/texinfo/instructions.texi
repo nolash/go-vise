@@ -16,7 +16,7 @@ Both regular and special node names exist.
 
 Must be one or more characters long.
 
-Starts with a 7-bit alphabetical character.
+Starts with a 7-bit alphabetical character ([a-zA-Z]).
 
 The remainder of the string may contain 7-bit alphanumeric characters or underscore.
 
@@ -79,6 +79,9 @@ Existing bytecode in buffer is cleared before the jump.
 Clear state and restart execution from top if signal is matched.
 
 Signal match is the same as for @code{CATCH}.
+
+Existing bytecode in buffer is cleared before the jump.
+
 
 @subsection HALT
 

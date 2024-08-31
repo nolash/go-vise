@@ -74,10 +74,10 @@ Next: <a href="instructions.html" accesskey="n" rel="next">Instructions</a>, Pre
 <thead><tr><th width="15%">Flag name</th><th width="20%">Description</th><th width="55%">Lifetime</th><th width="10%">Writeable?</th></tr></thead>
 <tbody><tr><td width="15%"><code class="code">READIN</code></td><td width="20%">Input is being processed.</td><td width="55%">From first <code class="code">INCMP</code> until: an <code class="code">INCMP</code> match <em class="emph">or</em> an invalid input exception is triggered.</td><td width="10%">no</td></tr>
 <tr><td width="15%"><code class="code">INMATCH</code></td><td width="20%">Input matched an <code class="code">INCMP</code> instruction.</td><td width="55%">Next instruction.</td><td width="10%">no</td></tr>
-<tr><td width="15%"><code class="code">TERMINATE</code></td><td width="20%">Terminate execution before the following instruction.</td><td width="55%">Until explicit reseet.</td><td width="10%">no</td></tr>
 <tr><td width="15%"><code class="code">DIRTY</code></td><td width="20%">Rendered output is available.</td><td width="55%">Until output is processed.</td><td width="10%">no</td></tr>
 <tr><td width="15%"><code class="code">WAIT</code></td><td width="20%">Halt execution before the following instruction, and yield control to client.</td><td width="55%">Until control is yielded.</td><td width="10%">no</td></tr>
 <tr><td width="15%"><code class="code">LOADFAIL</code></td><td width="20%">An unexpected error has occurred during execution of an external code symbol.</td><td width="55%">Next instruction.</td><td width="10%">no</td></tr>
+<tr><td width="15%"><code class="code">TERMINATE</code></td><td width="20%">Terminate execution before the following instruction.</td><td width="55%">Until explicit reseet.</td><td width="10%">yes</td></tr>
 <tr><td width="15%"><code class="code">LANG</code></td><td width="20%">Output from an external code symbol is a valid language code, and language should be changed accordingly.</td><td width="55%">Next instruction.</td><td width="10%">yes</td></tr>
 </tbody>
 </table>

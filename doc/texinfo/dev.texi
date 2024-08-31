@@ -9,6 +9,8 @@
 Assembly parser and compiler.
 @item cache
 Holds and manages all loaded content.
+@item db
+Provides interface and implementations for data storage and retrieval backends.
 @item engine
 Outermost interface. Orchestrates execution of bytecode against input. 
 @item lang
@@ -16,11 +18,11 @@ Validation and specification of language context.
 @item logging
 Logging interface and build tags for loglevels.
 @item persist
-Interface and reference implementation of `state` and `cache` persistence across asynchronous vm executions.
+Provides `state` and `cache` persistence across asynchronous vm executions.
 @item render
 Renders menu and templates, and enforces output size constraints.
 @item resource
-Retrieves data and bytecode from external symbols, and retrieves templates.
+Resolves bytecode, translations, templates and menu symbols from external symbols.
 @item state
 Holds the bytecode buffer, error states and navigation states.
 @item vm
@@ -91,6 +93,17 @@ The engine stores the @code{SessionId} aswell as the current chosen @code{lang.L
 @item When resolving menu symbols (@code{resource.Resource.GetMenu}).
 @item When retrieving node templates (@code{resource.Resource.GetTemplate}).
 @end itemize
+
+
+@subsection Blocking execution 
+
+Using the @code{engine.SetFirst()} method, a function may be defined that executes before the pending bytecode in the VM state.
+
+The function uses the same signature as the external functions executed by @code{resource} for @code{LOAD} instructions.
+
+This can be for example be used to prevent access to execution for a blocked user account, or as an override while doing maintenance.
+
+To prevent VM execution from the pre-VM check, the flag @code{TERMINATE} should be set in the @code{resource.Result.FlagSet} array.
 
 
 @section Resolving resources

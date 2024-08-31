@@ -51,7 +51,7 @@ Go to the next page of a multi-page node. Will fail if used in a single-page con
 @item < (0x3C)
 Go to the next page of a multi-page node. Will fail if used on the first (or single) page.
 @item ^ (0x5E)
-Go to the topmost node. Will execute each intermediate node in the stack.
+Go to the topmost node. Flushes all intermediate cache scopes (except the topmost).
 @end table
 
 

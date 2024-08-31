@@ -209,7 +209,7 @@ func(vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
 		input = []byte("(no input)")
 	}
 	cerr := NewInvalidInputError(string(input))
-	vm.pg.WithError(cerr)	
+	vm.pg.WithError(cerr)
 	b = NewLine(nil, MOVE, []string{"_catch"}, nil, nil)
 	return b, nil
 }
