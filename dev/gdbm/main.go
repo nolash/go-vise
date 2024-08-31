@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"path"
+	"strings"
 
 	gdbm "github.com/graygnuorg/go-gdbm"
 
@@ -17,10 +18,15 @@ import (
 
 var (
 	binaryPrefix = ".bin"
+	menuPrefix = "menu"
 	templatePrefix = ""
 	scan = make(map[string]string)
+	dbg = map[uint8]string{
+		db.DATATYPE_BIN: "BIN",
+		db.DATATYPE_TEMPLATE: "TEMPLATE",
+		db.DATATYPE_MENU: "MENU",
+	}
 )
-
 
 type scanner struct {
 	db *gdbm.Database
@@ -51,11 +57,21 @@ func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 	}
 	fx := path.Ext(fp)
 	fb := path.Base(fp)
+	if (len(fb) == 0) {
+		return nil
+	}
+	if (fb[0] < 0x61 || fb[0] > 0x7A) {
+		return nil
+	}
 	switch fx {
 		case binaryPrefix:
 			typ = db.DATATYPE_BIN
 		case templatePrefix:
-			typ = db.DATATYPE_TEMPLATE
+			if strings.Contains(fb, "_menu") {
+				typ = db.DATATYPE_TEMPLATE
+			} else {
+				typ = db.DATATYPE_MENU
+			}
 		default:
 			log.Printf("skip foreign file: %s", fp)
 			return nil
@@ -77,7 +93,7 @@ func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("stored key %x for %s (%s)", k, fp, ft)
+	log.Printf("stored key [%s] %x for %s (%s)", dbg[typ], k, fp, ft)
 	return nil
 }
 
