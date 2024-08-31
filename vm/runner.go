@@ -32,7 +32,6 @@ func(e *ExternalCodeError) WithCode(code int) *ExternalCodeError {
 
 // Error implements error interface
 func(e ExternalCodeError) Error() string {
-	//return fmt.Sprintf("[%s] %v", e.sym, e.err)
 	Logg.Errorf("external code error: %v", e.err)
 	return fmt.Sprintf("error %v:%v", e.sym, e.code)
 }
@@ -228,19 +227,7 @@ func(vm *Vm) runCatch(ctx context.Context, b []byte) ([]byte, error) {
 		return b, err
 	}
 	r := vm.st.MatchFlag(sig, mode)
-//	if err != nil {
-//		var perr error
-//		_, perr = vm.st.SetFlag(state.FLAG_TERMINATE)
-//		if perr != nil {
-//			panic(perr)
-//		}
-//		Logg.TraceCtxf(ctx, "terminate set")
-//		return b, err
-//	}
 	if r {
-		//b = append(bh, b...)
-		//vm.st.Down(sym)
-		//vm.ca.Push()
 		actualSym, _, err := applyTarget([]byte(sym), vm.st, vm.ca, ctx)
 		if err != nil {
 			return b, err
