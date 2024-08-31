@@ -16,7 +16,6 @@ import (
 type FsResource struct {
 	MenuResource
 	Path string
-	fns map[string]EntryFunc
 //	languageStrict bool
 }
 
@@ -60,7 +59,7 @@ func(fsr FsResource) GetTemplate(ctx context.Context, sym string) (string, error
 	return strings.TrimSpace(s), err
 }
 
-func(fsr FsResource) GetCode(sym string) ([]byte, error) {
+func(fsr FsResource) GetCode(ctx context.Context, sym string) ([]byte, error) {
 	fb := sym + ".bin"
 	fp := path.Join(fsr.Path, fb)
 	return ioutil.ReadFile(fp)
@@ -95,19 +94,13 @@ func(fsr FsResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	return strings.TrimSpace(s), err
 }
 
-func(fsr *FsResource) AddLocalFunc(sym string, fn EntryFunc) {
-	if fsr.fns == nil {
-		fsr.fns = make(map[string]EntryFunc)
-	}
-	fsr.fns[sym] = fn
-}
 
 func(fsr FsResource) FuncFor(sym string) (EntryFunc, error) {
-	fn, ok := fsr.fns[sym]
-	if ok {
+	fn, err := fsr.MenuResource.FallbackFunc(sym)
+	if err == nil {
 		return fn, nil
 	}
-	_, err := fsr.getFuncNoCtx(sym, nil, nil)
+	_, err = fsr.getFuncNoCtx(sym, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unknown sym: %s", sym)
 	}

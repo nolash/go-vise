@@ -82,7 +82,7 @@ func(fs FsWrapper) set_lang(ctx context.Context, sym string, input []byte) (reso
 	}, nil
 }
 
-func(fs FsWrapper) GetCode(sym string) ([]byte, error) {
+func(fs FsWrapper) GetCode(ctx context.Context, sym string) ([]byte, error) {
 	sym += ".bin"
 	fp := path.Join(fs.Path, sym)
 	r, err := ioutil.ReadFile(fp)

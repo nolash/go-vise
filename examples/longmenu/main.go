@@ -10,6 +10,7 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/db"
 )
 var (
 	baseDir = testdataloader.GetBasePath()
@@ -31,7 +32,15 @@ func main() {
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
 	ctx := context.Background()
-	en, err := engine.NewSizedEngine(dir, uint32(size), persist, &sessionId)
+	dp := path.Join(scriptDir, ".state")
+	store := db.NewFsDb()
+	err := store.Connect(ctx, dp)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "db connect error: %v", err)
+		os.Exit(1)
+	}
+	defer store.Close()
+	en, err := engine.NewSizedEngine(dir, uint32(size), store, &sessionId)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine create error: %v", err)
 		os.Exit(1)

@@ -2,13 +2,14 @@ package persist
 
 import (
 	"bytes"
-	"io/ioutil"
+	"context"
 	"reflect"
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/vm"
+	"git.defalsify.org/vise.git/db"
 )
 
 func TestSerializeState(t *testing.T) {
@@ -27,31 +28,39 @@ func TestSerializeState(t *testing.T) {
 	ca.Add("inky", "pinky", 13)
 	ca.Add("blinky", "clyde", 42)
 
-	pr := NewFsPersister(".").WithContent(&st, ca)
+	ctx := context.Background()
+	store := db.NewMemDb(ctx)
+	store.Connect(ctx, "")
+	pr := NewPersister(store).WithContext(context.Background()).WithSession("xyzzy").WithContent(&st, ca)
 	v, err := pr.Serialize()
 	if err != nil {
 		t.Error(err)
 	}
 
-	prnew := NewFsPersister(".")
+	prnew := NewPersister(store).WithSession("xyzzy")
 	err = prnew.Deserialize(v)
 	if err != nil {
 		t.Fatal(err)
-	}	
-	if !reflect.DeepEqual(prnew.State.ExecPath, pr.State.ExecPath) {
-		t.Fatalf("expected %s, got %s", prnew.State.ExecPath, pr.State.ExecPath)
 	}
-	if !bytes.Equal(prnew.State.Code, pr.State.Code) {
-		t.Fatalf("expected %x, got %x", prnew.State.Code, pr.State.Code)
+	stNew := prnew.GetState()
+	stOld := pr.GetState()
+	caNew := prnew.GetMemory()
+	caOld := pr.GetMemory()
+
+	if !reflect.DeepEqual(stNew.ExecPath, stOld.ExecPath) {
+		t.Fatalf("expected %s, got %s", stNew.ExecPath, stOld.ExecPath)
 	}
-	if prnew.State.BitSize != pr.State.BitSize {
-		t.Fatalf("expected %v, got %v", prnew.State.BitSize, pr.State.BitSize)
+	if !bytes.Equal(stNew.Code, stOld.Code) {
+		t.Fatalf("expected %x, got %x", stNew.Code, stOld.Code)
 	}
-	if prnew.State.SizeIdx != pr.State.SizeIdx {
-		t.Fatalf("expected %v, got %v", prnew.State.SizeIdx, pr.State.SizeIdx)
+	if stNew.BitSize != stOld.BitSize {
+		t.Fatalf("expected %v, got %v", stNew.BitSize, stOld.BitSize)
 	}
-	if !reflect.DeepEqual(prnew.Memory, pr.Memory) {
-		t.Fatalf("expected %v, got %v", prnew.Memory, pr.Memory)
+	if stNew.SizeIdx != stOld.SizeIdx {
+		t.Fatalf("expected %v, got %v", stNew.SizeIdx, stOld.SizeIdx)
+	}
+	if !reflect.DeepEqual(caNew, caOld) {
+		t.Fatalf("expected %v, got %v", caNew, caOld)
 	}
 }
 
@@ -71,57 +80,61 @@ func TestSaveLoad(t *testing.T) {
 	ca.Add("inky", "pinky", 13)
 	ca.Add("blinky", "clyde", 42)
 
-	dir, err := ioutil.TempDir("", "vise_persist")
+	ctx := context.Background()
+	store := db.NewMemDb(ctx)
+	store.Connect(ctx, "")
+	pr := NewPersister(store).WithContent(&st, ca)
+	err := pr.Save("xyzzy")
 	if err != nil {
-		t.Error(err)
-	}
-	pr := NewFsPersister(dir).WithContent(&st, ca)
-	err = pr.Save("xyzzy")
-	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	prnew := NewFsPersister(dir)
+	prnew := NewPersister(store)
 	err = prnew.Load("xyzzy")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(prnew.State.ExecPath, pr.State.ExecPath) {
-		t.Fatalf("expected %s, got %s", prnew.State.ExecPath, pr.State.ExecPath)
+	stNew := prnew.GetState()
+	stOld := pr.GetState()
+	caNew := prnew.GetMemory()
+	caOld := pr.GetMemory()
+
+	if !reflect.DeepEqual(stNew.ExecPath, stOld.ExecPath) {
+		t.Fatalf("expected %s, got %s", stNew.ExecPath, stOld.ExecPath)
 	}
-	if !bytes.Equal(prnew.State.Code, pr.State.Code) {
-		t.Fatalf("expected %x, got %x", prnew.State.Code, pr.State.Code)
+	if !bytes.Equal(stNew.Code, stOld.Code) {
+		t.Fatalf("expected %x, got %x", stNew.Code, stOld.Code)
 	}
-	if prnew.State.BitSize != pr.State.BitSize {
-		t.Fatalf("expected %v, got %v", prnew.State.BitSize, pr.State.BitSize)
+	if stNew.BitSize != stOld.BitSize {
+		t.Fatalf("expected %v, got %v", stNew.BitSize, stOld.BitSize)
 	}
-	if prnew.State.SizeIdx != pr.State.SizeIdx {
-		t.Fatalf("expected %v, got %v", prnew.State.SizeIdx, pr.State.SizeIdx)
+	if stNew.SizeIdx != stOld.SizeIdx {
+		t.Fatalf("expected %v, got %v", stNew.SizeIdx, stOld.SizeIdx)
 	}
-	if !reflect.DeepEqual(prnew.Memory, pr.Memory) {
-		t.Fatalf("expected %v, got %v", prnew.Memory, pr.Memory)
+	if !reflect.DeepEqual(caNew, caOld) {
+		t.Fatalf("expected %v, got %v", caNew, caOld)
 	}
 }
 
 func TestSaveLoadFlags(t *testing.T) {
+	ctx := context.Background()
 	st := state.NewState(2)
 	st.SetFlag(8)
 	ca := cache.NewCache()
 
-	dir, err := ioutil.TempDir("", "vise_persist")
+	store := db.NewMemDb(ctx)
+	store.Connect(ctx, "")
+	pr := NewPersister(store).WithContent(&st, ca)
+	err := pr.Save("xyzzy")
 	if err != nil {
-		t.Error(err)
-	}
-	pr := NewFsPersister(dir).WithContent(&st, ca)
-	err = pr.Save("xyzzy")
-	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	prnew := NewFsPersister(dir)
+	prnew := NewPersister(store)
+	
 	err = prnew.Load("xyzzy")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	stnew := prnew.GetState()
 	if !stnew.GetFlag(8) {

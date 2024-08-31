@@ -1,0 +1,3 @@
+LOAD flag_foo 0
+HALT
+INCMP ^ *

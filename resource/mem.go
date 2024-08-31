@@ -34,7 +34,7 @@ func(mr MemResource) getTemplate(ctx context.Context, sym string) (string, error
 	return r, nil
 }
 
-func(mr MemResource) getCode(sym string) ([]byte, error) {
+func(mr MemResource) getCode(ctx context.Context, sym string) ([]byte, error) {
 	r, ok := mr.bytecodes[sym]
 	if !ok {
 		return nil, fmt.Errorf("unknown bytecode: %s", sym)

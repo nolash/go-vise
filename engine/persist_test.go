@@ -2,17 +2,18 @@ package engine
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/db"
 )
 
 func TestRunPersist(t *testing.T) {
 	generateTestData(t)
+	ctx := context.Background()
 	cfg := Config{
 		OutputSize: 83,
 		SessionId: "xyzzy",
@@ -20,28 +21,25 @@ func TestRunPersist(t *testing.T) {
 	}
 	rs := NewFsWrapper(dataDir, nil)
 
-	persistDir, err := ioutil.TempDir("", "vise_engine_persist")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	st := state.NewState(3)
 	ca := cache.NewCache().WithCacheSize(1024)
-	pr := persist.NewFsPersister(persistDir).WithContent(&st, ca)
+	store := db.NewMemDb(context.Background())
+	store.Connect(ctx, "")
+	pr := persist.NewPersister(store).WithContent(&st, ca)
 
 	w := os.Stdout
-	ctx := context.TODO()
+	ctx = context.Background()
 
 	st = state.NewState(cfg.FlagCount)
 	ca = cache.NewCache()
 	ca = ca.WithCacheSize(cfg.CacheSize)
-	pr = persist.NewFsPersister(persistDir).WithContent(&st, ca)
-	err = pr.Save(cfg.SessionId)
+	pr = persist.NewPersister(store).WithContent(&st, ca)
+	err := pr.Save(cfg.SessionId)
 	if err != nil {
 		t.Fatal(err)
 	}
 	
-	pr = persist.NewFsPersister(persistDir)
+	pr = persist.NewPersister(store)
 	inputs := []string{
 		"", // trigger init, will not exec
 		"1",
@@ -55,7 +53,7 @@ func TestRunPersist(t *testing.T) {
 		}
 	}
 
-	pr = persist.NewFsPersister(persistDir)
+	pr = persist.NewPersister(store)
 	err = pr.Load(cfg.SessionId)
 	if err != nil {
 		t.Fatal(err)
@@ -73,6 +71,7 @@ func TestRunPersist(t *testing.T) {
 
 func TestEnginePersist(t *testing.T) {
 	generateTestData(t)
+	ctx := context.Background()
 	cfg := Config{
 		OutputSize: 83,
 		SessionId: "xyzzy",
@@ -80,23 +79,17 @@ func TestEnginePersist(t *testing.T) {
 	}
 	rs := NewFsWrapper(dataDir, nil)
 
-	persistDir, err := ioutil.TempDir("", "vise_engine_persist")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	st := state.NewState(3)
 	ca := cache.NewCache().WithCacheSize(1024)
-	pr := persist.NewFsPersister(persistDir).WithContent(&st, ca)
-
-	//w := os.Stdout
-	ctx := context.TODO()
+	store := db.NewMemDb(context.Background())
+	store.Connect(ctx, "")
+	pr := persist.NewPersister(store).WithContent(&st, ca)
 
 	st = state.NewState(cfg.FlagCount)
 	ca = cache.NewCache()
 	ca = ca.WithCacheSize(cfg.CacheSize)
-	pr = persist.NewFsPersister(persistDir).WithContent(&st, ca)
-	err = pr.Save(cfg.SessionId)
+	pr = persist.NewPersister(store).WithContent(&st, ca)
+	err := pr.Save(cfg.SessionId)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +125,7 @@ func TestEnginePersist(t *testing.T) {
 		t.Fatalf("expected index '1', got %v", idx)
 	}
 
-	pr = persist.NewFsPersister(persistDir)
+	pr = persist.NewPersister(store)
 	en, err = NewPersistedEngine(ctx, cfg, pr, rs)
 	if err != nil {
 		t.Fatal(err)

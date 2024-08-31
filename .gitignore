@@ -3,3 +3,6 @@ examples/**/*.txt
 **/.state
 build/
 doc/texinfo/**/*html
+*.gdbm
+.state
+.store

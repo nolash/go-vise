@@ -7,24 +7,34 @@ import (
 	"os"
 
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/db"
 )
 
 func main() {
+	var store db.Db
 	var dir string
 	var root string
 	var size uint
 	var sessionId string
-	var persist bool
+	var persist string
 	flag.StringVar(&dir, "d", ".", "resource dir to read from")
 	flag.UintVar(&size, "s", 0, "max size of output")
 	flag.StringVar(&root, "root", "root", "entry point symbol")
 	flag.StringVar(&sessionId, "session-id", "default", "session id")
-	flag.BoolVar(&persist, "persist", false, "use state persistence")
+	flag.StringVar(&persist, "p", "", "state persistence directory")
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
 	ctx := context.Background()
-	en, err := engine.NewSizedEngine(dir, uint32(size), persist, &sessionId)
+	if persist != "" {
+		store = db.NewFsDb()
+		err := store.Connect(ctx, persist)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "db connect error: %v", err)
+			os.Exit(1)
+		}
+	}
+	en, err := engine.NewSizedEngine(dir, uint32(size), store, &sessionId)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine create error: %v", err)
 		os.Exit(1)
