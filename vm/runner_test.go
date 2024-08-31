@@ -179,7 +179,7 @@ func TestRun(t *testing.T) {
 
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	ctx := context.TODO()
+	ctx := context.Background()
 	_, err := vm.Run(ctx, b)
 	if err == nil {
 		t.Fatalf("expected error")
@@ -201,7 +201,7 @@ func TestRunLoadRender(t *testing.T) {
 	st.Down("bar")
 
 	var err error
-	ctx := context.TODO()
+	ctx := context.Background()
 	b := NewLine(nil, LOAD, []string{"one"}, []byte{0x0a}, nil)
 	b = NewLine(b, MAP, []string{"one"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"two"}, []byte{0x0a}, nil)
@@ -250,7 +250,7 @@ func TestRunMultiple(t *testing.T) {
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	b := NewLine(nil, MOVE, []string{"test"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"one"}, []byte{0x00}, nil)
 	b = NewLine(b, LOAD, []string{"two"}, []byte{42}, nil)
@@ -269,7 +269,7 @@ func TestRunReload(t *testing.T) {
 	szr := render.NewSizer(128)
 	vm := NewVm(&st, &rs, ca, szr)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	b := NewLine(nil, MOVE, []string{"root"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"dyn"}, nil, []uint8{0})
 	b = NewLine(b, MAP, []string{"dyn"}, nil, nil)
@@ -305,7 +305,7 @@ func TestHalt(t *testing.T) {
 	b = NewLine(b, HALT, nil, nil, nil)
 	b = NewLine(b, MOVE, []string{"foo"}, nil, nil)
 	var err error
-	ctx := context.TODO()
+	ctx := context.Background()
 	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Error(err)
@@ -329,7 +329,7 @@ func TestRunArg(t *testing.T) {
 	_ = st.SetInput(input)
 
 	bi := NewLine(nil, INCMP, []string{"baz", "bar"}, nil, nil)
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	var err error
 	b, err := vm.Run(ctx, bi)
@@ -363,7 +363,7 @@ func TestRunInputHandler(t *testing.T) {
 	bi = NewLine(bi, HALT, nil, nil, nil)
 
 	var err error
-	ctx := context.TODO()
+	ctx := context.Background()
 	_, err = vm.Run(ctx, bi)
 	if err == nil {
 		t.Fatalf("expected error")
@@ -387,7 +387,7 @@ func TestRunArgInvalid(t *testing.T) {
 	st.Down("root")
 	b := NewLine(nil, INCMP, []string{"baz", "bar"}, nil, nil)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)	
@@ -416,7 +416,7 @@ func TestRunMenu(t *testing.T) {
 
 	var err error
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	rs.AddBytecode("foo", []byte{})
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
@@ -452,7 +452,7 @@ func TestRunMenuBrowse(t *testing.T) {
 
 	var err error
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	rs.AddBytecode("foo", []byte{})
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
@@ -491,7 +491,7 @@ func TestRunReturn(t *testing.T) {
 	b := NewLine(nil, INCMP, []string{"bar", "0"}, nil, nil)
 	b = NewLine(b, INCMP, []string{"_", "1"}, nil, nil)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	st.SetInput([]byte("0"))
 	b, err = vm.Run(ctx, b)
@@ -529,7 +529,7 @@ func TestRunLoadInput(t *testing.T) {
 	b := NewLine(nil, LOAD, []string{"echo"}, []byte{0x00}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	b, err = vm.Run(ctx, b)
 	if err != nil {
@@ -562,7 +562,7 @@ func TestInputBranch(t *testing.T) {
 	rs.RootCode = b
 	rs.AddBytecode("root", rs.RootCode)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	st.SetInput([]byte{0x08})
 	b, err = vm.Run(ctx, b)
@@ -599,7 +599,7 @@ func TestInputIgnore(t *testing.T) {
 	b = NewLine(b, INCMP, []string{"two", "bar"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	st.SetInput([]byte("foo"))
 	b, err = vm.Run(ctx, b)
@@ -626,7 +626,7 @@ func TestInputIgnoreWildcard(t *testing.T) {
 	b := NewLine(nil, INCMP, []string{"one", "foo"}, nil, nil)
 	b = NewLine(b, INCMP, []string{"two", "*"}, nil, nil)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	st.SetInput([]byte("foo"))
 	b, err = vm.Run(ctx, b)
@@ -656,7 +656,7 @@ func TestCatchCleanMenu(t *testing.T) {
 	b = NewLine(b, INCMP, []string{"foo", "1"}, nil, nil)
 	b = NewLine(b, CATCH, []string{"ouf"}, []byte{0x08}, []uint8{0x00})
 
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	st.SetInput([]byte("foo"))
 	b, err = vm.Run(ctx, b)
@@ -690,7 +690,7 @@ func TestSetLang(t *testing.T) {
 	b := NewLine(nil, LOAD, []string{"set_lang"}, []byte{0x01, 0x00}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
@@ -714,7 +714,7 @@ func TestLoadError(t *testing.T) {
 	b = NewLine(b, HALT, nil, nil, nil)
 
 	var err error
-	ctx := context.TODO()
+	ctx := context.Background()
 	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
@@ -728,5 +728,61 @@ func TestLoadError(t *testing.T) {
 0:repent`
 	if r != expect {
 		t.Fatalf("expected: \n\t%s\ngot:\n\t%s", expect, r)
+	}
+}
+
+func TestMatchFlag(t *testing.T) {
+	var err error
+	ctx := context.Background()
+
+	st := state.NewState(1)
+	st.UseDebug()
+	rs := NewTestResource(&st)
+	ca := cache.NewCache()
+	vm := NewVm(&st, &rs, ca, nil)
+
+	st.Down("root")
+	st.SetFlag(state.FLAG_USERSTART)
+	st.SetInput([]byte{})
+	b := NewLine(nil, CATCH, []string{"aiee"}, []byte{state.FLAG_USERSTART}, []uint8{1})
+	b = NewLine(b, HALT, nil, nil, nil)
+	b, err = vm.Run(ctx, b)
+	if err == nil {
+		t.Fatal(err)
+	}
+
+	st.SetFlag(state.FLAG_USERSTART)
+	st.SetInput([]byte{})
+	b = NewLine(nil, CATCH, []string{"aiee"}, []byte{state.FLAG_USERSTART}, []uint8{0})
+	b = NewLine(b, HALT, nil, nil, nil)
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	st.Restart()
+	st.SetFlag(state.FLAG_USERSTART)
+	st.SetInput([]byte{})
+	b = NewLine(nil, CROAK, nil, []byte{state.FLAG_USERSTART}, []uint8{1})
+	b = NewLine(b, HALT, nil, nil, nil)
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.MatchFlag(state.FLAG_TERMINATE, false) {
+		t.Fatalf("expected terminate set")
+	}
+
+	st.Restart()
+	st.SetFlag(state.FLAG_USERSTART)
+	st.SetInput([]byte{})
+	b = NewLine(nil, CROAK, nil, []byte{state.FLAG_USERSTART}, []uint8{0})
+	b = NewLine(b, HALT, nil, nil, nil)
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.MatchFlag(state.FLAG_TERMINATE, true) {
+		t.Fatalf("expected no terminate")
 	}
 }
