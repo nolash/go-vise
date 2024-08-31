@@ -21,7 +21,7 @@ func NewFsDb() *fsDb {
 	return db
 }
 
-// Connect implements Db
+// Connect implements the Db interface.
 func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 	if fdb.dir != "" {
 		panic("already connected")
@@ -34,15 +34,24 @@ func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 	return nil
 }
 
-// Get implements Db
+// Get implements the Db interface.
 func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	fp, err := fdb.pathFor(key)
 	if err != nil {
 		return nil, err
 	}
+	logg.TraceCtxf(ctx, "trying fs get", "key", key, "path", fp)
 	f, err := os.Open(fp)
 	if err != nil {
-		return nil, NewErrNotFound([]byte(fp))
+		fp, err = fdb.altPathFor(key)
+		if err != nil {
+			return nil, err
+		}
+		logg.TraceCtxf(ctx, "trying fs get alt", "key", key, "path", fp)
+		f, err = os.Open(fp)
+		if err != nil {
+			return nil, NewErrNotFound([]byte(fp))
+		}
 	}
 	defer f.Close()
 	b, err := ioutil.ReadAll(f)
@@ -52,7 +61,7 @@ func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	return b, nil
 }
 
-// Put implements Db
+// Put implements the Db interface.
 func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !fdb.checkPut() {
 		return errors.New("unsafe put and safety set")
@@ -64,12 +73,12 @@ func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
 	return ioutil.WriteFile(fp, val, 0600)
 }
 
-// Close implements Db
+// Close implements the Db interface..
 func(fdb *fsDb) Close() error {
 	return nil
 }	
 
-// create a key safe for the filesystem
+// create a key safe for the filesystem.
 func(fdb *fsDb) pathFor(key []byte) (string, error) {
 	kb, err := fdb.ToKey(key)
 	if err != nil {
@@ -77,4 +86,13 @@ func(fdb *fsDb) pathFor(key []byte) (string, error) {
 	}
 	kb[0] += 0x30
 	return path.Join(fdb.dir, string(kb)), nil
+}
+
+// create a key safe for the filesystem, matching legacy resource.FsResource name.
+func(fdb *fsDb) altPathFor(key []byte) (string, error) {
+	kb, err := fdb.ToKey(key)
+	if err != nil {
+		return "", err
+	}
+	return path.Join(fdb.dir, string(kb[1:])), nil
 }

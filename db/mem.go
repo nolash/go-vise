@@ -40,7 +40,7 @@ func(mdb *memDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	Logg.TraceCtxf(ctx, "mem get", "k", k)
+	logg.TraceCtxf(ctx, "mem get", "k", k)
 	v, ok := mdb.store[k]
 	if !ok {
 		b, _ := hex.DecodeString(k)
@@ -59,7 +59,7 @@ func(mdb *memDb) Put(ctx context.Context, key []byte, val []byte) error {
 		return err
 	}
 	mdb.store[k] = val
-	Logg.TraceCtxf(ctx, "mem put", "k",  k, "v", val)
+	logg.TraceCtxf(ctx, "mem put", "k",  k, "v", val)
 	return nil
 }
 
