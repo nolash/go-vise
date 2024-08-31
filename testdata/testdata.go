@@ -149,14 +149,6 @@ func defaultCatch() error {
 	return out("_catch", b, tpl, nil)
 }
 
-func defaultFirst() error {
-	b := []byte{}
-
-	tpl := ""
-
-	return out("_first", b, tpl, nil)
-}
-
 func lang() error {
 	b := []byte{}
 	b = vm.NewLine(b, vm.MOUT, []string{"back", "0"}, nil, nil)
@@ -190,7 +182,7 @@ func generate() error {
 		return err
 	}
 
-	fns := []genFunc{root, foo, bar, baz, long, lang, defaultCatch, defaultFirst}
+	fns := []genFunc{root, foo, bar, baz, long, lang, defaultCatch}
 	for _, fn := range fns {
 		err = fn()
 		if err != nil {
