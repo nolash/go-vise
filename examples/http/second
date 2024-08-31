@@ -1,0 +1,2 @@
+you wrote: {{.echo}}
+now choose next step
