@@ -44,10 +44,11 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 <li><a href="#Code-repository-structure" accesskey="1">Code repository structure</a></li>
 <li><a href="#Interacting-with-vise" accesskey="2">Interacting with <code class="code">vise</code></a></li>
 <li><a href="#Resolving-resources" accesskey="3">Resolving resources</a></li>
-<li><a href="#Logging" accesskey="4">Logging</a></li>
-<li><a href="#Tools" accesskey="5">Tools</a></li>
-<li><a href="#Assembly-examples" accesskey="6">Assembly examples</a></li>
-<li><a href="#Bytecode-example" accesskey="7">Bytecode example</a></li>
+<li><a href="#Data-provider" accesskey="4">Data provider</a></li>
+<li><a href="#Logging" accesskey="5">Logging</a></li>
+<li><a href="#Tools" accesskey="6">Tools</a></li>
+<li><a href="#Assembly-examples" accesskey="7">Assembly examples</a></li>
+<li><a href="#Bytecode-example" accesskey="8">Bytecode example</a></li>
 </ul>
 <div class="section-level-extent" id="Code-repository-structure">
 <h3 class="section"><span>11.1 Code repository structure<a class="copiable-link" href="#Code-repository-structure"> &para;</a></span></h3>
@@ -158,7 +159,7 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 <p>Please refer to <code class="code">engine.Config</code> for details.
 </p>
 
-</div>
+<a class="anchor" id="sessions"></a></div>
 <div class="subsection-level-extent" id="Sessions">
 <h4 class="subsection"><span>11.2.3 Sessions<a class="copiable-link" href="#Sessions"> &para;</a></span></h4>
 
@@ -275,8 +276,72 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 </div>
 </div>
 </div>
+<div class="section-level-extent" id="Data-provider">
+<h3 class="section"><span>11.4 Data provider<a class="copiable-link" href="#Data-provider"> &para;</a></span></h3>
+
+<p>The <code class="code">db.Db</code> interface provides methods to get and set data to key-value stores.
+</p>
+<p>The storage keys are partitioned according to the <a class="ref" href="#sessions">session</a> context, aswell as what type of data is being stored or retrieved.
+</p>
+<p>The interface and the data types are defined in <code class="code">db/db.go</code>.
+</p>
+<p>The included implementations are:
+</p>
+<dl class="table">
+<dt><code class="code">MemDb</code></dt>
+<dd><p>An volatile, in-process store. Used in most tests.
+</p></dd>
+<dt><code class="code">FsDb</code></dt>
+<dd><p>A filesystem-backed store using subdirectories to separate sessions.
+</p></dd>
+<dt><code class="code">GdbmDb</code></dt>
+<dd><p>A <a class="url" href="https://www.gnu.org/software/gdbm/gdbm">gdbm</a> backed store.
+</p></dd>
+<dt><code class="code">PgDb</code></dt>
+<dd><p>A <a class="url" href="https://www.postgresql.org/">Postgres</a> backed store, using a single table with two <code class="code">BYTEA</code> columns and a connection pool.
+</p></dd>
+</dl>
+
+
+<ul class="mini-toc">
+<li><a href="#Uses" accesskey="1">Uses</a></li>
+<li><a href="#Using-data-provider-with-resources" accesskey="2">Using data provider with resources</a></li>
+<li><a href="#State-persistence" accesskey="3">State persistence</a></li>
+</ul>
+<div class="subsection-level-extent" id="Uses">
+<h4 class="subsection"><span>11.4.1 Uses<a class="copiable-link" href="#Uses"> &para;</a></span></h4>
+
+<p><code class="code">db.Db</code> may fulfill all local data requirements in <code class="code">vise</code>, including:
+</p>
+<ul class="itemize mark-bullet">
+<li>Resource retrieval
+</li><li>State and cache persistence
+</li><li>Application data
+</li></ul>
+
+
+</div>
+<div class="subsection-level-extent" id="Using-data-provider-with-resources">
+<h4 class="subsection"><span>11.4.2 Using data provider with resources<a class="copiable-link" href="#Using-data-provider-with-resources"> &para;</a></span></h4>
+
+<p>The <code class="code">resource.dbGetter</code> assists in using a <code class="code">db.Db</code> implementation.
+</p>
+<p>Its functions may be assigned individually to a <code class="code">resource.MenuResource</code>, allowing for co-existence of <code class="code">db.Db</code> backed resources, aswell as from other sources.
+</p>
+
+</div>
+<div class="subsection-level-extent" id="State-persistence">
+<h4 class="subsection"><span>11.4.3 State persistence<a class="copiable-link" href="#State-persistence"> &para;</a></span></h4>
+
+<p>Any asynchronous or consecutive synchronous operation of the <code class="code">engine.Engine</code> requires persistence of the associated <code class="code">state.State</code> and <code class="code">cache.Memory</code>. This is achieved using <code class="code">persist.Persister</code>, instantiated with a <code class="code">db.Db</code> implementation.
+</p>
+<p>The <code class="code">db.Db</code> used for persistence does not need to be the same as e.g. used for retrieval of resources, or even for application data.
+</p>
+
+</div>
+</div>
 <div class="section-level-extent" id="Logging">
-<h3 class="section"><span>11.4 Logging<a class="copiable-link" href="#Logging"> &para;</a></span></h3>
+<h3 class="section"><span>11.5 Logging<a class="copiable-link" href="#Logging"> &para;</a></span></h3>
 
 <p>Loglevels are set at compile-time using the following build tags:
 </p>
@@ -298,7 +363,7 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 
 </div>
 <div class="section-level-extent" id="Tools">
-<h3 class="section"><span>11.5 Tools<a class="copiable-link" href="#Tools"> &para;</a></span></h3>
+<h3 class="section"><span>11.6 Tools<a class="copiable-link" href="#Tools"> &para;</a></span></h3>
 
 <p>Located in the <samp class="file">dev/</samp> directory of the source code repository. 
 </p>
@@ -311,7 +376,7 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 <li><a href="#Interactive-case-examples" accesskey="5">Interactive case examples</a></li>
 </ul>
 <div class="subsection-level-extent" id="Test-data-generation">
-<h4 class="subsection"><span>11.5.1 Test data generation<a class="copiable-link" href="#Test-data-generation"> &para;</a></span></h4>
+<h4 class="subsection"><span>11.6.1 Test data generation<a class="copiable-link" href="#Test-data-generation"> &para;</a></span></h4>
 
 <div class="example">
 <pre class="example-preformatted">go run ./dev/gendata/ &lt;directory&gt;
@@ -322,7 +387,7 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 
 </div>
 <div class="subsection-level-extent" id="Interactive-runner">
-<h4 class="subsection"><span>11.5.2 Interactive runner<a class="copiable-link" href="#Interactive-runner"> &para;</a></span></h4>
+<h4 class="subsection"><span>11.6.2 Interactive runner<a class="copiable-link" href="#Interactive-runner"> &para;</a></span></h4>
 
 <div class="example">
 <pre class="example-preformatted">go run ./dev/interactive [-d &lt;data_directory&gt;] [--root &lt;root_symbol&gt;] [--session-id &lt;session_id&gt;] [--persist]
@@ -343,7 +408,7 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 
 </div>
 <div class="subsection-level-extent" id="Assembler">
-<h4 class="subsection"><span>11.5.3 Assembler<a class="copiable-link" href="#Assembler"> &para;</a></span></h4>
+<h4 class="subsection"><span>11.6.3 Assembler<a class="copiable-link" href="#Assembler"> &para;</a></span></h4>
 
 <div class="example">
 <pre class="example-preformatted">go run ./dev/asm &lt;assembly_file&gt;
@@ -354,7 +419,7 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 
 </div>
 <div class="subsection-level-extent" id="Disassembler">
-<h4 class="subsection"><span>11.5.4 Disassembler<a class="copiable-link" href="#Disassembler"> &para;</a></span></h4>
+<h4 class="subsection"><span>11.6.4 Disassembler<a class="copiable-link" href="#Disassembler"> &para;</a></span></h4>
 
 <div class="example">
 <pre class="example-preformatted">go run ./dev/disasm/ &lt;binary_file&gt;
@@ -365,7 +430,7 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 
 </div>
 <div class="subsection-level-extent" id="Interactive-case-examples">
-<h4 class="subsection"><span>11.5.5 Interactive case examples<a class="copiable-link" href="#Interactive-case-examples"> &para;</a></span></h4>
+<h4 class="subsection"><span>11.6.5 Interactive case examples<a class="copiable-link" href="#Interactive-case-examples"> &para;</a></span></h4>
 
 <p>Found in <samp class="file">examples/</samp>.
 </p>
@@ -406,14 +471,14 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 </div>
 </div>
 <div class="section-level-extent" id="Assembly-examples">
-<h3 class="section"><span>11.6 Assembly examples<a class="copiable-link" href="#Assembly-examples"> &para;</a></span></h3>
+<h3 class="section"><span>11.7 Assembly examples<a class="copiable-link" href="#Assembly-examples"> &para;</a></span></h3>
 
 <p>See <samp class="file">testdata/*.vis</samp>
 </p>
 
 </div>
 <div class="section-level-extent" id="Bytecode-example">
-<h3 class="section"><span>11.7 Bytecode example<a class="copiable-link" href="#Bytecode-example"> &para;</a></span></h3>
+<h3 class="section"><span>11.8 Bytecode example<a class="copiable-link" href="#Bytecode-example"> &para;</a></span></h3>
 
 <p>Currently the following rules apply for encoding in version <code class="code">0</code>:
 </p>
@@ -429,13 +494,13 @@ Next: <a href="cookbook.html" accesskey="n" rel="next">Common patterns</a>, Prev
 <li><a href="#Example" accesskey="1">Example</a></li>
 </ul>
 <div class="subsection-level-extent" id="Example">
-<h4 class="subsection"><span>11.7.1 Example<a class="copiable-link" href="#Example"> &para;</a></span></h4>
+<h4 class="subsection"><span>11.8.1 Example<a class="copiable-link" href="#Example"> &para;</a></span></h4>
 
 <p>(Minimal, WIP)
 </p>
 <pre class="verbatim">000a 03666f6f 05746f666f6f    # MOUT tofoo foo  - display a menu entry for choice &quot;foo&quot;, described by &quot;to foo&quot;
 0008 03666f6f 03626172        # INCMP bar foo   - move to node &quot;bar&quot; if input is &quot;FOO&quot;
-0001 0461696565 01 01         # CATCH aiee 1 1  - move to node &quot;aiee&quot; (and immediately halt) if input match flag (1) is not set (1)
+0001 0461696565 01 01         # CATCH aiee 1 1  - move to node &quot;aiee&quot; (and immediately halt) if input match flag (1) is set (1)
 0003 04616263 020104          # LOAD abc 260    - execute code symbol &quot;abc&quot; with a result size limit of 260 (2 byte BE integer, 0x0104)
 0003 04646566 00              # LOAD def 0      - execute code symbol &quot;abc&quot; with no size limit (sink)
 0005 04616263                 # MAP abc         - make &quot;abc&quot; available for renderer

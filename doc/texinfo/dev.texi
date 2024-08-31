@@ -76,6 +76,7 @@ The engine configuration defines the top-level parameters for the execution envi
 Please refer to @code{engine.Config} for details.
 
 
+@anchor{sessions}
 @subsection Sessions
 
 The @code{engine.Config.SessionId} is used to disambiguate the end-user that is interacting with the engine.
@@ -160,6 +161,53 @@ If reading the language specific entry fails (or if no language has been set), e
 A missing entry will result in load failure and program termination.
 
 The implementation contains no built-in handling of the @code{SessionId} supplied by the context.
+
+
+@section Data provider
+
+The @code{db.Db} interface provides methods to get and set data to key-value stores.
+
+The storage keys are partitioned according to the @ref{sessions, session} context, aswell as what type of data is being stored or retrieved.
+
+The interface and the data types are defined in @code{db/db.go}.
+
+The included implementations are:
+
+@table @code
+@item MemDb
+An volatile, in-process store. Used in most tests.
+@item FsDb
+A filesystem-backed store using subdirectories to separate sessions.
+@item GdbmDb
+A @url{https://www.gnu.org/software/gdbm/gdbm,gdbm} backed store.
+@item PgDb
+A @url{https://www.postgresql.org/,Postgres} backed store, using a single table with two @code{BYTEA} columns and a connection pool.
+@end table
+
+
+@subsection Uses
+
+@code{db.Db} may fulfill all local data requirements in @code{vise}, including:
+
+@itemize
+@item Resource retrieval
+@item State and cache persistence
+@item Application data
+@end itemize
+
+
+@subsection Using data provider with resources
+
+The @code{resource.dbGetter} assists in using a @code{db.Db} implementation.
+
+Its functions may be assigned individually to a @code{resource.MenuResource}, allowing for co-existence of @code{db.Db} backed resources, aswell as from other sources.
+
+
+@subsection State persistence
+
+Any asynchronous or consecutive synchronous operation of the @code{engine.Engine} requires persistence of the associated @code{state.State} and @code{cache.Memory}. This is achieved using @code{persist.Persister}, instantiated with a @code{db.Db} implementation.
+
+The @code{db.Db} used for persistence does not need to be the same as e.g. used for retrieval of resources, or even for application data.
 
 
 @section Logging
@@ -291,7 +339,7 @@ Currently the following rules apply for encoding in version @code{0}:
 @verbatim
 000a 03666f6f 05746f666f6f    # MOUT tofoo foo  - display a menu entry for choice "foo", described by "to foo"
 0008 03666f6f 03626172        # INCMP bar foo   - move to node "bar" if input is "FOO"
-0001 0461696565 01 01         # CATCH aiee 1 1  - move to node "aiee" (and immediately halt) if input match flag (1) is not set (1)
+0001 0461696565 01 01         # CATCH aiee 1 1  - move to node "aiee" (and immediately halt) if input match flag (1) is set (1)
 0003 04616263 020104          # LOAD abc 260    - execute code symbol "abc" with a result size limit of 260 (2 byte BE integer, 0x0104)
 0003 04646566 00              # LOAD def 0      - execute code symbol "abc" with no size limit (sink)
 0005 04616263                 # MAP abc         - make "abc" available for renderer
