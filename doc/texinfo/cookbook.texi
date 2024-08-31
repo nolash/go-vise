@@ -146,3 +146,13 @@ INCMP bar *
 @end example
 
 If input is @code{0}, route to the @code{foo}. Any other input will route to the @code{bar} node.
+
+
+@section Graceful quit
+
+@example
+LOAD msg 0
+HALT
+@end example
+
+Execution will stop (without error) and the node template render will be displayed. Any content returned from the execution of the @code{msg} symbol will be appended to the render. Lastly the @code{MOVE ^} will be appended automatically to the state bytecode.

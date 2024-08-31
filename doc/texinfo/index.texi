@@ -33,5 +33,5 @@ Released 2023 under AGPL3
 @include render.texi
 @include language.texi
 @include exceptions.texi
-@include cookbook.texi
 @include dev.texi
+@include cookbook.texi
