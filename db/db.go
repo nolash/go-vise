@@ -45,6 +45,7 @@ type Db interface {
 	// SetPrefix sets the storage context prefix to use for consecutive Get and Put operations.
 	SetPrefix(pfx uint8)
 	// SetSession sets the session context to use for consecutive Get and Put operations.
+	//
 	// Session only affects the following datatypes:
 	// * DATATYPE_STATE
 	// * DATATYPE_USERSTART
@@ -55,6 +56,11 @@ type Db interface {
 	// Safe returns true if db is safe for use with a vm.
 	Safe() bool
 	// SetLanguage sets the language context to use on consecutive gets or puts
+	//
+	// Language only affects the following datatypes:
+	// * DATATYPE_MENU
+	// * DATATYPE_TEMPLATE
+	// * DATATYPE_STATICLOAD
 	SetLanguage(*lang.Language)
 }
 

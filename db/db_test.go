@@ -34,8 +34,9 @@ type testFunc func() testVector
 
 var (
 	tests = []testFunc{
-//		generateSessionTestVectors,
+		generateSessionTestVectors,
 		generateLanguageTestVectors,
+		generateMultiLanguageTestVectors,
 	}
 	dataTypeDebug = map[uint8]string{
 		DATATYPE_BIN: "bytecode",
@@ -197,6 +198,23 @@ func generateLanguageTestVectors() testVector {
 	tv.add(DATATYPE_BIN, "foo", "beeffeed", "", "beeffeed", "nor")
 	tv.add(DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "tinkywinky", "")
 	tv.add(DATATYPE_TEMPLATE, "foo", "dipsy", "", "dipsy", "nor")
+	tv.add(DATATYPE_MENU, "foo", "lala", "", "lala", "")
+	tv.add(DATATYPE_MENU, "foo", "pu", "", "pu", "nor")
+	tv.add(DATATYPE_STATICLOAD, "foo", "bar", "", "bar", "")
+	tv.add(DATATYPE_STATICLOAD, "foo", "baz", "", "baz", "nor")
+	tv.add(DATATYPE_STATE, "foo", "xyzzy", "", "plugh", "")
+	tv.add(DATATYPE_STATE, "foo", "plugh", "", "plugh", "nor")
+	tv.add(DATATYPE_USERDATA, "foo", "itchy", "", "scratchy", "")
+	tv.add(DATATYPE_USERDATA, "foo", "scratchy", "", "scratchy", "nor")
+	return tv
+}
+
+func generateMultiLanguageTestVectors() testVector {
+	tv := testVector{c: make(map[string]*testCase), s: "multilanguage"}
+	tv.add(DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "pu", "")
+	tv.add(DATATYPE_TEMPLATE, "foo", "dipsy", "", "dipsy", "nor")
+	tv.add(DATATYPE_TEMPLATE, "foo", "lala", "", "lala", "swa")
+	tv.add(DATATYPE_TEMPLATE, "foo", "pu", "", "pu", "")
 	return tv
 }
 
