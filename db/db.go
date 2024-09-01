@@ -45,6 +45,7 @@ type Db interface {
 	// * DATATYPE_STATE
 	// * DATATYPE_USERSTART
 	SetSession(sessionId string)
+	SetLock(typ uint8, locked bool)
 }
 
 type lookupKey struct {
