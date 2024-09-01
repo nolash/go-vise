@@ -35,8 +35,10 @@ type testFunc func() testVector
 var (
 	tests = []testFunc{
 		generateSessionTestVectors,
+		generateMultiSessionTestVectors,
 		generateLanguageTestVectors,
 		generateMultiLanguageTestVectors,
+		generateSessionLanguageTestVectors,
 	}
 	dataTypeDebug = map[uint8]string{
 		DATATYPE_BIN: "bytecode",
@@ -218,6 +220,31 @@ func generateMultiLanguageTestVectors() testVector {
 	return tv
 }
 
+func generateSessionLanguageTestVectors() testVector {
+	tv := testVector{c: make(map[string]*testCase), s: "sessionlanguage"}
+	tv.add(DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "pu", "")
+	tv.add(DATATYPE_TEMPLATE, "foo", "dipsy", "", "lala", "nor")
+	tv.add(DATATYPE_TEMPLATE, "foo", "lala", "bar", "lala", "nor")
+	tv.add(DATATYPE_TEMPLATE, "foo", "pu", "bar", "pu", "")
+	tv.add(DATATYPE_STATE, "foo", "inky", "", "pinky", "")
+	tv.add(DATATYPE_STATE, "foo", "pinky", "", "pinky", "nor")
+	tv.add(DATATYPE_STATE, "foo", "blinky", "bar", "clyde", "nor")
+	tv.add(DATATYPE_STATE, "foo", "clyde", "bar", "clyde", "")
+	tv.add(DATATYPE_BIN, "foo", "deadbeef", "", "feebdaed", "")
+	tv.add(DATATYPE_BIN, "foo", "beeffeed", "", "feebdaed", "nor")
+	tv.add(DATATYPE_BIN, "foo", "deeffeeb", "baz", "feebdaed", "nor")
+	tv.add(DATATYPE_BIN, "foo", "feebdaed", "baz", "feebdaed", "")
+	return tv
+}
+
+func generateMultiSessionTestVectors() testVector {
+	tv := testVector{c: make(map[string]*testCase), s: "multisession"}
+	tv.add(DATATYPE_TEMPLATE, "foo", "red", "", "blue", "")
+	tv.add(DATATYPE_TEMPLATE, "foo", "green", "bar", "blue", "")
+	tv.add(DATATYPE_TEMPLATE, "foo", "blue", "baz", "blue", "")
+	return tv
+}
+
 func runTest(t *testing.T, ctx context.Context, db Db, vs testVector) error {
 	err := vs.put(ctx, db)
 	if err != nil {
@@ -228,7 +255,8 @@ func runTest(t *testing.T, ctx context.Context, db Db, vs testVector) error {
 		if i == -1 {
 			break
 		}
-		s := fmt.Sprintf("Test%sTyp%dKey%s", vs.label(), tc.Typ(), tc.Key())
+		ts := dataTypeDebug[tc.Typ()]
+		s := fmt.Sprintf("Test%s[%d]Type%sKey%s", vs.label(), i, ts, tc.Key())
 		if tc.Session() != "" {
 			s += "Session" + tc.Session()
 		} else {
