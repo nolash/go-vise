@@ -17,6 +17,7 @@ import (
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/logging"
 )
 
@@ -24,7 +25,7 @@ var (
 	logg = logging.NewVanilla()
 	baseDir = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "db")
-	store = db.NewFsDb()
+	store = fsdb.NewFsDb()
 	pr = persist.NewPersister(store)
 	data_selector = []byte("my_data")
 )

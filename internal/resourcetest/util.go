@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/db/mem"
 	"git.defalsify.org/vise.git/db"
 )
 
@@ -29,13 +30,13 @@ func newTestResource(path string) *TestResource {
 	ctx := context.Background()
 
 	if path == "" {
-		mem := db.NewMemDb()
+		mem := mem.NewMemDb()
 		mem.SetLock(db.DATATYPE_TEMPLATE, false)
 		mem.SetLock(db.DATATYPE_BIN, false)
 		mem.SetLock(db.DATATYPE_MENU, false)
 		store = mem
 	} else {
-		fs := db.NewMemDb()
+		fs := mem.NewMemDb()
 		fs.SetLock(db.DATATYPE_TEMPLATE, false)
 		fs.SetLock(db.DATATYPE_BIN, false)
 		fs.SetLock(db.DATATYPE_MENU, false)

@@ -9,7 +9,7 @@ import (
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/vm"
-	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/db/mem"
 )
 
 func TestSerializeState(t *testing.T) {
@@ -29,7 +29,7 @@ func TestSerializeState(t *testing.T) {
 	ca.Add("blinky", "clyde", 42)
 
 	ctx := context.Background()
-	store := db.NewMemDb()
+	store := mem.NewMemDb()
 	store.Connect(ctx, "")
 	pr := NewPersister(store).WithContext(context.Background()).WithSession("xyzzy").WithContent(&st, ca)
 	v, err := pr.Serialize()
@@ -81,7 +81,7 @@ func TestSaveLoad(t *testing.T) {
 	ca.Add("blinky", "clyde", 42)
 
 	ctx := context.Background()
-	store := db.NewMemDb()
+	store := mem.NewMemDb()
 	store.Connect(ctx, "")
 	pr := NewPersister(store).WithContent(&st, ca)
 	err := pr.Save("xyzzy")
@@ -122,7 +122,7 @@ func TestSaveLoadFlags(t *testing.T) {
 	st.SetFlag(8)
 	ca := cache.NewCache()
 
-	store := db.NewMemDb()
+	store := mem.NewMemDb()
 	store.Connect(ctx, "")
 	pr := NewPersister(store).WithContent(&st, ca)
 	err := pr.Save("xyzzy")

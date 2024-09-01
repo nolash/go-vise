@@ -8,7 +8,7 @@ import (
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/db"
+	memdb "git.defalsify.org/vise.git/db/mem"
 )
 
 func TestRunPersist(t *testing.T) {
@@ -23,7 +23,7 @@ func TestRunPersist(t *testing.T) {
 
 	st := state.NewState(3)
 	ca := cache.NewCache().WithCacheSize(1024)
-	store := db.NewMemDb()
+	store := memdb.NewMemDb()
 	store.Connect(ctx, "")
 	pr := persist.NewPersister(store).WithContent(&st, ca)
 
@@ -81,7 +81,7 @@ func TestEnginePersist(t *testing.T) {
 
 	st := state.NewState(3)
 	ca := cache.NewCache().WithCacheSize(1024)
-	store := db.NewMemDb()
+	store := memdb.NewMemDb()
 	store.Connect(ctx, "")
 	pr := persist.NewPersister(store).WithContent(&st, ca)
 

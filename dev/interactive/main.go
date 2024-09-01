@@ -8,6 +8,7 @@ import (
 
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 
 	ctx := context.Background()
 	if persist != "" {
-		store = db.NewFsDb()
+		store = fsdb.NewFsDb()
 		err := store.Connect(ctx, persist)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "db connect error: %v", err)

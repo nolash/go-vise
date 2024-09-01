@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/db/mem"
 )
 
 func TestDb(t *testing.T) {
 	var rsifc Resource
 	ctx := context.Background()
-	store := db.NewMemDb()
+	store := mem.NewMemDb()
 	store.Connect(ctx, "")
 	tg := NewDbResource(store)
 	tg.Without(db.DATATYPE_BIN)

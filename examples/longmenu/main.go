@@ -11,7 +11,7 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/engine"
-	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 var (
 	baseDir = testdataloader.GetBasePath()
@@ -34,7 +34,7 @@ func main() {
 
 	ctx := context.Background()
 	dp := path.Join(scriptDir, ".state")
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, dp)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "db connect error: %v", err)

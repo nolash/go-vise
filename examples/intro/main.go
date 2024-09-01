@@ -15,7 +15,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 const (
@@ -34,7 +34,7 @@ type introResource struct {
 }
 
 func newintroResource(ctx context.Context) introResource {
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, scriptDir) 
 	if err != nil {
 		panic(err)

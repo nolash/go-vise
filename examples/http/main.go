@@ -16,7 +16,7 @@ import (
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/logging"
-	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
@@ -77,7 +77,7 @@ type DefaultSessionHandler struct {
 }
 
 func NewDefaultSessionHandler(ctx context.Context, persistBase string, resourceBase string, rp RequestParser, outputSize uint32, cacheSize uint32, flagCount uint32) *DefaultSessionHandler {
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, resourceBase)
 	if err != nil {
 		panic(err)
@@ -103,7 +103,7 @@ func(f *DefaultSessionHandler) GetEngine(ctx context.Context, sessionId string) 
 	cfg.SessionId = sessionId
 	
 	persistPath := path.Join(f.peBase, sessionId)
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, persistPath)
 	if err != nil {
 		return nil, err

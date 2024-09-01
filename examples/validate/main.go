@@ -14,7 +14,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
@@ -60,7 +60,7 @@ func main() {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "SessionId", sessionId)
 	st := state.NewState(1)
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)

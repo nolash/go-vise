@@ -14,6 +14,8 @@ import (
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/db"
+	gdbmdb "git.defalsify.org/vise.git/db/gdbm"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
@@ -34,7 +36,7 @@ func main() {
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
 	st := state.NewState(0)
-	store := db.NewGdbmDb()
+	store := gdbmdb.NewGdbmDb()
 	err := store.Connect(ctx, dbFile)
 	if err != nil {
 		panic(err)
@@ -46,7 +48,7 @@ func main() {
 	rs = rs.WithTemplateGetter(tg.GetTemplate)
 	rs = rs.WithCodeGetter(tg.GetCode)
 
-	fsStore := db.NewFsDb()
+	fsStore := fsdb.NewFsDb()
 	fsStore.Connect(ctx, scriptDir)
 	rsf := resource.NewDbResource(fsStore)
 	rsf.WithOnly(db.DATATYPE_MENU)

@@ -14,8 +14,8 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/persist"
-	"git.defalsify.org/vise.git/db"
 	"git.defalsify.org/vise.git/logging"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 const (
@@ -90,7 +90,7 @@ func main() {
 
 	ctx := context.Background()
 	st := state.NewState(4)
-	rsStore := db.NewFsDb()
+	rsStore := fsdb.NewFsDb()
 	err := rsStore.Connect(ctx, dir)
 	if err != nil {
 		panic(err)
@@ -103,7 +103,7 @@ func main() {
 	}
 
 	dp := path.Join(dir, ".state")
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	err = store.Connect(ctx, dp)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "db connect fail: %s", err)

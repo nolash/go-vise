@@ -16,6 +16,7 @@ import (
 	"git.defalsify.org/vise.git/testdata"
 	"git.defalsify.org/vise.git/vm"
 	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
@@ -31,7 +32,7 @@ type testWrapper struct {
 
 func newTestWrapper(path string, st *state.State) testWrapper {
 	ctx := context.Background()
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	store.Connect(ctx, path) 
 	rs := resource.NewDbResource(store)
 	rs.With(db.DATATYPE_STATICLOAD)

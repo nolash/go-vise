@@ -1,4 +1,6 @@
 // Executable gdbm processes a given directory recursively and inserts all template files, menu files and bytecode files into corresponding db.Db entries backed by a gdbm backend.
+//
+// TODO: Implement with db/gdbm
 package main
 
 import (

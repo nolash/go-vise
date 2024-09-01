@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/db/mem"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/cache"
 )
@@ -14,7 +14,7 @@ func TestInvalidateState(t *testing.T) {
 	ca := cache.NewCache()
 
 	ctx := context.Background()
-	store := db.NewMemDb()
+	store := mem.NewMemDb()
 	store.Connect(ctx, "")
 	pr := NewPersister(store).WithSession("xyzzy").WithContent(&st, ca)
 	err := pr.Save("foo")
@@ -36,7 +36,7 @@ func TestInvalidateCache(t *testing.T) {
 	ca := cache.NewCache()
 
 	ctx := context.Background()
-	store := db.NewMemDb()
+	store := mem.NewMemDb()
 	store.Connect(ctx, "")
 	pr := NewPersister(store).WithSession("xyzzy").WithContent(&st, ca)
 	err := pr.Save("foo")
@@ -58,7 +58,7 @@ func TestInvalidateAll(t *testing.T) {
 	ca := cache.NewCache()
 
 	ctx := context.Background()
-	store := db.NewMemDb()
+	store := mem.NewMemDb()
 	store.Connect(ctx, "")
 	pr := NewPersister(store).WithSession("xyzzy").WithContent(&st, ca)
 	err := pr.Save("foo")

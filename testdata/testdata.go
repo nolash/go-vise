@@ -7,13 +7,14 @@ import (
 	"os"
 
 	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/logging"
 )
 
 var (
 	ctx = context.Background()
-	store = db.NewFsDb()
+	store = fsdb.NewFsDb()
 	out = outNew
 	logg = logging.NewVanilla().WithDomain("testdata")
 )
@@ -56,7 +57,7 @@ func generate() error {
 	if err != nil {
 		return err
 	}
-	store = db.NewFsDb()
+	store = fsdb.NewFsDb()
 	store.Connect(ctx, DataDir)
 	store.SetLock(db.DATATYPE_TEMPLATE, false)
 	store.SetLock(db.DATATYPE_BIN, false)

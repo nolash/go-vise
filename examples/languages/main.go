@@ -16,7 +16,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/logging"
 )
 
@@ -91,7 +91,7 @@ func main() {
 	st := state.NewState(1)
 	state.FlagDebugger.Register(USERFLAG_FLIP, "FLIP")
 	ctx := context.Background()
-	rsStore := db.NewFsDb()
+	rsStore := fsdb.NewFsDb()
 	err := rsStore.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)
@@ -105,7 +105,7 @@ func main() {
 	}
 
 	dp := path.Join(scriptDir, ".state")
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	err = store.Connect(ctx, dp)
 	if err != nil {
 		logg.ErrorCtxf(ctx, "db connect fail", "err", err)

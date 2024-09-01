@@ -9,13 +9,14 @@ import (
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 // NewDefaultEngine is a convenience function to instantiate a filesystem-backed engine with no output constraints.
 func NewDefaultEngine(dir string, persistDb db.Db, session *string) (EngineIsh, error) {
 	st := state.NewState(0)
 	ctx := context.Background()
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, dir)
 	if err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func NewSizedEngine(dir string, size uint32, persistDb db.Db, session *string) (
 	st := state.NewState(0)
 	ca := cache.NewCache()
 	ctx := context.Background()
-	store := db.NewFsDb()
+	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, dir)
 	if err != nil {
 		return nil, err
