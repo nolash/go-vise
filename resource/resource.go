@@ -8,10 +8,14 @@ import (
 
 // Result contains the results of an external code operation.
 type Result struct {
-	Content string // content value for symbol after execution.
-	Status int // application defined status code which can complement error returns
-	FlagSet []uint32 // request caller to set error flags at given indices.
-	FlagReset []uint32 // request caller to reset error flags at given indices.
+	// content value for symbol after execution.
+	Content string
+	// application defined status code which can complement error returns
+	Status int
+	// request caller to set error flags at given indices.
+	FlagSet []uint32
+	// request caller to reset error flags at given indices.
+	FlagReset []uint32
 }
 
 // EntryFunc is a function signature for a function that resolves the symbol of a LOAD instruction.
@@ -44,8 +48,6 @@ type Resource interface {
 }
 
 // MenuResource contains the base definition for building Resource implementations.
-//
-// TODO: Rename to BaseResource
 type MenuResource struct {
 	sinkValues []string
 	codeFunc CodeFunc

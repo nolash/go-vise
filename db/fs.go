@@ -9,6 +9,7 @@ import (
 	"path"
 )
 
+// holds string (filepath) versions of lookupKey
 type fsLookupKey struct {
 	Default string
 	Translation string

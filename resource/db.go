@@ -12,13 +12,17 @@ const (
 )
 
 // DbResource is a MenuResource that uses the given db.Db implementation as data retriever.
+//
+// The DbResource can resolve any db.DATATYPE_* if instructed to do so.
 type DbResource struct {
 	*MenuResource
 	typs uint8
 	db db.Db
 }
 
-// NewDbFuncGetter instantiates a new DbResource
+// NewDbResource instantiates a new DbResource
+//
+// By default it will handle db.DATATYPE_TEPMLATE, db.DATATYPE_MENU and db.DATATYPE_BIN.
 func NewDbResource(store db.Db) *DbResource {
 	return &DbResource{
 		MenuResource: NewMenuResource(),
@@ -27,25 +31,30 @@ func NewDbResource(store db.Db) *DbResource {
 	}
 }
 
+// Without is a chainable function that disables handling of the given data type.
 func(g *DbResource) Without(typ uint8) *DbResource {
 	g.typs &= ^typ
 	return g
 }
 
+// Without is a chainable function that enables handling of the given data type.
 func(g *DbResource) With(typ uint8) *DbResource {
 	g.typs |= typ
 	return g
 }
 
+// WithOnly is a chainable convenience function that disables handling of all except the given data type.
 func(g *DbResource) WithOnly(typ uint8) *DbResource {
 	g.typs = typ
 	return g
 }
 
+// retrieve from underlying db.
 func(g *DbResource) fn(ctx context.Context, sym string) ([]byte, error) {
 	return g.db.Get(ctx, []byte(sym))
 }
 
+// retrieve from underlying db using a string key.
 func(g *DbResource) sfn(ctx context.Context, sym string) (string, error) {
 	b, err := g.fn(ctx, sym)
 	if err != nil {
@@ -55,6 +64,8 @@ func(g *DbResource) sfn(ctx context.Context, sym string) (string, error) {
 }
 
 // GetTemplate implements the Resource interface.
+//
+// Will fail if support for db.DATATYPE_TEMPLATE has been disabled.
 func(g *DbResource) GetTemplate(ctx context.Context, sym string) (string, error) {
 	if g.typs & db.DATATYPE_TEMPLATE == 0{
 		return "", errors.New("not a template getter")
@@ -64,6 +75,8 @@ func(g *DbResource) GetTemplate(ctx context.Context, sym string) (string, error)
 }
 
 // GetTemplate implements the Resource interface.
+//
+// Will fail if support for db.DATATYPE_MENU has been disabled.
 func(g *DbResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	if g.typs & db.DATATYPE_MENU == 0{
 		return "", errors.New("not a menu getter")
@@ -80,7 +93,9 @@ func(g *DbResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	return v, nil
 }
 
-// GetTemplate implements the Resource interface.
+// GetCode implements the Resource interface.
+//
+// Will fail if support for db.DATATYPE_BIN has been disabled.
 func(g *DbResource) GetCode(ctx context.Context, sym string) ([]byte, error) {
 	if g.typs & db.DATATYPE_BIN == 0{
 		return nil, errors.New("not a code getter")
@@ -89,6 +104,13 @@ func(g *DbResource) GetCode(ctx context.Context, sym string) ([]byte, error) {
 	return g.fn(ctx, sym)
 }
 
+// FuncFor implements the Resource interface.
+//
+// The method will first attempt to resolve using the function registered
+// with the MenuResource parent class.
+// 
+// If no match is found, and if support for db.DATATYPE_STATICLOAD has been enabled,
+// an additional lookup will be performed using the underlying db.
 func(g *DbResource) FuncFor(ctx context.Context, sym string) (EntryFunc, error) {
 	fn, err := g.MenuResource.FuncFor(ctx, sym)
 	if err == nil {

@@ -6,6 +6,7 @@ import (
 	"errors"
 )
 
+// holds string (hex) versions of lookupKey
 type memLookupKey struct {
 	Default string
 	Translation string
