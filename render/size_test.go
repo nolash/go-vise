@@ -55,61 +55,6 @@ func getXyzzy(ctx context.Context, sym string, input []byte) (resource.Result, e
 		Content: r,
 	}, nil
 }
-//
-//type TestSizeResource struct {
-//	*resource.MenuResource
-//}
-//
-//func getTemplate(sym string, ctx context.Context) (string, error) {
-//	var tpl string
-//	switch sym {
-//	case "small":
-//		tpl = "one {{.foo}} two {{.bar}} three {{.baz}}"
-//	case "toobig":
-//		tpl = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in mattis lorem. Aliquam erat volutpat. Ut vitae metus."
-//	case "pages":
-//		tpl = "one {{.foo}} two {{.bar}} three {{.baz}}\n{{.xyzzy}}"
-//	}
-//	return tpl, nil
-//}
-//
-//func funcFor(sym string) (resource.EntryFunc, error) {
-//	switch sym {
-//	case "foo":
-//		return getFoo, nil
-//	case "bar":
-//		return getBar, nil
-//	case "baz":
-//		return getBaz, nil
-//	case "xyzzy":
-//		return getXyzzy, nil
-//	}
-//	return nil, fmt.Errorf("unknown func: %s", sym)
-//}
-//
-//func getFoo(sym string, input []byte, ctx context.Context) (resource.Result, error) {
-//	return resource.Result{
-//		Content: "inky",
-//	}, nil
-//}
-//
-//func getBar(sym string, input []byte, ctx context.Context) (resource.Result, error) {
-//	return resource.Result{
-//		Content: "pinky",
-//	}, nil
-//}
-//
-//func getBaz(sym string, input []byte, ctx context.Context) (resource.Result, error) {
-//	return resource.Result{
-//		Content: "blinky",
-//	}, nil
-//}
-//
-//func getXyzzy(sym string, input []byte, ctx context.Context) (resource.Result, error) {
-//	return resource.Result{
-//		Content: "inky pinky\nblinky clyde sue\ntinkywinky dipsy\nlala poo\none two three four five six seven\neight nine ten\neleven twelve",
-//	}, nil
-//}
 
 func TestSizeCheck(t *testing.T) {
 	szr := NewSizer(16)
@@ -133,11 +78,7 @@ func TestSizeCheck(t *testing.T) {
 func TestSizeLimit(t *testing.T) {
 	st := state.NewState(0)
 	ca := cache.NewCache()
-	mn := NewMenu() //.WithOutputSize(32)
-	//mrs := NewMenuResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
-	//rs := TestSizeResource{
-	//	mrs,
-	//}
+	mn := NewMenu()
 	rs := newTestSizeResource()
 	szr := NewSizer(128)
 	pg := NewPage(ca, rs).WithMenu(mn).WithSizer(szr)
@@ -186,11 +127,7 @@ func TestSizeLimit(t *testing.T) {
 func TestSizePages(t *testing.T) {
 	st := state.NewState(0)
 	ca := cache.NewCache()
-	mn := NewMenu() //.WithOutputSize(32)
-	//mrs := NewMenuResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
-	//rs := TestSizeResource{
-	//	mrs,	
-	//}
+	mn := NewMenu()
 	rs := newTestSizeResource()
 	szr := NewSizer(128)
 	pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)

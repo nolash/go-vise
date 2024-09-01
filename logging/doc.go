@@ -1,2 +1,2 @@
-// Package logging provides a logging implementation for internal use in vise.
+// Package logging provides a logging implementation for use with vise.
 package logging
