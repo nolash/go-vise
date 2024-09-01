@@ -242,6 +242,12 @@ func generateMultiSessionTestVectors() testVector {
 	tv.add(DATATYPE_TEMPLATE, "foo", "red", "", "blue", "")
 	tv.add(DATATYPE_TEMPLATE, "foo", "green", "bar", "blue", "")
 	tv.add(DATATYPE_TEMPLATE, "foo", "blue", "baz", "blue", "")
+	tv.add(DATATYPE_STATE, "foo", "inky", "", "inky", "")
+	tv.add(DATATYPE_STATE, "foo", "pinky", "clyde", "pinky", "")
+	tv.add(DATATYPE_STATE, "foo", "blinky", "sue", "blinky", "")
+	tv.add(DATATYPE_BIN, "foo", "deadbeef", "", "feebdeef", "")
+	tv.add(DATATYPE_BIN, "foo", "feedbeef", "bar", "feebdeef", "")
+	tv.add(DATATYPE_BIN, "foo", "feebdeef", "baz", "feebdeef", "")
 	return tv
 }
 
