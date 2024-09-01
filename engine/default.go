@@ -13,12 +13,15 @@ import (
 
 // NewDefaultEngine is a convenience function to instantiate a filesystem-backed engine with no output constraints.
 func NewDefaultEngine(dir string, persistDb db.Db, session *string) (EngineIsh, error) {
-	var err error
 	st := state.NewState(0)
 	ctx := context.Background()
 	store := db.NewFsDb()
-	store.Connect(ctx, dir)
+	err := store.Connect(ctx, dir)
+	if err != nil {
+		return nil, err
+	}
 	rs := resource.NewDbResource(store)
+	rs.With(db.DATATYPE_STATICLOAD)
 	ca := cache.NewCache()
 	cfg := Config{
 		Root: "root",
@@ -50,13 +53,16 @@ func NewDefaultEngine(dir string, persistDb db.Db, session *string) (EngineIsh, 
 
 // NewSizedEngine is a convenience function to instantiate a filesystem-backed engine with a specified output constraint.
 func NewSizedEngine(dir string, size uint32, persistDb db.Db, session *string) (EngineIsh, error) {
-	var err error
 	st := state.NewState(0)
 	ca := cache.NewCache()
 	ctx := context.Background()
 	store := db.NewFsDb()
-	store.Connect(ctx, dir)
+	err := store.Connect(ctx, dir)
+	if err != nil {
+		return nil, err
+	}
 	rs := resource.NewDbResource(store)
+	rs.With(db.DATATYPE_STATICLOAD)
 	cfg := Config{
 		OutputSize: size,
 		Root: "root",
