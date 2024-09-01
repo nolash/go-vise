@@ -31,7 +31,7 @@ var (
 
 func say(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
-	store.SetPrefix(db.DATATYPE_USERSTART)
+	store.SetPrefix(db.DATATYPE_USERDATA)
 
 	st := pr.GetState()
 	if st.MatchFlag(state.FLAG_USERSTART, false) {
