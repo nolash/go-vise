@@ -10,58 +10,64 @@ import (
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/render"
 	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/resource/resourcetest"
 	"git.defalsify.org/vise.git/state"
 )
 
-var dynVal = "three"
+var (
+	ctx = context.Background()
+	dynVal = "three"
+)
 
-type TestResource struct {
-	resource.MemResource
+type testResource struct {
+	*resourcetest.TestResource
 	state *state.State
 	RootCode []byte
 	CatchContent string
 }
 
-func NewTestResource(st *state.State) TestResource {
-	tr := TestResource{
-		MemResource: resource.NewMemResource(),
-		state: st,	
+func newTestResource(st *state.State) testResource {
+	rs := resourcetest.NewTestResource()
+	tr := testResource{
+		TestResource: rs,
+		state: st,
 	}
-	tr.AddTemplate("foo", "inky pinky blinky clyde")
-	tr.AddTemplate("bar", "inky pinky {{.one}} blinky {{.two}} clyde")
-	tr.AddTemplate("baz", "inky pinky {{.baz}} blinky clyde")
-	tr.AddTemplate("three", "{{.one}} inky pinky {{.three}} blinky clyde {{.two}}")
-	tr.AddTemplate("root", "root")
-	tr.AddTemplate("_catch", tr.CatchContent)
-	tr.AddTemplate("ouf", "ouch")
-	tr.AddTemplate("flagCatch", "flagiee")
-	tr.AddEntryFunc("one", getOne)
-	tr.AddEntryFunc("two", getTwo)
-	tr.AddEntryFunc("dyn", getDyn)
-	tr.AddEntryFunc("arg", tr.getInput)
-	tr.AddEntryFunc("echo", getEcho)
-	tr.AddEntryFunc("setFlagOne", setFlag)
-	tr.AddEntryFunc("set_lang", set_lang)
-	tr.AddEntryFunc("aiee", uhOh)
+	rs.AddTemplate(ctx, "foo", "inky pinky blinky clyde")
+	rs.AddTemplate(ctx, "bar", "inky pinky {{.one}} blinky {{.two}} clyde")
+	rs.AddTemplate(ctx, "baz", "inky pinky {{.baz}} blinky clyde")
+	rs.AddTemplate(ctx, "three", "{{.one}} inky pinky {{.three}} blinky clyde {{.two}}")
+	rs.AddTemplate(ctx, "root", "root")
+	rs.AddTemplate(ctx, "_catch", tr.CatchContent)
+	rs.AddTemplate(ctx, "ouf", "ouch")
+	rs.AddTemplate(ctx, "flagCatch", "flagiee")
+	rs.AddMenu(ctx, "one", "one")
+	rs.AddMenu(ctx, "two", "two")
+	rs.AddLocalFunc("two", getTwo)
+	rs.AddLocalFunc("dyn", getDyn)
+	rs.AddLocalFunc("arg", tr.getInput)
+	rs.AddLocalFunc("echo", getEcho)
+	rs.AddLocalFunc("setFlagOne", setFlag)
+	rs.AddLocalFunc("set_lang", set_lang)
+	rs.AddLocalFunc("aiee", uhOh)
 
 	var b []byte
 	b = NewLine(nil, HALT, nil, nil, nil)
-	tr.AddBytecode("one", b)
+	rs.AddBytecode(ctx, "one", b)
 
 	b = NewLine(nil, MOUT, []string{"repent", "0"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	tr.AddBytecode("_catch", b)
+	rs.AddBytecode(ctx, "_catch", b)
 
 	b = NewLine(nil, MOUT, []string{"repent", "0"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	b = NewLine(b, MOVE, []string{"_"}, nil, nil)
-	tr.AddBytecode("flagCatch", b)
+	rs.AddBytecode(ctx, "flagCatch", b)
 
 	b = NewLine(nil, MOUT, []string{"oo", "1"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	tr.AddBytecode("ouf", b)
+	rs.AddBytecode(ctx, "ouf", b)
 	
-	tr.AddBytecode("root", tr.RootCode)
+	rs.AddBytecode(ctx, "root", tr.RootCode)
 	return tr
 }
 
@@ -122,7 +128,7 @@ func set_lang(ctx context.Context, sym string, input []byte) (resource.Result, e
 //	state *state.State
 //}
 
-func (r TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
+func (r testResource) FuncFor(ctx context.Context, sym string) (resource.EntryFunc, error) {
 	switch sym {
 	case "one":
 		return getOne, nil
@@ -144,14 +150,14 @@ func (r TestResource) FuncFor(sym string) (resource.EntryFunc, error) {
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
 }
 
-func(r TestResource) getInput(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func(r testResource) getInput(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	v, err := r.state.GetInput()
 	return resource.Result{
 		Content: string(v),
 	}, err
 }
 
-func(r TestResource) getCode(sym string) ([]byte, error) {
+func(r testResource) getCode(sym string) ([]byte, error) {
 	var b []byte
 	switch sym {
 	case "_catch":
@@ -173,7 +179,7 @@ func(r TestResource) getCode(sym string) ([]byte, error) {
 
 func TestRun(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -194,7 +200,7 @@ func TestRun(t *testing.T) {
 
 func TestRunLoadRender(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -246,7 +252,7 @@ func TestRunLoadRender(t *testing.T) {
 
 func TestRunMultiple(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -264,7 +270,7 @@ func TestRunMultiple(t *testing.T) {
 
 func TestRunReload(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	szr := render.NewSizer(128)
 	vm := NewVm(&st, &rs, ca, szr)
@@ -296,7 +302,7 @@ func TestRunReload(t *testing.T) {
 
 func TestHalt(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -321,7 +327,7 @@ func TestHalt(t *testing.T) {
 
 func TestRunArg(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -348,7 +354,7 @@ func TestRunArg(t *testing.T) {
 
 func TestRunInputHandler(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -376,7 +382,7 @@ func TestRunInputHandler(t *testing.T) {
 
 func TestRunArgInvalid(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -410,7 +416,7 @@ func TestRunArgInvalid(t *testing.T) {
 
 func TestRunMenu(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -418,7 +424,7 @@ func TestRunMenu(t *testing.T) {
 
 	ctx := context.Background()
 
-	rs.AddBytecode("foo", []byte{})
+	rs.AddBytecode(ctx, "foo", []byte{})
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"one", "0"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"two", "1"}, nil, nil)
@@ -446,7 +452,7 @@ func TestRunMenu(t *testing.T) {
 func TestRunMenuBrowse(t *testing.T) {
 	log.Printf("This test is incomplete, it must check the output of a menu browser once one is implemented. For now it only checks whether it can execute the runner endpoints for the instrucitons.")
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -454,7 +460,7 @@ func TestRunMenuBrowse(t *testing.T) {
 
 	ctx := context.Background()
 
-	rs.AddBytecode("foo", []byte{})
+	rs.AddBytecode(ctx, "foo", []byte{})
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"one", "0"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"two", "1"}, nil, nil)
@@ -481,7 +487,7 @@ func TestRunMenuBrowse(t *testing.T) {
 
 func TestRunReturn(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -517,7 +523,7 @@ func TestRunReturn(t *testing.T) {
 
 func TestRunLoadInput(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -547,7 +553,7 @@ func TestRunLoadInput(t *testing.T) {
 
 func TestInputBranch(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -560,7 +566,7 @@ func TestInputBranch(t *testing.T) {
 	b = NewLine(b, CATCH, []string{"flagCatch"}, []byte{8}, []uint8{1})
 	b = NewLine(b, CATCH, []string{"one"}, []byte{9}, []uint8{1})
 	rs.RootCode = b
-	rs.AddBytecode("root", rs.RootCode)
+	rs.AddBytecode(ctx, "root", rs.RootCode)
 
 	ctx := context.Background()
 
@@ -587,7 +593,7 @@ func TestInputBranch(t *testing.T) {
 
 func TestInputIgnore(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -615,7 +621,7 @@ func TestInputIgnore(t *testing.T) {
 
 func TestInputIgnoreWildcard(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -642,7 +648,7 @@ func TestInputIgnoreWildcard(t *testing.T) {
 
 func TestCatchCleanMenu(t *testing.T) {
 	st := state.NewState(5)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -678,7 +684,7 @@ func TestCatchCleanMenu(t *testing.T) {
 
 func TestSetLang(t *testing.T) {
 	st := state.NewState(0)
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -704,7 +710,7 @@ func TestSetLang(t *testing.T) {
 func TestLoadError(t *testing.T) {
 	st := state.NewState(0)
 	st.UseDebug()
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -737,7 +743,7 @@ func TestMatchFlag(t *testing.T) {
 
 	st := state.NewState(1)
 	st.UseDebug()
-	rs := NewTestResource(&st)
+	rs := newTestResource(&st)
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 

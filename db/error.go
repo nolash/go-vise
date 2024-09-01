@@ -2,6 +2,11 @@ package db
 
 import (
 	"fmt"
+	"strings"
+)
+
+const (
+	notFoundPrefix = "key not found: "
 )
 
 // ErrNotFound is returned with a key was successfully queried, but did not match a stored key.
@@ -16,5 +21,14 @@ func NewErrNotFound(k []byte) error {
 
 // Error implements Error.
 func(e ErrNotFound) Error() string {
-	return fmt.Sprintf("key not found: %x", e.k)
+	return fmt.Sprintf("%s%x", notFoundPrefix, e.k)
+}
+
+func (e ErrNotFound) Is(err error) bool {
+	return strings.Contains(err.Error(), notFoundPrefix)
+}
+
+func IsNotFound(err error) bool {
+	target := ErrNotFound{}
+	return target.Is(err)
 }

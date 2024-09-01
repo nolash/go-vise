@@ -15,7 +15,13 @@ import (
 func NewDefaultEngine(dir string, persistDb db.Db, session *string) (EngineIsh, error) {
 	var err error
 	st := state.NewState(0)
-	rs := resource.NewFsResource(dir)
+	ctx := context.Background()
+	store := db.NewFsDb()
+	store.Connect(ctx, dir)
+	rs, err := resource.NewDbResource(store)
+	if err != nil {
+		return nil, err
+	}
 	ca := cache.NewCache()
 	cfg := Config{
 		Root: "root",
@@ -25,7 +31,6 @@ func NewDefaultEngine(dir string, persistDb db.Db, session *string) (EngineIsh, 
 	} else if persistDb != nil {
 		return nil, fmt.Errorf("session must be set if persist is used")	
 	}
-	ctx := context.TODO()
 	var en EngineIsh
 	if persistDb != nil {
 		pr := persist.NewPersister(persistDb)
@@ -50,8 +55,14 @@ func NewDefaultEngine(dir string, persistDb db.Db, session *string) (EngineIsh, 
 func NewSizedEngine(dir string, size uint32, persistDb db.Db, session *string) (EngineIsh, error) {
 	var err error
 	st := state.NewState(0)
-	rs := resource.NewFsResource(dir)
 	ca := cache.NewCache()
+	ctx := context.Background()
+	store := db.NewFsDb()
+	store.Connect(ctx, dir)
+	rs, err := resource.NewDbResource(store)
+	if err != nil {
+		return nil, err
+	}
 	cfg := Config{
 		OutputSize: size,
 		Root: "root",
@@ -61,7 +72,6 @@ func NewSizedEngine(dir string, size uint32, persistDb db.Db, session *string) (
 	} else if persistDb != nil {
 		return nil, fmt.Errorf("session must be set if persist is used")
 	}
-	ctx := context.TODO()
 	var en EngineIsh
 	if persistDb != nil {
 		pr := persist.NewPersister(persistDb)

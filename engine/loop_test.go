@@ -9,22 +9,21 @@ import (
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
-	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 )
 
 func TestLoopTop(t *testing.T) {
+	var err error
 	generateTestData(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	st := state.NewState(0)
-	rs := resource.NewFsResource(dataDir)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
 	cfg := Config{
 		Root: "root",
 	}
 	en := NewEngine(ctx, cfg, &st, rs, ca)
-	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -51,17 +50,17 @@ func TestLoopTop(t *testing.T) {
 }
 
 func TestLoopBackForth(t *testing.T) {
+	var err error
 	generateTestData(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	st := state.NewState(0)
-	rs := resource.NewFsResource(dataDir)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 	
 	cfg := Config{
 		Root: "root",
 	}
 	en := NewEngine(ctx, cfg, &st, rs, ca)
-	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -85,10 +84,11 @@ func TestLoopBackForth(t *testing.T) {
 }
 
 func TestLoopBrowse(t *testing.T) {
+	var err error
 	generateTestData(t)
-	ctx := context.TODO()
+	ctx := context.Background()
 	st := state.NewState(0)
-	rs := resource.NewFsResource(dataDir)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
 	cfg := Config{
@@ -96,7 +96,6 @@ func TestLoopBrowse(t *testing.T) {
 		Root: "root",
 	}
 	en := NewEngine(ctx, cfg, &st, rs, ca)
-	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)

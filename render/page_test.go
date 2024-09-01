@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
-	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/resource/resourcetest"
 )
 
 
@@ -118,9 +118,10 @@ func TestStateMapSink(t *testing.T) {
 }
 
 func TestWithError(t *testing.T) {
+	ctx := context.Background()
 	ca := cache.NewCache()
-	rs := resource.NewMemResource()
-	rs.AddTemplate("foo", "bar")
+	rs := resourcetest.NewTestResource()
+	rs.AddTemplate(ctx, "foo", "bar")
 	pg := NewPage(ca, rs)
 	ca.Push()
 
@@ -132,7 +133,6 @@ func TestWithError(t *testing.T) {
 	err = fmt.Errorf("my humps")
 	pg = pg.WithMenu(mn).WithError(err)
 
-	ctx := context.TODO()
 	r, err := pg.Render(ctx, "foo", 0)
 	if err != nil {
 		t.Fatal(err)

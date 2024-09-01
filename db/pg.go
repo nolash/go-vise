@@ -50,7 +50,7 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !pdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
-	k, err := pdb.ToKey(key)
+	k, err := pdb.ToKey(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 
 // Get implements Db.
 func(pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
-	k, err := pdb.ToKey(key)
+	k, err := pdb.ToKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}

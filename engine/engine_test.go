@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+//	"io/ioutil"
 	"log"
-	"path"
+//	"path"
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
@@ -15,6 +15,7 @@ import (
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/testdata"
 	"git.defalsify.org/vise.git/vm"
+	"git.defalsify.org/vise.git/db"
 )
 
 var (
@@ -22,45 +23,58 @@ var (
 	dataDir string = testdata.DataDir
 )
 
-type FsWrapper struct {
-	*resource.FsResource
+type testWrapper struct {
+	resource.Resource
 	st *state.State
+	db db.Db
 }
 
-func NewFsWrapper(path string, st *state.State) FsWrapper {
-	rs := resource.NewFsResource(path)
-	wr := FsWrapper {
+func newTestWrapper(path string, st *state.State) testWrapper {
+	ctx := context.Background()
+	store := db.NewFsDb()
+	store.Connect(ctx, path) 
+	rs, err := resource.NewDbResource(store, db.DATATYPE_BIN, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU, db.DATATYPE_STATICLOAD)
+	if err != nil {
+		panic(err)
+	}
+	wr := testWrapper {
 		rs, 
 		st,
+		store,
 	}
-	wr.AddLocalFunc("one", wr.one)
-	//wr.AddLocalFunc("inky", wr.inky)
-	wr.AddLocalFunc("pinky", wr.pinky)
-	wr.AddLocalFunc("set_lang", wr.set_lang)
-	wr.AddLocalFunc("translate", wr.translate)
+	rs.AddLocalFunc("one", wr.one)
+	rs.AddLocalFunc("inky", wr.inky)
+	rs.AddLocalFunc("pinky", wr.pinky)
+	rs.AddLocalFunc("set_lang", wr.set_lang)
+	rs.AddLocalFunc("translate", wr.translate)
+	rs.WithCodeGetter(wr.GetCode)
 	return wr
 }
 
-func(fs FsWrapper) one(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func(fs testWrapper) getStore() db.Db {
+	return fs.db
+}
+
+func(fs testWrapper) one(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: "one",
 	}, nil
 }
 
-func(fs FsWrapper) inky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func(fs testWrapper) inky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: "tinkywinky",
 	}, nil
 }
 
-func(fs FsWrapper) pinky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func(fs testWrapper) pinky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	r := fmt.Sprintf("xyzzy: %x", input)
 	return resource.Result{
 		Content: r,
 	}, nil
 }
 
-func(fs FsWrapper) translate(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func(fs testWrapper) translate(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	r := "cool"
 	v := ctx.Value("Language")
 	code := ""
@@ -76,19 +90,19 @@ func(fs FsWrapper) translate(ctx context.Context, sym string, input []byte) (res
 	}, nil
 }
 
-func(fs FsWrapper) set_lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func(fs testWrapper) set_lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: string(input),
 		FlagSet: []uint32{state.FLAG_LANG},
 	}, nil
 }
 
-func(fs FsWrapper) GetCode(ctx context.Context, sym string) ([]byte, error) {
-	sym += ".bin"
-	fp := path.Join(fs.Path, sym)
-	r, err := ioutil.ReadFile(fp)
-	return r, err
-}
+//func(fs testWrapper) GetCode(ctx context.Context, sym string) ([]byte, error) {
+//	sym += ".bin"
+//	fp := path.Join(fs.Path, sym)
+//	r, err := ioutil.ReadFile(fp)
+//	return r, err
+//}
 
 func generateTestData(t *testing.T) {
 	if dataGenerated {
@@ -106,7 +120,7 @@ func TestEngineInit(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(17)
-	rs := NewFsWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
 	cfg := Config{
@@ -164,7 +178,7 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(17)
-	rs := NewFsWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
 	cfg := Config{
@@ -186,7 +200,7 @@ func TestEngineResumeTerminated(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(17)
-	rs := NewFsWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 	
 	cfg := Config{
@@ -222,7 +236,7 @@ func TestLanguageSet(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(0)
-	rs := NewFsWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
 	cfg := Config{
@@ -275,7 +289,7 @@ func TestLanguageRender(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(0)
-	rs := NewFsWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache()
 
 	cfg := Config{
@@ -315,7 +329,7 @@ func TestConfigLanguageRender(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(0)
-	rs := NewFsWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache()
 
 	cfg := Config{
@@ -344,7 +358,7 @@ func TestConfigLanguageRender(t *testing.T) {
 		t.Fatal(err)
 	}
 	
-	expect := `dette endrer med språket one
+	expect := `dette endrer med språket tinkywinky
 0:tilbake`
 	r := br.String()
 	if r != expect {
@@ -372,7 +386,7 @@ func TestPreVm(t *testing.T) {
 	ctx := context.Background()
 	st := state.NewState(0)
 	st.UseDebug()
-	rs := NewFsWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, &st)
 	ca := cache.NewCache()
 
 	cfg := Config{

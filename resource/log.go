@@ -5,5 +5,5 @@ import (
 )
 
 var (
-	Logg logging.Logger = logging.NewVanilla().WithDomain("resource")
+	logg logging.Logger = logging.NewVanilla().WithDomain("resource")
 )

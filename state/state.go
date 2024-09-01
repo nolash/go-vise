@@ -11,6 +11,10 @@ var (
 	IndexError = fmt.Errorf("already at first index")
 )
 
+const (
+	MaxLevel = 128
+)
+
 // State holds the command stack, error condition of a unique execution session.
 //
 // It also holds cached values for all results of executed symbols.
@@ -268,6 +272,11 @@ func(st *State) Top() (bool, error) {
 //
 // Clears mapping and sink.
 func(st *State) Down(input string) error {
+	var n uint16
+	if len(st.ExecPath) > MaxLevel {
+		panic("maxlevel")
+		return fmt.Errorf("max levels exceeded (%d)", n)
+	}
 	st.ExecPath = append(st.ExecPath, input)
 	st.SizeIdx = 0
 	st.Moves += 1

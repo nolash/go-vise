@@ -1,179 +1,75 @@
 package testdata
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 
-	testdataloader "github.com/peteole/testdata-loader"
-
-	"git.defalsify.org/vise.git/vm"
+	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/logging"
 )
-
-type genFunc func() error
+//
+//type TestdataDb struct {
+//	db db.Db	
+//}
+//
+//var (
+//	store *TestdataDb
+//	ctx = context.Background()
+//)
+//
+//func NewTestDataDb(path string) *TestdataDb {
+//	store := db.NewFsDb()
+//	store.Connect(ctx, path)
+//	store.SetLock(db.DATATYPE_BIN, false)
+//	store.SetLock(db.DATATYPE_MENU, false)
+//	store.SetLock(db.DATATYPE_TEMPLATE, false)
+//	return &TestdataDb{
+//		db: store,
+//	}
+//}
 
 var (
-	BaseDir = testdataloader.GetBasePath()
-	DataDir = ""
-	dirLock = false	
+	ctx = context.Background()
+	//testResource = resourcetest.NewTestResource()
+	store = db.NewFsDb()
+	out = outNew
+	logg = logging.NewVanilla().WithDomain("testdata")
 )
 
-func out(sym string, b []byte, tpl string, data map[string]string) error {
-	fp := path.Join(DataDir, sym)
-	err := ioutil.WriteFile(fp, []byte(tpl), 0644)
+type echoFunc struct {
+	v string
+}
+
+func(e *echoFunc) get(ctx context.Context, nodeSym string, input []byte) (resource.Result, error) {
+	return resource.Result{
+		Content: e.v,
+	}, nil
+}
+
+func outNew(sym string, b []byte, tpl string, data map[string]string) error {
+	logg.Debugf("testdata out", "sym", sym)
+	store.SetPrefix(db.DATATYPE_TEMPLATE)
+	err := store.Put(ctx, []byte(sym), []byte(tpl))
 	if err != nil {
 		return err
 	}
-
-	fb := sym + ".bin"
-	fp = path.Join(DataDir, fb)
-	err = ioutil.WriteFile(fp, b, 0644)
+	store.SetPrefix(db.DATATYPE_BIN)
+	err = store.Put(ctx, []byte(sym), b)
 	if err != nil {
 		return err
 	}
-
-	if data == nil {
-		return nil
-	}
-
+	store.SetPrefix(db.DATATYPE_STATICLOAD)
 	for k, v := range data {
-		fb := k + ".txt"
-		fp = path.Join(DataDir, fb)
-		err = ioutil.WriteFile(fp, []byte(v), 0644)
+		logg.Debugf("testdata out staticload", "sym", sym, "k", k, "v", v)
+		err = store.Put(ctx, []byte(k), []byte(v))
 		if err != nil {
 			return err
 		}
 	}
-
 	return nil
-}
-
-func root() error {
-	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"do the foo", "1"}, nil, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"go to the bar", "2"}, nil, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"language template", "3"}, nil, nil)
-	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"foo", "1"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"bar", "2"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"lang", "3"}, nil, nil)
-
-	tpl := "hello world"
-
-	return out("root", b, tpl, nil)
-}
-
-func foo() error {
-	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"to foo", "0"}, nil, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"go bar", "1"}, nil, nil)
-	b = vm.NewLine(b, vm.MOUT, []string{"see long", "2"}, nil, nil)
-	b = vm.NewLine(b, vm.LOAD, []string{"inky"}, []byte{20}, nil)
-	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"_", "0"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"baz", "1"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"long", "2"}, nil, nil)
-
-	data := make(map[string]string)
-	data["inky"] = "one"
-
-	tpl := `this is in foo
-
-it has more lines`
-
-	return out("foo", b, tpl, data)
-}
-
-func bar() error {
-	b := []byte{}
-	b = vm.NewLine(b, vm.LOAD, []string{"pinky"}, []byte{0}, nil)
-	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"^", "*"}, nil, nil)
-
-	tpl := "this is bar - any input will return to top"
-
-	data := make(map[string]string)
-	data["pinky"] = "two"
-
-	return out("bar", b, tpl, data)
-}
-
-func baz() error {
-	b := []byte{}
-	b = vm.NewLine(b, vm.MAP, []string{"inky"}, nil, nil)
-	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-
-	tpl := "this is baz which uses the var {{.inky}} in the template."
-
-	return out("baz", b, tpl, nil)
-}
-
-func long() error {
-	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"back", "0"}, nil, nil)
-	b = vm.NewLine(b, vm.MNEXT, []string{"nexxt", "00"}, nil, nil)
-	b = vm.NewLine(b, vm.MPREV, []string{"prevvv", "11"}, nil, nil)
-	b = vm.NewLine(b, vm.LOAD, []string{"longdata"}, []byte{0x00}, nil)
-	b = vm.NewLine(b, vm.MAP, []string{"longdata"}, nil, nil)
-	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"_", "0"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{">", "00"}, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"<", "11"}, nil, nil)
-
-	tpl := `data
-{{.longdata}}`
-
-	data := make(map[string]string)
-	data["longdata"] = `INKY 12
-PINKY 5555
-BLINKY 3t7
-CLYDE 11
-TINKYWINKY 22
-DIPSY 666
-LALA 111
-POO 222
-`
-
-	return out("long", b, tpl, data)
-}
-
-func defaultCatch() error {
-	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"back", "0"}, nil, nil)
-	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"_", "*"}, nil, nil)
-
-	tpl := "invalid input"
-
-	return out("_catch", b, tpl, nil)
-}
-
-func lang() error {
-	b := []byte{}
-	b = vm.NewLine(b, vm.MOUT, []string{"back", "0"}, nil, nil)
-	b = vm.NewLine(b, vm.LOAD, []string{"inky"}, []byte{20}, nil)
-	b = vm.NewLine(b, vm.MAP, []string{"inky"}, nil, nil)
-	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	b = vm.NewLine(b, vm.INCMP, []string{"_", "*"}, nil, nil)
-
-	tpl := "this changes with language {{.inky}}"
-
-	err := out("lang", b, tpl, nil)
-	if err != nil {
-		return err
-	}
-
-	tpl = "dette endrer med språket {{.inky}}"
-	fp := path.Join(DataDir, "lang_nor")
-	err = os.WriteFile(fp, []byte(tpl), 0600)
-	if err != nil {
-		return err
-	}
-
-	menu := "tilbake"
-	fp = path.Join(DataDir, "back_menu_nor")
-	return os.WriteFile(fp, []byte(menu), 0600)
 }
 
 func generate() error {
@@ -181,6 +77,12 @@ func generate() error {
 	if err != nil {
 		return err
 	}
+	store = db.NewFsDb()
+	store.Connect(ctx, DataDir)
+	store.SetLock(db.DATATYPE_TEMPLATE, false)
+	store.SetLock(db.DATATYPE_BIN, false)
+	store.SetLock(db.DATATYPE_MENU, false)
+	store.SetLock(db.DATATYPE_STATICLOAD, false)
 
 	fns := []genFunc{root, foo, bar, baz, long, lang, defaultCatch}
 	for _, fn := range fns {

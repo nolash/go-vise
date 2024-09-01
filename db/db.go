@@ -16,10 +16,12 @@ const (
 	DATATYPE_MENU = 2
 	// Template symbol
 	DATATYPE_TEMPLATE = 4
+	// Static LOAD symbols
+	DATATYPE_STATICLOAD = 8
 	// State and cache from persister
-	DATATYPE_STATE = 8
+	DATATYPE_STATE = 16
 	// Application data
-	DATATYPE_USERSTART = 16
+	DATATYPE_USERSTART = 32
 )
 
 const (
@@ -52,8 +54,8 @@ type Db interface {
 // If language is not nil, and the context does not support language, the language value will silently will be ignored.
 func ToDbKey(typ uint8, b []byte, l *lang.Language) []byte {
 	k := []byte{typ}
-	if l != nil && l.Code != "" {
-		k = append(k, []byte("_" + l.Code)...)
+	if l != nil && l.Code != "" && typ & (DATATYPE_MENU | DATATYPE_TEMPLATE) > 0 {
+		b = append(b, []byte("_" + l.Code)...)
 		//s += "_" + l.Code
 	}
 	return append(k, b...)
@@ -68,7 +70,7 @@ type baseDb struct {
 
 // ensures default locking of read-only entries
 func(db *baseDb) defaultLock() {
-	db.lock = DATATYPE_BIN | DATATYPE_MENU | DATATYPE_TEMPLATE
+	db.lock = DATATYPE_BIN | DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD
 }
 
 // SetPrefix implements Db.
@@ -95,7 +97,7 @@ func(db *baseDb) checkPut() bool {
 }
 
 // ToKey creates a DbKey within the current session context.
-func(db *baseDb) ToKey(key []byte) ([]byte, error) {
+func(db *baseDb) ToKey(ctx context.Context, key []byte) ([]byte, error) {
 	var b []byte
 	if db.pfx == DATATYPE_UNKNOWN {
 		return nil, errors.New("datatype prefix cannot be UNKNOWN")
@@ -104,6 +106,10 @@ func(db *baseDb) ToKey(key []byte) ([]byte, error) {
 		b = append(db.sid, key...)
 	} else {
 		b = key
+	}
+	ln, ok := ctx.Value("Language").(lang.Language)
+	if ok {
+		return ToDbKey(db.pfx, b, &ln), nil
 	}
 	return ToDbKey(db.pfx, b, nil), nil
 }

@@ -7,24 +7,28 @@ import (
 
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/resource/resourcetest"
 	"git.defalsify.org/vise.git/cache"
 )
 
-type TestSizeResource struct {
-	*resource.MemResource
+type testSizeResource struct {
+	*resourcetest.TestResource
 }
 
-func NewTestSizeResource() TestSizeResource {
-	mem := resource.NewMemResource()
-	rs := TestSizeResource{&mem}
-	rs.AddTemplate("small", "one {{.foo}} two {{.bar}} three {{.baz}}")
-	rs.AddTemplate("toobug", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in mattis lorem. Aliquam erat volutpat. Ut vitae metus.")
-	rs.AddTemplate("pages", "one {{.foo}} two {{.bar}} three {{.baz}}\n{{.xyzzy}}")
-	rs.AddEntryFunc("foo", get)
-	rs.AddEntryFunc("bar", get)
-	rs.AddEntryFunc("baz", get)
-	rs.AddEntryFunc("xyzzy", getXyzzy)
-	return rs
+func newTestSizeResource() *testSizeResource {
+	ctx := context.Background()
+	rs := resourcetest.NewTestResource()
+	tr := &testSizeResource{
+		TestResource: rs,
+	}
+	rs.AddTemplate(ctx, "small", "one {{.foo}} two {{.bar}} three {{.baz}}")
+	rs.AddTemplate(ctx, "toobug", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in mattis lorem. Aliquam erat volutpat. Ut vitae metus.")
+	rs.AddTemplate(ctx, "pages", "one {{.foo}} two {{.bar}} three {{.baz}}\n{{.xyzzy}}")
+	rs.AddLocalFunc("foo", get)
+	rs.AddLocalFunc("bar", get)
+	rs.AddLocalFunc("baz", get)
+	rs.AddLocalFunc("xyzzy", getXyzzy)
+	return tr
 }
 
 func get(ctx context.Context, sym string, input []byte) (resource.Result, error) {
@@ -134,7 +138,7 @@ func TestSizeLimit(t *testing.T) {
 	//rs := TestSizeResource{
 	//	mrs,
 	//}
-	rs := NewTestSizeResource()
+	rs := newTestSizeResource()
 	szr := NewSizer(128)
 	pg := NewPage(ca, rs).WithMenu(mn).WithSizer(szr)
 	ca.Push()
@@ -167,7 +171,7 @@ func TestSizeLimit(t *testing.T) {
 	mn.Put("1", "foo the foo")
 	mn.Put("2", "go to bar")
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	_, err = pg.Render(ctx, "small", 0)
 	if err != nil {
 		t.Fatal(err)
@@ -187,7 +191,7 @@ func TestSizePages(t *testing.T) {
 	//rs := TestSizeResource{
 	//	mrs,	
 	//}
-	rs := NewTestSizeResource()
+	rs := newTestSizeResource()
 	szr := NewSizer(128)
 	pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
 	ca.Push()
@@ -204,7 +208,7 @@ func TestSizePages(t *testing.T) {
 	mn.Put("1", "foo the foo")
 	mn.Put("2", "go to bar")
 
-	ctx := context.TODO()
+	ctx := context.Background()
 	r, err := pg.Render(ctx, "pages",  0)
 	if err != nil {
 		t.Fatal(err)
@@ -244,7 +248,7 @@ func TestManySizes(t *testing.T) {
 		st := state.NewState(0)
 		ca := cache.NewCache()
 		mn := NewMenu() //.WithOutputSize(32)
-		rs := NewTestSizeResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
+		rs := newTestSizeResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
 		//rs := TestSizeResource{
 		//	mrs,	
 		//}
@@ -261,7 +265,7 @@ func TestManySizes(t *testing.T) {
 		pg.Map("baz")
 		pg.Map("xyzzy")
 
-		ctx := context.TODO()
+		ctx := context.Background()
 		_, err := pg.Render(ctx, "pages", 0)
 		if err != nil {
 			t.Fatal(err)
@@ -274,7 +278,7 @@ func TestManySizesMenued(t *testing.T) {
 		st := state.NewState(0)
 		ca := cache.NewCache()
 		mn := NewMenu() //.WithOutputSize(32)
-		rs := NewTestSizeResource()
+		rs := newTestSizeResource()
 		szr := NewSizer(uint32(i))
 		pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
 		ca.Push()
@@ -290,7 +294,7 @@ func TestManySizesMenued(t *testing.T) {
 		mn.Put("0", "yay")
 		mn.Put("12", "nay")
 
-		ctx := context.TODO()
+		ctx := context.Background()
 		_, err := pg.Render(ctx, "pages", 0)
 		if err != nil {
 			t.Fatal(err)
@@ -299,9 +303,10 @@ func TestManySizesMenued(t *testing.T) {
 }
 
 func TestMenuCollideSink(t *testing.T) {
+	ctx := context.Background()
 	ca := cache.NewCache()
-	rs := resource.NewMemResource()
-	rs.AddTemplate("foo", "bar")
+	rs := resourcetest.NewTestResource()
+	rs.AddTemplate(ctx, "foo", "bar")
 	szr := NewSizer(30)
 	pg := NewPage(ca, rs).WithSizer(szr)
 	ca.Push()
@@ -314,7 +319,6 @@ func TestMenuCollideSink(t *testing.T) {
 	pg = pg.WithMenu(mn)
 
 	var err error
-	ctx := context.TODO()
 	_, err = pg.Render(ctx, "foo", 0)
 	if err != nil {
 		t.Fatal(err)
@@ -330,9 +334,12 @@ func TestMenuCollideSink(t *testing.T) {
 }
 
 func TestMenuSink(t *testing.T) {
+	var err error
+	ctx := context.Background()
+
 	ca := cache.NewCache()
-	rs := resource.NewMemResource()
-	rs.AddTemplate("foo", "bar {{.baz}}")
+	rs := resourcetest.NewTestResource()
+	rs.AddTemplate(ctx, "foo", "bar {{.baz}}")
 	szr := NewSizer(45)
 
 	mn := NewMenu().WithSink().WithBrowseConfig(DefaultBrowseConfig())
@@ -348,8 +355,6 @@ func TestMenuSink(t *testing.T) {
 	ca.Add("baz", "xyzzy", 5)
 	pg.Map("baz")
 
-	var err error
-	ctx := context.TODO()
 	r, err := pg.Render(ctx, "foo", 0)
 	if err != nil {
 		t.Fatal(err)

@@ -11,7 +11,7 @@ import (
 func TestDb(t *testing.T) {
 	var rsifc Resource
 	ctx := context.Background()
-	store := db.NewMemDb(ctx)
+	store := db.NewMemDb()
 	store.Connect(ctx, "")
 	tg, err := NewDbResource(store, db.DATATYPE_TEMPLATE)
 	if err != nil {

@@ -40,7 +40,7 @@ type Resource interface {
 	// GetMenu retrieves the menu label associated with the given symbol.
 	GetMenu(ctx context.Context, menuSym string) (string, error)
 	// FuncFor retrieves the external function (EntryFunc) associated with the given symbol.
-	FuncFor(loadSym string) (EntryFunc, error)
+	FuncFor(ctx context.Context, loadSym string) (EntryFunc, error)
 }
 
 // MenuResource contains the base definition for building Resource implementations.
@@ -87,7 +87,7 @@ func(m *MenuResource) WithMenuGetter(menuGetter MenuFunc) *MenuResource {
 }
 
 // FuncFor implements Resource interface.
-func(m MenuResource) FuncFor(sym string) (EntryFunc, error) {
+func(m MenuResource) FuncFor(ctx context.Context, sym string) (EntryFunc, error) {
 	return m.funcFunc(sym)
 }
 

@@ -33,7 +33,7 @@ func(e *ExternalCodeError) WithCode(code int) *ExternalCodeError {
 
 // Error implements the Error interface.
 func(e ExternalCodeError) Error() string {
-	Logg.Errorf("external code error: %v", e.err)
+	logg.Errorf("external code error: %v", e.err)
 	return fmt.Sprintf("error %v:%v", e.sym, e.code)
 }
 
@@ -58,7 +58,7 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 		sizer: sizer,
 	}
 	vmi.Reset()
-	Logg.Infof("vm created with state", "state", st, "renderer", vmi.pg)
+	logg.Infof("vm created with state", "state", st, "renderer", vmi.pg)
 	return vmi
 }
 
@@ -78,12 +78,12 @@ func(vmi *Vm) Reset() {
 //
 // On error, the remaining instructions will be returned. State will not be rolled back.
 func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
-	Logg.Tracef("new vm run")
+	logg.Tracef("new vm run")
 	running := true
 	for running {
 		r := vm.st.MatchFlag(state.FLAG_TERMINATE, true)
 		if r {
-			Logg.InfoCtxf(ctx, "terminate set! bailing")
+			logg.InfoCtxf(ctx, "terminate set! bailing")
 			return []byte{}, nil
 		}
 
@@ -109,8 +109,8 @@ func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
 			return b, err
 		}
 		b = bb
-		Logg.DebugCtxf(ctx, "execute code", "opcode", op, "op", OpcodeString[op], "code", b)
-		Logg.DebugCtxf(ctx, "", "state", vm.st)
+		logg.DebugCtxf(ctx, "execute code", "opcode", op, "op", OpcodeString[op], "code", b)
+		logg.DebugCtxf(ctx, "", "state", vm.st)
 		switch op {
 		case CATCH:
 			b, err = vm.runCatch(ctx, b)
@@ -186,17 +186,17 @@ func(vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
 	}
 	r := vm.st.MatchFlag(state.FLAG_READIN, false)
 	if r {
-		Logg.DebugCtxf(ctx, "Not processing input. Setting terminate")
+		logg.DebugCtxf(ctx, "Not processing input. Setting terminate")
 		vm.st.SetFlag(state.FLAG_TERMINATE)
 		return b, nil
 	}
 	r = vm.st.MatchFlag(state.FLAG_TERMINATE, true)
 	if r {
-		Logg.TraceCtxf(ctx, "Terminate found!!")
+		logg.TraceCtxf(ctx, "Terminate found!!")
 		return b, nil
 	}
 
-	Logg.TraceCtxf(ctx, "no code remaining but not terminating")
+	logg.TraceCtxf(ctx, "no code remaining but not terminating")
 	location, _ := vm.st.Where()
 	if location == "" {
 		return b, fmt.Errorf("dead runner with no current location")
@@ -233,7 +233,7 @@ func(vm *Vm) runCatch(ctx context.Context, b []byte) ([]byte, error) {
 		if err != nil {
 			return b, err
 		}
-		Logg.InfoCtxf(ctx, "catch!", "flag", sig, "sym", sym, "target", actualSym, "mode", mode)
+		logg.InfoCtxf(ctx, "catch!", "flag", sig, "sym", sym, "target", actualSym, "mode", mode)
 		sym = actualSym
 		bh, err := vm.rs.GetCode(ctx, sym)
 		if err != nil {
@@ -252,7 +252,7 @@ func(vm *Vm) runCroak(ctx context.Context, b []byte) ([]byte, error) {
 	}
 	r := vm.st.MatchFlag(sig, mode)
 	if r {
-		Logg.InfoCtxf(ctx, "croak! purging and moving to top", "signal", sig)
+		logg.InfoCtxf(ctx, "croak! purging and moving to top", "signal", sig)
 		vm.Reset()
 		vm.ca.Reset()
 		b = []byte{}
@@ -268,7 +268,7 @@ func(vm *Vm) runLoad(ctx context.Context, b []byte) ([]byte, error) {
 	}
 	_, err = vm.ca.Get(sym)
 	if err == nil {
-		Logg.DebugCtxf(ctx, "skip already loaded symbol", "symbol", sym)
+		logg.DebugCtxf(ctx, "skip already loaded symbol", "symbol", sym)
 		return b, nil
 	}
 	r, err := vm.refresh(sym, vm.rs, ctx)
@@ -314,7 +314,7 @@ func(vm *Vm) runMove(ctx context.Context, b []byte) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	Logg.DebugCtxf(ctx, "loaded code", "sym", sym, "code", code)
+	logg.DebugCtxf(ctx, "loaded code", "sym", sym, "code", code)
 	b = append(b, code...)
 	vm.Reset()
 	return b, nil
@@ -335,7 +335,7 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 	}
 	if have {
 		if reading {
-			Logg.DebugCtxf(ctx, "ignoring input - already have match", "input", sym)
+			logg.DebugCtxf(ctx, "ignoring input - already have match", "input", sym)
 			return b, nil
 		}
 	} else {
@@ -345,15 +345,15 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	Logg.TraceCtxf(ctx, "testing sym", "sym", sym, "input", input)
+	logg.TraceCtxf(ctx, "testing sym", "sym", sym, "input", input)
 
 	if !have && target == "*" {
-		Logg.DebugCtxf(ctx, "input wildcard match", "input", input, "next", sym)
+		logg.DebugCtxf(ctx, "input wildcard match", "input", input, "next", sym)
 	} else {
 		if target != string(input) {
 			return b, nil
 		} 
-		Logg.InfoCtxf(ctx, "input match", "input", input, "next", sym)
+		logg.InfoCtxf(ctx, "input match", "input", input, "next", sym)
 	}
 	vm.st.SetFlag(state.FLAG_INMATCH)
 	vm.st.ResetFlag(state.FLAG_READIN)
@@ -377,7 +377,7 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	Logg.DebugCtxf(ctx, "loaded additional code", "next", sym, "code", code)
+	logg.DebugCtxf(ctx, "loaded additional code", "next", sym, "code", code)
 	b = append(b, code...)
 	return b, err
 }
@@ -389,7 +389,7 @@ func(vm *Vm) runHalt(ctx context.Context, b []byte) ([]byte, error) {
 	if err != nil {
 		return b, err
 	}
-	Logg.DebugCtxf(ctx, "found HALT, stopping")
+	logg.DebugCtxf(ctx, "found HALT, stopping")
 	
 	vm.st.SetFlag(state.FLAG_WAIT)
 	return b, nil
@@ -469,7 +469,7 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
 	var err error
 	
-	fn, err := rs.FuncFor(key)
+	fn, err := rs.FuncFor(ctx, key)
 	if err != nil {
 		return "", err
 	}
@@ -482,7 +482,7 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 		_ = vm.st.SetFlag(state.FLAG_LOADFAIL)
 		return "", NewExternalCodeError(key, err).WithCode(r.Status)
 	}
-	Logg.TraceCtxf(ctx, "foo", "flags", r.FlagSet)
+	logg.TraceCtxf(ctx, "foo", "flags", r.FlagSet)
 	for _, flag := range r.FlagReset {
 		if !state.IsWriteableFlag(flag) {
 			continue

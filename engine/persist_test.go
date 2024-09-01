@@ -19,11 +19,11 @@ func TestRunPersist(t *testing.T) {
 		SessionId: "xyzzy",
 		Root: "root",
 	}
-	rs := NewFsWrapper(dataDir, nil)
+	rs := newTestWrapper(dataDir, nil)
 
 	st := state.NewState(3)
 	ca := cache.NewCache().WithCacheSize(1024)
-	store := db.NewMemDb(context.Background())
+	store := db.NewMemDb()
 	store.Connect(ctx, "")
 	pr := persist.NewPersister(store).WithContent(&st, ca)
 
@@ -77,11 +77,11 @@ func TestEnginePersist(t *testing.T) {
 		SessionId: "xyzzy",
 		Root: "root",
 	}
-	rs := NewFsWrapper(dataDir, nil)
+	rs := newTestWrapper(dataDir, nil)
 
 	st := state.NewState(3)
 	ca := cache.NewCache().WithCacheSize(1024)
-	store := db.NewMemDb(context.Background())
+	store := db.NewMemDb()
 	store.Connect(ctx, "")
 	pr := persist.NewPersister(store).WithContent(&st, ca)
 

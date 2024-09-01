@@ -50,7 +50,7 @@ func(gdb *gdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !gdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
-	k, err := gdb.ToKey(key)
+	k, err := gdb.ToKey(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func(gdb *gdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 
 // Get implements Db
 func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
-	k, err := gdb.ToKey(key)
+	k, err := gdb.ToKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}

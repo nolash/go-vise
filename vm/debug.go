@@ -13,7 +13,7 @@ func ToString(b []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	Logg.Tracef("", "bytes_written", n)
+	logg.Tracef("", "bytes_written", n)
 	return buf.String(), nil
 }
 
@@ -152,7 +152,7 @@ func ParseAll(b []byte, w io.Writer) (int, error) {
 				return rn, err
 			}
 			rn += n
-			Logg.Tracef("instruction debug write", "bytes", n, "instruction", s)
+			logg.Tracef("instruction debug write", "bytes", n, "instruction", s)
 		}
 
 		//rs += "\n"

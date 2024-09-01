@@ -36,14 +36,14 @@ func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 
 // Get implements the Db interface.
 func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
-	fp, err := fdb.pathFor(key)
+	fp, err := fdb.pathFor(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 	logg.TraceCtxf(ctx, "trying fs get", "key", key, "path", fp)
 	f, err := os.Open(fp)
 	if err != nil {
-		fp, err = fdb.altPathFor(key)
+		fp, err = fdb.altPathFor(ctx, key)
 		if err != nil {
 			return nil, err
 		}
@@ -66,7 +66,7 @@ func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !fdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
-	fp, err := fdb.pathFor(key)
+	fp, err := fdb.pathFor(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -79,8 +79,8 @@ func(fdb *fsDb) Close() error {
 }	
 
 // create a key safe for the filesystem.
-func(fdb *fsDb) pathFor(key []byte) (string, error) {
-	kb, err := fdb.ToKey(key)
+func(fdb *fsDb) pathFor(ctx context.Context, key []byte) (string, error) {
+	kb, err := fdb.ToKey(ctx, key)
 	if err != nil {
 		return "", err
 	}
@@ -89,10 +89,14 @@ func(fdb *fsDb) pathFor(key []byte) (string, error) {
 }
 
 // create a key safe for the filesystem, matching legacy resource.FsResource name.
-func(fdb *fsDb) altPathFor(key []byte) (string, error) {
-	kb, err := fdb.ToKey(key)
+func(fdb *fsDb) altPathFor(ctx context.Context, key []byte) (string, error) {
+	kb, err := fdb.ToKey(ctx, key)
 	if err != nil {
 		return "", err
 	}
-	return path.Join(fdb.dir, string(kb[1:])), nil
+	fb := string(kb[1:])
+	if fdb.pfx == DATATYPE_BIN {
+		fb += ".bin"
+	}	
+	return path.Join(fdb.dir, fb), nil
 }

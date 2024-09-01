@@ -13,7 +13,7 @@ type memDb struct {
 }
 
 // NewmemDb returns an in-process volatile Db implementation.
-func NewMemDb(ctx context.Context) *memDb {
+func NewMemDb() *memDb {
 	db := &memDb{}
 	db.baseDb.defaultLock()
 	return db
@@ -29,14 +29,14 @@ func(mdb *memDb) Connect(ctx context.Context, connStr string) error {
 }
 
 // convert to a supported map key type
-func(mdb *memDb) toHexKey(key []byte) (string, error) {
-	k, err := mdb.ToKey(key)
+func(mdb *memDb) toHexKey(ctx context.Context, key []byte) (string, error) {
+	k, err := mdb.ToKey(ctx, key)
 	return hex.EncodeToString(k), err
 }
 
 // Get implements Db
 func(mdb *memDb) Get(ctx context.Context, key []byte) ([]byte, error) {
-	k, err := mdb.toHexKey(key)
+	k, err := mdb.toHexKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func(mdb *memDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !mdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
-	k, err := mdb.toHexKey(key)
+	k, err := mdb.toHexKey(ctx, key)
 	if err != nil {
 		return err
 	}
