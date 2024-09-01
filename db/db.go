@@ -47,7 +47,7 @@ type Db interface {
 	SetSession(sessionId string)
 }
 
-type LookupKey struct {
+type lookupKey struct {
 	Default []byte
 	Translation []byte
 }
@@ -107,8 +107,8 @@ func(db *baseDb) SetLanguage(ln *lang.Language) {
 }
 
 // ToKey creates a DbKey within the current session context.
-func(db *baseDb) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
-	var lk LookupKey
+func(db *baseDb) ToKey(ctx context.Context, key []byte) (lookupKey, error) {
+	var lk lookupKey
 	var b []byte
 	if db.pfx == DATATYPE_UNKNOWN {
 		return lk, errors.New("datatype prefix cannot be UNKNOWN")

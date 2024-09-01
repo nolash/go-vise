@@ -108,7 +108,7 @@ func(fdb *fsDb) Close() error {
 }
 
 // create a key safe for the filesystem.
-func(fdb *fsDb) pathFor(ctx context.Context, lk *LookupKey) (fsLookupKey, error) {
+func(fdb *fsDb) pathFor(ctx context.Context, lk *lookupKey) (fsLookupKey, error) {
 	var flk fsLookupKey
 	lk.Default[0] += 0x30
 	flk.Default = path.Join(fdb.dir, string(lk.Default))
@@ -120,7 +120,7 @@ func(fdb *fsDb) pathFor(ctx context.Context, lk *LookupKey) (fsLookupKey, error)
 }
 
 // create a key safe for the filesystem, matching legacy resource.FsResource name.
-func(fdb *fsDb) altPathFor(ctx context.Context, lk *LookupKey) (fsLookupKey, error) {
+func(fdb *fsDb) altPathFor(ctx context.Context, lk *lookupKey) (fsLookupKey, error) {
 	var flk fsLookupKey
 	fb := string(lk.Default[1:])
 	if fdb.pfx == DATATYPE_BIN {
