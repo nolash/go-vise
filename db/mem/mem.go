@@ -31,7 +31,8 @@ func NewMemDb() *memDb {
 // Connect implements Db
 func(mdb *memDb) Connect(ctx context.Context, connStr string) error {
 	if mdb.store != nil {
-		panic("already connected")
+		logg.WarnCtxf(ctx, "already connected")
+		return nil
 	}
 	mdb.store = make(map[string][]byte)
 	return nil

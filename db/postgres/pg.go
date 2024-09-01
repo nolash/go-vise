@@ -36,6 +36,7 @@ func(pdb *pgDb) WithSchema(schema string) *pgDb {
 // Connect implements Db.
 func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 	if pdb.conn != nil {
+		logg.WarnCtxf(ctx, "already connected", "conn", pdb.conn)
 		panic("already connected")
 	}
 	var err error

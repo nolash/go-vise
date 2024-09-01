@@ -122,6 +122,7 @@ func TestWithError(t *testing.T) {
 	ca := cache.NewCache()
 	rs := resourcetest.NewTestResource()
 	rs.AddTemplate(ctx, "foo", "bar")
+	rs.Lock()
 	pg := NewPage(ca, rs)
 	ca.Push()
 

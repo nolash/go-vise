@@ -34,13 +34,23 @@ const (
 
 // Db abstracts all data storage and retrieval as a key-value store
 type Db interface {
-	// Connect prepares the storage backend for use. May panic or error if called more than once.
+	// Connect prepares the storage backend for use.
+	// 
+	// If called more than once, consecutive calls should be ignored.
 	Connect(ctx context.Context, connStr string) error
-	// Close implements io.Closer. MUST be called before termination after a Connect().
+	// Close implements io.Closer.
+	//
+	// MUST be called before termination after a Connect().
 	Close() error
-	// Get retrieves the value belonging to a key. Errors if the key does not exist, or if the retrieval otherwise fails.
+	// Get retrieves the value belonging to a key.
+	//
+	// Errors if the key does not exist, or if the retrieval otherwise fails.
 	Get(ctx context.Context, key []byte) ([]byte, error)
-	// Put stores a value under a key. Any existing value will be replaced. Errors if the value could not be stored.
+	// Put stores a value under a key.
+	// 
+	// Any existing value will be replaced.
+	// 
+	// Errors if the value could not be stored.
 	Put(ctx context.Context, key []byte, val []byte) error
 	// SetPrefix sets the storage context prefix to use for consecutive Get and Put operations.
 	SetPrefix(pfx uint8)
@@ -51,6 +61,7 @@ type Db interface {
 	// * DATATYPE_USERSTART
 	SetSession(sessionId string)
 	// SetLock disables modification of data that is readonly in the vm context.
+	//
 	// If called with typ value 0, it will permanently lock all readonly members.
 	SetLock(typ uint8, locked bool) error
 	// Safe returns true if db is safe for use with a vm.
@@ -94,6 +105,14 @@ type baseDb struct {
 	seal bool
 }
 
+// DbBase is a base class that must be extended by all db.Db implementers.
+//
+// It must be created with NewDbBase()
+type DbBase struct {
+	*baseDb
+}
+
+// NewDbBase instantiates a new DbBase.
 func NewDbBase() *DbBase {
 	db := &DbBase{
 		baseDb: &baseDb{},
@@ -102,74 +121,65 @@ func NewDbBase() *DbBase {
 	return db
 }
 
-type DbBase struct {
-	*baseDb
-}
-
-type BaseDb baseDb
-
 // ensures default locking of read-only entries
 func(db *baseDb) defaultLock() {
 	db.lock |= safeLock
 }
 
-func(db *baseDb) Safe() bool {
-	return db.lock & safeLock == safeLock
+func(bd *DbBase) Safe() bool {
+	return bd.baseDb.lock & safeLock == safeLock
 }
 
-func(db *baseDb) Prefix() uint8 {
-	return db.pfx
+func(bd *DbBase) Prefix() uint8 {
+	return bd.baseDb.pfx
 }
 
 // SetPrefix implements the Db interface.
-func(db *baseDb) SetPrefix(pfx uint8) {
-	db.pfx = pfx
+func(bd *DbBase) SetPrefix(pfx uint8) {
+	bd.baseDb.pfx = pfx
 }
 
 // SetLanguage implements the Db interface.
-func(db *baseDb) SetLanguage(ln *lang.Language) {
-	db.lang = ln
+func(bd *DbBase) SetLanguage(ln *lang.Language) {
+	bd.baseDb.lang = ln
 }
 // SetSession implements the Db interface.
-func(db *baseDb) SetSession(sessionId string) {
-	db.sid = append([]byte(sessionId), 0x2E)
+func(bd *DbBase) SetSession(sessionId string) {
+	bd.baseDb.sid = append([]byte(sessionId), 0x2E)
 }
 
 // SetLock implements the Db interface.
-func(db *baseDb) SetLock(pfx uint8, lock bool) error {
-	if db.seal {
+func(bd *DbBase) SetLock(pfx uint8, lock bool) error {
+	if bd.baseDb.seal {
 		return errors.New("SetLock on sealed db")
 	}
 	if pfx == 0 {
-		db.seal = true
-		db.defaultLock()
+		bd.baseDb.defaultLock()
+		bd.baseDb.seal = true
 		return nil
 	}
 	if lock {
-		db.lock	|= pfx
+		bd.baseDb.lock	|= pfx
 	} else {
-		db.lock &= ^pfx
+		bd.baseDb.lock &= ^pfx
 	}
 	return nil
 }
 
-func(db *baseDb) checkPut() bool {
-	return db.pfx & db.lock == 0
-}
-
 // CheckPut returns true if the current selected data type can be written to.
-func(db *baseDb) CheckPut() bool {
-	return db.checkPut()
+func(bd *DbBase) CheckPut() bool {
+	return bd.baseDb.pfx & bd.baseDb.lock == 0
 }
 
 
 // ToKey creates a DbKey within the current session context.
 //
 // TODO: hard to read, clean up
-func(db *baseDb) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
+func(bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	var ln *lang.Language
 	var lk LookupKey
 	var b []byte
+	db := bd.baseDb
 	if db.pfx == DATATYPE_UNKNOWN {
 		return lk, errors.New("datatype prefix cannot be UNKNOWN")
 	}

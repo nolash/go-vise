@@ -34,7 +34,8 @@ func NewFsDb() *fsDb {
 // Connect implements the Db interface.
 func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 	if fdb.dir != "" {
-		panic("already connected")
+		logg.WarnCtxf(ctx, "already connected", "conn", fdb.dir)
+		return nil
 	}
 	err := os.MkdirAll(connStr, 0700)
 	if err != nil {

@@ -80,6 +80,7 @@ func TestSizeLimit(t *testing.T) {
 	ca := cache.NewCache()
 	mn := NewMenu()
 	rs := newTestSizeResource()
+	rs.Lock()
 	szr := NewSizer(128)
 	pg := NewPage(ca, rs).WithMenu(mn).WithSizer(szr)
 	ca.Push()
@@ -129,6 +130,7 @@ func TestSizePages(t *testing.T) {
 	ca := cache.NewCache()
 	mn := NewMenu()
 	rs := newTestSizeResource()
+	rs.Lock()
 	szr := NewSizer(128)
 	pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
 	ca.Push()
@@ -186,6 +188,7 @@ func TestManySizes(t *testing.T) {
 		ca := cache.NewCache()
 		mn := NewMenu() //.WithOutputSize(32)
 		rs := newTestSizeResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
+		rs.Lock()
 		//rs := TestSizeResource{
 		//	mrs,	
 		//}
@@ -216,6 +219,7 @@ func TestManySizesMenued(t *testing.T) {
 		ca := cache.NewCache()
 		mn := NewMenu() //.WithOutputSize(32)
 		rs := newTestSizeResource()
+		rs.Lock()
 		szr := NewSizer(uint32(i))
 		pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
 		ca.Push()
@@ -244,6 +248,7 @@ func TestMenuCollideSink(t *testing.T) {
 	ca := cache.NewCache()
 	rs := resourcetest.NewTestResource()
 	rs.AddTemplate(ctx, "foo", "bar")
+	rs.Lock()
 	szr := NewSizer(30)
 	pg := NewPage(ca, rs).WithSizer(szr)
 	ca.Push()
@@ -277,6 +282,7 @@ func TestMenuSink(t *testing.T) {
 	ca := cache.NewCache()
 	rs := resourcetest.NewTestResource()
 	rs.AddTemplate(ctx, "foo", "bar {{.baz}}")
+	rs.Lock()
 	szr := NewSizer(45)
 
 	mn := NewMenu().WithSink().WithBrowseConfig(DefaultBrowseConfig())

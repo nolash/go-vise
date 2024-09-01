@@ -71,3 +71,7 @@ func(tr *TestResource) AddMenu(ctx context.Context, key string, val string) erro
 func(tr *TestResource) AddFunc(ctx context.Context, key string, fn resource.EntryFunc) {
 	tr.AddLocalFunc(key, fn)
 }
+
+func(tr *TestResource) Lock() {
+	tr.db.SetLock(0, true)
+}

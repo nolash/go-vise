@@ -68,6 +68,7 @@ func newTestResource(st *state.State) testResource {
 	rs.AddBytecode(ctx, "ouf", b)
 	
 	rs.AddBytecode(ctx, "root", tr.RootCode)
+
 	return tr
 }
 
@@ -180,6 +181,7 @@ func(r testResource) getCode(sym string) ([]byte, error) {
 func TestRun(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -201,6 +203,7 @@ func TestRun(t *testing.T) {
 func TestRunLoadRender(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -253,6 +256,7 @@ func TestRunLoadRender(t *testing.T) {
 func TestRunMultiple(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -271,6 +275,7 @@ func TestRunMultiple(t *testing.T) {
 func TestRunReload(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	szr := render.NewSizer(128)
 	vm := NewVm(&st, &rs, ca, szr)
@@ -303,6 +308,7 @@ func TestRunReload(t *testing.T) {
 func TestHalt(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -328,6 +334,7 @@ func TestHalt(t *testing.T) {
 func TestRunArg(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -355,6 +362,7 @@ func TestRunArg(t *testing.T) {
 func TestRunInputHandler(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -383,6 +391,7 @@ func TestRunInputHandler(t *testing.T) {
 func TestRunArgInvalid(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -425,6 +434,7 @@ func TestRunMenu(t *testing.T) {
 	ctx := context.Background()
 
 	rs.AddBytecode(ctx, "foo", []byte{})
+	rs.Lock()
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"one", "0"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"two", "1"}, nil, nil)
@@ -461,6 +471,7 @@ func TestRunMenuBrowse(t *testing.T) {
 	ctx := context.Background()
 
 	rs.AddBytecode(ctx, "foo", []byte{})
+	rs.Lock()
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"one", "0"}, nil, nil)
 	b = NewLine(b, MOUT, []string{"two", "1"}, nil, nil)
@@ -488,6 +499,7 @@ func TestRunMenuBrowse(t *testing.T) {
 func TestRunReturn(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -524,6 +536,7 @@ func TestRunReturn(t *testing.T) {
 func TestRunLoadInput(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -567,6 +580,7 @@ func TestInputBranch(t *testing.T) {
 	b = NewLine(b, CATCH, []string{"one"}, []byte{9}, []uint8{1})
 	rs.RootCode = b
 	rs.AddBytecode(ctx, "root", rs.RootCode)
+	rs.Lock()
 
 	ctx := context.Background()
 
@@ -594,6 +608,7 @@ func TestInputBranch(t *testing.T) {
 func TestInputIgnore(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -622,6 +637,7 @@ func TestInputIgnore(t *testing.T) {
 func TestInputIgnoreWildcard(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -649,6 +665,7 @@ func TestInputIgnoreWildcard(t *testing.T) {
 func TestCatchCleanMenu(t *testing.T) {
 	st := state.NewState(5)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -685,6 +702,7 @@ func TestCatchCleanMenu(t *testing.T) {
 func TestSetLang(t *testing.T) {
 	st := state.NewState(0)
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -711,6 +729,7 @@ func TestLoadError(t *testing.T) {
 	st := state.NewState(0)
 	st.UseDebug()
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 
@@ -744,6 +763,7 @@ func TestMatchFlag(t *testing.T) {
 	st := state.NewState(1)
 	st.UseDebug()
 	rs := newTestResource(&st)
+	rs.Lock()
 	ca := cache.NewCache()
 	vm := NewVm(&st, &rs, ca, nil)
 

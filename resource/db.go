@@ -24,6 +24,9 @@ type DbResource struct {
 //
 // By default it will handle db.DATATYPE_TEPMLATE, db.DATATYPE_MENU and db.DATATYPE_BIN.
 func NewDbResource(store db.Db) *DbResource {
+	if !store.Safe() {
+		logg.Warnf("Db is not safe for use with resource. Make sure it is properly locked before issuing the first retrieval, or it will panic!")
+	}
 	return &DbResource{
 		MenuResource: NewMenuResource(),
 		db: store,
@@ -49,8 +52,15 @@ func(g *DbResource) WithOnly(typ uint8) *DbResource {
 	return g
 }
 
+func(g *DbResource) mustSafe() {
+	if !g.db.Safe() {
+		panic("db unsafe for resource (db.Db.Safe() == false)")
+	}
+}
+
 // retrieve from underlying db.
 func(g *DbResource) fn(ctx context.Context, sym string) ([]byte, error) {
+	g.mustSafe()
 	return g.db.Get(ctx, []byte(sym))
 }
 
