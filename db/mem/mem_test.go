@@ -1,53 +1,55 @@
-package db
+package mem
 
 import (
 	"bytes"
 	"context"
 	"testing"
+
+	"git.defalsify.org/vise.git/db"
 )
 
 func TestCasesMem(t *testing.T) {
 	ctx := context.Background()
 
-	db := NewMemDb()
-	err := db.Connect(ctx, "")
+	store := NewMemDb()
+	err := store.Connect(ctx, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = runTests(t, ctx, db)
+	err = db.RunTests(t, ctx, store)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestPutGetMem(t *testing.T) {
-	var dbi Db
+	var dbi db.Db
 	ctx := context.Background()
 	sid := "ses"
-	db := NewMemDb()
-	db.SetPrefix(DATATYPE_USERDATA)
-	db.SetSession(sid)
+	store := NewMemDb()
+	store.SetPrefix(db.DATATYPE_USERDATA)
+	store.SetSession(sid)
 
-	dbi = db
+	dbi = store
 	_ = dbi
 
-	err := db.Connect(ctx, "")
+	err := store.Connect(ctx, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = db.Put(ctx, []byte("foo"), []byte("bar"))
+	err = store.Put(ctx, []byte("foo"), []byte("bar"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	v, err := db.Get(ctx, []byte("foo"))
+	v, err := store.Get(ctx, []byte("foo"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(v, []byte("bar")) {
 		t.Fatalf("expected value 'bar', found '%s'", v)
 	}
-	_, err = db.Get(ctx, []byte("bar"))
+	_, err = store.Get(ctx, []byte("bar"))
 	if err == nil {
 		t.Fatal("expected get error for key 'bar'")
 	}

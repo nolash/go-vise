@@ -1,4 +1,4 @@
-package db
+package gdbm
 
 import (
 	"context"
@@ -6,11 +6,13 @@ import (
 	"os"
 
 	gdbm "github.com/graygnuorg/go-gdbm"
+
+	"git.defalsify.org/vise.git/db"
 )
 
 // gdbmDb is a gdbm backend implementation of the Db interface.
 type gdbmDb struct {
-	*BaseDb
+	*db.DbBase
 	conn *gdbm.Database
 	prefix uint8
 }
@@ -18,7 +20,7 @@ type gdbmDb struct {
 // Creates a new gdbm backed Db implementation.
 func NewGdbmDb() *gdbmDb {
 	db := &gdbmDb{
-		BaseDb: NewBaseDb(),
+		DbBase: db.NewDbBase(),
 	}
 	return db
 }
@@ -48,7 +50,7 @@ func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 
 // Put implements Db
 func(gdb *gdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
-	if !gdb.checkPut() {
+	if !gdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
 	}
 	lk, err := gdb.ToKey(ctx, key)
@@ -81,7 +83,7 @@ func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	v, err = gdb.conn.Fetch(lk.Default)
 	if err != nil {
 		if errors.Is(gdbm.ErrItemNotFound, err) {
-			return nil, NewErrNotFound(key)
+			return nil, db.NewErrNotFound(key)
 		}
 		return nil, err
 	}

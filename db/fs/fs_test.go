@@ -1,4 +1,4 @@
-package db
+package fs
 
 import (
 	"bytes"
@@ -7,58 +7,60 @@ import (
 	"os"
 	"path"
 	"testing"
+
+	"git.defalsify.org/vise.git/db"
 )
 
 func TestCasesFs(t *testing.T) {
 	ctx := context.Background()
 
-	db := NewFsDb()
+	store := NewFsDb()
 	d, err := ioutil.TempDir("", "vise-db-fs-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = db.Connect(ctx, d)
+	err = store.Connect(ctx, d)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = runTests(t, ctx, db)
+	err = db.RunTests(t, ctx, store)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestPutGetFs(t *testing.T) {
-	var dbi Db
+	var dbi db.Db
 	ctx := context.Background()
 	sid := "ses"
 	d, err := ioutil.TempDir("", "vise-db-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-	db := NewFsDb()
-	db.SetPrefix(DATATYPE_USERDATA)
-	db.SetSession(sid)
+	store := NewFsDb()
+	store.SetPrefix(db.DATATYPE_USERDATA)
+	store.SetSession(sid)
 
-	dbi = db
+	dbi = store
 	_ = dbi
 
-	err = db.Connect(ctx, d)
+	err = store.Connect(ctx, d)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = db.Put(ctx, []byte("foo"), []byte("bar"))
+	err = store.Put(ctx, []byte("foo"), []byte("bar"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	v, err := db.Get(ctx, []byte("foo"))
+	v, err := store.Get(ctx, []byte("foo"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(v, []byte("bar")) {
 		t.Fatalf("expected value 'bar', found '%s'", v)
 	}
-	_, err = db.Get(ctx, []byte("bar"))
+	_, err = store.Get(ctx, []byte("bar"))
 	if err == nil {
 		t.Fatal("expected get error for key 'bar'")
 	}
@@ -71,16 +73,16 @@ func TestPutGetFsAlt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	db := NewFsDb()
-	db.SetPrefix(DATATYPE_TEMPLATE)
-	db.SetSession(sid)
+	store := NewFsDb()
+	store.SetPrefix(db.DATATYPE_TEMPLATE)
+	store.SetSession(sid)
 
 	fp := path.Join(d, sid)
 	err = os.MkdirAll(fp, 0700)
 	if err != nil {
 		t.Fatal(err)
 	}
-	db.Connect(ctx, fp)
+	store.Connect(ctx, fp)
 	fp = path.Join(fp, "inky")
 
 	b := []byte("pinky blinky clyde")
@@ -89,7 +91,7 @@ func TestPutGetFsAlt(t *testing.T) {
 		t.Fatal(err)
 	}
 	
-	v, err := db.Get(ctx, []byte("inky"))
+	v, err := store.Get(ctx, []byte("inky"))
 	if err != nil {
 		t.Fatal(err)
 	}

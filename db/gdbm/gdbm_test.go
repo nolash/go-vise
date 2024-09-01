@@ -1,62 +1,64 @@
-package db
+package gdbm
 
 import (
 	"bytes"
 	"context"
 	"io/ioutil"
 	"testing"
+
+	"git.defalsify.org/vise.git/db"
 )
 
 func TestCasesGdbm(t *testing.T) {
 	ctx := context.Background()
 
-	db := NewGdbmDb()
+	store := NewGdbmDb()
 	f, err := ioutil.TempFile("", "vise-db-gdbm-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = db.Connect(ctx, f.Name())
+	err = store.Connect(ctx, f.Name())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = runTests(t, ctx, db)
+	err = db.RunTests(t, ctx, store)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestPutGetGdbm(t *testing.T) {
-	var dbi Db
+	var dbi db.Db
 	ctx := context.Background()
 	sid := "ses"
 	f, err := ioutil.TempFile("", "vise-db-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-	db := NewGdbmDb()
-	db.SetPrefix(DATATYPE_USERDATA)
-	db.SetSession(sid)
+	store := NewGdbmDb()
+	store.SetPrefix(db.DATATYPE_USERDATA)
+	store.SetSession(sid)
 
-	dbi = db
+	dbi = store
 	_ = dbi
 
-	err = db.Connect(ctx, f.Name())
+	err = store.Connect(ctx, f.Name())
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = db.Put(ctx, []byte("foo"), []byte("bar"))
+	err = store.Put(ctx, []byte("foo"), []byte("bar"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	v, err := db.Get(ctx, []byte("foo"))
+	v, err := store.Get(ctx, []byte("foo"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(v, []byte("bar")) {
 		t.Fatalf("expected value 'bar', found '%s'", v)
 	}
-	_, err = db.Get(ctx, []byte("bar"))
+	_, err = store.Get(ctx, []byte("bar"))
 	if err == nil {
 		t.Fatal("expected get error for key 'bar'")
 	}

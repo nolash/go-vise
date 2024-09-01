@@ -62,9 +62,11 @@ type Db interface {
 	// * DATATYPE_TEMPLATE
 	// * DATATYPE_STATICLOAD
 	SetLanguage(*lang.Language)
+	// Prefix returns the current active datatype prefix
+	Prefix() uint8
 }
 
-type lookupKey struct {
+type LookupKey struct {
 	Default []byte
 	Translation []byte
 }
@@ -83,8 +85,8 @@ func ToDbKey(typ uint8, b []byte, l *lang.Language) []byte {
 	return append(k, b...)
 }
 
-// BaseDb is a base class for all Db implementations.
-type BaseDb struct {
+// baseDb is a base class for all Db implementations.
+type baseDb struct {
 	pfx uint8
 	sid []byte
 	lock uint8
@@ -92,37 +94,49 @@ type BaseDb struct {
 	seal bool
 }
 
-func NewBaseDb() *BaseDb {
-	db := &BaseDb{}
-	db.defaultLock()
+func NewDbBase() *DbBase {
+	db := &DbBase{
+		baseDb: &baseDb{},
+	}
+	db.baseDb.defaultLock()
 	return db
 }
 
+type DbBase struct {
+	*baseDb
+}
+
+type BaseDb baseDb
+
 // ensures default locking of read-only entries
-func(db *BaseDb) defaultLock() {
+func(db *baseDb) defaultLock() {
 	db.lock |= safeLock
 }
 
-func(db *BaseDb) Safe() bool {
+func(db *baseDb) Safe() bool {
 	return db.lock & safeLock == safeLock
 }
 
+func(db *baseDb) Prefix() uint8 {
+	return db.pfx
+}
+
 // SetPrefix implements the Db interface.
-func(db *BaseDb) SetPrefix(pfx uint8) {
+func(db *baseDb) SetPrefix(pfx uint8) {
 	db.pfx = pfx
 }
 
 // SetLanguage implements the Db interface.
-func(db *BaseDb) SetLanguage(ln *lang.Language) {
+func(db *baseDb) SetLanguage(ln *lang.Language) {
 	db.lang = ln
 }
 // SetSession implements the Db interface.
-func(db *BaseDb) SetSession(sessionId string) {
+func(db *baseDb) SetSession(sessionId string) {
 	db.sid = append([]byte(sessionId), 0x2E)
 }
 
 // SetLock implements the Db interface.
-func(db *BaseDb) SetLock(pfx uint8, lock bool) error {
+func(db *baseDb) SetLock(pfx uint8, lock bool) error {
 	if db.seal {
 		return errors.New("SetLock on sealed db")
 	}
@@ -139,12 +153,12 @@ func(db *BaseDb) SetLock(pfx uint8, lock bool) error {
 	return nil
 }
 
-func(db *BaseDb) checkPut() bool {
+func(db *baseDb) checkPut() bool {
 	return db.pfx & db.lock == 0
 }
 
 // CheckPut returns true if the current selected data type can be written to.
-func(db *BaseDb) CheckPut() bool {
+func(db *baseDb) CheckPut() bool {
 	return db.checkPut()
 }
 
@@ -152,9 +166,9 @@ func(db *BaseDb) CheckPut() bool {
 // ToKey creates a DbKey within the current session context.
 //
 // TODO: hard to read, clean up
-func(db *BaseDb) ToKey(ctx context.Context, key []byte) (lookupKey, error) {
+func(db *baseDb) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	var ln *lang.Language
-	var lk lookupKey
+	var lk LookupKey
 	var b []byte
 	if db.pfx == DATATYPE_UNKNOWN {
 		return lk, errors.New("datatype prefix cannot be UNKNOWN")

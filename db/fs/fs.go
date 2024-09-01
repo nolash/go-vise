@@ -1,4 +1,4 @@
-package db
+package fs
 
 import (
 	"context"
@@ -7,9 +7,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+
+	"git.defalsify.org/vise.git/db"
 )
 
-// holds string (filepath) versions of lookupKey
+// holds string (filepath) versions of LookupKey
 type fsLookupKey struct {
 	Default string
 	Translation string
@@ -17,14 +19,14 @@ type fsLookupKey struct {
 
 // pure filesystem backend implementation if the Db interface.
 type fsDb struct {
-	*BaseDb
+	*db.DbBase
 	dir string
 }
 
 // NewFsDb creates a filesystem backed Db implementation.
 func NewFsDb() *fsDb {
 	db := &fsDb{
-		BaseDb: NewBaseDb(),
+		DbBase: db.NewDbBase(),
 	}
 	return db
 }
@@ -72,7 +74,7 @@ func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 		}
 	}
 	if f == nil {
-		return nil, NewErrNotFound(key)
+		return nil, db.NewErrNotFound(key)
 	}
 	defer f.Close()
 	b, err := ioutil.ReadAll(f)
@@ -84,7 +86,7 @@ func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 
 // Put implements the Db interface.
 func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
-	if !fdb.checkPut() {
+	if !fdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
 	}
 	lk, err := fdb.ToKey(ctx, key)
@@ -112,7 +114,7 @@ func(fdb *fsDb) Close() error {
 }
 
 // create a key safe for the filesystem.
-func(fdb *fsDb) pathFor(ctx context.Context, lk *lookupKey) (fsLookupKey, error) {
+func(fdb *fsDb) pathFor(ctx context.Context, lk *db.LookupKey) (fsLookupKey, error) {
 	var flk fsLookupKey
 	lk.Default[0] += 0x30
 	flk.Default = path.Join(fdb.dir, string(lk.Default))
@@ -124,17 +126,17 @@ func(fdb *fsDb) pathFor(ctx context.Context, lk *lookupKey) (fsLookupKey, error)
 }
 
 // create a key safe for the filesystem, matching legacy resource.FsResource name.
-func(fdb *fsDb) altPathFor(ctx context.Context, lk *lookupKey) (fsLookupKey, error) {
+func(fdb *fsDb) altPathFor(ctx context.Context, lk *db.LookupKey) (fsLookupKey, error) {
 	var flk fsLookupKey
 	fb := string(lk.Default[1:])
-	if fdb.pfx == DATATYPE_BIN {
+	if fdb.Prefix() == db.DATATYPE_BIN {
 		fb += ".bin"
 	}
 	flk.Default = path.Join(fdb.dir, fb)
 
 	if lk.Translation != nil {
 		fb = string(lk.Translation[1:])
-		if fdb.pfx == DATATYPE_BIN {
+		if fdb.Prefix() == db.DATATYPE_BIN {
 			fb += ".bin"
 		}
 		flk.Translation = path.Join(fdb.dir, fb)

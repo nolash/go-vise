@@ -1,4 +1,4 @@
-package db 
+package postgres
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 // pgDb is a Postgres backend implementation of the Db interface.
 type pgDb struct {
-	*db.BaseDb
+	*db.DbBase
 	conn *pgxpool.Pool
 	schema string
 	prefix uint8
@@ -21,7 +21,7 @@ type pgDb struct {
 // NewpgDb creates a new Postgres backed Db implementation.
 func NewPgDb() *pgDb {
 	db := &pgDb{
-		BaseDb: db.NewBaseDb(),
+		DbBase: db.NewDbBase(),
 		schema: "public",
 	}
 	return db

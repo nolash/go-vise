@@ -1,9 +1,11 @@
-package db
+package mem
 
 import (
 	"context"
 	"encoding/hex"
 	"errors"
+
+	"git.defalsify.org/vise.git/db"
 )
 
 // holds string (hex) versions of lookupKey
@@ -14,16 +16,15 @@ type memLookupKey struct {
 
 // memDb is a memory backend implementation of the Db interface.
 type memDb struct {
-	*BaseDb
+	*db.DbBase
 	store map[string][]byte
 }
 
 // NewmemDb returns an in-process volatile Db implementation.
 func NewMemDb() *memDb {
 	db := &memDb{
-		BaseDb: NewBaseDb(),
+		DbBase: db.NewDbBase(),
 	}
-	db.BaseDb.defaultLock()
 	return db
 }
 
@@ -66,7 +67,7 @@ func(mdb *memDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	v, ok = mdb.store[mk.Default]
 	if !ok {
 		//b, _ := hex.DecodeString(k)
-		return nil, NewErrNotFound(key)
+		return nil, db.NewErrNotFound(key)
 	}
 	return v, nil
 }
@@ -74,7 +75,7 @@ func(mdb *memDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 // Put implements Db
 func(mdb *memDb) Put(ctx context.Context, key []byte, val []byte) error {
 	var k string
-	if !mdb.checkPut() {
+	if !mdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
 	}
 	mk, err := mdb.toHexKey(ctx, key)
