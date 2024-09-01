@@ -50,23 +50,35 @@ func(gdb *gdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !gdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
-	k, err := gdb.ToKey(ctx, key)
+	lk, err := gdb.ToKey(ctx, key)
 	if err != nil {
 		return err
 	}
-	return gdb.conn.Store(k, val, true)
+	if lk.Translation != nil {
+		return gdb.conn.Store(lk.Translation, val, true)
+	}
+	return gdb.conn.Store(lk.Default, val, true)
 }
 
 // Get implements Db
 func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
-	k, err := gdb.ToKey(ctx, key)
+	var v []byte
+	lk, err := gdb.ToKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
-	v, err := gdb.conn.Fetch(k)
+	if lk.Translation != nil {
+		v, err = gdb.conn.Fetch(lk.Translation)
+		if err != nil {
+			if !errors.Is(gdbm.ErrItemNotFound, err) {
+				return nil, err
+			}
+		}
+	}
+	v, err = gdb.conn.Fetch(lk.Default)
 	if err != nil {
 		if errors.Is(gdbm.ErrItemNotFound, err) {
-			return nil, NewErrNotFound(k)
+			return nil, NewErrNotFound(key)
 		}
 		return nil, err
 	}

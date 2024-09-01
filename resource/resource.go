@@ -27,7 +27,7 @@ type MenuFunc func(ctx context.Context, menuSym string) (string, error)
 // TemplateFunc is the function signature for retrieving a render template for a given symbol.
 type TemplateFunc func(ctx context.Context, nodeSym string) (string, error)
 // FuncForFunc is a function that returns an EntryFunc associated with a LOAD instruction symbol.
-type FuncForFunc func(loadSym string) (EntryFunc, error)
+type FuncForFunc func(ctx context.Context, loadSym string) (EntryFunc, error)
 
 // Resource implementation are responsible for retrieving values and templates for symbols, and can render templates from value dictionaries.
 //
@@ -88,7 +88,7 @@ func(m *MenuResource) WithMenuGetter(menuGetter MenuFunc) *MenuResource {
 
 // FuncFor implements Resource interface.
 func(m MenuResource) FuncFor(ctx context.Context, sym string) (EntryFunc, error) {
-	return m.funcFunc(sym)
+	return m.funcFunc(ctx, sym)
 }
 
 // GetCode implements Resource interface.
@@ -115,7 +115,7 @@ func(m *MenuResource) AddLocalFunc(sym string, fn EntryFunc) {
 }
 
 // FallbackFunc returns the default handler function for a given external function symbol.
-func(m *MenuResource) FallbackFunc(sym string) (EntryFunc, error) {
+func(m *MenuResource) FallbackFunc(ctx context.Context, sym string) (EntryFunc, error) {
 	fn, ok := m.fns[sym]
 	if !ok {
 		return nil, fmt.Errorf("unknown function: %s", sym)

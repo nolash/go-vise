@@ -6,6 +6,11 @@ import (
 	"errors"
 )
 
+type memLookupKey struct {
+	Default string
+	Translation string
+}
+
 // memDb is a memory backend implementation of the Db interface.
 type memDb struct {
 	baseDb
@@ -29,37 +34,56 @@ func(mdb *memDb) Connect(ctx context.Context, connStr string) error {
 }
 
 // convert to a supported map key type
-func(mdb *memDb) toHexKey(ctx context.Context, key []byte) (string, error) {
-	k, err := mdb.ToKey(ctx, key)
-	return hex.EncodeToString(k), err
+func(mdb *memDb) toHexKey(ctx context.Context, key []byte) (memLookupKey, error) {
+	var mk memLookupKey
+	lk, err := mdb.ToKey(ctx, key)
+	mk.Default = hex.EncodeToString(lk.Default)
+	if lk.Translation != nil {
+		mk.Translation = hex.EncodeToString(lk.Translation)
+	}
+	return mk, err
 }
 
 // Get implements Db
 func(mdb *memDb) Get(ctx context.Context, key []byte) ([]byte, error) {
-	k, err := mdb.toHexKey(ctx, key)
+	var v []byte
+	var ok bool
+	mk, err := mdb.toHexKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
-	logg.TraceCtxf(ctx, "mem get", "k", k)
-	v, ok := mdb.store[k]
+	logg.TraceCtxf(ctx, "mem get", "k", mk)
+	if mk.Translation != "" {
+		v, ok = mdb.store[mk.Translation]
+		if ok {
+			return v, nil
+		}
+	}
+	v, ok = mdb.store[mk.Default]
 	if !ok {
-		b, _ := hex.DecodeString(k)
-		return nil, NewErrNotFound(b)
+		//b, _ := hex.DecodeString(k)
+		return nil, NewErrNotFound(key)
 	}
 	return v, nil
 }
 
 // Put implements Db
 func(mdb *memDb) Put(ctx context.Context, key []byte, val []byte) error {
+	var k string
 	if !mdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
-	k, err := mdb.toHexKey(ctx, key)
+	mk, err := mdb.toHexKey(ctx, key)
 	if err != nil {
 		return err
 	}
+	if mk.Translation != "" {
+		k = mk.Translation
+	} else {
+		k = mk.Default
+	}
 	mdb.store[k] = val
-	logg.TraceCtxf(ctx, "mem put", "k",  k, "v", val)
+	logg.TraceCtxf(ctx, "mem put", "k", k, "v", val)
 	return nil
 }
 

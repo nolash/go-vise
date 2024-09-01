@@ -70,27 +70,42 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 
 // Get implements Db.
 func(pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
-	k, err := pdb.ToKey(ctx, key)
+	lk, err := pdb.ToKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
+	if lk.Translation != nil {
+		tx, err := pdb.conn.Begin(ctx)
+		if err != nil {
+			return nil, err
+		}
+		query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
+		rs, err := tx.Query(ctx, query, lk.Translation)
+		if err != nil {
+			return nil, err
+		}
+		defer rs.Close()
+		if rs.Next() {
+			r := rs.RawValues()
+			return r[0], nil
+		}
+	}
+
 	tx, err := pdb.conn.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
 	query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
-	rs, err := tx.Query(ctx, query, k)
+	rs, err := tx.Query(ctx, query, lk.Translation)
 	if err != nil {
 		return nil, err
 	}
 	defer rs.Close()
 	if !rs.Next() {
-		return nil, NewErrNotFound(k)
-
+		return nil, NewErrNotFound(key)
 	}
 	r := rs.RawValues()
-	b := r[0]
-	return b, nil
+	return r[0], nil
 }
 
 // Close implements Db.

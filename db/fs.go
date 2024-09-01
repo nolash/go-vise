@@ -3,10 +3,16 @@ package db
 import (
 	"context"
 	"errors"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"path"
 )
+
+type fsLookupKey struct {
+	Default string
+	Translation string
+}
 
 // pure filesystem backend implementation if the Db interface.
 type fsDb struct {
@@ -36,22 +42,35 @@ func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 
 // Get implements the Db interface.
 func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
-	fp, err := fdb.pathFor(ctx, key)
+	var f *os.File
+	lk, err := fdb.ToKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
-	logg.TraceCtxf(ctx, "trying fs get", "key", key, "path", fp)
-	f, err := os.Open(fp)
+	flk, err := fdb.pathFor(ctx, &lk)
 	if err != nil {
-		fp, err = fdb.altPathFor(ctx, key)
-		if err != nil {
+		return nil, err
+	}
+	flka, err := fdb.altPathFor(ctx, &lk)
+	if err != nil {
+		return nil, err
+	}
+	for i, fp := range([]string{flk.Translation, flka.Translation, flk.Default, flka.Default}) {
+		if fp == "" {
+			logg.TraceCtxf(ctx, "fs get skip missing", "i", i)
+			continue
+		}
+		logg.TraceCtxf(ctx, "trying fs get", "i", i, "key", key, "path", fp)
+		f, err = os.Open(fp)
+		if err == nil {
+			break
+		}
+		if !errors.Is(err, fs.ErrNotExist) {
 			return nil, err
 		}
-		logg.TraceCtxf(ctx, "trying fs get alt", "key", key, "path", fp)
-		f, err = os.Open(fp)
-		if err != nil {
-			return nil, NewErrNotFound([]byte(fp))
-		}
+	}
+	if f == nil {
+		return nil, NewErrNotFound(key)
 	}
 	defer f.Close()
 	b, err := ioutil.ReadAll(f)
@@ -66,37 +85,56 @@ func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !fdb.checkPut() {
 		return errors.New("unsafe put and safety set")
 	}
-	fp, err := fdb.pathFor(ctx, key)
+	lk, err := fdb.ToKey(ctx, key)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(fp, val, 0600)
+	flk, err := fdb.pathFor(ctx, &lk)
+	if err != nil {
+		return err
+	}
+	if flk.Translation != "" {
+		err = ioutil.WriteFile(flk.Translation, val, 0600)
+		if err != nil {
+			return err
+		}
+	}
+	return ioutil.WriteFile(flk.Default, val, 0600)
 }
 
-// Close implements the Db interface..
+// Close implements the Db interface.
 func(fdb *fsDb) Close() error {
 	return nil
-}	
+}
 
 // create a key safe for the filesystem.
-func(fdb *fsDb) pathFor(ctx context.Context, key []byte) (string, error) {
-	kb, err := fdb.ToKey(ctx, key)
-	if err != nil {
-		return "", err
+func(fdb *fsDb) pathFor(ctx context.Context, lk *LookupKey) (fsLookupKey, error) {
+	var flk fsLookupKey
+	lk.Default[0] += 0x30
+	flk.Default = path.Join(fdb.dir, string(lk.Default))
+	if lk.Translation != nil {
+		lk.Translation[0] += 0x30
+		flk.Translation = path.Join(fdb.dir, string(lk.Translation))
 	}
-	kb[0] += 0x30
-	return path.Join(fdb.dir, string(kb)), nil
+	return flk, nil
 }
 
 // create a key safe for the filesystem, matching legacy resource.FsResource name.
-func(fdb *fsDb) altPathFor(ctx context.Context, key []byte) (string, error) {
-	kb, err := fdb.ToKey(ctx, key)
-	if err != nil {
-		return "", err
-	}
-	fb := string(kb[1:])
+func(fdb *fsDb) altPathFor(ctx context.Context, lk *LookupKey) (fsLookupKey, error) {
+	var flk fsLookupKey
+	fb := string(lk.Default[1:])
 	if fdb.pfx == DATATYPE_BIN {
 		fb += ".bin"
-	}	
-	return path.Join(fdb.dir, fb), nil
+	}
+	flk.Default = path.Join(fdb.dir, fb)
+
+	if lk.Translation != nil {
+		fb = string(lk.Translation[1:])
+		if fdb.pfx == DATATYPE_BIN {
+			fb += ".bin"
+		}
+		flk.Translation = path.Join(fdb.dir, fb)
+	}
+
+	return flk, nil
 }

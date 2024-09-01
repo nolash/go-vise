@@ -47,6 +47,11 @@ type Db interface {
 	SetSession(sessionId string)
 }
 
+type LookupKey struct {
+	Default []byte
+	Translation []byte
+}
+
 // ToDbKey generates a key to use Db to store a value for a particular context.
 //
 // If language is nil, then default language storage context will be used.
@@ -54,7 +59,7 @@ type Db interface {
 // If language is not nil, and the context does not support language, the language value will silently will be ignored.
 func ToDbKey(typ uint8, b []byte, l *lang.Language) []byte {
 	k := []byte{typ}
-	if l != nil && l.Code != "" && typ & (DATATYPE_MENU | DATATYPE_TEMPLATE) > 0 {
+	if l != nil && l.Code != "" && typ & (DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD) > 0 {
 		b = append(b, []byte("_" + l.Code)...)
 		//s += "_" + l.Code
 	}
@@ -66,6 +71,7 @@ type baseDb struct {
 	pfx uint8
 	sid []byte
 	lock uint8
+	lang *lang.Language
 }
 
 // ensures default locking of read-only entries
@@ -96,20 +102,28 @@ func(db *baseDb) checkPut() bool {
 	return db.pfx & db.lock == 0
 }
 
+func(db *baseDb) SetLanguage(ln *lang.Language) {
+	db.lang = ln
+}
+
 // ToKey creates a DbKey within the current session context.
-func(db *baseDb) ToKey(ctx context.Context, key []byte) ([]byte, error) {
+func(db *baseDb) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
+	var lk LookupKey
 	var b []byte
 	if db.pfx == DATATYPE_UNKNOWN {
-		return nil, errors.New("datatype prefix cannot be UNKNOWN")
+		return lk, errors.New("datatype prefix cannot be UNKNOWN")
 	}
 	if (db.pfx > datatype_sessioned_threshold) {
 		b = append(db.sid, key...)
 	} else {
 		b = key
 	}
-	ln, ok := ctx.Value("Language").(lang.Language)
-	if ok {
-		return ToDbKey(db.pfx, b, &ln), nil
-	}
-	return ToDbKey(db.pfx, b, nil), nil
+	lk.Default = ToDbKey(db.pfx, b, nil)
+	if db.pfx & (DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD) > 0 {
+		ln, ok := ctx.Value("Language").(lang.Language)
+		if ok {
+			lk.Translation = ToDbKey(db.pfx, b, &ln)
+		}
+	}	
+	return lk, nil
 }

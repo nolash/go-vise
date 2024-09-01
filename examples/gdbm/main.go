@@ -48,10 +48,15 @@ func main() {
 	rs = rs.WithTemplateGetter(tg.GetTemplate)
 	rs = rs.WithCodeGetter(tg.GetCode)
 
-	rsf := resource.NewFsResource(scriptDir)
+	fsStore := db.NewFsDb()
+	fsStore.Connect(ctx, scriptDir)
+	rsf, err := resource.NewDbResource(fsStore, db.DATATYPE_MENU)
+	if err != nil {
+		panic(err)
+	}
 	rsf.AddLocalFunc("do", do)
-	rs = rs.WithMenuGetter(rsf.GetMenu)
-	rs = rs.WithEntryFuncGetter(rsf.FuncFor)
+	rs.WithMenuGetter(rsf.GetMenu)
+	rs.WithEntryFuncGetter(rsf.FuncFor)
 
 	ca := cache.NewCache()
 	if err != nil {
