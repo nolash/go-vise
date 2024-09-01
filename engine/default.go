@@ -18,10 +18,7 @@ func NewDefaultEngine(dir string, persistDb db.Db, session *string) (EngineIsh, 
 	ctx := context.Background()
 	store := db.NewFsDb()
 	store.Connect(ctx, dir)
-	rs, err := resource.NewDbResource(store)
-	if err != nil {
-		return nil, err
-	}
+	rs := resource.NewDbResource(store)
 	ca := cache.NewCache()
 	cfg := Config{
 		Root: "root",
@@ -59,10 +56,7 @@ func NewSizedEngine(dir string, size uint32, persistDb db.Db, session *string) (
 	ctx := context.Background()
 	store := db.NewFsDb()
 	store.Connect(ctx, dir)
-	rs, err := resource.NewDbResource(store, db.DATATYPE_BIN, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU)
-	if err != nil {
-		return nil, err
-	}
+	rs := resource.NewDbResource(store)
 	cfg := Config{
 		OutputSize: size,
 		Root: "root",

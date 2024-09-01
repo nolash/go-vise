@@ -102,11 +102,13 @@ func main() {
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
 	dataDir := path.Join(scriptDir, ".store")
-	store.Connect(ctx, dataDir)
+	err := store.Connect(ctx, dataDir)
+	if err != nil {
+		panic(err)
+	}
 	store.SetSession("xyzzy")
-
 	store.SetLock(db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN, false)
-	err := genCode(ctx, store)
+	err = genCode(ctx, store)
 	if err != nil {
 		panic(err)
 	}
@@ -122,10 +124,7 @@ func main() {
 	}
 	store.SetLock(db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN, true)
 
-	tg, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU, db.DATATYPE_BIN)
-	if err != nil {
-		panic(err)
-	}
+	tg := resource.NewDbResource(store)
 	rs := resource.NewMenuResource()
 	rs.WithTemplateGetter(tg.GetTemplate)
 	rs.WithMenuGetter(tg.GetMenu)

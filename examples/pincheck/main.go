@@ -78,11 +78,11 @@ func main() {
 	state.FlagDebugger.Register(USERFLAG_VALIDPIN, "VALIDPIN")
 	state.FlagDebugger.Register(USERFLAG_QUERYPIN, "QUERYPIN")
 	store := db.NewFsDb()
-	store.Connect(ctx, scriptDir)
-	rsf, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU, db.DATATYPE_BIN)
+	err := store.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)
 	}
+	rsf := resource.NewDbResource(store)
 	rs := newPinResource(rsf, &st)
 	rsf.AddLocalFunc("pincheck", rs.pinCheck)
 	rsf.AddLocalFunc("pinclear", rs.pinClear)

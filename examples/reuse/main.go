@@ -39,8 +39,12 @@ func main() {
 	ctx := context.Background()
 	st := state.NewState(0)
 	store := db.NewFsDb()
-	store.Connect(ctx, scriptDir)
-	rs, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
+	err := store.Connect(ctx, scriptDir)
+	if err != nil {
+		panic(err)
+	}
+	rs := resource.NewDbResource(store)
+	
 	rs.AddLocalFunc("do_foo", same)
 	rs.AddLocalFunc("do_bar", same)
 	ca := cache.NewCache()

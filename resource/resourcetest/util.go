@@ -43,7 +43,7 @@ func newTestResource(path string) *TestResource {
 	}
 
 	store.Connect(ctx, path)
-	rsd, _ := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU, db.DATATYPE_BIN)
+	rsd := resource.NewDbResource(store)
 	rs := &TestResource{
 		DbResource: rsd,
 		ctx: ctx,

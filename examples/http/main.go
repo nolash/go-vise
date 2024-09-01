@@ -78,11 +78,11 @@ type DefaultSessionHandler struct {
 
 func NewDefaultSessionHandler(ctx context.Context, persistBase string, resourceBase string, rp RequestParser, outputSize uint32, cacheSize uint32, flagCount uint32) *DefaultSessionHandler {
 	store := db.NewFsDb()
-	store.Connect(ctx, resourceBase)
-	rs, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
+	err := store.Connect(ctx, resourceBase)
 	if err != nil {
 		panic(err)
 	}
+	rs := resource.NewDbResource(store)
 	rh := NewLocalHandler()
 	rs.AddLocalFunc("echo", rh.AddSession)
 	return &DefaultSessionHandler{

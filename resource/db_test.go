@@ -13,10 +13,10 @@ func TestDb(t *testing.T) {
 	ctx := context.Background()
 	store := db.NewMemDb()
 	store.Connect(ctx, "")
-	tg, err := NewDbResource(store, db.DATATYPE_TEMPLATE)
-	if err != nil {
-		t.Fatal(err)
-	}
+	tg := NewDbResource(store)
+	tg.Without(db.DATATYPE_BIN)
+	tg.Without(db.DATATYPE_MENU)
+	tg.Without(db.DATATYPE_TEMPLATE)
 	// check that it fulfills interface
 	rsifc = tg
 	_ = rsifc
@@ -39,6 +39,7 @@ func TestDb(t *testing.T) {
 		t.Fatal(err)
 	}
 	store.SetLock(db.DATATYPE_TEMPLATE, true)
+	tg.With(db.DATATYPE_TEMPLATE)
 	s, err = rs.GetTemplate(ctx, "foo")
 	if err != nil {
 		t.Fatal(err)
@@ -58,14 +59,16 @@ func TestDb(t *testing.T) {
 
 	rs.WithCodeGetter(tg.GetCode)
 	b, err := rs.GetCode(ctx, "xyzzy")
+	if err == nil {
+		t.Fatalf("expected error")
+	}
+	tg.With(db.DATATYPE_BIN)
+	b, err = rs.GetCode(ctx, "xyzzy")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	tg, err = NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN)
-	if err != nil {
-		t.Fatal(err)
-	}
+	tg = NewDbResource(store)
 	rs.WithTemplateGetter(tg.GetTemplate)
 
 	rs.WithCodeGetter(tg.GetCode)
@@ -77,10 +80,7 @@ func TestDb(t *testing.T) {
 		t.Fatalf("expected 'deadbeef', got %x", b)
 	}
 
-	tg, err = NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
-	if err != nil {
-		t.Fatal(err)
-	}
+	tg = NewDbResource(store)
 	store.SetPrefix(db.DATATYPE_MENU)
 	store.SetLock(db.DATATYPE_MENU, false)
 	err = store.Put(ctx, []byte("inky"), []byte("pinky"))

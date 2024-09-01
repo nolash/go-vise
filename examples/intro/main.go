@@ -35,11 +35,11 @@ type introResource struct {
 
 func newintroResource(ctx context.Context) introResource {
 	store := db.NewFsDb()
-	store.Connect(ctx, scriptDir) 
-	rs, err := resource.NewDbResource(store, db.DATATYPE_BIN, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU)
+	err := store.Connect(ctx, scriptDir) 
 	if err != nil {
 		panic(err)
 	}
+	rs := resource.NewDbResource(store)
 	return introResource{rs, 0, []string{}}
 }
 

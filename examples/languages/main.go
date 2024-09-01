@@ -92,11 +92,11 @@ func main() {
 	state.FlagDebugger.Register(USERFLAG_FLIP, "FLIP")
 	ctx := context.Background()
 	rsStore := db.NewFsDb()
-	rsStore.Connect(ctx, scriptDir)
-	rs, err := resource.NewDbResource(rsStore, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
+	err := rsStore.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)
 	}
+	rs := resource.NewDbResource(rsStore)
 
 	ca := cache.NewCache()
 	cfg := engine.Config{

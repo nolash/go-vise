@@ -33,10 +33,8 @@ func newTestWrapper(path string, st *state.State) testWrapper {
 	ctx := context.Background()
 	store := db.NewFsDb()
 	store.Connect(ctx, path) 
-	rs, err := resource.NewDbResource(store, db.DATATYPE_BIN, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU, db.DATATYPE_STATICLOAD)
-	if err != nil {
-		panic(err)
-	}
+	rs := resource.NewDbResource(store)
+	rs.With(db.DATATYPE_STATICLOAD)
 	wr := testWrapper {
 		rs, 
 		st,

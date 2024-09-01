@@ -91,11 +91,11 @@ func main() {
 	ctx := context.Background()
 	st := state.NewState(4)
 	rsStore := db.NewFsDb()
-	rsStore.Connect(ctx, dir)
-	rs, err := resource.NewDbResource(rsStore)
+	err := rsStore.Connect(ctx, dir)
 	if err != nil {
 		panic(err)
 	}
+	rs := resource.NewDbResource(rsStore)
 	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",

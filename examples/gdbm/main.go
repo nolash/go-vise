@@ -40,20 +40,16 @@ func main() {
 		panic(err)
 	}
 
-	tg, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN)
-	if err != nil {
-		panic(err)
-	}
+	tg := resource.NewDbResource(store)
+	tg.Without(db.DATATYPE_MENU)
 	rs := resource.NewMenuResource()
 	rs = rs.WithTemplateGetter(tg.GetTemplate)
 	rs = rs.WithCodeGetter(tg.GetCode)
 
 	fsStore := db.NewFsDb()
 	fsStore.Connect(ctx, scriptDir)
-	rsf, err := resource.NewDbResource(fsStore, db.DATATYPE_MENU)
-	if err != nil {
-		panic(err)
-	}
+	rsf := resource.NewDbResource(fsStore)
+	rsf.WithOnly(db.DATATYPE_MENU)
 	rsf.AddLocalFunc("do", do)
 	rs.WithMenuGetter(rsf.GetMenu)
 	rs.WithEntryFuncGetter(rsf.FuncFor)

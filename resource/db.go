@@ -3,7 +3,6 @@ package resource
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"git.defalsify.org/vise.git/db"
 )
@@ -20,27 +19,26 @@ type DbResource struct {
 }
 
 // NewDbFuncGetter instantiates a new DbResource
-func NewDbResource(store db.Db, typs... uint8) (*DbResource, error) {
-	var v uint8
-	g := &DbResource{
+func NewDbResource(store db.Db) *DbResource {
+	return &DbResource{
 		MenuResource: NewMenuResource(),
 		db: store,
 		typs: db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN,
 	}
-	for _, v = range(typs) {
-		if v > resource_max_datatype {
-			return nil, fmt.Errorf("datatype %d is not a resource", v)	
-		}
-		g.typs |= v
-	}
-	return g, nil
 }
 
 func(g *DbResource) Without(typ uint8) *DbResource {
+	g.typs &= ^typ
 	return g
 }
 
 func(g *DbResource) With(typ uint8) *DbResource {
+	g.typs |= typ
+	return g
+}
+
+func(g *DbResource) WithOnly(typ uint8) *DbResource {
+	g.typs = typ
 	return g
 }
 

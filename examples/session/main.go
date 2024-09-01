@@ -67,11 +67,11 @@ func main() {
 	st := state.NewState(0)
 	st.UseDebug()
 	store := db.NewFsDb()
-	store.Connect(ctx, scriptDir)
-	rs, err := resource.NewDbResource(store)
+	err := store.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)
 	}
+	rs := resource.NewDbResource(store)
 	rs.AddLocalFunc("do_save", save)
 	ca := cache.NewCache()
 	cfg := engine.Config{

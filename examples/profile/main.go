@@ -101,11 +101,12 @@ func main() {
 	ctx := context.Background()
 	st := state.NewState(3)
 	store := db.NewFsDb()
-	store.Connect(ctx, scriptDir)
-	rsf, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU, db.DATATYPE_STATICLOAD)
+	err := store.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)
 	}
+	rsf := resource.NewDbResource(store)
+	rsf.With(db.DATATYPE_STATICLOAD)
 	rs, ok := newProfileResource(&st, rsf).(*profileResource)
 	if !ok {
 		os.Exit(1)

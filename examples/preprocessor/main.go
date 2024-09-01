@@ -74,11 +74,11 @@ func main() {
 	st := state.NewState(5)
 	st.UseDebug()
 	store := db.NewFsDb()
-	store.Connect(ctx, scriptDir)
-	rsf, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
+	err := store.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)
 	}
+	rsf := resource.NewDbResource(store)
 	rs, err := newCountResource(scriptDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "aux handler fail: %v\n", err)

@@ -65,7 +65,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	rsf, err := resource.NewDbResource(store)
+	rsf := resource.NewDbResource(store)
 	rs := verifyResource{rsf, &st}
 	rs.AddLocalFunc("verifyinput", rs.verify)
 	rs.AddLocalFunc("again", rs.again)

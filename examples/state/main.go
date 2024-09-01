@@ -76,11 +76,11 @@ func main() {
 	st := state.NewState(3)
 	st.UseDebug()
 	store := db.NewFsDb()
-	store.Connect(ctx, scriptDir)
-	rs, err := resource.NewDbResource(store)
+	err := store.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)
 	}
+	rs := resource.NewDbResource(store)
 	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
