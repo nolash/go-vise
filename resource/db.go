@@ -146,3 +146,8 @@ func(g *DbResource) FuncFor(ctx context.Context, sym string) (EntryFunc, error) 
 		}, nil
 	}, nil
 }
+
+// Close implements the Resource interface.
+func(g *DbResource) Close() error {
+	return g.db.Close()
+}
