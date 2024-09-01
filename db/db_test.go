@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"path"
-	"strconv"
 	"testing"
 
 	"git.defalsify.org/vise.git/lang"
 )
+
 
 type testCase struct {
 	typ uint8
@@ -20,6 +20,7 @@ type testCase struct {
 	v []byte
 	x []byte
 	l *lang.Language
+	t string
 }
 
 type testVector struct {
@@ -28,6 +29,23 @@ type testVector struct {
 	i int
 	s string
 }
+
+type testFunc func() testVector
+
+var (
+	tests = []testFunc{
+//		generateSessionTestVectors,
+		generateLanguageTestVectors,
+	}
+	dataTypeDebug = map[uint8]string{
+		DATATYPE_BIN: "bytecode",
+		DATATYPE_TEMPLATE: "template",
+		DATATYPE_MENU: "menu",
+		DATATYPE_STATICLOAD: "staticload",
+		DATATYPE_STATE: "state",
+		DATATYPE_USERDATA: "udata",
+	}
+)
 
 func(tc *testCase) Key() []byte {
 	return tc.k
@@ -45,8 +63,19 @@ func(tc *testCase) Session() string {
 	return tc.s
 }
 
+func(tc *testCase) Lang() string {
+	if tc.l == nil {
+		return ""
+	}
+	return tc.l.Code
+}
+
 func(tc *testCase) Expect() []byte {
 	return tc.x
+}
+
+func(tc *testCase) Label() string {
+	return tc.t
 }
 
 func(tv *testVector) add(typ uint8, k string, v string, session string, expect string, language string)  {
@@ -76,7 +105,12 @@ func(tv *testVector) add(typ uint8, k string, v string, session string, expect s
 		}
 		ln = &lo
 	}
-
+	s := dataTypeDebug[typ]
+	s = path.Join(s, session)
+	s = path.Join(s, k)
+	if ln != nil {
+		s = path.Join(s, language)
+	}
 	o := &testCase {
 		typ: typ,
 		k: []byte(k),
@@ -84,9 +118,8 @@ func(tv *testVector) add(typ uint8, k string, v string, session string, expect s
 		s: session,
 		x: x,
 		l: ln,
+		t: s,
 	}
-	s := path.Join(strconv.Itoa(int(typ)), session)
-	s = path.Join(s, k)
 	tv.c[s] = o
 	i := len(tv.v)
 	tv.v = append(tv.v, s)
@@ -116,9 +149,18 @@ func(tv *testVector) put(ctx context.Context, db Db) error {
 		if i == -1 {
 			break
 		}
+		logg.TraceCtxf(ctx, "running put for test", "vector", tv.label(), "case", tc.Label())
 		db.SetPrefix(tc.Typ())
 		db.SetSession(tc.Session())
 		db.SetLock(tc.Typ(), false)
+		db.SetLanguage(nil)
+		if tc.Lang() != "" {
+			ln, err := lang.LanguageFromCode(tc.Lang())
+			if err != nil {
+				return err
+			}
+			db.SetLanguage(&ln)
+		}
 		err := db.Put(ctx, tc.Key(), tc.Val())
 		if err != nil {
 			return err
@@ -152,7 +194,9 @@ func generateSessionTestVectors() testVector {
 func generateLanguageTestVectors() testVector {
 	tv := testVector{c: make(map[string]*testCase), s: "language"}
 	tv.add(DATATYPE_BIN, "foo", "deadbeef", "", "beeffeed", "")
-	tv.add(DATATYPE_BIN, "foo", "deadbeef", "", "deadbeef", "nor")
+	tv.add(DATATYPE_BIN, "foo", "beeffeed", "", "beeffeed", "nor")
+	tv.add(DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "tinkywinky", "")
+	tv.add(DATATYPE_TEMPLATE, "foo", "dipsy", "", "dipsy", "nor")
 	return tv
 }
 
@@ -171,6 +215,17 @@ func runTest(t *testing.T, ctx context.Context, db Db, vs testVector) error {
 			s += "Session" + tc.Session()
 		} else {
 			s += "NoSession"
+		}
+		if tc.Lang() != "" {
+			ln, err := lang.LanguageFromCode(tc.Lang())
+			if err != nil {
+				return err
+			}
+			s += "Lang" + ln.Code
+			db.SetLanguage(&ln)
+		} else {
+			s += "DefaultLang"
+			db.SetLanguage(nil)
 		}
 		r := t.Run(s, func(t *testing.T) {
 			db.SetPrefix(tc.Typ())
@@ -191,14 +246,11 @@ func runTest(t *testing.T, ctx context.Context, db Db, vs testVector) error {
 
 }
 func runTests(t *testing.T, ctx context.Context, db Db) error {
-	err := runTest(t, ctx, db, generateSessionTestVectors())
-	if err != nil {
-		return err
-	}
-
-	err = runTest(t, ctx, db, generateLanguageTestVectors())
-	if err != nil {
-		return err
+	for _, fn := range tests {
+		err := runTest(t, ctx, db, fn())
+		if err != nil {
+			return err
+		}
 	}
 	
 	return nil

@@ -54,6 +54,8 @@ type Db interface {
 	SetLock(typ uint8, locked bool) error
 	// Safe returns true if db is safe for use with a vm.
 	Safe() bool
+	// SetLanguage sets the language context to use on consecutive gets or puts
+	SetLanguage(*lang.Language)
 }
 
 type lookupKey struct {
@@ -98,6 +100,10 @@ func(db *baseDb) SetPrefix(pfx uint8) {
 	db.pfx = pfx
 }
 
+// SetLanguage implements the Db interface.
+func(db *baseDb) SetLanguage(ln *lang.Language) {
+	db.lang = ln
+}
 // SetSession implements the Db interface.
 func(db *baseDb) SetSession(sessionId string) {
 	db.sid = append([]byte(sessionId), 0x2E)
@@ -125,12 +131,11 @@ func(db *baseDb) checkPut() bool {
 	return db.pfx & db.lock == 0
 }
 
-func(db *baseDb) SetLanguage(ln *lang.Language) {
-	db.lang = ln
-}
-
 // ToKey creates a DbKey within the current session context.
+//
+// TODO: hard to read, clean up
 func(db *baseDb) ToKey(ctx context.Context, key []byte) (lookupKey, error) {
+	var ln *lang.Language
 	var lk lookupKey
 	var b []byte
 	if db.pfx == DATATYPE_UNKNOWN {
@@ -143,9 +148,17 @@ func(db *baseDb) ToKey(ctx context.Context, key []byte) (lookupKey, error) {
 	}
 	lk.Default = ToDbKey(db.pfx, b, nil)
 	if db.pfx & (DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD) > 0 {
-		ln, ok := ctx.Value("Language").(lang.Language)
-		if ok {
-			lk.Translation = ToDbKey(db.pfx, b, &ln)
+		if db.lang != nil {
+			ln = db.lang
+		} else {
+			lo, ok := ctx.Value("Language").(lang.Language)
+			if ok {
+				ln = &lo
+			}
+		}
+		logg.TraceCtxf(ctx, "language using", "ln", ln)
+		if ln != nil {
+			lk.Translation = ToDbKey(db.pfx, b, ln)
 		}
 	}
 	return lk, nil
