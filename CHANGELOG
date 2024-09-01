@@ -1,5 +1,6 @@
 - 0.1.0
-	* Data storage interface with implementations for memory (db.MemDb), filesystem (db.FsDb), gdbm (db.GdbmDb) and Postgres (db.PgDb).
+	* Data storage interface (db.Db) with implementations for memory (db.memDb), filesystem (db.fsDb), gdbm (db.gdbmDb) and Postgres (db.pgDb).
+	* Replace resource.FsResource and resource.MemResource with resource.DbResource using corresponding db.Db backend.
 	* Pre-VM EntryFunc hook to allow execution prevention (e.g. blocked access).
 	* Base HTTP server engine interface.
 	* Tool to collect templates, code, menus with translations to a single gdbm file, usable with db.GdbmDb.
