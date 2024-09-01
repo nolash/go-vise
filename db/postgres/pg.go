@@ -6,11 +6,13 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"git.defalsify.org/vise.git/db"
 )
 
 // pgDb is a Postgres backend implementation of the Db interface.
 type pgDb struct {
-	baseDb
+	*db.BaseDb
 	conn *pgxpool.Pool
 	schema string
 	prefix uint8
@@ -19,9 +21,9 @@ type pgDb struct {
 // NewpgDb creates a new Postgres backed Db implementation.
 func NewPgDb() *pgDb {
 	db := &pgDb{
+		BaseDb: db.NewBaseDb(),
 		schema: "public",
 	}
-	db.baseDb.defaultLock()
 	return db
 }
 
@@ -47,7 +49,7 @@ func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 
 // Put implements Db.
 func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
-	if !pdb.checkPut() {
+	if !pdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
 	}
 	k, err := pdb.ToKey(ctx, key)
@@ -102,7 +104,7 @@ func(pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	}
 	defer rs.Close()
 	if !rs.Next() {
-		return nil, NewErrNotFound(key)
+		return nil, db.NewErrNotFound(key)
 	}
 	r := rs.RawValues()
 	return r[0], nil

@@ -17,14 +17,15 @@ type fsLookupKey struct {
 
 // pure filesystem backend implementation if the Db interface.
 type fsDb struct {
-	baseDb
+	*BaseDb
 	dir string
 }
 
 // NewFsDb creates a filesystem backed Db implementation.
 func NewFsDb() *fsDb {
-	db := &fsDb{}
-	db.baseDb.defaultLock()
+	db := &fsDb{
+		BaseDb: NewBaseDb(),
+	}
 	return db
 }
 

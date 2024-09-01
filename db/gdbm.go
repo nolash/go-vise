@@ -10,15 +10,16 @@ import (
 
 // gdbmDb is a gdbm backend implementation of the Db interface.
 type gdbmDb struct {
-	baseDb
+	*BaseDb
 	conn *gdbm.Database
 	prefix uint8
 }
 
 // Creates a new gdbm backed Db implementation.
 func NewGdbmDb() *gdbmDb {
-	db := &gdbmDb{}
-	db.baseDb.defaultLock()
+	db := &gdbmDb{
+		BaseDb: NewBaseDb(),
+	}
 	return db
 }
 

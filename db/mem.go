@@ -14,14 +14,16 @@ type memLookupKey struct {
 
 // memDb is a memory backend implementation of the Db interface.
 type memDb struct {
-	baseDb
+	*BaseDb
 	store map[string][]byte
 }
 
 // NewmemDb returns an in-process volatile Db implementation.
 func NewMemDb() *memDb {
-	db := &memDb{}
-	db.baseDb.defaultLock()
+	db := &memDb{
+		BaseDb: NewBaseDb(),
+	}
+	db.BaseDb.defaultLock()
 	return db
 }
 
