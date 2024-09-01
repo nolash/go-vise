@@ -6,6 +6,23 @@ import (
 	"testing"
 )
 
+func TestCasesPg(t *testing.T) {
+	ctx := context.Background()
+
+	db := NewPgDb().WithSchema("vvise")
+	t.Skip("need postgresql mock")
+
+	err := db.Connect(ctx, "postgres://vise:esiv@localhost:5432/visedb")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = runTests(t, ctx, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPutGetPg(t *testing.T) {
 	var dbi Db
 	ses := "xyzzy"

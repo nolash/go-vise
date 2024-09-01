@@ -7,6 +7,25 @@ import (
 	"testing"
 )
 
+func TestCasesGdbm(t *testing.T) {
+	ctx := context.Background()
+
+	db := NewGdbmDb()
+	f, err := ioutil.TempFile("", "vise-db-gdbm-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = db.Connect(ctx, f.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = runTests(t, ctx, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPutGetGdbm(t *testing.T) {
 	var dbi Db
 	ctx := context.Background()

@@ -9,6 +9,25 @@ import (
 	"testing"
 )
 
+func TestCasesFs(t *testing.T) {
+	ctx := context.Background()
+
+	db := NewFsDb()
+	d, err := ioutil.TempDir("", "vise-db-fs-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = db.Connect(ctx, d)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = runTests(t, ctx, db)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPutGetFs(t *testing.T) {
 	var dbi Db
 	ctx := context.Background()
