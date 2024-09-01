@@ -94,11 +94,13 @@ func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if err != nil {
 		return err
 	}
+	logg.TraceCtxf(ctx, "fs put", "key", key, "lk", lk, "flk", flk, "val", val)
 	if flk.Translation != "" {
 		err = ioutil.WriteFile(flk.Translation, val, 0600)
 		if err != nil {
 			return err
 		}
+		return nil
 	}
 	return ioutil.WriteFile(flk.Default, val, 0600)
 }

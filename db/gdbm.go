@@ -54,6 +54,7 @@ func(gdb *gdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if err != nil {
 		return err
 	}
+	logg.TraceCtxf(ctx, "gdbm put", "key", key, "lk", lk, "val", val)
 	if lk.Translation != nil {
 		return gdb.conn.Store(lk.Translation, val, true)
 	}
@@ -74,6 +75,7 @@ func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 				return nil, err
 			}
 		}
+		return v, nil
 	}
 	v, err = gdb.conn.Fetch(lk.Default)
 	if err != nil {

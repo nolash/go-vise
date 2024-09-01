@@ -85,7 +85,7 @@ func(mdb *memDb) Put(ctx context.Context, key []byte, val []byte) error {
 		k = mk.Default
 	}
 	mdb.store[k] = val
-	logg.TraceCtxf(ctx, "mem put", "k", k, "v", val)
+	logg.TraceCtxf(ctx, "mem put", "k", k, "mk", mk, "v", val)
 	return nil
 }
 

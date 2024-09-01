@@ -261,26 +261,19 @@ func runTest(t *testing.T, ctx context.Context, db Db, vs testVector) error {
 		if i == -1 {
 			break
 		}
-		ts := dataTypeDebug[tc.Typ()]
-		s := fmt.Sprintf("Test%s[%d]Type%sKey%s", vs.label(), i, ts, tc.Key())
-		if tc.Session() != "" {
-			s += "Session" + tc.Session()
-		} else {
-			s += "NoSession"
-		}
-		if tc.Lang() != "" {
-			ln, err := lang.LanguageFromCode(tc.Lang())
-			if err != nil {
-				return err
-			}
-			s += "Lang" + ln.Code
-			db.SetLanguage(&ln)
-		} else {
-			s += "DefaultLang"
-			db.SetLanguage(nil)
-		}
+		s := fmt.Sprintf("Test%s[%d]%s", vs.label(), i, tc.Label())
 		r := t.Run(s, func(t *testing.T) {
 			db.SetPrefix(tc.Typ())
+			db.SetSession(tc.Session())
+			if tc.Lang() != "" {
+				ln, err := lang.LanguageFromCode(tc.Lang())
+				if err != nil {
+					t.Fatal(err)
+				}
+				db.SetLanguage(&ln)
+			} else {
+				db.SetLanguage(nil)
+			}
 			db.SetSession(tc.Session())
 			v, err := db.Get(ctx, tc.Key())
 			if err != nil {
