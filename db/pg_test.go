@@ -10,7 +10,7 @@ func TestPutGetPg(t *testing.T) {
 	var dbi Db
 	ses := "xyzzy"
 	db := NewPgDb().WithSchema("vvise")
-	db.SetPrefix(DATATYPE_USERSTART)
+	db.SetPrefix(DATATYPE_USERDATA)
 	db.SetSession(ses)
 	ctx := context.Background()
 

@@ -18,7 +18,7 @@ func TestPutGetFs(t *testing.T) {
 		t.Fatal(err)
 	}
 	db := NewFsDb()
-	db.SetPrefix(DATATYPE_USERSTART)
+	db.SetPrefix(DATATYPE_USERDATA)
 	db.SetSession(sid)
 
 	dbi = db

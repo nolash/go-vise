@@ -16,7 +16,7 @@ func TestPutGetGdbm(t *testing.T) {
 		t.Fatal(err)
 	}
 	db := NewGdbmDb()
-	db.SetPrefix(DATATYPE_USERSTART)
+	db.SetPrefix(DATATYPE_USERDATA)
 	db.SetSession(sid)
 
 	dbi = db

@@ -8,6 +8,10 @@ import (
 )
 
 const (
+	safeLock =DATATYPE_BIN | DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD
+)
+
+const (
 	// Invalid datatype, must raise error if attempted used.
 	DATATYPE_UNKNOWN = 0
 	// Bytecode
@@ -21,11 +25,11 @@ const (
 	// State and cache from persister
 	DATATYPE_STATE = 16
 	// Application data
-	DATATYPE_USERSTART = 32
+	DATATYPE_USERDATA = 32
 )
 
 const (
-	datatype_sessioned_threshold = DATATYPE_TEMPLATE
+	datatype_sessioned_threshold = DATATYPE_STATICLOAD
 )
 
 // Db abstracts all data storage and retrieval as a key-value store
@@ -45,7 +49,11 @@ type Db interface {
 	// * DATATYPE_STATE
 	// * DATATYPE_USERSTART
 	SetSession(sessionId string)
-	SetLock(typ uint8, locked bool)
+	// SetLock disables modification of data that is readonly in the vm context.
+	// If called with typ value 0, it will permanently lock all readonly members.
+	SetLock(typ uint8, locked bool) error
+	// Safe returns true if db is safe for use with a vm.
+	Safe() bool
 }
 
 type lookupKey struct {
@@ -73,30 +81,44 @@ type baseDb struct {
 	sid []byte
 	lock uint8
 	lang *lang.Language
+	seal bool
 }
 
 // ensures default locking of read-only entries
 func(db *baseDb) defaultLock() {
-	db.lock = DATATYPE_BIN | DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD
+	db.lock |= safeLock
 }
 
-// SetPrefix implements Db.
+func(db *baseDb) Safe() bool {
+	return db.lock & safeLock == safeLock
+}
+
+// SetPrefix implements the Db interface.
 func(db *baseDb) SetPrefix(pfx uint8) {
 	db.pfx = pfx
 }
 
-// SetSession implements Db.
+// SetSession implements the Db interface.
 func(db *baseDb) SetSession(sessionId string) {
 	db.sid = append([]byte(sessionId), 0x2E)
 }
 
-// SetSafety disables modification of data that 
-func(db *baseDb) SetLock(pfx uint8, lock bool) {
+// SetLock implements the Db interface.
+func(db *baseDb) SetLock(pfx uint8, lock bool) error {
+	if db.seal {
+		return errors.New("SetLock on sealed db")
+	}
+	if pfx == 0 {
+		db.seal = true
+		db.defaultLock()
+		return nil
+	}
 	if lock {
 		db.lock	|= pfx
 	} else {
 		db.lock &= ^pfx
 	}
+	return nil
 }
 
 func(db *baseDb) checkPut() bool {
@@ -125,6 +147,6 @@ func(db *baseDb) ToKey(ctx context.Context, key []byte) (lookupKey, error) {
 		if ok {
 			lk.Translation = ToDbKey(db.pfx, b, &ln)
 		}
-	}	
+	}
 	return lk, nil
 }

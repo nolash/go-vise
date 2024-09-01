@@ -42,6 +42,7 @@ func(mdb *memDb) toHexKey(ctx context.Context, key []byte) (memLookupKey, error)
 	if lk.Translation != nil {
 		mk.Translation = hex.EncodeToString(lk.Translation)
 	}
+	logg.TraceCtxf(ctx, "converted key", "orig", key, "b", lk, "s", mk)
 	return mk, err
 }
 
