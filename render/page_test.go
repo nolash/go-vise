@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
-	"git.defalsify.org/vise.git/resource/resourcetest"
+	"git.defalsify.org/vise.git/internal/resourcetest"
 )
 
 

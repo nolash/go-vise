@@ -10,30 +10,9 @@ import (
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/logging"
 )
-//
-//type TestdataDb struct {
-//	db db.Db	
-//}
-//
-//var (
-//	store *TestdataDb
-//	ctx = context.Background()
-//)
-//
-//func NewTestDataDb(path string) *TestdataDb {
-//	store := db.NewFsDb()
-//	store.Connect(ctx, path)
-//	store.SetLock(db.DATATYPE_BIN, false)
-//	store.SetLock(db.DATATYPE_MENU, false)
-//	store.SetLock(db.DATATYPE_TEMPLATE, false)
-//	return &TestdataDb{
-//		db: store,
-//	}
-//}
 
 var (
 	ctx = context.Background()
-	//testResource = resourcetest.NewTestResource()
 	store = db.NewFsDb()
 	out = outNew
 	logg = logging.NewVanilla().WithDomain("testdata")

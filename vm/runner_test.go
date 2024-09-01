@@ -10,7 +10,7 @@ import (
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/render"
 	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/resource/resourcetest"
+	"git.defalsify.org/vise.git/internal/resourcetest"
 	"git.defalsify.org/vise.git/state"
 )
 
