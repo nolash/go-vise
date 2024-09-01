@@ -33,7 +33,7 @@ func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 	var db *gdbm.Database
 	_, err := os.Stat(connStr)
 	if err != nil {
-		if !errors.Is(os.ErrNotExist, err) {
+		if !errors.Is(err.(*os.PathError).Unwrap(), os.ErrNotExist) {
 			return err
 		}
 		db, err = gdbm.Open(connStr, gdbm.ModeWrcreat)
