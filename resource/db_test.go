@@ -28,7 +28,6 @@ func TestDb(t *testing.T) {
 		t.Fatal("expected error")
 	}
 
-
 	store.SetPrefix(db.DATATYPE_TEMPLATE)
 	err = store.Put(ctx, []byte("foo"), []byte("bar"))
 	if err == nil {
@@ -59,8 +58,8 @@ func TestDb(t *testing.T) {
 
 	rs.WithCodeGetter(tg.GetCode)
 	b, err := rs.GetCode(ctx, "xyzzy")
-	if err == nil {
-		t.Fatal("expected error")
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	tg, err = NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN)

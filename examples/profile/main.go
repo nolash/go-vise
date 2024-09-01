@@ -16,6 +16,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/db"
 )
 
 const (
@@ -31,12 +32,12 @@ var (
 )
 
 type profileResource struct {
-	*resource.FsResource
+	*resource.DbResource
 	st *state.State
 	haveEntered bool
 }
 
-func newProfileResource(st *state.State, rs *resource.FsResource) resource.Resource {
+func newProfileResource(st *state.State, rs *resource.DbResource) resource.Resource {
 	return &profileResource{
 		rs,
 		st,
@@ -97,8 +98,14 @@ func main() {
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
+	ctx := context.Background()
 	st := state.NewState(3)
-	rsf := resource.NewFsResource(scriptDir)
+	store := db.NewFsDb()
+	store.Connect(ctx, scriptDir)
+	rsf, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU, db.DATATYPE_STATICLOAD)
+	if err != nil {
+		panic(err)
+	}
 	rs, ok := newProfileResource(&st, rsf).(*profileResource)
 	if !ok {
 		os.Exit(1)
@@ -111,9 +118,7 @@ func main() {
 		SessionId: sessionId,
 		OutputSize: uint32(size),
 	}
-	ctx := context.Background()
 	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
-	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)

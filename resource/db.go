@@ -25,6 +25,7 @@ func NewDbResource(store db.Db, typs... uint8) (*DbResource, error) {
 	g := &DbResource{
 		MenuResource: NewMenuResource(),
 		db: store,
+		typs: db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN,
 	}
 	for _, v = range(typs) {
 		if v > resource_max_datatype {
@@ -33,6 +34,14 @@ func NewDbResource(store db.Db, typs... uint8) (*DbResource, error) {
 		g.typs |= v
 	}
 	return g, nil
+}
+
+func(g *DbResource) Without(typ uint8) *DbResource {
+	return g
+}
+
+func(g *DbResource) With(typ uint8) *DbResource {
+	return g
 }
 
 func(g *DbResource) fn(ctx context.Context, sym string) ([]byte, error) {
@@ -93,7 +102,13 @@ func(g *DbResource) FuncFor(ctx context.Context, sym string) (EntryFunc, error) 
 	g.db.SetPrefix(db.DATATYPE_STATICLOAD)
 	b, err := g.fn(ctx, sym)
 	if err != nil {
-		return nil, err
+		if !db.IsNotFound(err) {
+			return nil, err
+		}
+		b, err = g.fn(ctx, sym + ".txt")
+		if err != nil {
+			return nil, err
+		}
 	}
 	return func(ctx context.Context, nodeSym string, input []byte) (Result, error) {
 		return Result{

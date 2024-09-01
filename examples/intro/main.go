@@ -15,6 +15,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/db"
 )
 
 const (
@@ -27,14 +28,19 @@ var (
 )
 
 type introResource struct {
-	*resource.FsResource 
+	*resource.DbResource
 	c int64
 	v []string
 }
 
-func newintroResource() introResource {
-	fs := resource.NewFsResource(scriptDir)
-	return introResource{fs, 0, []string{}}
+func newintroResource(ctx context.Context) introResource {
+	store := db.NewFsDb()
+	store.Connect(ctx, scriptDir) 
+	rs, err := resource.NewDbResource(store, db.DATATYPE_BIN, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU)
+	if err != nil {
+		panic(err)
+	}
+	return introResource{rs, 0, []string{}}
 }
 
 // increment counter.
@@ -74,9 +80,10 @@ func main() {
 	flag.StringVar(&sessionId, "session-id", "default", "session id")
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
-
+	
+	ctx := context.Background()
 	st := state.NewState(3)
-	rs := newintroResource()
+	rs := newintroResource(ctx)
 	rs.AddLocalFunc("count", rs.count)
 	rs.AddLocalFunc("something", rs.something)
 	ca := cache.NewCache()
@@ -85,7 +92,6 @@ func main() {
 		SessionId: sessionId,
 		OutputSize: uint32(size),
 	}
-	ctx := context.Background()
 	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
 	var err error
 	_, err = en.Init(ctx)

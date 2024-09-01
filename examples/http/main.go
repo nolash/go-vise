@@ -76,8 +76,13 @@ type DefaultSessionHandler struct {
 	peBase string
 }
 
-func NewDefaultSessionHandler(persistBase string, resourceBase string, rp RequestParser, outputSize uint32, cacheSize uint32, flagCount uint32) *DefaultSessionHandler {
-	rs := resource.NewFsResource(resourceBase)
+func NewDefaultSessionHandler(ctx context.Context, persistBase string, resourceBase string, rp RequestParser, outputSize uint32, cacheSize uint32, flagCount uint32) *DefaultSessionHandler {
+	store := db.NewFsDb()
+	store.Connect(ctx, resourceBase)
+	rs, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
+	if err != nil {
+		panic(err)
+	}
 	rh := NewLocalHandler()
 	rs.AddLocalFunc("echo", rh.AddSession)
 	return &DefaultSessionHandler{
@@ -195,8 +200,9 @@ func main() {
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting server:\n\tpersistence dir: %s\n\tresource dir: %s\n", rsDir, peDir)
 
+	ctx := context.Background()
 	rp := &DefaultRequestParser{}
-	h := NewDefaultSessionHandler(peDir, rsDir, rp, uint32(outSize), uint32(cacheSize), uint32(flagCount))
+	h := NewDefaultSessionHandler(ctx, peDir, rsDir, rp, uint32(outSize), uint32(cacheSize), uint32(flagCount))
 	s := &http.Server{
 		Addr: fmt.Sprintf("%s:%s", host, port),
 		Handler: h,

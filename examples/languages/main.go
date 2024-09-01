@@ -90,18 +90,23 @@ func empty(ctx context.Context, sym string, input []byte) (resource.Result, erro
 func main() {
 	st := state.NewState(1)
 	state.FlagDebugger.Register(USERFLAG_FLIP, "FLIP")
-	rs := resource.NewFsResource(scriptDir)
+	ctx := context.Background()
+	rsStore := db.NewFsDb()
+	rsStore.Connect(ctx, scriptDir)
+	rs, err := resource.NewDbResource(rsStore, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
+	if err != nil {
+		panic(err)
+	}
 
 	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
 		SessionId: "default",
 	}
-	ctx := context.Background()
 
 	dp := path.Join(scriptDir, ".state")
 	store := db.NewFsDb()
-	err := store.Connect(ctx, dp)
+	err = store.Connect(ctx, dp)
 	if err != nil {
 		logg.ErrorCtxf(ctx, "db connect fail", "err", err)
 		os.Exit(1)

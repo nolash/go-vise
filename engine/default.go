@@ -59,7 +59,7 @@ func NewSizedEngine(dir string, size uint32, persistDb db.Db, session *string) (
 	ctx := context.Background()
 	store := db.NewFsDb()
 	store.Connect(ctx, dir)
-	rs, err := resource.NewDbResource(store)
+	rs, err := resource.NewDbResource(store, db.DATATYPE_BIN, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU)
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/db"
 )
 
 var (
@@ -27,7 +28,7 @@ const (
 )
 
 type verifyResource struct {
-	*resource.FsResource
+	*resource.DbResource
 	st *state.State
 }
 
@@ -56,8 +57,15 @@ func main() {
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "SessionId", sessionId)
 	st := state.NewState(1)
-	rsf := resource.NewFsResource(scriptDir)
+	store := db.NewFsDb()
+	err := store.Connect(ctx, scriptDir)
+	if err != nil {
+		panic(err)
+	}
+	rsf, err := resource.NewDbResource(store)
 	rs := verifyResource{rsf, &st}
 	rs.AddLocalFunc("verifyinput", rs.verify)
 	rs.AddLocalFunc("again", rs.again)
@@ -67,10 +75,7 @@ func main() {
 		SessionId: sessionId,
 		OutputSize: uint32(size),
 	}
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, "SessionId", sessionId)
 	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
-	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)

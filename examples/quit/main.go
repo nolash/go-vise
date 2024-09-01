@@ -13,6 +13,7 @@ import (
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/db"
 )
 
 var (
@@ -30,16 +31,18 @@ func main() {
 	st := state.NewState(0)
 	st.UseDebug()
 	ca := cache.NewCache()
-	rs := resource.NewFsResource(scriptDir)
+
+	ctx := context.Background()
+	store := db.NewFsDb()
+	store.Connect(ctx, scriptDir)
+	rs, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_BIN, db.DATATYPE_MENU)
 	cfg := engine.Config{
 		Root: "root",
 	}
-	ctx := context.Background()
 	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
 
 	rs.AddLocalFunc("quitcontent", quit)
 
-	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)

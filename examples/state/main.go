@@ -14,6 +14,7 @@ import (
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/logging"
+	"git.defalsify.org/vise.git/db"
 )
 
 const (
@@ -71,14 +72,19 @@ func main() {
 	root := "root"
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
+	ctx := context.Background()
 	st := state.NewState(3)
 	st.UseDebug()
-	rs := resource.NewFsResource(scriptDir)
+	store := db.NewFsDb()
+	store.Connect(ctx, scriptDir)
+	rs, err := resource.NewDbResource(store)
+	if err != nil {
+		panic(err)
+	}
 	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
 	}
-	ctx := context.Background()
 	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
 	en.SetDebugger(engine.NewSimpleDebug(nil))
 
@@ -91,7 +97,6 @@ func main() {
 	state.FlagDebugger.Register(USER_FOO, "FOO")
 	state.FlagDebugger.Register(USER_BAR, "BAR")
 	state.FlagDebugger.Register(USER_BAZ, "BAZ")
-	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)

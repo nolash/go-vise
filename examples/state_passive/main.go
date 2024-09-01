@@ -90,7 +90,12 @@ func main() {
 
 	ctx := context.Background()
 	st := state.NewState(4)
-	rs := resource.NewFsResource(dir)
+	rsStore := db.NewFsDb()
+	rsStore.Connect(ctx, dir)
+	rs, err := resource.NewDbResource(rsStore)
+	if err != nil {
+		panic(err)
+	}
 	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
@@ -99,7 +104,7 @@ func main() {
 
 	dp := path.Join(dir, ".state")
 	store := db.NewFsDb()
-	err := store.Connect(ctx, dp)
+	err = store.Connect(ctx, dp)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "db connect fail: %s", err)
 		os.Exit(1)

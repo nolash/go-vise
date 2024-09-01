@@ -16,6 +16,7 @@ import (
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/logging"
+	"git.defalsify.org/vise.git/db"
 )
 
 const (
@@ -71,11 +72,17 @@ func main() {
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
+	ctx := context.Background()
 	st := state.NewState(3)
 	st.UseDebug()
 	state.FlagDebugger.Register(USERFLAG_VALIDPIN, "VALIDPIN")
 	state.FlagDebugger.Register(USERFLAG_QUERYPIN, "QUERYPIN")
-	rsf := resource.NewFsResource(scriptDir)
+	store := db.NewFsDb()
+	store.Connect(ctx, scriptDir)
+	rsf, err := resource.NewDbResource(store, db.DATATYPE_TEMPLATE, db.DATATYPE_MENU, db.DATATYPE_BIN)
+	if err != nil {
+		panic(err)
+	}
 	rs := newPinResource(rsf, &st)
 	rsf.AddLocalFunc("pincheck", rs.pinCheck)
 	rsf.AddLocalFunc("pinclear", rs.pinClear)
@@ -83,9 +90,7 @@ func main() {
 	cfg := engine.Config{
 		Root: "root",
 	}
-	ctx := context.Background()
 	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
-	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
