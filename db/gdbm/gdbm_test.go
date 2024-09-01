@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/db/dbtest"
 )
 
 func TestCasesGdbm(t *testing.T) {
@@ -22,7 +23,7 @@ func TestCasesGdbm(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = db.RunTests(t, ctx, store)
+	err = dbtest.RunTests(t, ctx, store)
 	if err != nil {
 		t.Fatal(err)
 	}

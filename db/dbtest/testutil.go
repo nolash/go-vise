@@ -1,4 +1,4 @@
-package db
+package dbtest
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"git.defalsify.org/vise.git/lang"
+	"git.defalsify.org/vise.git/db"
 )
 
 
@@ -41,12 +42,12 @@ var (
 		generateSessionLanguageTestVectors,
 	}
 	dataTypeDebug = map[uint8]string{
-		DATATYPE_BIN: "bytecode",
-		DATATYPE_TEMPLATE: "template",
-		DATATYPE_MENU: "menu",
-		DATATYPE_STATICLOAD: "staticload",
-		DATATYPE_STATE: "state",
-		DATATYPE_USERDATA: "udata",
+		db.DATATYPE_BIN: "bytecode",
+		db.DATATYPE_TEMPLATE: "template",
+		db.DATATYPE_MENU: "menu",
+		db.DATATYPE_STATICLOAD: "staticload",
+		db.DATATYPE_STATE: "state",
+		db.DATATYPE_USERDATA: "udata",
 	}
 )
 
@@ -87,7 +88,7 @@ func(tv *testVector) add(typ uint8, k string, v string, session string, expect s
 	var err error
 	var ln *lang.Language
 
-	if typ == DATATYPE_BIN {
+	if typ == db.DATATYPE_BIN {
 		b, err = hex.DecodeString(v)
 		if err != nil {
 			panic(err)
@@ -142,7 +143,7 @@ func(tv *testVector) rewind() {
 	tv.i = 0
 }
 
-func(tv *testVector) put(ctx context.Context, db Db) error {
+func(tv *testVector) put(ctx context.Context, db db.Db) error {
 	var i int
 	var tc *testCase
 	defer tv.rewind()
@@ -179,79 +180,79 @@ func(tv *testVector) label() string {
 
 func generateSessionTestVectors() testVector {
 	tv := testVector{c: make(map[string]*testCase), s: "session"}
-	tv.add(DATATYPE_BIN, "foo", "deadbeef", "", "beeffeed", "")
-	tv.add(DATATYPE_BIN, "foo", "beeffeed", "inky", "beeffeed", "")
-	tv.add(DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "dipsy", "")
-	tv.add(DATATYPE_TEMPLATE, "foo", "dipsy", "pinky", "dipsy", "")
-	tv.add(DATATYPE_MENU, "foo", "lala", "", "pu", "")
-	tv.add(DATATYPE_MENU, "foo", "pu", "blinky", "pu", "")
-	tv.add(DATATYPE_STATICLOAD, "foo", "bar", "", "baz", "")
-	tv.add(DATATYPE_STATICLOAD, "foo", "baz", "clyde", "baz", "")
-	tv.add(DATATYPE_STATE, "foo", "xyzzy", "", "xyzzy", "")
-	tv.add(DATATYPE_STATE, "foo", "plugh", "sue", "plugh", "")
-	tv.add(DATATYPE_USERDATA, "foo", "itchy", "", "itchy", "")
-	tv.add(DATATYPE_USERDATA, "foo", "scratchy", "poochie", "scratchy", "")
+	tv.add(db.DATATYPE_BIN, "foo", "deadbeef", "", "beeffeed", "")
+	tv.add(db.DATATYPE_BIN, "foo", "beeffeed", "inky", "beeffeed", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "dipsy", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "dipsy", "pinky", "dipsy", "")
+	tv.add(db.DATATYPE_MENU, "foo", "lala", "", "pu", "")
+	tv.add(db.DATATYPE_MENU, "foo", "pu", "blinky", "pu", "")
+	tv.add(db.DATATYPE_STATICLOAD, "foo", "bar", "", "baz", "")
+	tv.add(db.DATATYPE_STATICLOAD, "foo", "baz", "clyde", "baz", "")
+	tv.add(db.DATATYPE_STATE, "foo", "xyzzy", "", "xyzzy", "")
+	tv.add(db.DATATYPE_STATE, "foo", "plugh", "sue", "plugh", "")
+	tv.add(db.DATATYPE_USERDATA, "foo", "itchy", "", "itchy", "")
+	tv.add(db.DATATYPE_USERDATA, "foo", "scratchy", "poochie", "scratchy", "")
 	return tv
 }
 
 func generateLanguageTestVectors() testVector {
 	tv := testVector{c: make(map[string]*testCase), s: "language"}
-	tv.add(DATATYPE_BIN, "foo", "deadbeef", "", "beeffeed", "")
-	tv.add(DATATYPE_BIN, "foo", "beeffeed", "", "beeffeed", "nor")
-	tv.add(DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "tinkywinky", "")
-	tv.add(DATATYPE_TEMPLATE, "foo", "dipsy", "", "dipsy", "nor")
-	tv.add(DATATYPE_MENU, "foo", "lala", "", "lala", "")
-	tv.add(DATATYPE_MENU, "foo", "pu", "", "pu", "nor")
-	tv.add(DATATYPE_STATICLOAD, "foo", "bar", "", "bar", "")
-	tv.add(DATATYPE_STATICLOAD, "foo", "baz", "", "baz", "nor")
-	tv.add(DATATYPE_STATE, "foo", "xyzzy", "", "plugh", "")
-	tv.add(DATATYPE_STATE, "foo", "plugh", "", "plugh", "nor")
-	tv.add(DATATYPE_USERDATA, "foo", "itchy", "", "scratchy", "")
-	tv.add(DATATYPE_USERDATA, "foo", "scratchy", "", "scratchy", "nor")
+	tv.add(db.DATATYPE_BIN, "foo", "deadbeef", "", "beeffeed", "")
+	tv.add(db.DATATYPE_BIN, "foo", "beeffeed", "", "beeffeed", "nor")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "tinkywinky", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "dipsy", "", "dipsy", "nor")
+	tv.add(db.DATATYPE_MENU, "foo", "lala", "", "lala", "")
+	tv.add(db.DATATYPE_MENU, "foo", "pu", "", "pu", "nor")
+	tv.add(db.DATATYPE_STATICLOAD, "foo", "bar", "", "bar", "")
+	tv.add(db.DATATYPE_STATICLOAD, "foo", "baz", "", "baz", "nor")
+	tv.add(db.DATATYPE_STATE, "foo", "xyzzy", "", "plugh", "")
+	tv.add(db.DATATYPE_STATE, "foo", "plugh", "", "plugh", "nor")
+	tv.add(db.DATATYPE_USERDATA, "foo", "itchy", "", "scratchy", "")
+	tv.add(db.DATATYPE_USERDATA, "foo", "scratchy", "", "scratchy", "nor")
 	return tv
 }
 
 func generateMultiLanguageTestVectors() testVector {
 	tv := testVector{c: make(map[string]*testCase), s: "multilanguage"}
-	tv.add(DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "pu", "")
-	tv.add(DATATYPE_TEMPLATE, "foo", "dipsy", "", "dipsy", "nor")
-	tv.add(DATATYPE_TEMPLATE, "foo", "lala", "", "lala", "swa")
-	tv.add(DATATYPE_TEMPLATE, "foo", "pu", "", "pu", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "pu", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "dipsy", "", "dipsy", "nor")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "lala", "", "lala", "swa")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "pu", "", "pu", "")
 	return tv
 }
 
 func generateSessionLanguageTestVectors() testVector {
 	tv := testVector{c: make(map[string]*testCase), s: "sessionlanguage"}
-	tv.add(DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "pu", "")
-	tv.add(DATATYPE_TEMPLATE, "foo", "dipsy", "", "lala", "nor")
-	tv.add(DATATYPE_TEMPLATE, "foo", "lala", "bar", "lala", "nor")
-	tv.add(DATATYPE_TEMPLATE, "foo", "pu", "bar", "pu", "")
-	tv.add(DATATYPE_STATE, "foo", "inky", "", "pinky", "")
-	tv.add(DATATYPE_STATE, "foo", "pinky", "", "pinky", "nor")
-	tv.add(DATATYPE_STATE, "foo", "blinky", "bar", "clyde", "nor")
-	tv.add(DATATYPE_STATE, "foo", "clyde", "bar", "clyde", "")
-	tv.add(DATATYPE_BIN, "foo", "deadbeef", "", "feebdaed", "")
-	tv.add(DATATYPE_BIN, "foo", "beeffeed", "", "feebdaed", "nor")
-	tv.add(DATATYPE_BIN, "foo", "deeffeeb", "baz", "feebdaed", "nor")
-	tv.add(DATATYPE_BIN, "foo", "feebdaed", "baz", "feebdaed", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "tinkywinky", "", "pu", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "dipsy", "", "lala", "nor")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "lala", "bar", "lala", "nor")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "pu", "bar", "pu", "")
+	tv.add(db.DATATYPE_STATE, "foo", "inky", "", "pinky", "")
+	tv.add(db.DATATYPE_STATE, "foo", "pinky", "", "pinky", "nor")
+	tv.add(db.DATATYPE_STATE, "foo", "blinky", "bar", "clyde", "nor")
+	tv.add(db.DATATYPE_STATE, "foo", "clyde", "bar", "clyde", "")
+	tv.add(db.DATATYPE_BIN, "foo", "deadbeef", "", "feebdaed", "")
+	tv.add(db.DATATYPE_BIN, "foo", "beeffeed", "", "feebdaed", "nor")
+	tv.add(db.DATATYPE_BIN, "foo", "deeffeeb", "baz", "feebdaed", "nor")
+	tv.add(db.DATATYPE_BIN, "foo", "feebdaed", "baz", "feebdaed", "")
 	return tv
 }
 
 func generateMultiSessionTestVectors() testVector {
 	tv := testVector{c: make(map[string]*testCase), s: "multisession"}
-	tv.add(DATATYPE_TEMPLATE, "foo", "red", "", "blue", "")
-	tv.add(DATATYPE_TEMPLATE, "foo", "green", "bar", "blue", "")
-	tv.add(DATATYPE_TEMPLATE, "foo", "blue", "baz", "blue", "")
-	tv.add(DATATYPE_STATE, "foo", "inky", "", "inky", "")
-	tv.add(DATATYPE_STATE, "foo", "pinky", "clyde", "pinky", "")
-	tv.add(DATATYPE_STATE, "foo", "blinky", "sue", "blinky", "")
-	tv.add(DATATYPE_BIN, "foo", "deadbeef", "", "feebdeef", "")
-	tv.add(DATATYPE_BIN, "foo", "feedbeef", "bar", "feebdeef", "")
-	tv.add(DATATYPE_BIN, "foo", "feebdeef", "baz", "feebdeef", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "red", "", "blue", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "green", "bar", "blue", "")
+	tv.add(db.DATATYPE_TEMPLATE, "foo", "blue", "baz", "blue", "")
+	tv.add(db.DATATYPE_STATE, "foo", "inky", "", "inky", "")
+	tv.add(db.DATATYPE_STATE, "foo", "pinky", "clyde", "pinky", "")
+	tv.add(db.DATATYPE_STATE, "foo", "blinky", "sue", "blinky", "")
+	tv.add(db.DATATYPE_BIN, "foo", "deadbeef", "", "feebdeef", "")
+	tv.add(db.DATATYPE_BIN, "foo", "feedbeef", "bar", "feebdeef", "")
+	tv.add(db.DATATYPE_BIN, "foo", "feebdeef", "baz", "feebdeef", "")
 	return tv
 }
 
-func runTest(t *testing.T, ctx context.Context, db Db, vs testVector) error {
+func runTest(t *testing.T, ctx context.Context, db db.Db, vs testVector) error {
 	err := vs.put(ctx, db)
 	if err != nil {
 		return err
@@ -292,7 +293,7 @@ func runTest(t *testing.T, ctx context.Context, db Db, vs testVector) error {
 }
 
 
-func runTests(t *testing.T, ctx context.Context, db Db) error {
+func runTests(t *testing.T, ctx context.Context, db db.Db) error {
 	for _, fn := range tests {
 		err := runTest(t, ctx, db, fn())
 		if err != nil {
@@ -303,6 +304,6 @@ func runTests(t *testing.T, ctx context.Context, db Db) error {
 	return nil
 }
 
-func RunTests(t *testing.T, ctx context.Context, db Db) error {
+func RunTests(t *testing.T, ctx context.Context, db db.Db) error {
 	return runTests(t, ctx, db)
 }
