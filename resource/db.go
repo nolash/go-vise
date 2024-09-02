@@ -27,11 +27,16 @@ func NewDbResource(store db.Db) *DbResource {
 	if !store.Safe() {
 		logg.Warnf("Db is not safe for use with resource. Make sure it is properly locked before issuing the first retrieval, or it will panic!")
 	}
-	return &DbResource{
+	rs := &DbResource{
 		MenuResource: NewMenuResource(),
 		db: store,
 		typs: db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN,
 	}
+	rs.WithMenuGetter(rs.getMenu)
+	rs.WithCodeGetter(rs.getCode)
+	rs.WithTemplateGetter(rs.getTemplate)
+	rs.WithEntryFuncGetter(rs.funcFor)
+	return rs
 }
 
 // Without is a chainable function that disables handling of the given data type.
@@ -73,10 +78,8 @@ func(g *DbResource) sfn(ctx context.Context, sym string) (string, error) {
 	return string(b), nil
 }
 
-// GetTemplate implements the Resource interface.
-//
 // Will fail if support for db.DATATYPE_TEMPLATE has been disabled.
-func(g *DbResource) GetTemplate(ctx context.Context, sym string) (string, error) {
+func(g *DbResource) getTemplate(ctx context.Context, sym string) (string, error) {
 	if g.typs & db.DATATYPE_TEMPLATE == 0{
 		return "", errors.New("not a template getter")
 	}
@@ -84,10 +87,8 @@ func(g *DbResource) GetTemplate(ctx context.Context, sym string) (string, error)
 	return g.sfn(ctx, sym)
 }
 
-// GetTemplate implements the Resource interface.
-//
 // Will fail if support for db.DATATYPE_MENU has been disabled.
-func(g *DbResource) GetMenu(ctx context.Context, sym string) (string, error) {
+func(g *DbResource) getMenu(ctx context.Context, sym string) (string, error) {
 	if g.typs & db.DATATYPE_MENU == 0{
 		return "", errors.New("not a menu getter")
 	}
@@ -103,26 +104,23 @@ func(g *DbResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	return v, nil
 }
 
-// GetCode implements the Resource interface.
-//
 // Will fail if support for db.DATATYPE_BIN has been disabled.
-func(g *DbResource) GetCode(ctx context.Context, sym string) ([]byte, error) {
-	if g.typs & db.DATATYPE_BIN == 0{
+func(g *DbResource) getCode(ctx context.Context, sym string) ([]byte, error) {
+	logg.TraceCtxf(ctx, "getcode", "sym", sym)
+	if g.typs & db.DATATYPE_BIN == 0 {
 		return nil, errors.New("not a code getter")
 	}
 	g.db.SetPrefix(db.DATATYPE_BIN)
 	return g.fn(ctx, sym)
 }
 
-// FuncFor implements the Resource interface.
-//
 // The method will first attempt to resolve using the function registered
 // with the MenuResource parent class.
 // 
 // If no match is found, and if support for db.DATATYPE_STATICLOAD has been enabled,
 // an additional lookup will be performed using the underlying db.
-func(g *DbResource) FuncFor(ctx context.Context, sym string) (EntryFunc, error) {
-	fn, err := g.MenuResource.FuncFor(ctx, sym)
+func(g *DbResource) funcFor(ctx context.Context, sym string) (EntryFunc, error) {
+	fn, err := g.MenuResource.FallbackFunc(ctx, sym)
 	if err == nil {
 		return fn, nil
 	}

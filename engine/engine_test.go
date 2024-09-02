@@ -46,7 +46,6 @@ func newTestWrapper(path string, st *state.State) testWrapper {
 	rs.AddLocalFunc("pinky", wr.pinky)
 	rs.AddLocalFunc("set_lang", wr.set_lang)
 	rs.AddLocalFunc("translate", wr.translate)
-	rs.WithCodeGetter(wr.GetCode)
 	return wr
 }
 
