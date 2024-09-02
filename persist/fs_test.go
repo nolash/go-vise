@@ -31,7 +31,7 @@ func TestSerializeState(t *testing.T) {
 	ctx := context.Background()
 	store := mem.NewMemDb()
 	store.Connect(ctx, "")
-	pr := NewPersister(store).WithContext(context.Background()).WithSession("xyzzy").WithContent(&st, ca)
+	pr := NewPersister(store).WithContext(context.Background()).WithSession("xyzzy").WithContent(st, ca)
 	v, err := pr.Serialize()
 	if err != nil {
 		t.Error(err)
@@ -83,7 +83,7 @@ func TestSaveLoad(t *testing.T) {
 	ctx := context.Background()
 	store := mem.NewMemDb()
 	store.Connect(ctx, "")
-	pr := NewPersister(store).WithContent(&st, ca)
+	pr := NewPersister(store).WithContent(st, ca)
 	err := pr.Save("xyzzy")
 	if err != nil {
 		t.Fatal(err)
@@ -124,7 +124,7 @@ func TestSaveLoadFlags(t *testing.T) {
 
 	store := mem.NewMemDb()
 	store.Connect(ctx, "")
-	pr := NewPersister(store).WithContent(&st, ca)
+	pr := NewPersister(store).WithContent(st, ca)
 	err := pr.Save("xyzzy")
 	if err != nil {
 		t.Fatal(err)

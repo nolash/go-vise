@@ -108,7 +108,7 @@ func main() {
 	}
 	rsf := resource.NewDbResource(store)
 	rsf.With(db.DATATYPE_STATICLOAD)
-	rs, ok := newProfileResource(&st, rsf).(*profileResource)
+	rs, ok := newProfileResource(st, rsf).(*profileResource)
 	if !ok {
 		os.Exit(1)
 	}
@@ -121,7 +121,7 @@ func main() {
 		OutputSize: uint32(size),
 	}
 	en := engine.NewEngine(cfg, rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	_, err = en.Init(ctx)
 	if err != nil {

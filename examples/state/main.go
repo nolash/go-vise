@@ -83,7 +83,7 @@ func main() {
 		Root: "root",
 	}
 
-	aux := &flagResource{st: &st}
+	aux := &flagResource{st: st}
 	rs.AddLocalFunc("do_foo", aux.do)
 	rs.AddLocalFunc("do_bar", aux.do)
 	rs.AddLocalFunc("do_baz", aux.do)
@@ -94,7 +94,7 @@ func main() {
 	state.FlagDebugger.Register(USER_BAZ, "BAZ")
 
 	en := engine.NewEngine(cfg, rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithDebug(nil)
 
 	_, err = en.Init(ctx)

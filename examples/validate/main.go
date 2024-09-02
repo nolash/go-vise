@@ -65,7 +65,7 @@ func main() {
 		panic(err)
 	}
 	rsf := resource.NewDbResource(store)
-	rs := verifyResource{rsf, &st}
+	rs := verifyResource{rsf, st}
 	rs.AddLocalFunc("verifyinput", rs.verify)
 	rs.AddLocalFunc("again", rs.again)
 
@@ -76,7 +76,7 @@ func main() {
 	}
 
 	en := engine.NewEngine(cfg, rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 
 	_, err = en.Init(ctx)
 	if err != nil {

@@ -78,8 +78,8 @@ func(st *State) Invalid() bool {
 //}
 
 // NewState creates a new State object with BitSize number of error condition states in ADDITION to the 8 builtin flags.
-func NewState(BitSize uint32) State {
-	st := State{
+func NewState(BitSize uint32) *State {
+	st := &State{
 		BitSize: BitSize + 8,
 	}
 	byteSize := toByteSize(BitSize + 8)
