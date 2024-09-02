@@ -9,6 +9,7 @@
 	* Add preprocessor to assembler tool to enable use of flag parser (CATCH and CROAK statements).
 	* Use last cached value on clean exit without remaining code.
 	* Add missing go.sum file.
+	* Single constructor for engine with automagical handling for state, cache and persistence.
 - 0.0.15
 	* Add comprehensive documentation with texinfo.
 	* Prevent cursor leak in sizer.
