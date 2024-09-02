@@ -117,6 +117,7 @@ func(en *DbEngine) ensureState() {
 		if en.st.Language != nil {
 			en.st.SetFlag(state.FLAG_LANG)
 		}
+		logg.Debugf("new engine state added", "state", en.st)
 	} else {
 		if (en.cfg.Language != "") {
 			if en.st.Language == nil {
@@ -127,17 +128,22 @@ func(en *DbEngine) ensureState() {
 			}
 		}
 	}
-	
 }
 
-func(en *DbEngine) ensureMemory() {
-	if en.ca == nil {
+func(en *DbEngine) ensureMemory() error {
+	cac, ok := en.ca.(*cache.Cache)
+	if cac == nil {
 		ca := cache.NewCache()
 		if en.cfg.CacheSize > 0 {
-			ca.WithCacheSize(en.cfg.CacheSize)
+			ca = ca.WithCacheSize(en.cfg.CacheSize)
 		}
 		en.ca = ca
+		logg.Debugf("new engine memory added", "memory", en.ca)
+	} else if !ok {
+		return errors.New("memory MUST be *cache.Cache for now. sorry")
 	}
+
+	return nil
 }
 
 func(en *DbEngine) preparePersist() error {
@@ -157,17 +163,23 @@ func(en *DbEngine) preparePersist() error {
 			en.st = st
 		}
 	}
-	ca := en.pe.GetMemory().(*cache.Cache)
-	if ca != nil {
-		if en.ca == nil {
+
+	ca := en.pe.GetMemory()
+	cac, ok := ca.(*cache.Cache)
+	if !ok {
+		return errors.New("memory MUST be *cache.Cache for now. sorry")
+	}
+	if cac != nil {
+		logg.Debugf("ca", "ca", cac)
+		if en.ca != nil {
 			return errors.New("cache cannot be explicitly set in both persister and engine.")
 		}
-		en.ca = ca
+		en.ca = cac
 	} else {
 		if en.ca == nil {
-			logg.Debugf("defer persist memory set until state set in engine")
+			logg.Debugf("defer persist memory set until memory set in engine")
 		} else {
-			en.ca = ca
+			en.ca = cac
 		}
 	}
 	return nil
@@ -180,15 +192,18 @@ func(en *DbEngine) ensurePersist() error {
 	st := en.pe.GetState()
 	if st == nil {
 		st = en.st
+		logg.Debugf("using engine state for persister", "state", st)
 	}
 	ca := en.pe.GetMemory()
-	if ca == nil {
-		ca = en.ca
-	}
 	cac, ok := ca.(*cache.Cache)
-	if !ok {
-		return errors.New("Memory is not a *cache.Cache. For the time being it has to be, because of the way persister serialization is implemented. This hopefully changes in the future.")
+	if cac == nil {
+		cac, ok = en.ca.(*cache.Cache)
+		if !ok {
+			return errors.New("memory MUST be *cache.Cache for now. sorry")
+		}
+		logg.Debugf("using engine memory for persister", "memory", cac)
 	}
+	logg.Tracef("set persister", "st", st, "cac", cac)
 	en.pe = en.pe.WithContent(st, cac)
 	return nil
 }
@@ -207,7 +222,10 @@ func(en *DbEngine) prepare() error {
 		return err
 	}
 	en.ensureState()
-	en.ensureMemory()
+	err = en.ensureMemory()
+	if err != nil {
+		return err
+	}
 	err = en.ensurePersist()
 	if err != nil {
 		return err

@@ -8,8 +8,10 @@ import (
 	"testing"
 
 	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/vm"
+	memdb "git.defalsify.org/vise.git/db/mem"
 )
 
 func getNull() io.WriteCloser {
@@ -52,6 +54,10 @@ func TestDbEngineMinimal(t *testing.T) {
 	if cont {
 		t.Fatalf("expected not continue")
 	}
+	err = en.Finish()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestDbEngineRoot(t *testing.T) {
@@ -83,6 +89,10 @@ func TestDbEngineRoot(t *testing.T) {
 	cont, err = en.Exec(ctx, []byte{0x30})
 	if err == nil {
 		t.Fatalf("expected nocode")
+	}
+	err = en.Finish()
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -119,5 +129,8 @@ func TestDbEnginePersist(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	err = en.Finish()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
