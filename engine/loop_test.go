@@ -23,7 +23,10 @@ func TestLoopTop(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}
-	en := NewEngine(ctx, cfg, &st, rs, ca)
+	en := NewEngine(cfg, rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
+
 	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -39,7 +42,7 @@ func TestLoopTop(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(ctx, &en, inputBuf, outputBuf)
+	err = Loop(ctx, en, inputBuf, outputBuf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +63,10 @@ func TestLoopBackForth(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}
-	en := NewEngine(ctx, cfg, &st, rs, ca)
+	en := NewEngine(cfg, rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
+
 	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -77,7 +83,7 @@ func TestLoopBackForth(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(ctx, &en, inputBuf, outputBuf)
+	err = Loop(ctx, en, inputBuf, outputBuf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +101,10 @@ func TestLoopBrowse(t *testing.T) {
 		OutputSize: 68,
 		Root: "root",
 	}
-	en := NewEngine(ctx, cfg, &st, rs, ca)
+	en := NewEngine(cfg, rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
+
 	_, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -113,7 +122,7 @@ func TestLoopBrowse(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(ctx, &en, inputBuf, outputBuf)
+	err = Loop(ctx, en, inputBuf, outputBuf)
 	if err != nil {
 		t.Fatal(err)
 	}

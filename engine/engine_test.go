@@ -125,7 +125,9 @@ func TestEngineInit(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}
-	en := NewEngine(ctx, cfg, &st, &rs, ca)
+	en := NewEngine(cfg, &rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
 
 	_, err = en.Init(ctx)
 	if err != nil {
@@ -183,7 +185,9 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}	
-	en := NewEngine(ctx, cfg, &st, &rs, ca)
+	en := NewEngine(cfg, &rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
 	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
@@ -205,7 +209,9 @@ func TestEngineResumeTerminated(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}
-	en := NewEngine(ctx, cfg, &st, &rs, ca)
+	en := NewEngine(cfg, &rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
 	var err error
 	_, err = en.Init(ctx)
 	if err != nil {
@@ -241,7 +247,9 @@ func TestLanguageSet(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}
-	en := NewEngine(ctx, cfg, &st, &rs, ca)
+	en := NewEngine(cfg, &rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
 
 	var err error
 	_, err = en.Init(ctx)
@@ -294,7 +302,9 @@ func TestLanguageRender(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}
-	en := NewEngine(ctx, cfg, &st, &rs, ca)
+	en := NewEngine(cfg, &rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
 
 	var err error
 	_, err = en.Init(ctx)
@@ -335,7 +345,9 @@ func TestConfigLanguageRender(t *testing.T) {
 		Root: "root",
 		Language: "nor",
 	}
-	en := NewEngine(ctx, cfg, &st, &rs, ca)
+	en := NewEngine(cfg, &rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
 
 	var err error
 	_, err = en.Init(ctx)
@@ -391,8 +403,10 @@ func TestPreVm(t *testing.T) {
 	cfg := Config{
 		Root: "root",
 	}
-	en := NewEngine(ctx, cfg, &st, &rs, ca)
-	en.SetFirst(preBlock)
+	en := NewEngine(cfg, &rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
+	en = en.WithFirst(preBlock)
 	r, err := en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -411,8 +425,10 @@ func TestPreVm(t *testing.T) {
 
 	st = state.NewState(0)
 	ca = cache.NewCache()
-	en = NewEngine(ctx, cfg, &st, &rs, ca)
-	en.SetFirst(preAllow)
+	en = NewEngine(cfg, &rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
+	en = en.WithFirst(preAllow)
 	r, err = en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)

@@ -15,7 +15,7 @@ import (
 	"git.defalsify.org/vise.git/vm"
 )
 
-type DbEngine struct {
+type dbEngine struct {
 	st *state.State
 	ca cache.Memory
 	vm *vm.Vm
@@ -28,11 +28,11 @@ type DbEngine struct {
 	exit string
 }
 
-func NewDbEngine(cfg Config, rs resource.Resource) *DbEngine {
+func NewEngine(cfg Config, rs resource.Resource) *dbEngine {
 	if rs == nil {
 		panic("resource cannot be nil")	
 	}
-	en := &DbEngine{
+	en := &dbEngine{
 		rs: rs,
 		cfg: cfg,
 	}
@@ -42,7 +42,7 @@ func NewDbEngine(cfg Config, rs resource.Resource) *DbEngine {
 	return en
 }
 
-func(en *DbEngine) WithState(st *state.State) *DbEngine {
+func(en *dbEngine) WithState(st *state.State) *dbEngine {
 	if en.st != nil {
 		panic("state already set")
 	}
@@ -53,7 +53,7 @@ func(en *DbEngine) WithState(st *state.State) *DbEngine {
 	return en
 }
 
-func(en *DbEngine) WithCache(ca cache.Memory) *DbEngine {
+func(en *dbEngine) WithMemory(ca cache.Memory) *dbEngine {
 	if en.ca != nil {
 		panic("cache already set")
 	}
@@ -64,7 +64,7 @@ func(en *DbEngine) WithCache(ca cache.Memory) *DbEngine {
 	return en
 }
 
-func(en *DbEngine) WithResource(rs resource.Resource) *DbEngine {
+func(en *dbEngine) WithResource(rs resource.Resource) *dbEngine {
 	if en.rs != nil {
 		panic("resource already set")
 	}
@@ -75,7 +75,7 @@ func(en *DbEngine) WithResource(rs resource.Resource) *DbEngine {
 	return en
 }
 
-func(en *DbEngine) WithPersister(pe *persist.Persister) *DbEngine {
+func(en *dbEngine) WithPersister(pe *persist.Persister) *dbEngine {
 	if en.pe != nil {
 		panic("persister already set")
 	}
@@ -86,7 +86,7 @@ func(en *DbEngine) WithPersister(pe *persist.Persister) *DbEngine {
 	return en
 }
 
-func(en *DbEngine) WithDebug(dbg Debug) *DbEngine {
+func(en *dbEngine) WithDebug(dbg Debug) *dbEngine {
 	if en.dbg != nil {
 		panic("debugger already set")
 	}
@@ -98,7 +98,7 @@ func(en *DbEngine) WithDebug(dbg Debug) *DbEngine {
 	return en
 }
 
-func(en *DbEngine) WithFirst(fn resource.EntryFunc) *DbEngine {
+func(en *dbEngine) WithFirst(fn resource.EntryFunc) *dbEngine {
 	if en.first != nil {
 		panic("firstfunc already set")
 	}
@@ -109,7 +109,7 @@ func(en *DbEngine) WithFirst(fn resource.EntryFunc) *DbEngine {
 	return en
 }
 
-func(en *DbEngine) ensureState() {
+func(en *dbEngine) ensureState() {
 	if en.st == nil {
 		st := state.NewState(en.cfg.FlagCount)
 		en.st = &st
@@ -130,7 +130,7 @@ func(en *DbEngine) ensureState() {
 	}
 }
 
-func(en *DbEngine) ensureMemory() error {
+func(en *dbEngine) ensureMemory() error {
 	cac, ok := en.ca.(*cache.Cache)
 	if cac == nil {
 		ca := cache.NewCache()
@@ -146,7 +146,7 @@ func(en *DbEngine) ensureMemory() error {
 	return nil
 }
 
-func(en *DbEngine) preparePersist() error {
+func(en *dbEngine) preparePersist() error {
 	if en.pe == nil {
 		return nil
 	}
@@ -185,7 +185,7 @@ func(en *DbEngine) preparePersist() error {
 	return nil
 }
 
-func(en *DbEngine) ensurePersist() error {
+func(en *dbEngine) ensurePersist() error {
 	if en.pe == nil {
 		return nil
 	}
@@ -208,7 +208,7 @@ func(en *DbEngine) ensurePersist() error {
 	return nil
 }
 
-func(en *DbEngine) setupVm() {
+func(en *dbEngine) setupVm() {
 	var szr *render.Sizer
 	if en.cfg.OutputSize > 0 {
 		szr = render.NewSizer(en.cfg.OutputSize)
@@ -216,7 +216,7 @@ func(en *DbEngine) setupVm() {
 	en.vm = vm.NewVm(en.st, en.rs, en.ca, szr)
 }
 
-func(en *DbEngine) prepare() error {
+func(en *dbEngine) prepare() error {
 	err := en.preparePersist()
 	if err != nil {
 		return err
@@ -235,7 +235,7 @@ func(en *DbEngine) prepare() error {
 }
 
 // execute the first function, if set
-func(en *DbEngine) runFirst(ctx context.Context) (bool, error) {
+func(en *dbEngine) runFirst(ctx context.Context) (bool, error) {
 	var err error
 	var r bool
 	if en.first == nil {
@@ -274,7 +274,7 @@ func(en *DbEngine) runFirst(ctx context.Context) (bool, error) {
 }
 
 // Finish implements EngineIsh interface
-func(en *DbEngine) Finish() error {
+func(en *dbEngine) Finish() error {
 	var perr error
 	if en.pe != nil {
 		perr = en.pe.Save(en.cfg.SessionId)
@@ -294,7 +294,7 @@ func(en *DbEngine) Finish() error {
 }
 
 // change root to current state location if non-empty.
-func(en *DbEngine) restore() {
+func(en *dbEngine) restore() {
 	location, _ := en.st.Where()
 	if len(location) == 0 {
 		return
@@ -308,7 +308,7 @@ func(en *DbEngine) restore() {
 // Init must be explicitly called before using the Engine instance.
 //
 // It loads and executes code for the start node.
-func(en *DbEngine) Init(ctx context.Context) (bool, error) {
+func(en *dbEngine) Init(ctx context.Context) (bool, error) {
 	err := en.prepare()
 	if err != nil {
 		return false, err
@@ -364,7 +364,7 @@ func(en *DbEngine) Init(ctx context.Context) (bool, error) {
 // - input is formally invalid (too long etc)
 // - no current bytecode is available
 // - input processing against bytcode failed
-func (en *DbEngine) Exec(ctx context.Context, input []byte) (bool, error) {
+func (en *dbEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 	var err error
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
@@ -388,7 +388,7 @@ func (en *DbEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 }
 
 // backend for Exec, after the input validity check
-func(en *DbEngine) exec(ctx context.Context, input []byte) (bool, error) {
+func(en *dbEngine) exec(ctx context.Context, input []byte) (bool, error) {
 	logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
 	code, err := en.st.GetCode()
 	if err != nil {
@@ -436,7 +436,7 @@ func(en *DbEngine) exec(ctx context.Context, input []byte) (bool, error) {
 // - required data inputs to the template are not available.
 // - the template for the given node point is note available for retrieval using the resource.Resource implementer.
 // - the supplied writer fails to process the writes.
-func(en *DbEngine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
+func(en *dbEngine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
 	var l int
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
@@ -464,7 +464,7 @@ func(en *DbEngine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
 }
 
 // start execution over at top node while keeping current state of client error flags.
-func(en *DbEngine) reset(ctx context.Context) (bool, error) {
+func(en *dbEngine) reset(ctx context.Context) (bool, error) {
 	var err error
 	var isTop bool
 	for !isTop {

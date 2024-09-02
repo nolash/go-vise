@@ -46,7 +46,7 @@ func TestDbEngineMinimal(t *testing.T) {
 	ctx := context.Background()
 	cfg := Config{}
 	rs := resource.NewMenuResource()
-	en := NewDbEngine(cfg, rs)
+	en := NewEngine(cfg, rs)
 	cont, err := en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +67,7 @@ func TestDbEngineRoot(t *testing.T) {
 	cfg := Config{}
 	rs := resource.NewMenuResource()
 	rs.WithCodeGetter(codeGet)
-	en := NewDbEngine(cfg, rs)
+	en := NewEngine(cfg, rs)
 	cont, err := en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -110,7 +110,7 @@ func TestDbEnginePersist(t *testing.T) {
 	rs := resource.NewMenuResource()
 	rs.WithCodeGetter(codeGet)
 	rs.AddLocalFunc("foo", flagSet)
-	en := NewDbEngine(cfg, rs)
+	en := NewEngine(cfg, rs)
 	en = en.WithPersister(pe)
 	cont, err := en.Init(ctx)
 	if err != nil {

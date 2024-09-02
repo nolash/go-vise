@@ -13,15 +13,15 @@ import (
 )
 
 // EngineIsh defines the interface for execution engines that handle vm initialization and execution, and rendering outputs.
-type EngineIsh interface {
+type Engine interface {
 	Init(ctx context.Context) (bool, error)
 	Exec(ctx context.Context, input []byte) (bool, error)
 	WriteResult(ctx context.Context, w io.Writer) (int, error)
 	Finish() error
 }
 
-// Engine is an execution engine that handles top-level errors when running client inputs against code in the bytecode buffer.
-type Engine struct {
+// LegacyEngine is an execution engine that handles top-level errors when running client inputs against code in the bytecode buffer.
+type LegacyEngine struct {
 	st *state.State
 	rs resource.Resource
 	ca cache.Memory
@@ -34,14 +34,14 @@ type Engine struct {
 	exit string
 }
 
-// NewEngine creates a new Engine
-func NewEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Resource, ca cache.Memory) Engine {
+// NewLegacyEngine creates a new LegacyEngine
+func NewLegacyEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Resource, ca cache.Memory) LegacyEngine {
 	var szr *render.Sizer
 	if cfg.OutputSize > 0 {
 		szr = render.NewSizer(cfg.OutputSize)
 	}
 	ctx = context.WithValue(ctx, "sessionId", cfg.SessionId)
-	engine := Engine{
+	engine := LegacyEngine{
 		st: st,
 		rs: rs,
 		ca: ca,
@@ -70,23 +70,23 @@ func NewEngine(ctx context.Context, cfg Config, st *state.State, rs resource.Res
 // SetDebugger sets a debugger to use.
 //
 // No debugger is set by default.
-func (en *Engine) SetDebugger(debugger Debug) {
+func (en *LegacyEngine) SetDebugger(debugger Debug) {
 	en.dbg = debugger
 }
 
 // SetFirst sets a function which will be executed before bytecode
-func(en *Engine) SetFirst(fn resource.EntryFunc) {
+func(en *LegacyEngine) SetFirst(fn resource.EntryFunc) {
 	en.first = fn
 }
 
-// Finish implements EngineIsh interface
-func(en *Engine) Finish() error {
+// Finish implements LegacyEngineIsh interface
+func(en *LegacyEngine) Finish() error {
 	logg.Tracef("that's a wrap", "engine", en)
 	return nil
 }
 
 // change root to current state location if non-empty.
-func(en *Engine) restore() {
+func(en *LegacyEngine) restore() {
 	location, _ := en.st.Where()
 	if len(location) == 0 {
 		return
@@ -98,7 +98,7 @@ func(en *Engine) restore() {
 }
 
 // execute the first function, if set
-func(en *Engine) runFirst(ctx context.Context) (bool, error) {
+func(en *LegacyEngine) runFirst(ctx context.Context) (bool, error) {
 	var err error
 	var r bool
 	if en.first == nil {
@@ -136,10 +136,10 @@ func(en *Engine) runFirst(ctx context.Context) (bool, error) {
 	return r, err
 }
 
-// Init must be explicitly called before using the Engine instance.
+// Init must be explicitly called before using the LegacyEngine instance.
 //
 // It loads and executes code for the start node.
-func(en *Engine) Init(ctx context.Context) (bool, error) {
+func(en *LegacyEngine) Init(ctx context.Context) (bool, error) {
 	en.restore()
 	if en.initd {
 		logg.DebugCtxf(ctx, "already initialized")
@@ -191,7 +191,7 @@ func(en *Engine) Init(ctx context.Context) (bool, error) {
 // - input is formally invalid (too long etc)
 // - no current bytecode is available
 // - input processing against bytcode failed
-func (en *Engine) Exec(ctx context.Context, input []byte) (bool, error) {
+func (en *LegacyEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 	var err error
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
@@ -215,7 +215,7 @@ func (en *Engine) Exec(ctx context.Context, input []byte) (bool, error) {
 }
 
 // backend for Exec, after the input validity check
-func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
+func(en *LegacyEngine) exec(ctx context.Context, input []byte) (bool, error) {
 	logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
 	code, err := en.st.GetCode()
 	if err != nil {
@@ -263,7 +263,7 @@ func(en *Engine) exec(ctx context.Context, input []byte) (bool, error) {
 // - required data inputs to the template are not available.
 // - the template for the given node point is note available for retrieval using the resource.Resource implementer.
 // - the supplied writer fails to process the writes.
-func(en *Engine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
+func(en *LegacyEngine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
 	var l int
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
@@ -291,7 +291,7 @@ func(en *Engine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
 }
 
 // start execution over at top node while keeping current state of client error flags.
-func(en *Engine) reset(ctx context.Context) (bool, error) {
+func(en *LegacyEngine) reset(ctx context.Context) (bool, error) {
 	var err error
 	var isTop bool
 	for !isTop {
