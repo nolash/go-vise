@@ -13,6 +13,8 @@ const (
 
 // DbResource is a MenuResource that uses the given db.Db implementation as data retriever.
 //
+// It implements the Resource interface.
+//
 // The DbResource can resolve any db.DATATYPE_* if instructed to do so.
 type DbResource struct {
 	*MenuResource
