@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -139,6 +140,59 @@ func(en *DbEngine) ensureMemory() {
 	}
 }
 
+func(en *DbEngine) preparePersist() error {
+	if en.pe == nil {
+		return nil
+	}
+	st := en.pe.GetState()
+	if st != nil {
+		if en.st != nil {
+			return errors.New("state cannot be explicitly set in both persister and engine.")
+		}
+		en.st = st
+	} else {
+		if en.st == nil {
+			logg.Debugf("defer persist state set until state set in engine")
+		} else {
+			en.st = st
+		}
+	}
+	ca := en.pe.GetMemory().(*cache.Cache)
+	if ca != nil {
+		if en.ca == nil {
+			return errors.New("cache cannot be explicitly set in both persister and engine.")
+		}
+		en.ca = ca
+	} else {
+		if en.ca == nil {
+			logg.Debugf("defer persist memory set until state set in engine")
+		} else {
+			en.ca = ca
+		}
+	}
+	return nil
+}
+
+func(en *DbEngine) ensurePersist() error {
+	if en.pe == nil {
+		return nil
+	}
+	st := en.pe.GetState()
+	if st == nil {
+		st = en.st
+	}
+	ca := en.pe.GetMemory()
+	if ca == nil {
+		ca = en.ca
+	}
+	cac, ok := ca.(*cache.Cache)
+	if !ok {
+		return errors.New("Memory is not a *cache.Cache. For the time being it has to be, because of the way persister serialization is implemented. This hopefully changes in the future.")
+	}
+	en.pe = en.pe.WithContent(st, cac)
+	return nil
+}
+
 func(en *DbEngine) setupVm() {
 	var szr *render.Sizer
 	if en.cfg.OutputSize > 0 {
@@ -147,10 +201,19 @@ func(en *DbEngine) setupVm() {
 	en.vm = vm.NewVm(en.st, en.rs, en.ca, szr)
 }
 
-func(en *DbEngine) prepare() {
+func(en *DbEngine) prepare() error {
+	err := en.preparePersist()
+	if err != nil {
+		return err
+	}
 	en.ensureState()
 	en.ensureMemory()
+	err = en.ensurePersist()
+	if err != nil {
+		return err
+	}
 	en.setupVm()
+	return nil
 }
 
 // execute the first function, if set
@@ -228,7 +291,10 @@ func(en *DbEngine) restore() {
 //
 // It loads and executes code for the start node.
 func(en *DbEngine) Init(ctx context.Context) (bool, error) {
-	en.prepare()
+	err := en.prepare()
+	if err != nil {
+		return false, err
+	}
 	en.restore()
 	if en.initd {
 		logg.DebugCtxf(ctx, "already initialized")
@@ -241,7 +307,7 @@ func(en *DbEngine) Init(ctx context.Context) (bool, error) {
 	}
 
 	inSave, _ := en.st.GetInput()
-	err := en.st.SetInput([]byte{})
+	err = en.st.SetInput([]byte{})
 	if err != nil {
 		return false, err
 	}

@@ -482,7 +482,6 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 		_ = vm.st.SetFlag(state.FLAG_LOADFAIL)
 		return "", NewExternalCodeError(key, err).WithCode(r.Status)
 	}
-	logg.TraceCtxf(ctx, "foo", "flags", r.FlagSet)
 	for _, flag := range r.FlagReset {
 		if !state.IsWriteableFlag(flag) {
 			continue
