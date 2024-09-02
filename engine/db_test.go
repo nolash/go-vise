@@ -94,10 +94,14 @@ func TestDbEnginePersist(t *testing.T) {
 		FlagCount: 1,
 		SessionId: "bar",
 	}
+	store := memdb.NewMemDb()
+	store.Connect(ctx, "")
+	pe := persist.NewPersister(store)
 	rs := resource.NewMenuResource()
 	rs.WithCodeGetter(codeGet)
 	rs.AddLocalFunc("foo", flagSet)
 	en := NewDbEngine(cfg, rs)
+	en = en.WithPersister(pe)
 	cont, err := en.Init(ctx)
 	if err != nil {
 		t.Fatal(err)
