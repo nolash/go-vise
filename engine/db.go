@@ -127,7 +127,7 @@ func(en *DefaultEngine) WithFirst(fn resource.EntryFunc) *DefaultEngine {
 func(en *DefaultEngine) ensureState() {
 	if en.st == nil {
 		st := state.NewState(en.cfg.FlagCount)
-		en.st = &st
+		en.st = st
 		en.st.SetLanguage(en.cfg.Language)
 		if en.st.Language != nil {
 			en.st.SetFlag(state.FLAG_LANG)

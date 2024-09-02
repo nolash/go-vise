@@ -180,10 +180,10 @@ func(r testResource) getCode(sym string) ([]byte, error) {
 
 func TestRun(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	b := NewLine(nil, MOVE, []string{"foo"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
@@ -202,10 +202,10 @@ func TestRun(t *testing.T) {
 
 func TestRunLoadRender(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	st.Down("bar")
 
@@ -255,10 +255,10 @@ func TestRunLoadRender(t *testing.T) {
 
 func TestRunMultiple(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	ctx := context.Background()
 	b := NewLine(nil, MOVE, []string{"test"}, nil, nil)
@@ -274,11 +274,11 @@ func TestRunMultiple(t *testing.T) {
 
 func TestRunReload(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
 	szr := render.NewSizer(128)
-	vm := NewVm(&st, &rs, ca, szr)
+	vm := NewVm(st, &rs, ca, szr)
 
 	ctx := context.Background()
 	b := NewLine(nil, MOVE, []string{"root"}, nil, nil)
@@ -307,10 +307,10 @@ func TestRunReload(t *testing.T) {
 
 func TestHalt(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	b := NewLine(nil, MOVE, []string{"root"}, nil, nil)
 	b = NewLine(b, LOAD, []string{"one"}, nil, []uint8{0})
@@ -333,10 +333,10 @@ func TestHalt(t *testing.T) {
 
 func TestRunArg(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	input := []byte("bar")
 	_ = st.SetInput(input)
@@ -361,10 +361,10 @@ func TestRunArg(t *testing.T) {
 
 func TestRunInputHandler(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	_ = st.SetInput([]byte("baz"))
 
@@ -390,10 +390,10 @@ func TestRunInputHandler(t *testing.T) {
 
 func TestRunArgInvalid(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	_ = st.SetInput([]byte("foo"))
 
@@ -425,9 +425,9 @@ func TestRunArgInvalid(t *testing.T) {
 
 func TestRunMenu(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	var err error
 
@@ -462,9 +462,9 @@ func TestRunMenu(t *testing.T) {
 func TestRunMenuBrowse(t *testing.T) {
 	log.Printf("This test is incomplete, it must check the output of a menu browser once one is implemented. For now it only checks whether it can execute the runner endpoints for the instrucitons.")
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	var err error
 
@@ -498,10 +498,10 @@ func TestRunMenuBrowse(t *testing.T) {
 
 func TestRunReturn(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	var err error
 
@@ -535,10 +535,10 @@ func TestRunReturn(t *testing.T) {
 
 func TestRunLoadInput(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	var err error
 
@@ -566,9 +566,9 @@ func TestRunLoadInput(t *testing.T) {
 
 func TestInputBranch(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	var err error
 
@@ -607,10 +607,10 @@ func TestInputBranch(t *testing.T) {
 
 func TestInputIgnore(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	var err error
 
@@ -636,10 +636,10 @@ func TestInputIgnore(t *testing.T) {
 
 func TestInputIgnoreWildcard(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	var err error
 
@@ -664,10 +664,10 @@ func TestInputIgnoreWildcard(t *testing.T) {
 
 func TestCatchCleanMenu(t *testing.T) {
 	st := state.NewState(5)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	var err error
 
@@ -701,10 +701,10 @@ func TestCatchCleanMenu(t *testing.T) {
 
 func TestSetLang(t *testing.T) {
 	st := state.NewState(0)
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	var err error
 
@@ -728,10 +728,10 @@ func TestSetLang(t *testing.T) {
 func TestLoadError(t *testing.T) {
 	st := state.NewState(0)
 	st.UseDebug()
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	st.Down("root")
 	st.SetInput([]byte{})
@@ -762,10 +762,10 @@ func TestMatchFlag(t *testing.T) {
 
 	st := state.NewState(1)
 	st.UseDebug()
-	rs := newTestResource(&st)
+	rs := newTestResource(st)
 	rs.Lock()
 	ca := cache.NewCache()
-	vm := NewVm(&st, &rs, ca, nil)
+	vm := NewVm(st, &rs, ca, nil)
 
 	st.Down("root")
 	st.SetFlag(state.FLAG_USERSTART)

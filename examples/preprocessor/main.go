@@ -93,7 +93,7 @@ func main() {
 		Root: "root",
 	}
 	en := engine.NewEngine(cfg, rsf)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	
 	_, err = en.Init(ctx)

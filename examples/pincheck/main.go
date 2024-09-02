@@ -83,7 +83,7 @@ func main() {
 		panic(err)
 	}
 	rsf := resource.NewDbResource(store)
-	rs := newPinResource(rsf, &st)
+	rs := newPinResource(rsf, st)
 	rsf.AddLocalFunc("pincheck", rs.pinCheck)
 	rsf.AddLocalFunc("pinclear", rs.pinClear)
 	ca := cache.NewCache()
@@ -92,7 +92,7 @@ func main() {
 		StateDebug: true,
 	}
 	en := engine.NewEngine(cfg, rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	_, err = en.Init(ctx)
 	if err != nil {

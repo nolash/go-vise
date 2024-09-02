@@ -94,7 +94,7 @@ func main() {
 		OutputSize: uint32(size),
 	}
 	en := engine.NewEngine(cfg, rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 
 	_, err = en.Init(ctx)

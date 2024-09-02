@@ -119,14 +119,14 @@ func TestEngineInit(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(17)
-	rs := newTestWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
 	cfg := Config{
 		Root: "root",
 	}
 	en := NewEngine(cfg, &rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 
 	_, err = en.Init(ctx)
@@ -179,14 +179,14 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(17)
-	rs := newTestWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
 	cfg := Config{
 		Root: "root",
 	}	
 	en := NewEngine(cfg, &rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	var err error
 	_, err = en.Init(ctx)
@@ -203,14 +203,14 @@ func TestEngineResumeTerminated(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(17)
-	rs := newTestWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, st)
 	ca := cache.NewCache().WithCacheSize(1024)
 	
 	cfg := Config{
 		Root: "root",
 	}
 	en := NewEngine(cfg, &rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	var err error
 	_, err = en.Init(ctx)
@@ -241,14 +241,14 @@ func TestLanguageSet(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(0)
-	rs := newTestWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, st)
 	ca := cache.NewCache().WithCacheSize(1024)
 
 	cfg := Config{
 		Root: "root",
 	}
 	en := NewEngine(cfg, &rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 
 	var err error
@@ -296,14 +296,14 @@ func TestLanguageRender(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(0)
-	rs := newTestWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, st)
 	ca := cache.NewCache()
 
 	cfg := Config{
 		Root: "root",
 	}
 	en := NewEngine(cfg, &rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 
 	var err error
@@ -338,7 +338,7 @@ func TestConfigLanguageRender(t *testing.T) {
 	generateTestData(t)
 	ctx := context.Background()
 	st := state.NewState(0)
-	rs := newTestWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, st)
 	ca := cache.NewCache()
 
 	cfg := Config{
@@ -346,7 +346,7 @@ func TestConfigLanguageRender(t *testing.T) {
 		Language: "nor",
 	}
 	en := NewEngine(cfg, &rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 
 	var err error
@@ -397,14 +397,14 @@ func TestPreVm(t *testing.T) {
 	ctx := context.Background()
 	st := state.NewState(0)
 	st.UseDebug()
-	rs := newTestWrapper(dataDir, &st)
+	rs := newTestWrapper(dataDir, st)
 	ca := cache.NewCache()
 
 	cfg := Config{
 		Root: "root",
 	}
 	en := NewEngine(cfg, &rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	en = en.WithFirst(preBlock)
 	r, err := en.Init(ctx)
@@ -426,7 +426,7 @@ func TestPreVm(t *testing.T) {
 	st = state.NewState(0)
 	ca = cache.NewCache()
 	en = NewEngine(cfg, &rs)
-	en = en.WithState(&st)
+	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	en = en.WithFirst(preAllow)
 	r, err = en.Init(ctx)

@@ -16,7 +16,7 @@ func TestInvalidateState(t *testing.T) {
 	ctx := context.Background()
 	store := mem.NewMemDb()
 	store.Connect(ctx, "")
-	pr := NewPersister(store).WithSession("xyzzy").WithContent(&st, ca)
+	pr := NewPersister(store).WithSession("xyzzy").WithContent(st, ca)
 	err := pr.Save("foo")
 	if err != nil {
 		t.Fatal(err)
@@ -38,7 +38,7 @@ func TestInvalidateCache(t *testing.T) {
 	ctx := context.Background()
 	store := mem.NewMemDb()
 	store.Connect(ctx, "")
-	pr := NewPersister(store).WithSession("xyzzy").WithContent(&st, ca)
+	pr := NewPersister(store).WithSession("xyzzy").WithContent(st, ca)
 	err := pr.Save("foo")
 	if err != nil {
 		t.Fatal(err)
@@ -60,7 +60,7 @@ func TestInvalidateAll(t *testing.T) {
 	ctx := context.Background()
 	store := mem.NewMemDb()
 	store.Connect(ctx, "")
-	pr := NewPersister(store).WithSession("xyzzy").WithContent(&st, ca)
+	pr := NewPersister(store).WithSession("xyzzy").WithContent(st, ca)
 	err := pr.Save("foo")
 	if err != nil {
 		t.Fatal(err)
