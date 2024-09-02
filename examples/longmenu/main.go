@@ -11,6 +11,7 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/resource"
 	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 var (
@@ -19,33 +20,23 @@ var (
 )
 
 func main() {
-	var root string
 	var size uint
-	var sessionId string
-	var persist bool
 	flag.UintVar(&size, "s", 0, "max size of output")
-	flag.StringVar(&root, "root", "root", "entry point symbol")
-	flag.StringVar(&sessionId, "session-id", "default", "session id")
-	flag.BoolVar(&persist, "persist", false, "use state persistence")
 	flag.Parse()
 
-	dir := scriptDir
-	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
-
 	ctx := context.Background()
-	dp := path.Join(scriptDir, ".state")
 	store := fsdb.NewFsDb()
-	err := store.Connect(ctx, dp)
+	err := store.Connect(ctx, scriptDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "db connect error: %v", err)
 		os.Exit(1)
 	}
-	defer store.Close()
-	en, err := engine.NewSizedEngine(dir, uint32(size), store, &sessionId)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "engine create error: %v", err)
-		os.Exit(1)
+	rs := resource.NewDbResource(store)
+	defer rs.Close()
+	cfg := engine.Config {
+		OutputSize: uint32(size),
 	}
+	en := engine.NewEngine(cfg, rs)
 	cont, err := en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init exited with error: %v\n", err)

@@ -9,7 +9,6 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
-	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
@@ -74,19 +73,15 @@ func main() {
 
 	ctx := context.Background()
 	st := state.NewState(3)
-	st.UseDebug()
 	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)
 	}
 	rs := resource.NewDbResource(store)
-	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
 	}
-	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
-	en.SetDebugger(engine.NewSimpleDebug(nil))
 
 	aux := &flagResource{st: &st}
 	rs.AddLocalFunc("do_foo", aux.do)
@@ -97,12 +92,17 @@ func main() {
 	state.FlagDebugger.Register(USER_FOO, "FOO")
 	state.FlagDebugger.Register(USER_BAR, "BAR")
 	state.FlagDebugger.Register(USER_BAZ, "BAZ")
+
+	en := engine.NewEngine(cfg, rs)
+	en = en.WithState(&st)
+	en = en.WithDebug(nil)
+
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)
 	}
-	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

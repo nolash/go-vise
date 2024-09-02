@@ -10,7 +10,6 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 	gotext "gopkg.in/leonelquinteros/gotext.v1"
 
-	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/lang"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/engine"
@@ -88,8 +87,6 @@ func empty(ctx context.Context, sym string, input []byte) (resource.Result, erro
 }
 
 func main() {
-	st := state.NewState(1)
-	state.FlagDebugger.Register(USERFLAG_FLIP, "FLIP")
 	ctx := context.Background()
 	rsStore := fsdb.NewFsDb()
 	err := rsStore.Connect(ctx, scriptDir)
@@ -98,10 +95,10 @@ func main() {
 	}
 	rs := resource.NewDbResource(rsStore)
 
-	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
 		SessionId: "default",
+		FlagCount: 1,
 	}
 
 	dp := path.Join(scriptDir, ".state")
@@ -112,18 +109,8 @@ func main() {
 		os.Exit(1)
 	}
 	pr := persist.NewPersister(store)
-	en, err := engine.NewPersistedEngine(ctx, cfg, pr, rs)
-	if err != nil {
-		logg.Infof("persisted engine create error. trying again with persisting empty state first...")
-		pr = pr.WithContent(&st, ca)
-		err = pr.Save(cfg.SessionId)
-		if err != nil {
-			logg.ErrorCtxf(ctx, "fail state save", "err", err)
-			os.Exit(1)
-		}
-		en, err = engine.NewPersistedEngine(ctx, cfg, pr, rs)
-	}
-	pr.State.UseDebug()
+	en := engine.NewEngine(cfg, rs)
+	en = en.WithPersister(pr)
 
 	aux := &langController{
 		State: pr.State,
@@ -139,7 +126,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

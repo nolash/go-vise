@@ -9,10 +9,8 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
-	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/db"
 	gdbmdb "git.defalsify.org/vise.git/db/gdbm"
 	fsdb "git.defalsify.org/vise.git/db/fs"
@@ -35,7 +33,6 @@ func main() {
 	root := "root"
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
-	st := state.NewState(0)
 	store := gdbmdb.NewGdbmDb()
 	err := store.Connect(ctx, dbFile)
 	if err != nil {
@@ -56,23 +53,18 @@ func main() {
 	rs.WithMenuGetter(rsf.GetMenu)
 	rs.WithEntryFuncGetter(rsf.FuncFor)
 
-	ca := cache.NewCache()
-	if err != nil {
-		panic(err)
-	}
 	cfg := engine.Config{
 		Root: "root",
 		Language: "nor",
 	}
-	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
-
+	en := engine.NewEngine(cfg, rs)
 
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)
 	}
-	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

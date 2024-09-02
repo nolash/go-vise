@@ -11,7 +11,6 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/asm"
-	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
@@ -132,33 +131,20 @@ func main() {
 	rs.WithCodeGetter(tg.GetCode)
 	rs.AddLocalFunc("say", say)
 
-	ca := cache.NewCache()
-	if err != nil {
-		panic(err)
-	}
 	cfg := engine.Config{
 		Root: "root",
+		FlagCount: 1,
 	}
 
-	st := state.NewState(1)
-	en, err := engine.NewPersistedEngine(ctx, cfg, pr, rs)
-	if err != nil {
-		logg.Infof("persisted engine create error. trying again with persisting empty state first...")
-		pr = pr.WithContent(&st, ca)
-		err = pr.Save(cfg.SessionId)
-		if err != nil {
-			logg.ErrorCtxf(ctx, "fail state save", "err", err)
-			os.Exit(1)
-		}
-		en, err = engine.NewPersistedEngine(ctx, cfg, pr, rs)
-	}
+	en := engine.NewEngine(cfg, rs)
+	en = en.WithPersister(pr)
 
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)
 	}
-	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

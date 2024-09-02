@@ -71,6 +71,7 @@ func(c *introResource) something(ctx context.Context, sym string, input []byte) 
 }
 
 func main() {
+	var err error
 	var dir string
 	var root string
 	var size uint
@@ -92,15 +93,17 @@ func main() {
 		SessionId: sessionId,
 		OutputSize: uint32(size),
 	}
-	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
-	var err error
+	en := engine.NewEngine(cfg, rs)
+	en = en.WithState(&st)
+	en = en.WithMemory(ca)
+
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)
 	}
 
-	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

@@ -9,10 +9,8 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
-	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/state"
 	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
@@ -28,10 +26,6 @@ func quit(ctx context.Context, sym string, input []byte) (resource.Result, error
 }
 
 func main() {
-	st := state.NewState(0)
-	st.UseDebug()
-	ca := cache.NewCache()
-
 	ctx := context.Background()
 	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, scriptDir)
@@ -42,9 +36,9 @@ func main() {
 	cfg := engine.Config{
 		Root: "root",
 	}
-	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
-
 	rs.AddLocalFunc("quitcontent", quit)
+
+	en := engine.NewEngine(cfg, rs)
 
 	_, err = en.Init(ctx)
 	if err != nil {
@@ -52,7 +46,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

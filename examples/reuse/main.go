@@ -9,15 +9,9 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
-	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/state"
 	fsdb "git.defalsify.org/vise.git/db/fs"
-)
-
-const (
-	USERFLAG = iota + state.FLAG_USERSTART
 )
 
 var (
@@ -37,7 +31,6 @@ func main() {
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)
 
 	ctx := context.Background()
-	st := state.NewState(0)
 	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, scriptDir)
 	if err != nil {
@@ -47,18 +40,17 @@ func main() {
 	
 	rs.AddLocalFunc("do_foo", same)
 	rs.AddLocalFunc("do_bar", same)
-	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
 	}
-	en := engine.NewEngine(ctx, cfg, &st, rs, ca)
+	en := engine.NewEngine(cfg, rs)
 	_, err = en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)
 	}
 
-	err = engine.Loop(ctx, &en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

@@ -14,4 +14,6 @@ type Config struct {
 	CacheSize uint32
 	// Language determines the ISO-639-3 code of the default translation language. If not set, no language translations will be looked up.
 	Language string
+	// StateDebug activates string translations of flags in output logs if set
+	StateDebug bool
 }

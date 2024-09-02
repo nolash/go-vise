@@ -11,8 +11,6 @@ import (
 	"path"
 
 	"git.defalsify.org/vise.git/engine"
-	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/logging"
@@ -20,7 +18,7 @@ import (
 )
 
 var (
-	Logg logging.Logger = logging.NewVanilla().WithDomain("http")
+	logg logging.Logger = logging.NewVanilla().WithDomain("http")
 )
 
 type LocalHandler struct {
@@ -98,32 +96,27 @@ func NewDefaultSessionHandler(ctx context.Context, persistBase string, resourceB
 	}
 }
 
-func(f *DefaultSessionHandler) GetEngine(ctx context.Context, sessionId string) (engine.EngineIsh, error) {
+func(f *DefaultSessionHandler) GetEngine(ctx context.Context, sessionId string) (engine.Engine, error) {
 	cfg := f.cfgTemplate
 	cfg.SessionId = sessionId
 	
-	persistPath := path.Join(f.peBase, sessionId)
+	//persistPath := path.Join(f.peBase, sessionId)
+	persistPath := path.Join(f.peBase)
+	if persistPath == "" {
+		persistPath = ".state"
+	}
 	store := fsdb.NewFsDb()
 	err := store.Connect(ctx, persistPath)
 	if err != nil {
 		return nil, err
 	}
-
-	f.rh.SetSession(sessionId)
+	store.SetSession(cfg.SessionId)
+	f.rh.SetSession(cfg.SessionId)
 
 	pe := persist.NewPersister(store)
-	en, err := engine.NewPersistedEngine(ctx, cfg, pe, f.rs)
-	if err != nil {
-		st := state.NewState(cfg.FlagCount)
-		ca := cache.NewCache().WithCacheSize(cfg.CacheSize)
-		Logg.Infof("persisted engine create error. trying again with persisting empty state first...")
-		pe = pe.WithContent(&st, ca)
-		err = pe.Save(cfg.SessionId)
-		if err != nil {
-			return nil, err
-		}
-		en, err = engine.NewPersistedEngine(ctx, cfg, pe, f.rs)
-	}
+	en := engine.NewEngine(cfg, f.rs)
+	en = en.WithPersister(pe)
+
 	return en, err
 }
 

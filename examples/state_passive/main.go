@@ -12,7 +12,6 @@ import (
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/engine"
-	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/logging"
 	fsdb "git.defalsify.org/vise.git/db/fs"
@@ -89,17 +88,16 @@ func main() {
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
 	ctx := context.Background()
-	st := state.NewState(4)
 	rsStore := fsdb.NewFsDb()
 	err := rsStore.Connect(ctx, dir)
 	if err != nil {
 		panic(err)
 	}
 	rs := resource.NewDbResource(rsStore)
-	ca := cache.NewCache()
 	cfg := engine.Config{
 		Root: "root",
 		SessionId: sessionId,
+		FlagCount: 4,
 	}
 
 	dp := path.Join(dir, ".state")
@@ -110,17 +108,9 @@ func main() {
 		os.Exit(1)
 	}
 	pr := persist.NewPersister(store)
-	en, err := engine.NewPersistedEngine(ctx, cfg, pr, rs)
 
-	if err != nil {
-		pr = pr.WithContent(&st, ca)
-		err = pr.Save(cfg.SessionId)
-		en, err = engine.NewPersistedEngine(ctx, cfg, pr, rs)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "engine create exited with error: %v\n", err)
-			os.Exit(1)
-		}
-	}
+	en := engine.NewEngine(cfg, rs)
+	en = en.WithPersister(pr)
 
 	fp := path.Join(dp, sessionId)
 	aux := &fsData{

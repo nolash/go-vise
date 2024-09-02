@@ -7,39 +7,53 @@ import (
 	"os"
 
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/persist"
+	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/db"
 	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 func main() {
-	var store db.Db
 	var dir string
 	var root string
 	var size uint
 	var sessionId string
-	var persist string
+	var persistDir string
 	flag.StringVar(&dir, "d", ".", "resource dir to read from")
 	flag.UintVar(&size, "s", 0, "max size of output")
 	flag.StringVar(&root, "root", "root", "entry point symbol")
 	flag.StringVar(&sessionId, "session-id", "default", "session id")
-	flag.StringVar(&persist, "p", "", "state persistence directory")
+	flag.StringVar(&persistDir, "p", "", "state persistence directory")
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
 	ctx := context.Background()
-	if persist != "" {
-		store = fsdb.NewFsDb()
-		err := store.Connect(ctx, persist)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "db connect error: %v", err)
-			os.Exit(1)
-		}
+	cfg := engine.Config{
+		OutputSize: uint32(size),
+		SessionId: sessionId,
 	}
-	en, err := engine.NewSizedEngine(dir, uint32(size), store, &sessionId)
+
+	rsStore := fsdb.NewFsDb()
+	err := rsStore.Connect(ctx, dir)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "engine create error: %v", err)
+		fmt.Fprintf(os.Stderr, "resource db connect error: %v", err)
 		os.Exit(1)
 	}
+
+	rs := resource.NewDbResource(rsStore)
+	rs = rs.With(db.DATATYPE_STATICLOAD)
+	en := engine.NewEngine(cfg, rs)
+	if persistDir != "" {
+		store := fsdb.NewFsDb()
+		err = store.Connect(ctx, persistDir)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "persist db connect error: %v", err)
+			os.Exit(1)
+		}
+		pe := persist.NewPersister(store)
+		en = en.WithPersister(pe)
+	}
+
 	cont, err := en.Init(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init exited with error: %v\n", err)

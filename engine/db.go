@@ -193,6 +193,8 @@ func(en *dbEngine) ensurePersist() error {
 	if st == nil {
 		st = en.st
 		logg.Debugf("using engine state for persister", "state", st)
+	} else {
+		en.st = st
 	}
 	ca := en.pe.GetMemory()
 	cac, ok := ca.(*cache.Cache)
@@ -202,10 +204,20 @@ func(en *dbEngine) ensurePersist() error {
 			return errors.New("memory MUST be *cache.Cache for now. sorry")
 		}
 		logg.Debugf("using engine memory for persister", "memory", cac)
+	} else {
+		en.ca = cac
 	}
 	logg.Tracef("set persister", "st", st, "cac", cac)
 	en.pe = en.pe.WithContent(st, cac)
-	return nil
+	err := en.pe.Load(en.cfg.SessionId)
+	if err != nil {
+		logg.Infof("persister load fail. trying save in case new session", "err", err, "session", en.cfg.SessionId)
+		err = en.pe.Save(en.cfg.SessionId)
+	}
+	if en.cfg.StateDebug {
+		en.st.UseDebug()
+	}
+	return err
 }
 
 func(en *dbEngine) setupVm() {
