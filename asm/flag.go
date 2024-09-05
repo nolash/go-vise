@@ -16,6 +16,7 @@ type FlagParser struct {
 	flag map[string]string
 	flagDescription map[uint32]string
 	hi uint32
+	debug bool
 }
 
 // NewFlagParser creates a new FlagParser
@@ -24,6 +25,11 @@ func NewFlagParser() *FlagParser {
 		flag: make(map[string]string),
 		flagDescription: make(map[uint32]string),
 	}
+}
+
+func(pp *FlagParser) WithDebug() *FlagParser {
+	pp.debug = true
+	return pp
 }
 
 // GetFlag returns the flag index value for a given flag string
@@ -116,6 +122,9 @@ func(pp *FlagParser) Load(fp string) (int, error) {
 				logg.Debugf("added flag translation", "from", v[1], "to", v[2], "description", v[3])
 			} else {
 				logg.Debugf("added flag translation", "from", v[1], "to", v[2])
+			}
+			if pp.debug {
+				state.FlagDebugger.Register(fl, v[2])
 			}
 		}
 	}	
