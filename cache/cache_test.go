@@ -54,13 +54,25 @@ func TestStateDownUp(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	l := len(ca.Cache)
+	if l != 1 {
+		t.Fatalf("expected cache length 1, got %d", l)
+	}
 	err = ca.Pop()
 	if err != nil {
 		t.Error(err)
 	}
+	l = len(ca.Cache)
+	if l != 1 {
+		t.Fatalf("expected cache length 1, got %d", l)
+	}
 	err = ca.Pop()
-	if err == nil {
-		t.Errorf("expected out of top frame error")
+	if err != nil {
+		t.Errorf("unexpected out of top frame error")
+	}
+	l = len(ca.Cache)
+	if l != 1 {
+		t.Fatalf("expected cache length 1, got %d", l) 
 	}
 }
 
