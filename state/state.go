@@ -273,9 +273,15 @@ func(st *State) Top() (bool, error) {
 // Clears mapping and sink.
 func(st *State) Down(input string) error {
 	var n uint16
-	if len(st.ExecPath) > MaxLevel {
+	l := len(st.ExecPath)
+	if l > MaxLevel {
 		panic("maxlevel")
 		return fmt.Errorf("max levels exceeded (%d)", n)
+	}
+	if l > 0 {
+		if st.ExecPath[l-1] == input {
+			panic("down into same node as previous")
+		}
 	}
 	st.ExecPath = append(st.ExecPath, input)
 	st.SizeIdx = 0
