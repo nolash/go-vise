@@ -160,6 +160,9 @@ func (ca *Cache) Pop() error {
 		logg.Debugf("Cache free", "frame", l, "key", k, "size", sz)
 	}
 	ca.Cache = ca.Cache[:l]
+	if l == 0 {
+		ca.Push()
+	}
 	//ca.resetCurrent()
 	return nil
 }

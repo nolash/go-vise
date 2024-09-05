@@ -301,6 +301,8 @@ func(en *DefaultEngine) runFirst(ctx context.Context) (bool, error) {
 	}
 	en.st.ResetFlag(state.FLAG_TERMINATE)
 	en.st.ResetFlag(state.FLAG_DIRTY)
+	en.st.Up()
+	en.ca.Pop()
 	logg.DebugCtxf(ctx, "end pre-VM check")
 	return r, err
 }

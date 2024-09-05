@@ -84,7 +84,7 @@ func(g *DbResource) sfn(ctx context.Context, sym string) (string, error) {
 //
 // By default bound to GetTemplate. Can be replaced with WithTemplateGetter.
 func(g *DbResource) DbGetTemplate(ctx context.Context, sym string) (string, error) {
-	if g.typs & db.DATATYPE_TEMPLATE == 0{
+	if g.typs & db.DATATYPE_TEMPLATE == 0 {
 		return "", errors.New("not a template getter")
 	}
 	g.db.SetPrefix(db.DATATYPE_TEMPLATE)
