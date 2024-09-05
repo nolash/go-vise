@@ -16,4 +16,6 @@ type Config struct {
 	Language string
 	// StateDebug activates string translations of flags in output logs if set
 	StateDebug bool
+	// EngineDebug activates the engine debug output
+	EngineDebug bool
 }
