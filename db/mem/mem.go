@@ -28,6 +28,11 @@ func NewMemDb() *memDb {
 	return db
 }
 
+// String implements the string interface.
+func(mdb *memDb) String() string {
+	return "memdb"
+}
+
 // Connect implements Db
 func(mdb *memDb) Connect(ctx context.Context, connStr string) error {
 	if mdb.store != nil {

@@ -23,12 +23,18 @@ type fsDb struct {
 	dir string
 }
 
+
 // NewFsDb creates a filesystem backed Db implementation.
 func NewFsDb() *fsDb {
 	db := &fsDb{
 		DbBase: db.NewDbBase(),
 	}
 	return db
+}
+
+// String implements the string interface.
+func(fdb *fsDb) String() string {
+	return "fsdb: " + fdb.dir
 }
 
 // Connect implements the Db interface.

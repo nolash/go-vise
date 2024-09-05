@@ -25,6 +25,15 @@ func NewGdbmDb() *gdbmDb {
 	return db
 }
 
+// String implements the string interface.
+func(gdb *gdbmDb) String() string {
+	fn, err := gdb.conn.FileName()
+	if err != nil {
+		fn = "??"
+	}
+	return "gdbmdb: " + fn
+}
+
 // Connect implements Db
 func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 	if gdb.conn != nil {
