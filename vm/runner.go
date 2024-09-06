@@ -479,6 +479,7 @@ func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (str
 	input, _ := vm.st.GetInput()
 	r, err := fn(ctx, key, input)
 	if err != nil {
+		logg.Errorf("external function load fail", "key", key, "error", err)
 		_ = vm.st.SetFlag(state.FLAG_LOADFAIL)
 		return "", NewExternalCodeError(key, err).WithCode(r.Status)
 	}

@@ -358,6 +358,12 @@ func(en *DefaultEngine) Init(ctx context.Context) (bool, error) {
 		logg.DebugCtxf(ctx, "already initialized")
 		return true, nil
 	}
+	if en.cfg.SessionId != "" {
+		ctx = context.WithValue(ctx, "SessionId", en.cfg.SessionId)
+	}
+	if en.st.Language != nil {
+		ctx = context.WithValue(ctx, "Language", *en.st.Language)
+	}
 	
 	sym := en.cfg.Root
 	if sym == "" {
@@ -408,16 +414,13 @@ func(en *DefaultEngine) Init(ctx context.Context) (bool, error) {
 // 	* input processing against bytcode failed
 func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 	var err error
+	if en.cfg.SessionId != "" {
+		ctx = context.WithValue(ctx, "SessionId", en.cfg.SessionId)
+	}
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}
-	if en.st.Moves == 0 {
-		cont, err := en.Init(ctx)
-		if err != nil {
-			return false, err
-		}
-		return cont, nil
-	}
+
 	err = vm.ValidInput(input)
 	if err != nil {
 		return true, err
