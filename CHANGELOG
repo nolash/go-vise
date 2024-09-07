@@ -11,6 +11,8 @@
 	* Add missing go.sum file.
 	* Single constructor for engine with automagical handling for state, cache and persistence.
 	* State constructor returns pointer.
+	* Prevent endless state move recursion.
+	* Ensure SessionId and Language is available in context in all engine execution branches.
 - 0.0.15
 	* Add comprehensive documentation with texinfo.
 	* Prevent cursor leak in sizer.
