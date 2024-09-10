@@ -379,6 +379,11 @@ func(st *State) SetLanguage(code string) error {
 	return nil
 }
 
+func(st *State) CloneEmpty() *State {
+	flagCount := st.BitSize - 8
+	return NewState(flagCount)
+}
+
 // String implements String interface
 func(st State) String() string {
 	var flags string

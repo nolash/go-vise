@@ -54,6 +54,7 @@ func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 	if err != nil {
 		return err
 	}
+	logg.DebugCtxf(ctx, "gdbm connected", "connstr", connStr)
 	gdb.conn = db
 	return nil
 }
@@ -97,10 +98,12 @@ func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 		}
 		return nil, err
 	}
+	logg.TraceCtxf(ctx, "gdbm get", "key", key, "lk", lk, "val", v)
 	return v, nil
 }
 
 // Close implements Db
 func(gdb *gdbmDb) Close() error {
-	return gdb.Close()
+	logg.Tracef("closing gdbm", "path", gdb.conn)
+	return gdb.conn.Close()
 }

@@ -1,5 +1,9 @@
 package engine
 
+import (
+	"fmt"
+)
+
 // Config globally defines behavior of all components driven by the engine.
 type Config struct {
 	// OutputSize sets the maximum size of output from a single rendered page. If set to 0, no size limit is imposed.
@@ -18,4 +22,9 @@ type Config struct {
 	StateDebug bool
 	// EngineDebug activates the engine debug output
 	EngineDebug bool
+}
+
+// String implements the string interface.
+func(c Config) String() string {
+	return fmt.Sprintf("sessionid '%s', rootpath '%s', flagcount %d, language '%s'", c.SessionId, c.Root, c.FlagCount, c.Language)
 }

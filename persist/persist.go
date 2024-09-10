@@ -16,6 +16,7 @@ type Persister struct {
 	Memory *cache.Cache
 	ctx context.Context
 	db db.Db
+	flush bool
 }
 
 // NewPersister creates a new Persister instance.
@@ -39,12 +40,19 @@ func(p *Persister) WithSession(sessionId string) *Persister {
 }
 
 
-// WithContent sets a current State and Cache object.
+// WithContent is a chainable function that sets a current State and Cache object.
 //
 // This method is normally called before Serialize / Save.
 func(p *Persister) WithContent(st *state.State, ca *cache.Cache) *Persister {
 	p.State = st
 	p.Memory = ca
+	return p
+}
+
+// WithFlush is a chainable function that instructs the persister to flush its memory and state
+// after successful Save.
+func(p *Persister) WithFlush() *Persister {
+	p.flush = true
 	return p
 }
 
@@ -77,6 +85,9 @@ func(p *Persister) Deserialize(b []byte) error {
 }
 
 // Save perists the state and cache to the db.Db backend.
+//
+// If save is successful and WithFlush() has been called, the state and memory
+// will be empty when the method returns.
 func(p *Persister) Save(key string) error {
 	if p.Invalid() {
 		panic("persister has been invalidated")
@@ -86,7 +97,17 @@ func(p *Persister) Save(key string) error {
 		return err
 	}
 	p.db.SetPrefix(db.DATATYPE_STATE)
-	return p.db.Put(p.ctx, []byte(key), b)
+	logg.Debugf("saving state and cache", "key", key, "state", p.State)
+	err = p.db.Put(p.ctx, []byte(key), b)
+	if err != nil {
+		return err
+	}
+	if p.flush {
+		logg.Tracef("state and cache flushed from persister")
+		p.Memory.Reset()
+		p.State = p.State.CloneEmpty()
+	}
+	return nil
 }
 
 // Load retrieves state and cache from the db.Db backend.
@@ -100,6 +121,6 @@ func(p *Persister) Load(key string) error {
 	if err != nil {
 		return err
 	}
-	logg.Debugf("loaded state and cache", "key", key, "bytecode", p.State.Code)
+	logg.Debugf("loaded state and cache", "key", key, "state", p.State)
 	return nil
 }
