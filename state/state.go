@@ -9,9 +9,6 @@ import (
 
 var (
 	IndexError = fmt.Errorf("already at first index")
-)
-
-const (
 	MaxLevel = 128
 )
 
@@ -314,8 +311,8 @@ func(st *State) Up() (string, error) {
 }
 
 // Depth returns the current call stack depth.
-func(st *State) Depth() uint8 {
-	return uint8(len(st.ExecPath)-1)
+func(st *State) Depth() int {
+	return len(st.ExecPath)-1
 }
 
 // Appendcode adds the given bytecode to the end of the existing code.
@@ -358,11 +355,16 @@ func(st *State) SetInput(input []byte) error {
 
 // Reset re-initializes the state to run from top node with accumulated client state.
 func(st *State) Restart() error {
+	var err error
+	if len(st.ExecPath) == 0 {
+		return fmt.Errorf("Restart called but no root set")
+	}
 	st.resetBaseFlags()
 	st.Moves = 0
 	st.SizeIdx = 0
 	st.input = []byte{}
-	return nil
+	st.ExecPath = st.ExecPath[:1]
+	return err
 }
 
 // SetLanguage validates and sets language according to the given ISO639 language code.
@@ -405,4 +407,3 @@ func(st State) String() string {
 func(st *State) resetBaseFlags() {
 	st.Flags[0] = 0
 }
-

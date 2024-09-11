@@ -228,8 +228,8 @@ func TestEngineResumeTerminated(t *testing.T) {
 	}
 
 	location, idx := st.Where()
-	if location != "" {
-		t.Fatalf("expected '', got %s", location)
+	if location != "root" {
+		t.Fatalf("expected 'root', got %s", location)
 	}
 	if idx != 0 {
 		t.Fatalf("expected idx '0', got %v", idx)

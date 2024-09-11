@@ -13,6 +13,9 @@
 	* State constructor returns pointer.
 	* Prevent endless state move recursion.
 	* Ensure SessionId and Language is available in context in all engine execution branches.
+	* Reduce cache usage size correctly on reset.
+	* Add flush state and cache option for persister on save.
+	* Remove dead code from asm package.
 - 0.0.15
 	* Add comprehensive documentation with texinfo.
 	* Prevent cursor leak in sizer.
