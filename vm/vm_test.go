@@ -1,8 +1,23 @@
 package vm
 
 import (
+	"bytes"
 	"testing"
 )
+
+func TestParseOp(t *testing.T) {
+	op, b, err := ParseOp([]byte{0x00, LOAD, 0x03, 0x66, 0x6f, 0x6f})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if (op != LOAD) {
+		t.Fatalf("expected %d, got %d", LOAD, op)
+	}
+	x := append([]byte{0x03}, []byte("foo")...)
+	if !bytes.Equal(b, x) {
+		t.Fatalf("expected %x, got %x", x, b)
+	}
+}
 
 func TestParseNoArg(t *testing.T) {
 	b := NewLine(nil, HALT, nil, nil, nil)

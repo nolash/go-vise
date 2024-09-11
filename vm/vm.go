@@ -176,15 +176,6 @@ func parseSig(b []byte) (uint32, bool, []byte, error) {
 	return sig, matchmode, b, nil
 }
 
-
-// split bytecode into head and b using length-prefixed bitfield
-func byteSplit(b []byte) ([]byte, []byte, error) {
-	bitFieldSize := b[0]
-	bitField := b[1:1+bitFieldSize]
-	b = b[1+bitFieldSize:]
-	return bitField, b, nil
-}
-
 // split bytecode into head and b using length-prefixed integer
 func intSplit(b []byte) (uint32, []byte, error) {
 	l := uint8(b[0])
@@ -222,20 +213,6 @@ func instructionSplit(b []byte) (string, []byte, error) {
 	}
 	r := string(b[1:1+sz])
 	return r, b[1+sz:], nil
-}
-
-// check if the start of the given bytecode contains a valid opcode, extract and return it
-func opCheck(b []byte, opIn Opcode) ([]byte, error) {
-	var bb []byte
-	op, bb, err := opSplit(b)
-	if err != nil {
-		return b, err
-	}
-	b = bb
-	if op != opIn {
-		return b, fmt.Errorf("not a %v instruction", op)
-	}
-	return b, nil
 }
 
 // split bytecode into head and b using opcode

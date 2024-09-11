@@ -812,3 +812,25 @@ func TestMatchFlag(t *testing.T) {
 		t.Fatalf("expected no terminate")
 	}
 }
+
+func TestBatchRun(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	st := state.NewState(0)
+	st.Down("root")
+	st.Down("one")
+	st.Down("two")
+	ca := cache.NewCache()
+	rs := newTestResource(st)
+	rs.Lock()
+	b := NewLine(nil, MNEXT, []string{"fwd", "0"}, nil, nil)
+	b = NewLine(b, MPREV, []string{"back", "11"}, nil, nil)
+	b = NewLine(b, MSINK, nil, nil, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+	vm := NewVm(st, rs, ca, nil)
+
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
