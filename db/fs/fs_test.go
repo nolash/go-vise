@@ -100,3 +100,91 @@ func TestPutGetFsAlt(t *testing.T) {
 		t.Fatalf("expected %x, got %x", b, v)
 	}
 }
+
+func TestConnect(t *testing.T) {
+	ctx := context.Background()
+	store := NewFsDb()
+	err := store.Connect(ctx, "")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	err = store.SetLock(db.DATATYPE_USERDATA, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store.SetPrefix(db.DATATYPE_USERDATA)
+	if store.CheckPut() {
+		t.Fatal("expected checkput false")
+	}
+	err = store.Put(ctx, []byte("foo"), []byte("bar"))
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if store.CheckPut() {
+		t.Fatal("expected checkput false")
+	}
+	err = store.SetLock(db.DATATYPE_USERDATA, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !store.CheckPut() {
+		t.Fatal("expected checkput false")
+	}
+}
+
+func TestReopen(t *testing.T) {
+	ctx := context.Background()
+	store := NewFsDb()
+	d, err := ioutil.TempDir("", "vise-db-fs-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = store.Connect(ctx, d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = store.Connect(ctx, d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store.SetPrefix(db.DATATYPE_USERDATA)
+	err = store.Put(ctx, []byte("foo"), []byte("bar"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = store.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	store = NewFsDb()
+	err = store.Connect(ctx, d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store.SetPrefix(db.DATATYPE_USERDATA)
+	v, err := store.Get(ctx, []byte("foo"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(v, []byte("bar")) {
+		t.Fatalf("expected 'bar', got: '%s'", v)
+	}
+}
+
+func TestNoKey(t *testing.T) {
+	ctx := context.Background()
+	store := NewFsDb()
+	d, err := ioutil.TempDir("", "vise-db-fs-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = store.Connect(ctx, d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = store.Get(ctx, []byte("xyzzy"))
+	if err == nil {
+		t.Fatal(err)
+	}
+}
