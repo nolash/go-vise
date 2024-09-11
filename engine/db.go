@@ -176,8 +176,6 @@ func(en *DefaultEngine) preparePersist() error {
 	} else {
 		if en.st == nil {
 			logg.Debugf("defer persist state set until state set in engine")
-		} else {
-			en.st = st
 		}
 	}
 
@@ -195,8 +193,6 @@ func(en *DefaultEngine) preparePersist() error {
 	} else {
 		if en.ca == nil {
 			logg.Debugf("defer persist memory set until memory set in engine")
-		} else {
-			en.ca = cac
 		}
 	}
 	return nil

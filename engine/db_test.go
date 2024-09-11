@@ -286,3 +286,104 @@ func TestDbConfigString(t *testing.T) {
 		t.Fatalf("expected contains 'tinky', got: '%s'", s)
 	}
 }
+
+func TestDbEnsure(t *testing.T) {
+	var err error
+	var cfg Config
+	ctx := context.Background()
+	rs := resource.NewMenuResource()
+	store := memdb.NewMemDb()
+	store.Connect(ctx, "")
+	pe := persist.NewPersister(store)
+	en := NewEngine(cfg, rs).WithPersister(pe)
+	_, err = en.Init(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pe.GetState() == nil {
+		t.Fatal("expected persister state")
+	}
+	if pe.GetMemory() == nil {
+		t.Fatal("expected persister memory")
+	}
+}
+
+func TestDbKeepPersisterContent(t *testing.T) {
+	var err error
+	var cfg Config
+	ctx := context.Background()
+	rs := resource.NewMenuResource()
+	st := state.NewState(0)
+	ca := cache.NewCache()
+	store := memdb.NewMemDb()
+	store.Connect(ctx, "")
+	pe := persist.NewPersister(store)
+	pe = pe.WithContent(st, ca)
+	en := NewEngine(cfg, rs).WithPersister(pe)
+	_, err = en.Init(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pest := pe.GetState()
+	if pest != st {
+		t.Fatalf("expected persisted state %p same as engine %p", pest, st)
+	}
+	peca := pe.GetMemory()
+	if peca != ca {
+		t.Fatalf("expected persisted cache %p same as engine %p", peca, st)
+	}
+}
+
+func TestDbKeepState(t *testing.T) {
+	var err error
+	var cfg Config
+	ctx := context.Background()
+	rs := resource.NewMenuResource()
+	st := state.NewState(0)
+	ca := cache.NewCache()
+	store := memdb.NewMemDb()
+	store.Connect(ctx, "")
+	pe := persist.NewPersister(store)
+	en := NewEngine(cfg, rs)
+	en = en.WithState(st)
+	en = en.WithMemory(ca)
+	en = en.WithPersister(pe)
+	_, err = en.Init(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pest := pe.GetState()
+	if pest != st {
+		t.Fatalf("expected persisted state %p same as engine preset %p", pest, st)
+	}
+	peca := pe.GetMemory()
+	if peca != ca {
+		t.Fatalf("expected persisted cache %p same as engine preset %p", peca, st)
+	}
+}
+
+func TestDbFirst(t *testing.T) {
+	var err error
+	var cfg Config
+	ctx := context.Background()
+	rs := resource.NewMenuResource()
+	st := state.NewState(1)
+	store := memdb.NewMemDb()
+	store.Connect(ctx, "")
+
+	v := st.GetFlag(state.FLAG_USERSTART)
+	if v {
+		t.Fatal("expected flag unset")
+	}
+	en := NewEngine(cfg, rs)
+	en = en.WithState(st)
+	en = en.WithFirst(flagSet)
+	_, err = en.Init(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	v = st.GetFlag(state.FLAG_USERSTART)
+	if !v {
+		t.Fatal("expected flag set")
+	}
+}
