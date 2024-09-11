@@ -132,13 +132,18 @@ func(ca *Cache) Get(key string) (string, error) {
 
 // Reset implements the Memory interface.
 func(ca *Cache) Reset() {
+	var v string
 	if len(ca.Cache) == 0 {
 		return
 	}
 	ca.Cache = ca.Cache[:1]
 	ca.CacheUseSize = 0
+	for _, v = range ca.Cache[0] {
+		ca.CacheUseSize += uint32(len(v))
+	}
 	return
 }
+
 // Push implements the Memory interface.
 func (ca *Cache) Push() error {
 	m := make(map[string]string)
@@ -157,13 +162,13 @@ func (ca *Cache) Pop() error {
 	for k, v := range m {
 		sz := len(v)
 		ca.CacheUseSize -= uint32(sz)
+		delete(ca.Sizes, k)
 		logg.Debugf("Cache free", "frame", l, "key", k, "size", sz)
 	}
 	ca.Cache = ca.Cache[:l]
 	if l == 0 {
 		ca.Push()
 	}
-	//ca.resetCurrent()
 	return nil
 }
 

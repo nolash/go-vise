@@ -105,6 +105,7 @@ func(p *Persister) Save(key string) error {
 	if p.flush {
 		logg.Tracef("state and cache flushed from persister")
 		p.Memory.Reset()
+		p.Memory.Pop()
 		p.State = p.State.CloneEmpty()
 	}
 	return nil
