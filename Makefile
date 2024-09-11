@@ -31,6 +31,5 @@ doc:
 	make -C doc
 
 cov:
-	#go test -cover ./... -coverprofile=cover.out
-	go test -cover ./engine/... -coverprofile=cover.out
+	go test -cover ./... -coverprofile=cover.out
 	go tool cover -html=cover.out

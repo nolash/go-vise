@@ -493,12 +493,15 @@ func(en *DefaultEngine) WriteResult(ctx context.Context, w io.Writer) (int, erro
 	logg.TraceCtxf(ctx, "render with state", "state", en.st)
 	r, err := en.vm.Render(ctx)
 	if err != nil {
-		return 0, err
-	}
-	if len(r) > 0 {
-		l, err = io.WriteString(w, r)
-		if err != nil {
-			return l, err
+		if len(en.exit) == 0 {
+			return 0, err
+		}
+	} else {
+		if len(r) > 0 {
+			l, err = io.WriteString(w, r)
+			if err != nil {
+				return l, err
+			}
 		}
 	}
 	if len(en.exit) > 0 {
