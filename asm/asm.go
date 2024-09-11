@@ -44,54 +44,6 @@ func flush(b *bytes.Buffer, w io.Writer) (int, error) {
 	return 0, nil
 }
 
-func parseDescType(b *bytes.Buffer, arg Arg) (int, error) {
-	var rn int
-	var err error
-
-	log.Printf("desctype")
-	var selector string
-	if arg.Flag != nil {
-		selector = strconv.FormatUint(uint64(*arg.Flag), 10)
-	} else if arg.Selector != nil {
-		selector = *arg.Selector
-	}
-
-	var size string
-	if arg.Size != nil {
-		size = strconv.FormatUint(uint64(*arg.Size), 10)
-		n, err := writeSym(b, size)
-		rn += n
-		if err != nil {
-			return rn, err
-		}
-	}
-
-	if arg.Sym != nil {
-		log.Printf(">>>> sym")
-		n, err := writeSym(b, *arg.Sym)
-		rn += n
-		if err != nil {
-			return rn, err
-		}
-	}
-
-	if selector != "" {
-		n, err := writeSym(b, *arg.Selector)
-		rn += n
-		if err != nil {
-			return rn, err
-		}
-	}
-
-	n, err := writeSym(b, *arg.Desc)
-	rn += n
-	if err != nil {
-		return rn, err
-	}
-
-	return rn, nil
-}
-
 func parseTwoSym(b *bytes.Buffer, arg Arg) (int, error) {
 	var rn int
 
@@ -218,16 +170,6 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 	n_buf += n
 	if  err != nil {
 		return n_out, err
-	}
-
-	// Catch Menu batch commands
-	if a.Desc != nil {
-		n, err := parseDescType(b, a)
-		n_buf += n
-		if err != nil {
-			return n_out, err
-		}
-		return flush(b, w)
 	}
 
 	// Catch
@@ -364,15 +306,6 @@ func writeSym(w *bytes.Buffer, s string) (int, error) {
 	return w.WriteString(s)
 }
 
-func writeDisplay(w *bytes.Buffer, s string) (int, error) {
-	s = strings.Trim(s, "\"'")
-	sz := len(s)
-	if sz > 255 {
-		return 0, fmt.Errorf("string size %v too big", sz)
-	}
-	w.Write([]byte{byte(sz)})
-	return w.WriteString(s)
-}
 func writeSize(w *bytes.Buffer, n uint32) (int, error) {
 	if n == 0 {
 		return w.Write([]byte{0x01, 0x00})
