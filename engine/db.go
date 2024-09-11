@@ -390,7 +390,9 @@ func(en *DefaultEngine) Init(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	
+	if en.dbg != nil {
+		en.dbg.Break(en.st, en.ca)
+	}
 	logg.DebugCtxf(ctx, "end new init VM run", "code", b)
 	en.st.SetCode(b)
 	err = en.st.SetInput(inSave)

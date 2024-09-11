@@ -428,11 +428,28 @@ func TestStateReset(t *testing.T) {
 	st.Next()
 	st.Next()
 	st.SetInput([]byte("xyzzy"))
-	err := st.Restart()
+
+	r, err := st.Top()
+	if r {
+		t.Fatal("expected false")
+	}
+
+	// check that cloneempty doesnt affect the position of the original
+	o := st.CloneEmpty()
+	r, err = o.Top()
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	r, err = st.Top()
+	if r {
+		t.Fatal("expected false")
+	}
+
+	err = st.Restart()
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err := st.Top()
+	r, err = st.Top()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -449,7 +466,6 @@ func TestStateReset(t *testing.T) {
 	if v > 0 {
 		t.Fatalf("expected 0, got %d", v)
 	}
-	
 }
 
 func TestStateLanguage(t *testing.T) {
