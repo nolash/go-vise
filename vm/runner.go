@@ -276,6 +276,12 @@ func(vm *Vm) runLoad(ctx context.Context, b []byte) ([]byte, error) {
 		return b, err
 	}
 	err = vm.ca.Add(sym, r, uint16(sz))
+	if err != nil {
+		if err == cache.ErrDup {
+			logg.DebugCtxf(ctx, "Ignoring load request on frame that has symbol already loaded", "sym", sym)
+			err = nil	
+		}
+	}
 	return b, err
 }
 

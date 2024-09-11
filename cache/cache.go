@@ -58,8 +58,7 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	if checkFrame > -1 {
 		thisFrame := len(ca.Cache) - 1
 		if checkFrame == thisFrame {
-			logg.Debugf("Ignoring load request on frame that has symbol already loaded")
-			return nil
+			return ErrDup
 		}
 		return fmt.Errorf("key %v already defined in frame %v, this is frame %v", key, checkFrame, thisFrame)
 	}
