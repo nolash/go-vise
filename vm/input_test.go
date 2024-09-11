@@ -1,9 +1,11 @@
 package vm
 
 import (
+	"context"
 	"testing"
 
 	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/cache"
 )
 
 func TestPhoneInput(t *testing.T) {
@@ -85,5 +87,66 @@ func TestTargetInput(t *testing.T) {
 	}
 	if !v {
 		t.Fatal("expected true")
+	}
+}
+
+func TestApplyTarget(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	st := state.NewState(0)
+	st.Down("root")
+	st.Down("one")
+	st.Down("two")
+	ca := cache.NewCache()
+	rs := newTestResource(st)
+	rs.Lock()
+	b := NewLine(nil, INCMP, []string{"^", "0"}, nil, nil)
+	vm := NewVm(st, rs, ca, nil)
+
+	st.SetInput([]byte("0"))
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	st.Restart()
+	st.Down("foo")
+	b = NewLine(nil, INCMP, []string{"_", "0"}, nil, nil)
+	vm = NewVm(st, rs, ca, nil)
+
+	st.SetInput([]byte("0"))
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	st.Restart()
+	b = NewLine(nil, INCMP, []string{".", "0"}, nil, nil)
+	vm = NewVm(st, rs, ca, nil)
+
+	st.SetInput([]byte("0"))
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	st.Restart()
+	b = NewLine(nil, INCMP, []string{">", "0"}, nil, nil)
+	vm = NewVm(st, rs, ca, nil)
+
+	st.SetInput([]byte("0"))
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	st.Restart()
+	b = NewLine(nil, INCMP, []string{"<", "0"}, nil, nil)
+	vm = NewVm(st, rs, ca, nil)
+
+	st.SetInput([]byte("0"))
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
