@@ -92,3 +92,45 @@ func TestDb(t *testing.T) {
 	rs.WithMenuGetter(tg.GetMenu)
 
 }
+
+func TestDbGetterDirect(t *testing.T) {
+	ctx := context.Background()
+	store := mem.NewMemDb()
+	store.Connect(ctx, "")
+	tg := NewDbResource(store)
+
+	store.SetLock(db.DATATYPE_MENU, false)
+	store.SetPrefix(db.DATATYPE_MENU)
+	err := store.Put(ctx, []byte("foo"), []byte("bar"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	store.SetLock(db.DATATYPE_MENU, true)
+	v, err := tg.GetMenu(ctx, "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v != "foo" {
+		t.Fatalf("expected 'foo', got '%s'", v)
+	}
+
+	tg.With(db.DATATYPE_STATICLOAD)
+	store.SetLock(db.DATATYPE_STATICLOAD, false)
+	store.SetPrefix(db.DATATYPE_STATICLOAD)
+	err = store.Put(ctx, []byte("inky.txt"), []byte("blinky"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	store.SetLock(db.DATATYPE_STATICLOAD, true)
+	fn, err := tg.DbFuncFor(ctx, "inky")
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := fn(ctx, "", nil)
+if err != nil {
+		t.Fatal(err)
+	}
+	if r.Content != "blinky" {
+		t.Fatalf("expected 'foo', got '%s'", v)
+	}
+}
