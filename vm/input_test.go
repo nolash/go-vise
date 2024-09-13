@@ -9,36 +9,40 @@ import (
 )
 
 func TestPhoneInput(t *testing.T) {
-	err := ValidInput([]byte("+12345"))
+	v, err := ValidInput([]byte("+12345"))
 	if err != nil {
 		t.Fatal(err)
+	}
+	if v != -1 {
+		t.Fatalf("expected -1, got %d", v)
 	}
 }
 
 func TestMenuInputs(t *testing.T) {
-	err := ValidInput([]byte("0"))
+	var err error
+	_, err = ValidInput([]byte("0"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = ValidInput([]byte("99"))
+	_, err = ValidInput([]byte("99"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = ValidInput([]byte("foo"))
+	_, err = ValidInput([]byte("foo"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = ValidInput([]byte("foo Bar"))
+	_, err = ValidInput([]byte("foo Bar"))
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestFalseInput(t *testing.T) {
-	err := ValidInput([]byte{0x0a})
+	_, err := ValidInput([]byte{0x0a})
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -148,5 +152,27 @@ func TestApplyTarget(t *testing.T) {
 	b, err = vm.Run(ctx, b)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestVmCustomInputValid(t *testing.T) {
+	var err error
+	s := []byte{0x07, 0x6a, 0x6f, 0x6f}
+	_, err = ValidInput(s)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	err = RegisterInputValidator(42, "^\x07[a-z]+")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	v, err := ValidInput(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v != 42 {
+		t.Fatalf("expected 42, got %d", v)
 	}
 }

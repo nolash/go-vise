@@ -439,7 +439,7 @@ func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}
 
-	err = vm.ValidInput(input)
+	_, err = vm.ValidInput(input)
 	if err != nil {
 		return true, err
 	}

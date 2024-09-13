@@ -17,7 +17,10 @@ var (
 	ctrlRegex = regexp.MustCompile(ctrlRegexStr)
 	symRegexStr = "^[a-zA-Z0-9][a-zA-Z0-9_]+$"
 	symRegex = regexp.MustCompile(symRegexStr)
+)
 
+var (
+	preInputRegexStr = make(map[int]*regexp.Regexp)
 )
 
 // InvalidInputError indicates client input that was unhandled by the bytecode (INCMP fallthrough)
@@ -35,12 +38,31 @@ func(e InvalidInputError) Error() string {
 	return fmt.Sprintf("invalid input: '%s'", e.input)
 }
 
-// CheckInput validates the given byte string as client input.
-func ValidInput(input []byte) error {
-	if !inputRegex.Match(input) {
-		return fmt.Errorf("Input '%s' does not match input format /%s/", input, inputRegexStr)
+func RegisterInputValidator(k int, v string) error {
+	var ok bool
+	var err error
+
+	_, ok = preInputRegexStr[k]
+	if ok {
+		return fmt.Errorf("input checker with key '%d' already registered", k)
 	}
-	return nil
+	preInputRegexStr[k], err = regexp.Compile(v)
+	return err
+}
+
+// CheckInput validates the given byte string as client input.
+func ValidInput(input []byte) (int, error) {
+	if inputRegex.Match(input) {
+		return -1, nil
+	}
+	for k, v := range preInputRegexStr {
+		logg.Tracef("custom check input", "i", k, "regex", v)
+		if v.Match(input) {
+			logg.Debugf("match custom check input", "i", k, "regex", v, "input", input)
+			return k, nil
+		}
+	}
+	return -2, fmt.Errorf("Input '%s' does not match any input format (default: /%s/)", input, inputRegexStr)
 }
 
 // control characters for relative navigation.
