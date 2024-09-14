@@ -27,7 +27,8 @@ func TestLoopTop(t *testing.T) {
 	en = en.WithState(st)
 	en = en.WithMemory(ca)
 
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +67,8 @@ func TestLoopBackForth(t *testing.T) {
 	en := NewEngine(cfg, rs)
 	en = en.WithState(st)
 
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +105,8 @@ func TestLoopBrowse(t *testing.T) {
 	en := NewEngine(cfg, rs)
 	en = en.WithState(st)
 
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}

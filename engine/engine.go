@@ -8,7 +8,7 @@ import (
 // EngineIsh defines the interface for execution engines that handle vm initialization and execution, and rendering outputs.
 type Engine interface {
 	// Init sets the engine up for vm execution. It must be called before Exec.
-	Init(ctx context.Context) (bool, error)
+	//Init(ctx context.Context) (bool, error)
 	// Exec executes the pending bytecode.
 	Exec(ctx context.Context, input []byte) (bool, error)
 	// WriteResult renders output according to the state of VM execution

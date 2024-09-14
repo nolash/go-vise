@@ -128,7 +128,8 @@ func TestEngineInit(t *testing.T) {
 	en = en.WithState(st)
 	en = en.WithMemory(ca)
 
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +189,8 @@ func TestEngineExecInvalidInput(t *testing.T) {
 	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	var err error
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -212,7 +214,8 @@ func TestEngineResumeTerminated(t *testing.T) {
 	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	var err error
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -251,7 +254,8 @@ func TestLanguageSet(t *testing.T) {
 	en = en.WithMemory(ca)
 
 	var err error
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -306,7 +310,8 @@ func TestLanguageRender(t *testing.T) {
 	en = en.WithMemory(ca)
 
 	var err error
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -349,7 +354,8 @@ func TestConfigLanguageRender(t *testing.T) {
 	en = en.WithMemory(ca)
 
 	var err error
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -406,7 +412,8 @@ func TestPreVm(t *testing.T) {
 	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	en = en.WithFirst(preBlock)
-	r, err := en.Init(ctx)
+	//r, err := en.Init(ctx)
+	r, err := en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -428,7 +435,8 @@ func TestPreVm(t *testing.T) {
 	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	en = en.WithFirst(preAllow)
-	r, err = en.Init(ctx)
+	//r, err = en.Init(ctx)
+	r, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}

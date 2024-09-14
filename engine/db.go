@@ -245,6 +245,9 @@ func(en *DefaultEngine) setupVm() {
 
 // prepare engine for Init run.
 func(en *DefaultEngine) prepare() error {
+	if en.initd {
+		return nil
+	}
 	err := en.preparePersist()
 	if err != nil {
 		return err
@@ -331,6 +334,9 @@ func(en *DefaultEngine) Finish() error {
 
 // change root to current state location if non-empty.
 func(en *DefaultEngine) restore() {
+	if en.initd {
+		return
+	}
 	location, _ := en.st.Where()
 	if len(location) == 0 {
 		return
@@ -344,22 +350,23 @@ func(en *DefaultEngine) restore() {
 // Init implements the Engine interface.
 //
 // It loads and executes code for the start node.
-func(en *DefaultEngine) Init(ctx context.Context) (bool, error) {
+func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 	err := en.prepare()
 	if err != nil {
 		return false, err
 	}
 	en.restore()
+
+	if en.st.Language != nil {
+		logg.TraceCtxf(ctx, "set language on context", "lang", en.st.Language)
+		ctx = context.WithValue(ctx, "Language", *en.st.Language)
+	}
+
 	if en.initd {
 		logg.DebugCtxf(ctx, "already initialized")
 		return true, nil
 	}
-	if en.cfg.SessionId != "" {
-		ctx = context.WithValue(ctx, "SessionId", en.cfg.SessionId)
-	}
-	if en.st.Language != nil {
-		ctx = context.WithValue(ctx, "Language", *en.st.Language)
-	}
+
 	
 	sym := en.cfg.Root
 	if sym == "" {
@@ -395,6 +402,7 @@ func(en *DefaultEngine) Init(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	en.initd = true
 	return len(b) > 0, nil
 }
 
@@ -412,9 +420,21 @@ func(en *DefaultEngine) Init(ctx context.Context) (bool, error) {
 // 	* input processing against bytcode failed
 func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 	var err error
+
 	if en.cfg.SessionId != "" {
 		ctx = context.WithValue(ctx, "SessionId", en.cfg.SessionId)
 	}
+
+	cont, err := en.init(ctx, input)
+	if err != nil {
+		return false, err
+	}
+	if !cont {
+		return cont, nil
+	} else if len(input) == 0 {
+		return true, nil
+	}
+
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}

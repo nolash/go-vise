@@ -56,7 +56,8 @@ func TestDbEngineMinimal(t *testing.T) {
 	cfg := Config{}
 	rs := resource.NewMenuResource()
 	en := NewEngine(cfg, rs)
-	cont, err := en.Init(ctx)
+	//cont, err := en.Init(ctx)
+	cont, err := en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +187,8 @@ func TestDbEngineRoot(t *testing.T) {
 	rs := resource.NewMenuResource()
 	rs.WithCodeGetter(codeGet)
 	en := NewEngine(cfg, rs)
-	cont, err := en.Init(ctx)
+	//cont, err := en.Init(ctx)
+	cont, err := en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -230,7 +232,8 @@ func TestDbEnginePersist(t *testing.T) {
 	rs.AddLocalFunc("foo", flagSet)
 	en := NewEngine(cfg, rs)
 	en = en.WithPersister(pe)
-	cont, err := en.Init(ctx)
+	//cont, err := en.Init(ctx)
+	cont, err := en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -265,7 +268,8 @@ func TestDbEngineDebug(t *testing.T) {
 	rs.AddLocalFunc("foo", flagSet)
 	dbg := NewSimpleDebug(w)
 	en := NewEngine(cfg, rs).WithDebug(dbg)
-	c, err := en.Init(ctx)
+	//c, err := en.Init(ctx)
+	c, err := en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +300,8 @@ func TestDbEnsure(t *testing.T) {
 	store.Connect(ctx, "")
 	pe := persist.NewPersister(store)
 	en := NewEngine(cfg, rs).WithPersister(pe)
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -320,7 +325,8 @@ func TestDbKeepPersisterContent(t *testing.T) {
 	pe := persist.NewPersister(store)
 	pe = pe.WithContent(st, ca)
 	en := NewEngine(cfg, rs).WithPersister(pe)
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -348,7 +354,8 @@ func TestDbKeepState(t *testing.T) {
 	en = en.WithState(st)
 	en = en.WithMemory(ca)
 	en = en.WithPersister(pe)
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -378,7 +385,8 @@ func TestDbFirst(t *testing.T) {
 	en := NewEngine(cfg, rs)
 	en = en.WithState(st)
 	en = en.WithFirst(flagSet)
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
