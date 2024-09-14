@@ -120,7 +120,7 @@ func main() {
 	rs.AddLocalFunc("poke", aux.poke)
 	rs.AddLocalFunc("peek", aux.peek)
 
-	cont, err := en.Init(ctx)
+	cont, err := en.Exec(ctx, []byte{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init exited with error: %v\n", err)
 		os.Exit(1)

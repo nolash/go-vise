@@ -37,7 +37,8 @@ func main() {
 		OutputSize: uint32(size),
 	}
 	en := engine.NewEngine(cfg, rs)
-	cont, err := en.Init(ctx)
+	//cont, err := en.Init(ctx)
+	cont, err := en.Exec(ctx, []byte{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init exited with error: %v\n", err)
 		os.Exit(1)

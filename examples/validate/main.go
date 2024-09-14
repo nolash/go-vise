@@ -78,7 +78,8 @@ func main() {
 	en := engine.NewEngine(cfg, rs)
 	en = en.WithState(st)
 
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)

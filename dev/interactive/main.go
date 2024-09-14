@@ -54,7 +54,8 @@ func main() {
 		en = en.WithPersister(pe)
 	}
 
-	cont, err := en.Init(ctx)
+	//cont, err := en.Init(ctx)
+	cont, err := en.Exec(ctx, []byte{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init exited with error: %v\n", err)
 		os.Exit(1)

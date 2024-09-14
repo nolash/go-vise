@@ -98,7 +98,6 @@ func main() {
 	cfg := engine.Config{
 		Root: "root",
 		SessionId: "default",
-		FlagCount: 1,
 	}
 
 	dp := path.Join(scriptDir, ".state")
@@ -109,18 +108,21 @@ func main() {
 		os.Exit(1)
 	}
 	pr := persist.NewPersister(store)
+	st := state.NewState(1)
 	en := engine.NewEngine(cfg, rs)
+	en = en.WithState(st)
 	en = en.WithPersister(pr)
 
 	aux := &langController{
-		State: pr.State,
+		State: st,
 	}
 	rs.AddLocalFunc("swaplang", aux.lang)
 	rs.AddLocalFunc("msg", msg)
 	rs.AddLocalFunc("momsg", aux.moMsg)
 	rs.AddLocalFunc("empty", empty)
 
-	_, err = en.Init(ctx)
+	//_, err = en.Init(ctx)
+	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
 		os.Exit(1)

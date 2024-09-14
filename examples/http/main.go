@@ -151,11 +151,11 @@ func(f *DefaultSessionHandler) ServeHTTP(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	if len(input) == 0 {
-		r, err = en.Init(ctx)
-	} else {
-		r, err = en.Exec(ctx, input)
-	}
+	//if len(input) == 0 {
+	//	r, err = en.Init(ctx)
+	//} else {
+	r, err = en.Exec(ctx, input)
+	//}
 	if err != nil {
 		f.writeError(w, 500, "Engine exec fail", err)
 		return
