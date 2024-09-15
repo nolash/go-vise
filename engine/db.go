@@ -26,6 +26,7 @@ type DefaultEngine struct {
 	first resource.EntryFunc
 	initd bool
 	exit string
+	regexCount int
 }
 
 // NewEngine instantiates the default Engine implementation.
@@ -121,6 +122,21 @@ func(en *DefaultEngine) WithFirst(fn resource.EntryFunc) *DefaultEngine {
 	}
 	en.first = fn
 	return en
+}
+
+// AddValidInput defines a regular expressing string to match input against.
+//
+// The added regular expression will be evaluated after the builtin match (see
+// vm/input.go for the actual string details).
+// 
+// The function may be called more than once. Input will be validated against each
+// in the sequence they were added.
+//
+// When a match is found, remaining regular expressions will be skipped.
+func(en *DefaultEngine) AddValidInput(re string) error {
+	err := vm.RegisterInputValidator(en.regexCount, re)
+	en.regexCount += 1
+	return err
 }
 
 // ensure state is present in engine.
@@ -366,7 +382,6 @@ func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 		logg.DebugCtxf(ctx, "already initialized")
 		return true, nil
 	}
-
 	
 	sym := en.cfg.Root
 	if sym == "" {
@@ -374,7 +389,7 @@ func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 	}
 
 	inSave, _ := en.st.GetInput()
-	err = en.st.SetInput([]byte{})
+	err = en.st.SetInput(input)
 	if err != nil {
 		return false, err
 	}
