@@ -277,7 +277,8 @@ func(st *State) Down(input string) error {
 	}
 	if l > 0 {
 		if st.ExecPath[l-1] == input {
-			panic("down into same node as previous")
+			s := fmt.Sprintf("down into same node as previous: %v -> '%s'", st.ExecPath, input)
+			panic(s)
 		}
 	}
 	st.ExecPath = append(st.ExecPath, input)
