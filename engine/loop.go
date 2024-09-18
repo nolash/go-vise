@@ -19,7 +19,7 @@ import (
 // Rendered output is written to the provided writer.
 func Loop(ctx context.Context, en Engine, reader io.Reader, writer io.Writer) error {
 	defer en.Finish()
-	l, err := en.WriteResult(ctx, writer)
+	l, err := en.Flush(ctx, writer)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func Loop(ctx context.Context, en Engine, reader io.Reader, writer io.Writer) er
 		if err != nil {
 			return fmt.Errorf("unexpected termination: %v\n", err)
 		}
-		l, err := en.WriteResult(ctx, writer)
+		l, err := en.Flush(ctx, writer)
 		if err != nil {
 			return err
 		}

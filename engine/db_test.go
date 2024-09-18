@@ -201,11 +201,6 @@ func TestDbEngineRoot(t *testing.T) {
 		t.Fatalf("expected loadfail")
 	}
 
-	_, err = en.WriteResult(ctx, nul) 
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	cont, err = en.Exec(ctx, []byte{0x30})
 	if err == nil {
 		t.Fatalf("expected nocode")
@@ -246,7 +241,7 @@ func TestDbEnginePersist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = en.WriteResult(ctx, nul) 
+	_, err = en.Flush(ctx, nul) 
 	if err != nil {
 		t.Fatal(err)
 	}

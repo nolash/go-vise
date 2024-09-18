@@ -11,9 +11,10 @@ type Engine interface {
 	//Init(ctx context.Context) (bool, error)
 	// Exec executes the pending bytecode.
 	Exec(ctx context.Context, input []byte) (bool, error)
-	// WriteResult renders output according to the state of VM execution
-	// to the given io.Writer.
-	WriteResult(ctx context.Context, w io.Writer) (int, error)
+	// Flush renders output according to the state of VM execution
+	// to the given io.Writer, and prepares the engine for another
+	// VM execution.
+	Flush(ctx context.Context, w io.Writer) (int, error)
 	// Finish must be called after the last call to Exec.
 	Finish() error
 }

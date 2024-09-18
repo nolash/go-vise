@@ -141,7 +141,7 @@ func TestEngineInit(t *testing.T) {
 		t.Fatal(err)
 	}
 	w := bytes.NewBuffer(nil)
-	_, err = en.WriteResult(ctx, w)
+	_, err = en.Flush(ctx, w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,7 +165,7 @@ func TestEngineInit(t *testing.T) {
 		t.Fatalf("expected where-string 'foo', got %s", r)
 	}
 	w = bytes.NewBuffer(nil)
-	_, err = en.WriteResult(ctx, w)
+	_, err = en.Flush(ctx, w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -333,7 +333,7 @@ func TestLanguageRender(t *testing.T) {
 	}
 	
 	br := bytes.NewBuffer(nil)
-	_, err = en.WriteResult(ctx, br)
+	_, err = en.Flush(ctx, br)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -376,7 +376,7 @@ func TestConfigLanguageRender(t *testing.T) {
 		t.Fatal(err)
 	}
 	br := bytes.NewBuffer(nil)
-	_, err = en.WriteResult(ctx, br)
+	_, err = en.Flush(ctx, br)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -428,7 +428,7 @@ func TestPreVm(t *testing.T) {
 		t.Fatalf("expected init to return 'not continue'")
 	}
 	out = bytes.NewBuffer(b)
-	_, err = en.WriteResult(ctx, out)
+	_, err = en.Flush(ctx, out)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -475,7 +475,10 @@ func TestManyQuits(t *testing.T) {
 	if r {
 		t.Fatalf("expected init to return 'not continue'")
 	}
-	en.WriteResult(ctx, b)
+	_, err = en.Flush(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	en = NewEngine(cfg, rs)
 	en = en.WithState(st)
@@ -487,7 +490,10 @@ func TestManyQuits(t *testing.T) {
 	if r {
 		t.Fatalf("expected init to return 'not continue'")
 	}
-	en.WriteResult(ctx, b)
+	_, err = en.Flush(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	en = NewEngine(cfg, rs)
 	en = en.WithState(st)
@@ -501,7 +507,7 @@ func TestManyQuits(t *testing.T) {
 	}
 
 	b = bytes.NewBuffer(nil)
-	_, err = en.WriteResult(ctx, b)
+	_, err = en.Flush(ctx, b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -535,7 +541,7 @@ func TestOutEmpty(t *testing.T) {
 	}
 
 	v := bytes.NewBuffer(nil)
-	en.WriteResult(ctx, v)
+	en.Flush(ctx, v)
 	x := "mmmm, something..."
 	if !bytes.Equal(v.Bytes(), []byte(x)) {
 		t.Fatalf("expected '%s', got '%s'", x, v.Bytes())

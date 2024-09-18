@@ -1,4 +1,6 @@
 // Example: Use db.Db provider for all local data.
+//
+// BUG: This will be stuck on _catch if quit before first write.
 package main
 
 import (

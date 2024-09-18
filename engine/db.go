@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -27,6 +28,7 @@ type DefaultEngine struct {
 	initd bool
 	exit string
 	exiting bool
+	execd bool
 	regexCount int
 }
 
@@ -260,8 +262,27 @@ func(en *DefaultEngine) setupVm() {
 	en.vm = vm.NewVm(en.st, en.rs, en.ca, szr)
 }
 
+func(en *DefaultEngine) empty(ctx context.Context) error {
+	var err error
+	b := bytes.NewBuffer(nil)
+	_, err = en.Flush(ctx, b)
+	if err != nil {
+		return err
+	}
+	logg.WarnCtxf(ctx, "discarding rendered output")
+	logg.DebugCtxf(ctx, "discard", "output", b.Bytes())
+	return nil
+}
+
 // prepare engine for Init run.
-func(en *DefaultEngine) prepare() error {
+func(en *DefaultEngine) prepare(ctx context.Context) error {
+	if en.execd {
+		err := en.empty(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	en.execd = false
 	en.exit = ""
 	en.exiting = false
 	if en.initd {
@@ -307,6 +328,7 @@ func(en *DefaultEngine) runFirst(ctx context.Context) (bool, error) {
 		err = fmt.Errorf("Pre-VM code cannot have remaining bytecode after execution, had: %x", b)
 	} else {
 		if en.st.MatchFlag(state.FLAG_TERMINATE, true) {
+			en.execd = true
 			en.exit = en.ca.Last()
 			logg.InfoCtxf(ctx, "Pre-VM check says not to continue execution", "state", en.st)
 		} else {
@@ -366,8 +388,10 @@ func(en *DefaultEngine) restore() {
 	}
 }
 
-func(en *DefaultEngine) setCode(ctx context.Context, code []byte) error {
+func(en *DefaultEngine) setCode(ctx context.Context, code []byte) (bool, error) {
 	var err error
+	
+	cont := true
 	en.st.SetCode(code)
 	if len(code) == 0 {
 		logg.Infof("runner finished with no remaining code", "state", en.st)
@@ -376,15 +400,16 @@ func(en *DefaultEngine) setCode(ctx context.Context, code []byte) error {
 			en.exiting = true
 			en.exit = en.ca.Last()
 		}
+		cont = false
 	}
-	return err
+	return cont, err
 }
 
 // Init implements the Engine interface.
 //
 // It loads and executes code for the start node.
 func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
-	err := en.prepare()
+	err := en.prepare(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -425,11 +450,12 @@ func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	en.execd = true
 	if en.dbg != nil {
 		en.dbg.Break(en.st, en.ca)
 	}
 	logg.DebugCtxf(ctx, "end new init VM run", "code", b)
-	err = en.setCode(ctx, b)
+	cont, err := en.setCode(ctx, b)
 	if err != nil {
 		return false, err
 	}
@@ -439,14 +465,14 @@ func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 		return false, err
 	}
 	en.initd = true
-	return len(b) > 0, nil
+	return cont, nil
 }
 
 // Exec implements the Engine interface.
 //
 // It processes user input against the current state of the virtual machine environment.
 //
-// If successfully executed, output of the last execution is available using the WriteResult call.
+// If successfully executed, output of the last execution is available using the Flush call.
 // 
 // A bool return valus of false indicates that execution should be terminated. Calling Exec again has undefined effects.
 //
@@ -502,6 +528,7 @@ func(en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	en.execd = true
 	logg.Debugf("end new VM run", "code", code)
 
 	v := en.st.MatchFlag(state.FLAG_TERMINATE, true)
@@ -511,15 +538,15 @@ func(en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
 		}
 		return false, err
 	}
-	err = en.setCode(ctx, code)
+	cont, err := en.setCode(ctx, code)
 
 	if en.dbg != nil {
 		en.dbg.Break(en.st, en.ca)
 	}
-	return true, err
+	return cont, err
 }
 
-// WriteResult implements the Engine interface.
+// Flush implements the Engine interface.
 //
 // The method writes the output of the last vm execution to the given writer.
 //
@@ -527,8 +554,11 @@ func(en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
 // 	* required data inputs to the template are not available.
 // 	* the template for the given node point is note available for retrieval using the resource.Resource implementer.
 // 	* the supplied writer fails to process the writes.
-func(en *DefaultEngine) WriteResult(ctx context.Context, w io.Writer) (int, error) {
+func(en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 	var l int
+	if !en.execd {
+		return 0, errors.New("Attempted flush on unexecuted engine")
+	}
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}
