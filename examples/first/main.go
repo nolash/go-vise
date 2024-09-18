@@ -174,7 +174,7 @@ func main() {
 		}
 	}
 
-	_, err = en.WriteResult(ctx, os.Stdout)
+	_, err = en.Flush(ctx, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine finish fail: %v\n", err)
 		os.Exit(1)

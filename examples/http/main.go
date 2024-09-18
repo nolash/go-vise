@@ -162,7 +162,7 @@ func(f *DefaultSessionHandler) ServeHTTP(w http.ResponseWriter, req *http.Reques
 	}
 	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "text/plain")
-	_, err = en.WriteResult(ctx, w)
+	_, err = en.Flush(ctx, w)
 	if err != nil {
 		f.writeError(w, 500, "Write result fail", err)
 		return

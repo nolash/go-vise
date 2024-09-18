@@ -61,7 +61,7 @@ func main() {
 		os.Exit(1)
 	}
 	if !cont {
-		_, err = en.WriteResult(ctx, os.Stdout)
+		_, err = en.Flush(ctx, os.Stdout)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "dead init write error: %v\n", err)
 			os.Exit(1)

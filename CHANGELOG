@@ -1,7 +1,10 @@
 - 0.2.0
 	* Remove Init from engine interface, allowing input to be passed in all parts of engine execution.
+	* Rename engine interface WriteResult to Flush.
 	* Enable alternate input validators if default validator fails.
 	* Use template as output by default on empty bytecode terminate.
+	* Extend engine execution states (execd)
+	* Automatically discard render when Exec called without Flush.
 - 0.1.0
 	* Data storage interface (db.Db) with implementations for memory (db.memDb), filesystem (db.fsDb), gdbm (db.gdbmDb) and Postgres (db.pgDb).
 	* Replace resource.FsResource and resource.MemResource with resource.DbResource using corresponding db.Db backend.
