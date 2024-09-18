@@ -158,7 +158,6 @@ func lang() error {
 	b = vm.NewLine(b, vm.INCMP, []string{"_", "*"}, nil, nil)
 
 	tpl := "this changes with language {{.inky}}"
-
 	err := out("lang", b, tpl, nil)
 	if err != nil {
 		return err
@@ -176,6 +175,23 @@ func lang() error {
 	return os.WriteFile(fp, []byte(menu), 0600)
 }
 
+func nothing() error {
+	b := vm.NewLine(nil, vm.LOAD, []string{"quit"}, []byte{0x00}, nil)
+	b = vm.NewLine(b, vm.RELOAD, []string{"quit"}, nil, nil)
+	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
+
+	fp := path.Join(DataDir, "nothing.bin")
+	err := os.WriteFile(fp, b, 0600)
+	return err
+}
+
+func something() error {
+	b := vm.NewLine(nil, vm.HALT, nil, nil, nil)
+
+	tpl := "mmmm, something..."
+	return out("something", b, tpl, nil)
+}
+
 func generateLegacy() error {
 	out = outLegacy
 	err := os.MkdirAll(DataDir, 0755)
@@ -183,7 +199,7 @@ func generateLegacy() error {
 		return err
 	}
 
-	fns := []genFunc{root, foo, bar, baz, long, lang, defaultCatch}
+	fns := []genFunc{root, foo, bar, baz, long, lang, nothing, something, defaultCatch}
 	for _, fn := range fns {
 		err = fn()
 		if err != nil {

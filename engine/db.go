@@ -26,6 +26,7 @@ type DefaultEngine struct {
 	first resource.EntryFunc
 	initd bool
 	exit string
+	exiting bool
 	regexCount int
 }
 
@@ -261,6 +262,8 @@ func(en *DefaultEngine) setupVm() {
 
 // prepare engine for Init run.
 func(en *DefaultEngine) prepare() error {
+	en.exit = ""
+	en.exiting = false
 	if en.initd {
 		return nil
 	}
@@ -363,6 +366,20 @@ func(en *DefaultEngine) restore() {
 	}
 }
 
+func(en *DefaultEngine) setCode(ctx context.Context, code []byte) error {
+	var err error
+	en.st.SetCode(code)
+	if len(code) == 0 {
+		logg.Infof("runner finished with no remaining code", "state", en.st)
+		if en.st.MatchFlag(state.FLAG_DIRTY, true) {
+			logg.Debugf("have output for quitting")
+			en.exiting = true
+			en.exit = en.ca.Last()
+		}
+	}
+	return err
+}
+
 // Init implements the Engine interface.
 //
 // It loads and executes code for the start node.
@@ -412,7 +429,11 @@ func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 		en.dbg.Break(en.st, en.ca)
 	}
 	logg.DebugCtxf(ctx, "end new init VM run", "code", b)
-	en.st.SetCode(b)
+	err = en.setCode(ctx, b)
+	if err != nil {
+		return false, err
+	}
+
 	err = en.st.SetInput(inSave)
 	if err != nil {
 		return false, err
@@ -490,22 +511,12 @@ func(en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
 		}
 		return false, err
 	}
-
-	en.st.SetCode(code)
-	if len(code) == 0 {
-		logg.Infof("runner finished with no remaining code", "state", en.st)
-		if en.st.MatchFlag(state.FLAG_DIRTY, true) {
-			logg.Debugf("have output for quitting")
-			en.exit = en.ca.Last()
-		}
-		_, err = en.reset(ctx)
-		return false, err
-	}
+	err = en.setCode(ctx, code)
 
 	if en.dbg != nil {
 		en.dbg.Break(en.st, en.ca)
 	}
-	return true, nil
+	return true, err
 }
 
 // WriteResult implements the Engine interface.
@@ -543,7 +554,12 @@ func(en *DefaultEngine) WriteResult(ctx context.Context, w io.Writer) (int, erro
 		}
 		l += n
 	}
-	return l, nil
+	if en.exiting {
+		_, err = en.reset(ctx)
+		en.exiting = false
+	}
+
+	return l, err
 }
 
 // start execution over at top node while keeping current state of client error flags.

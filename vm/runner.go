@@ -455,6 +455,9 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 		return "", nil
 	}
 	sym, idx := vm.st.Where()
+	if sym == "" {
+		return "", nil
+	}
 	r, err := vm.pg.Render(ctx, sym, idx)
 	var ok bool
 	_, ok = err.(*render.BrowseError)

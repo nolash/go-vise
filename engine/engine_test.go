@@ -46,6 +46,7 @@ func newTestWrapper(path string, st *state.State) testWrapper {
 	rs.AddLocalFunc("pinky", wr.pinky)
 	rs.AddLocalFunc("set_lang", wr.set_lang)
 	rs.AddLocalFunc("translate", wr.translate)
+	rs.AddLocalFunc("quit", quitFunc)
 	return wr
 }
 
@@ -111,6 +112,12 @@ func generateTestData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func quitFunc(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+	return resource.Result{
+		Content: "these aren't the droids you are looking for",
+	}, nil
 }
 
 func TestEngineInit(t *testing.T) {
@@ -231,8 +238,8 @@ func TestEngineResumeTerminated(t *testing.T) {
 	}
 
 	location, idx := st.Where()
-	if location != "" {
-		t.Fatalf("expected '', got %s", location)
+	if location != "baz" {
+		t.Fatalf("expected 'baz', got %s", location)
 	}
 	if idx != 0 {
 		t.Fatalf("expected idx '0', got %v", idx)
@@ -442,5 +449,95 @@ func TestPreVm(t *testing.T) {
 	}
 	if !r {
 		t.Fatalf("expected init to return 'continue'")
+	}
+}
+
+func TestManyQuits(t *testing.T) {
+	b := bytes.NewBuffer(nil)
+	ctx := context.Background()
+	st := state.NewState(0)
+	st.UseDebug()
+	generateTestData(t)
+	rs := newTestWrapper(dataDir, st)
+	ca := cache.NewCache()
+
+	cfg := Config{
+		Root: "nothing",
+	}
+
+	en := NewEngine(cfg, rs)
+	en = en.WithState(st)
+	en = en.WithMemory(ca)
+	r, err := en.Exec(ctx, []byte{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r {
+		t.Fatalf("expected init to return 'not continue'")
+	}
+	en.WriteResult(ctx, b)
+
+	en = NewEngine(cfg, rs)
+	en = en.WithState(st)
+	en = en.WithMemory(ca)
+	r, err = en.Exec(ctx, []byte{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r {
+		t.Fatalf("expected init to return 'not continue'")
+	}
+	en.WriteResult(ctx, b)
+
+	en = NewEngine(cfg, rs)
+	en = en.WithState(st)
+	en = en.WithMemory(ca)
+	r, err = en.Exec(ctx, []byte{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r {
+		t.Fatalf("expected init to return 'not continue'")
+	}
+
+	b = bytes.NewBuffer(nil)
+	_, err = en.WriteResult(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	x := "these aren't the droids you are looking for"
+	if !bytes.Equal(b.Bytes(), []byte(x)) {
+		t.Fatalf("expected '%s', got '%s'", x, b.Bytes())
+	}
+}
+
+func TestOutEmpty(t *testing.T) {
+	ctx := context.Background()
+	st := state.NewState(0)
+	st.UseDebug()
+	generateTestData(t)
+	rs := newTestWrapper(dataDir, st)
+	ca := cache.NewCache()
+
+	cfg := Config{
+		Root: "something",
+	}
+
+	en := NewEngine(cfg, rs)
+	en = en.WithState(st)
+	en = en.WithMemory(ca)
+	r, err := en.Exec(ctx, []byte{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r {
+		t.Fatalf("expected init to return 'not continue'")
+	}
+
+	v := bytes.NewBuffer(nil)
+	en.WriteResult(ctx, v)
+	x := "mmmm, something..."
+	if !bytes.Equal(v.Bytes(), []byte(x)) {
+		t.Fatalf("expected '%s', got '%s'", x, v.Bytes())
 	}
 }

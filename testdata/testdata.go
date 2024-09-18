@@ -64,7 +64,7 @@ func generate() error {
 	store.SetLock(db.DATATYPE_MENU, false)
 	store.SetLock(db.DATATYPE_STATICLOAD, false)
 
-	fns := []genFunc{root, foo, bar, baz, long, lang, defaultCatch}
+	fns := []genFunc{root, foo, bar, baz, long, lang, nothing, something, defaultCatch}
 	for _, fn := range fns {
 		err = fn()
 		if err != nil {
