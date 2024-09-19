@@ -6,16 +6,26 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	pgx "github.com/jackc/pgx/v5"
 
 	"git.defalsify.org/vise.git/db"
 )
 
+var (
+	defaultTxOptions pgx.TxOptions
+)
+
+type PgInterface interface {
+	BeginTx(context.Context, pgx.TxOptions) (pgx.Tx, error)
+}
+
 // pgDb is a Postgres backend implementation of the Db interface.
 type pgDb struct {
 	*db.DbBase
-	conn *pgxpool.Pool
+	conn PgInterface 
 	schema string
 	prefix uint8
+	prepd bool
 }
 
 // NewpgDb creates a new Postgres backed Db implementation.
@@ -33,6 +43,11 @@ func(pdb *pgDb) WithSchema(schema string) *pgDb {
 	return pdb
 }
 
+func(pdb *pgDb) WithConnection(pi PgInterface) *pgDb {
+	pdb.conn = pi
+	return pdb
+}
+
 // Connect implements Db.
 func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 	if pdb.conn != nil {
@@ -45,7 +60,7 @@ func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 		return err
 	}
 	pdb.conn = conn
-	return pdb.prepare(ctx)
+	return pdb.Prepare(ctx)
 }
 
 // Put implements Db.
@@ -57,7 +72,7 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if err != nil {
 		return err
 	}
-	tx, err := pdb.conn.Begin(ctx)
+	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
 	if err != nil {
 		return err
 	}
@@ -81,7 +96,7 @@ func(pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	tx, err := pdb.conn.Begin(ctx)
+	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -124,8 +139,13 @@ func(pdb *pgDb) Close() error {
 }
 
 // set up table
-func(pdb *pgDb) prepare(ctx context.Context) error {
-	tx, err := pdb.conn.Begin(ctx)
+func(pdb *pgDb) Prepare(ctx context.Context) error {
+	if pdb.prepd {
+		logg.WarnCtxf(ctx, "Prepare called more than once")
+		return nil
+	}
+	pdb.prepd = true
+	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
 	if err != nil {
 		tx.Rollback(ctx)
 		return err
