@@ -1,3 +1,4 @@
+//go:build testlive
 package postgres
 
 import (
@@ -13,7 +14,6 @@ func TestCasesPg(t *testing.T) {
 	ctx := context.Background()
 
 	store := NewPgDb().WithSchema("vvise")
-	t.Skip("need postgresql mock")
 
 	err := store.Connect(ctx, "postgres://vise:esiv@localhost:5432/visedb")
 	if err != nil {
@@ -37,7 +37,6 @@ func TestPutGetPg(t *testing.T) {
 	dbi = store 
 	_ = dbi
 
-	t.Skip("need postgresql mock")
 	err := store.Connect(ctx, "postgres://vise:esiv@localhost:5432/visedb")
 	if err != nil {
 		t.Fatal(err)

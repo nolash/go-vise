@@ -61,8 +61,12 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if err != nil {
 		return err
 	}
-	query := fmt.Sprintf("INSERT INTO %s.kv_vise (key, value) VALUES ($1, $2) ON CONFLICT(key) DO UPDATE SET value = $2;", pdb.schema)
-	_, err = tx.Exec(ctx, query, k, val)
+	query := fmt.Sprintf("INSERT INTO %s.kv_vise (key, value, updated) VALUES ($1, $2, 'now') ON CONFLICT(key) DO UPDATE SET value = $2, updated = 'now';", pdb.schema)
+	if k.Translation != nil {
+		_, err = tx.Exec(ctx, query, k.Translation, val)
+	} else {
+		_, err = tx.Exec(ctx, query, k.Default, val)
+	}
 	if err != nil {
 		tx.Rollback(ctx)
 		return err
@@ -77,37 +81,39 @@ func(pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	tx, err := pdb.conn.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	if lk.Translation != nil {
-		tx, err := pdb.conn.Begin(ctx)
-		if err != nil {
-			return nil, err
-		}
 		query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
 		rs, err := tx.Query(ctx, query, lk.Translation)
 		if err != nil {
+			tx.Rollback(ctx)
 			return nil, err
 		}
 		defer rs.Close()
 		if rs.Next() {
 			r := rs.RawValues()
+			tx.Rollback(ctx)
 			return r[0], nil
 		}
 	}
 
-	tx, err := pdb.conn.Begin(ctx)
-	if err != nil {
-		return nil, err
-	}
 	query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
-	rs, err := tx.Query(ctx, query, lk.Translation)
+	rs, err := tx.Query(ctx, query, lk.Default)
 	if err != nil {
+		tx.Rollback(ctx)
 		return nil, err
 	}
 	defer rs.Close()
 	if !rs.Next() {
+		tx.Rollback(ctx)
 		return nil, db.NewErrNotFound(key)
 	}
 	r := rs.RawValues()
+	tx.Commit(ctx)
 	return r[0], nil
 }
 
@@ -127,7 +133,8 @@ func(pdb *pgDb) prepare(ctx context.Context) error {
 	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise (
 		id SERIAL NOT NULL,
 		key BYTEA NOT NULL UNIQUE,
-		value BYTEA NOT NULL
+		value BYTEA NOT NULL,
+		updated TIMESTAMP NOT NULL
 	);
 `, pdb.schema)
 	_, err = tx.Exec(ctx, query)
