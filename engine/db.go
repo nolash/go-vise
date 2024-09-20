@@ -615,7 +615,8 @@ func(en *DefaultEngine) reset(ctx context.Context) (bool, error) {
 		en.ca.Pop()
 	}
 	en.st.Restart()
-	en.initd = false
+	en.st.ResetFlag(state.FLAG_TERMINATE)
+	en.st.ResetFlag(state.FLAG_DIRTY)
 	return false, nil
 }
 
