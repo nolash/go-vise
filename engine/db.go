@@ -16,6 +16,10 @@ import (
 	"git.defalsify.org/vise.git/vm"
 )
 
+var (
+	ErrFlushNoExec = errors.New("Attempted flush on unexecuted engine")
+)
+
 type DefaultEngine struct {
 	st *state.State
 	ca cache.Memory
@@ -356,6 +360,9 @@ func(en *DefaultEngine) runFirst(ctx context.Context) (bool, error) {
 //	* resource backend did not close cleanly.
 func(en *DefaultEngine) Finish() error {
 	var perr error
+	if !en.initd {
+		return nil
+	}
 	if en.pe != nil {
 		perr = en.pe.Save(en.cfg.SessionId)
 	}
@@ -557,7 +564,7 @@ func(en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
 func(en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 	var l int
 	if !en.execd {
-		return 0, errors.New("Attempted flush on unexecuted engine")
+		return 0, ErrFlushNoExec
 	}
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)

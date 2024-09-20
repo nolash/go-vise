@@ -17,14 +17,26 @@ import (
 // Any error not handled by the engine will terminate the oop and return an error.
 //
 // Rendered output is written to the provided writer.
-func Loop(ctx context.Context, en Engine, reader io.Reader, writer io.Writer) error {
+func Loop(ctx context.Context, en Engine, reader io.Reader, writer io.Writer, initial []byte) error {
 	defer en.Finish()
-	l, err := en.Flush(ctx, writer)
+	if initial == nil {
+		initial = []byte{}
+	}
+	cont, err := en.Exec(ctx, initial)
 	if err != nil {
 		return err
 	}
+	l, err := en.Flush(ctx, writer)
+	if err != nil {
+		if err != ErrFlushNoExec {
+			return err
+		}
+	}
 	if l > 0 {
 		writer.Write([]byte{0x0a})
+	}
+	if !cont {
+		return nil
 	}
 
 	running := true

@@ -37,22 +37,7 @@ func main() {
 		OutputSize: uint32(size),
 	}
 	en := engine.NewEngine(cfg, rs)
-	//cont, err := en.Init(ctx)
-	cont, err := en.Exec(ctx, []byte{})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "engine init exited with error: %v\n", err)
-		os.Exit(1)
-	}
-	if !cont {
-		_, err = en.Flush(ctx, os.Stdout)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "dead init write error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Stdout.Write([]byte{0x0a})
-		os.Exit(0)
-	}
-	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

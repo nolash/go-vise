@@ -121,14 +121,7 @@ func main() {
 	rs.AddLocalFunc("momsg", aux.moMsg)
 	rs.AddLocalFunc("empty", empty)
 
-	//_, err = en.Init(ctx)
-	_, err = en.Exec(ctx, []byte{})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "engine init fail: %v\n", err)
-		os.Exit(1)
-	}
-
-	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

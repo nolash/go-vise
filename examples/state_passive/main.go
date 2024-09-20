@@ -1,4 +1,6 @@
 // Example: Asynchronous state persistence.
+//
+// TODO: this example is broken after change to loop
 package main
 
 import (
@@ -120,29 +122,7 @@ func main() {
 	rs.AddLocalFunc("poke", aux.poke)
 	rs.AddLocalFunc("peek", aux.peek)
 
-	cont, err := en.Exec(ctx, []byte{})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "engine init exited with error: %v\n", err)
-		os.Exit(1)
-	}
-	if !cont {
-		_, err = en.Flush(ctx, os.Stdout)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "dead init write error: %v\n", err)
-			os.Exit(1)
-		}
-		stnew := pr.GetState()
-		stnew.ResetFlag(state.FLAG_TERMINATE)
-		stnew.Up()
-		err = en.Finish()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "engine finish error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Stdout.Write([]byte{0x0a})
-		os.Exit(0)
-	}
-	err = engine.Loop(ctx, en, os.Stdin, os.Stdout)
+	err = engine.Loop(ctx, en, os.Stdin, os.Stdout, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "loop exited with error: %v\n", err)
 		os.Exit(1)

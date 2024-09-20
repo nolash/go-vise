@@ -43,7 +43,7 @@ func TestLoopTop(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(ctx, en, inputBuf, outputBuf)
+	err = Loop(ctx, en, inputBuf, outputBuf, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func TestLoopBackForth(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(ctx, en, inputBuf, outputBuf)
+	err = Loop(ctx, en, inputBuf, outputBuf, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestLoopBrowse(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(ctx, en, inputBuf, outputBuf)
+	err = Loop(ctx, en, inputBuf, outputBuf, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
