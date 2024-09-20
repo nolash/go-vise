@@ -17,6 +17,9 @@ import (
 // Any error not handled by the engine will terminate the oop and return an error.
 //
 // Rendered output is written to the provided writer.
+//
+// If initial is set, the value will be used for the first (initializing) execution
+// If nil, an empty byte value will be used.
 func Loop(ctx context.Context, en Engine, reader io.Reader, writer io.Writer, initial []byte) error {
 	defer en.Finish()
 	if initial == nil {
