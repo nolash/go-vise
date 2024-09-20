@@ -1,6 +1,8 @@
 - 0.2.0
 	* Remove Init from engine interface, allowing input to be passed in all parts of engine execution.
 	* Rename engine interface WriteResult to Flush.
+	* Remove need for Exec before Loop
+	* Add initial input option for Loop
 	* Enable alternate input validators if default validator fails.
 	* Use template as output by default on empty bytecode terminate.
 	* Extend engine execution states (execd)
