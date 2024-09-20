@@ -249,6 +249,19 @@ func TestDbEnginePersist(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	en = NewEngine(cfg, rs)
+	pe = persist.NewPersister(store)
+	en = NewEngine(cfg, rs)
+	en = en.WithPersister(pe)
+	cont, err = en.Exec(ctx, []byte{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	stn := pe.GetState()
+	if !stn.MatchFlag(state.FLAG_USERSTART, true) {
+		t.Fatalf("expected userstart set, have state %v", stn)
+	}
 }
 
 func TestDbEngineDebug(t *testing.T) {
@@ -390,3 +403,4 @@ func TestDbFirst(t *testing.T) {
 		t.Fatal("expected flag set")
 	}
 }
+
