@@ -3,6 +3,7 @@ package gdbm
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 
 	gdbm "github.com/graygnuorg/go-gdbm"
@@ -14,6 +15,7 @@ import (
 type gdbmDb struct {
 	*db.DbBase
 	conn *gdbm.Database
+	readOnly bool
 	prefix uint8
 }
 
@@ -23,6 +25,18 @@ func NewGdbmDb() *gdbmDb {
 		DbBase: db.NewDbBase(),
 	}
 	return db
+}
+
+// WithReadOnly sets database as read only.
+//
+// There may exist more than one instance of read-only
+// databases to the same file at the same time.
+// However, only one single write database.
+//
+// Readonly cannot be set when creating a new database.
+func(gdb *gdbmDb) WithReadOnly() *gdbmDb {
+	gdb.readOnly = true
+	return gdb
 }
 
 // String implements the string interface.
@@ -41,18 +55,30 @@ func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 		return nil
 	}
 	var db *gdbm.Database
+	cfg := gdbm.DatabaseConfig{
+		FileName: connStr,
+		Flags: gdbm.OF_NOLOCK | gdbm.OF_PREREAD,
+		FileMode: 0600,
+	}
+
 	_, err := os.Stat(connStr)
 	if err != nil {
 		if !errors.Is(err.(*os.PathError).Unwrap(), os.ErrNotExist) {
-			return err
+			return fmt.Errorf("db path lookup err: %v", err)
 		}
-		db, err = gdbm.Open(connStr, gdbm.ModeWrcreat)
+		if gdb.readOnly {
+			return fmt.Errorf("cannot open new database readonly")
+		}
+		cfg.Mode = gdbm.ModeReader | gdbm.ModeWrcreat
 	} else {
-		db, err = gdbm.Open(connStr, gdbm.ModeWriter | gdbm.ModeReader)
+		cfg.Mode = gdbm.ModeReader
+		if !gdb.readOnly {
+			cfg.Mode |= gdbm.ModeWriter
+		}
 	}
-
+	db, err = gdbm.OpenConfig(cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("db open err: %v", err)
 	}
 	logg.DebugCtxf(ctx, "gdbm connected", "connstr", connStr)
 	gdb.conn = db

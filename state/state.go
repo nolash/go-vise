@@ -7,6 +7,10 @@ import (
 	"git.defalsify.org/vise.git/lang"
 )
 
+const (
+	INPUT_LIMIT = 255
+)
+
 var (
 	IndexError = fmt.Errorf("already at first index")
 	MaxLevel = 128
@@ -347,7 +351,7 @@ func(st *State) GetInput() ([]byte, error) {
 // SetInput is used to record the latest client input.
 func(st *State) SetInput(input []byte) error {
 	l := len(input)
-	if l > 255 {
+	if l > INPUT_LIMIT {
 		return fmt.Errorf("input size %v too large (limit %v)", l, 255)
 	}
 	st.input = input

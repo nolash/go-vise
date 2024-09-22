@@ -244,7 +244,7 @@ func(en *DefaultEngine) ensurePersist() error {
 	} else {
 		en.ca = cac
 	}
-	logg.Tracef("set persister", "st", st, "cac", cac)
+	logg.Tracef("set persister", "st", st, "cac", cac, "session", en.cfg.SessionId)
 	en.pe = en.pe.WithContent(st, cac)
 	err := en.pe.Load(en.cfg.SessionId)
 	if err != nil {
