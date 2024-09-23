@@ -2,6 +2,7 @@ package persist
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/fxamacker/cbor/v2"
 
@@ -97,7 +98,8 @@ func(p *Persister) Save(key string) error {
 		return err
 	}
 	p.db.SetPrefix(db.DATATYPE_STATE)
-	logg.Debugf("saving state and cache", "key", key, "state", p.State)
+	logg.Debugf("saving state and cache", "self", p, "key", key, "state", p.State)
+	logg.Tracef("saving bytecode", "code", p.State.Code)
 	err = p.db.Put(p.ctx, []byte(key), b)
 	if err != nil {
 		return err
@@ -122,6 +124,12 @@ func(p *Persister) Load(key string) error {
 	if err != nil {
 		return err
 	}
-	logg.Debugf("loaded state and cache", "key", key, "state", p.State)
+	logg.Debugf("loaded state and cache", "self", p, "key", key, "state", p.State)
+	logg.Tracef("loaded bytecode", "code", p.State.Code)
 	return nil
+}
+
+// String implements the String interface
+func(p *Persister) String() string {
+	return fmt.Sprintf("perister @%p state:%p cache:%p", p, p.State, p.Memory)
 }

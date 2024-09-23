@@ -105,14 +105,12 @@ func TestLoopBrowse(t *testing.T) {
 	en := NewEngine(cfg, rs)
 	en = en.WithState(st)
 
-	//_, err = en.Init(ctx)
 	_, err = en.Exec(ctx, []byte{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	input := []string{
-		"1",
 		"2",
 		"00",
 		"11",
@@ -123,7 +121,7 @@ func TestLoopBrowse(t *testing.T) {
 	outputBuf := bytes.NewBuffer(nil)
 	log.Printf("running with input: %s", inputBuf.Bytes())
 
-	err = Loop(ctx, en, inputBuf, outputBuf, nil)
+	err = Loop(ctx, en, inputBuf, outputBuf, []byte("1"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -244,16 +244,21 @@ func(en *DefaultEngine) ensurePersist() error {
 	} else {
 		en.ca = cac
 	}
-	logg.Tracef("set persister", "st", st, "cac", cac, "session", en.cfg.SessionId)
 	en.pe = en.pe.WithContent(st, cac)
 	err := en.pe.Load(en.cfg.SessionId)
 	if err != nil {
 		logg.Infof("persister load fail. trying save in case new session", "err", err, "session", en.cfg.SessionId)
 		err = en.pe.Save(en.cfg.SessionId)
+		if err != nil {
+			return err
+		}
+		en.pe = en.pe.WithContent(st, cac)
+		err = en.pe.Load(en.cfg.SessionId)
 	}
 	if en.cfg.StateDebug {
 		en.st.UseDebug()
 	}
+	logg.Tracef("set persister", "st", st, "cac", cac, "session", en.cfg.SessionId, "persister", en.pe)
 	return err
 }
 
@@ -317,9 +322,14 @@ func(en *DefaultEngine) runFirst(ctx context.Context) (bool, error) {
 		return true, nil
 	}
 	logg.DebugCtxf(ctx, "start pre-VM check")
+	en.ca.Push()
 	rs := resource.NewMenuResource()
 	rs.AddLocalFunc("_first", en.first)
 	en.st.Down("_first")
+	defer en.ca.Pop()
+	defer en.st.Up()
+	defer en.st.ResetFlag(state.FLAG_TERMINATE)
+	defer en.st.ResetFlag(state.FLAG_DIRTY)
 	pvm := vm.NewVm(en.st, rs, en.ca, nil)
 	b := vm.NewLine(nil, vm.LOAD, []string{"_first"}, []byte{0}, nil)
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
@@ -343,10 +353,6 @@ func(en *DefaultEngine) runFirst(ctx context.Context) (bool, error) {
 		en.st.Invalidate()
 		en.ca.Invalidate()
 	}
-	en.st.ResetFlag(state.FLAG_TERMINATE)
-	en.st.ResetFlag(state.FLAG_DIRTY)
-	en.st.Up()
-	en.ca.Pop()
 	logg.DebugCtxf(ctx, "end pre-VM check")
 	return r, err
 }
@@ -380,28 +386,13 @@ func(en *DefaultEngine) Finish() error {
 	return err
 }
 
-// change root to current state location if non-empty.
-func(en *DefaultEngine) restore() {
-	if en.initd {
-		return
-	}
-	location, _ := en.st.Where()
-	if len(location) == 0 {
-		return
-	}
-	if en.cfg.Root != location {
-		logg.Infof("restoring state", "sym", location)
-		en.cfg.Root = "."
-	}
-}
-
 func(en *DefaultEngine) setCode(ctx context.Context, code []byte) (bool, error) {
 	var err error
 	
 	cont := true
 	en.st.SetCode(code)
 	if len(code) == 0 {
-		logg.Infof("runner finished with no remaining code", "state", en.st)
+		logg.InfoCtxf(ctx, "runner finished with no remaining code", "state", en.st)
 		if en.st.MatchFlag(state.FLAG_DIRTY, true) {
 			logg.Debugf("have output for quitting")
 			en.exiting = true
@@ -416,11 +407,11 @@ func(en *DefaultEngine) setCode(ctx context.Context, code []byte) (bool, error) 
 //
 // It loads and executes code for the start node.
 func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
+	cont := true
 	err := en.prepare(ctx)
 	if err != nil {
 		return false, err
 	}
-	en.restore()
 
 	if en.st.Language != nil {
 		logg.TraceCtxf(ctx, "set language on context", "lang", en.st.Language)
@@ -451,20 +442,12 @@ func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 		return false, nil
 	}
 
-	b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
-	logg.DebugCtxf(ctx, "start new init VM run", "code", b)
-	b, err = en.vm.Run(ctx, b)
-	if err != nil {
-		return false, err
-	}
-	en.execd = true
-	if en.dbg != nil {
-		en.dbg.Break(en.st, en.ca)
-	}
-	logg.DebugCtxf(ctx, "end new init VM run", "code", b)
-	cont, err := en.setCode(ctx, b)
-	if err != nil {
-		return false, err
+	if len(en.st.Code) == 0 {
+		b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
+		cont, err = en.setCode(ctx, b)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	err = en.st.SetInput(inSave)
@@ -500,17 +483,17 @@ func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 	}
 	if !cont {
 		return cont, nil
-	} else if len(input) == 0 {
-		return true, nil
 	}
 
 	if en.st.Language != nil {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}
 
-	_, err = vm.ValidInput(input)
-	if err != nil {
-		return true, err
+	if len(input) > 0 {
+		_, err = vm.ValidInput(input)
+		if err != nil {
+			return true, err
+		}
 	}
 	err = en.st.SetInput(input)
 	if err != nil {
@@ -546,7 +529,6 @@ func(en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
 		return false, err
 	}
 	cont, err := en.setCode(ctx, code)
-
 	if en.dbg != nil {
 		en.dbg.Break(en.st, en.ca)
 	}

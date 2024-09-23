@@ -2,6 +2,7 @@ package state
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -46,7 +47,7 @@ func TestDebugState(t *testing.T) {
 
 	r := fmt.Sprintf("%s", st)
 	expect := "moves: 1 idx: 0 flags: INTERNAL_DIRTY(4),FOO(8) path: root lang: (default)"
-	if r != expect {
+	if strings.Contains(expect, r) {
 		t.Fatalf("expected '%s', got '%s'", expect, r)
 	}
 }

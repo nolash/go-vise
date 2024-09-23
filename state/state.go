@@ -392,7 +392,7 @@ func(st *State) CloneEmpty() *State {
 }
 
 // String implements String interface
-func(st State) String() string {
+func(st *State) String() string {
 	var flags string
 	if st.debug {
 		flags = FlagDebugger.AsString(st.Flags, st.BitSize - 8)
@@ -405,7 +405,7 @@ func(st State) String() string {
 	} else {
 		lang = fmt.Sprintf("%s", *st.Language)
 	}
-	return fmt.Sprintf("moves: %v idx: %v flags: %s path: %s lang: %s", st.Moves, st.SizeIdx, flags, strings.Join(st.ExecPath, "/"), lang)
+	return fmt.Sprintf("state @%p moves: %v idx: %v flags: %s path: %s lang: %s", st, st.Moves, st.SizeIdx, flags, strings.Join(st.ExecPath, "/"), lang)
 }
 
 // initializes all flags not in control of client.
