@@ -332,11 +332,37 @@ func TestMenuSink(t *testing.T) {
 	}
 	expect = `bar xyzzy
 3:clyde
+11:next
+22:previous`
+	if r != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
+	}
+
+	mn = NewMenu().WithSink().WithBrowseConfig(DefaultBrowseConfig())
+	mn.Put("0", "inky")
+	mn.Put("1", "pinky")
+	mn.Put("22", "blinky")
+	mn.Put("3", "clyde")
+	mn.Put("44", "tinkywinky")
+
+	pg = NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
+	ca.Push()
+
+	ca.Add("baz", "xyzzy", 5)
+	pg.Map("baz")
+
+
+	r, err = pg.Render(ctx, "foo", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect = `bar xyzzy
 44:tinkywinky
 22:previous`
 	if r != expect {
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
 	}
+
 }
 
 func TestMiddlePage(t *testing.T) {
