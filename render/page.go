@@ -259,7 +259,7 @@ func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint
 
 	// BUG: this reserves the previous browse before we know we need it
 	if len(sinkValues) > 1 {
-		netRemaining -= menuSizes[1] - 1
+		netRemaining -= (menuSizes[1] + 1)
 	}
 
 	for i, v := range sinkValues {
@@ -276,7 +276,7 @@ func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint
 			tb.Reset()
 			l = len(v)
 			if count == 0 {
-				netRemaining -= menuSizes[2]
+				netRemaining -= (menuSizes[2] + 1)
 			}
 			count += 1
 		}
