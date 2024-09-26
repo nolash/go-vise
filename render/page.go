@@ -77,7 +77,10 @@ func(pg *Page) Usage() (uint32, uint32, error) {
 		c += sz
 	}
 	r := uint32(l)
-	rsv := uint32(c)-r
+	rsv := uint32(0)
+	if uint32(c) > r {
+		rsv = uint32(c)-r
+	}
 	//if pg.menu != nil {
 	//	r += uint32(pg.menu.ReservedSize())
 	//}
@@ -271,7 +274,7 @@ func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint
 			c := uint32(rb.Len())
 			pg.sizer.AddCursor(c)
 			tb.Reset()
-			l = 0
+			l = len(v)
 			if count == 0 {
 				netRemaining -= menuSizes[2]
 			}

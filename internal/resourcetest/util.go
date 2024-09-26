@@ -72,6 +72,11 @@ func(tr *TestResource) AddFunc(ctx context.Context, key string, fn resource.Entr
 	tr.AddLocalFunc(key, fn)
 }
 
+func(tr *TestResource) AddStatic(ctx context.Context, key string, val string) error {
+	tr.db.SetPrefix(db.DATATYPE_STATICLOAD)
+	return tr.db.Put(ctx, []byte(key), []byte(val))
+}
+
 func(tr *TestResource) Lock() {
 	tr.db.SetLock(0, true)
 }

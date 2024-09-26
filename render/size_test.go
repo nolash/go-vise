@@ -3,6 +3,7 @@ package render
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"git.defalsify.org/vise.git/state"
@@ -24,6 +25,7 @@ func newTestSizeResource() *testSizeResource {
 	rs.AddTemplate(ctx, "small", "one {{.foo}} two {{.bar}} three {{.baz}}")
 	rs.AddTemplate(ctx, "toobug", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in mattis lorem. Aliquam erat volutpat. Ut vitae metus.")
 	rs.AddTemplate(ctx, "pages", "one {{.foo}} two {{.bar}} three {{.baz}}\n{{.xyzzy}}")
+	rs.AddTemplate(ctx, "transparent", "{{.out}}")
 	rs.AddLocalFunc("foo", get)
 	rs.AddLocalFunc("bar", get)
 	rs.AddLocalFunc("baz", get)
@@ -337,4 +339,40 @@ func TestMenuSink(t *testing.T) {
 	}
 }
 
+func TestMiddlePage(t *testing.T) {
+	ctx := context.Background()
+	st := state.NewState(0)
+	ca := cache.NewCache()
+	mn := NewMenu().WithBrowseConfig(DefaultBrowseConfig())
+	rs := newTestSizeResource()
+	rs.Lock()
+		content := ""
+	for i := 0; i < 42; i++ {
+		v := rand.Intn(26)
+		b := make([]byte, 3+(v%3))
+		for ii := 0; ii < len(b); ii++ {
+			b[ii] = uint8(0x41 + v)
+			v = rand.Intn(26)
+		}
+		content += fmt.Sprintf("%d:%s\n", i, string(b))
+	}
+	content = content[:len(content)-1]
+
+	st.Down("test")
+
+	ca.Push()
+	ca.Add("out", content, 0)
+	szr := NewSizer(160)
+
+	mn.Put("x", "exit")
+	mn.Put("q", "quit")
+	pg := NewPage(ca, rs).WithMenu(mn).WithSizer(szr)
+	pg.Map("out")
+
+	r, err := pg.Render(ctx, "transparent", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("%s\n", r)
+}
 
