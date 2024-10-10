@@ -481,3 +481,8 @@ func TestStateLanguage(t *testing.T) {
 		t.Fatal("expected language set")
 	}
 }
+
+func TestStateLimit(t *testing.T) {
+	st := NewState(17)
+	st.SetFlag(25)
+}

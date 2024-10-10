@@ -48,3 +48,4 @@ INCMP _ 99
 		t.Errorf("expected:\n\t%v\ngot:\n\t%v\n", expect, r)
 	}
 }
+

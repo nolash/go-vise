@@ -191,7 +191,7 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 
 	// Catch CATCH, LOAD and twosyms with integer-as-string
 	if a.Size != nil {
-		log.Printf("have size %v", instruction)
+		log.Printf("have size %v (%v)", instruction, *a.Size)
 		if a.Sym == nil {
 			n, err := parseFlagged(b, a)
 			n_buf += n

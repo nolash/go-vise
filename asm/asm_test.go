@@ -271,6 +271,18 @@ INCMP _ 2
 
 }
 
+func TestParseMenuZeroPrefix(t *testing.T) {
+	s := `INCMP ^ 00
+`
+	r := bytes.NewBuffer(nil)
+	n, err := Parse(s, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("wrote %v bytes", n)
+
+}
+
 func TestParseSingle(t *testing.T) {
 	var b []byte
 	b = vm.NewLine(b, vm.MAP, []string{"xyzzy"}, nil, nil)

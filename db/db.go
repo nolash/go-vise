@@ -171,6 +171,15 @@ func(bd *DbBase) CheckPut() bool {
 	return bd.baseDb.pfx & bd.baseDb.lock == 0
 }
 
+func ToSessionKey(pfx uint8, sessionId []byte, key []byte) []byte {
+	var b []byte
+	if (pfx > datatype_sessioned_threshold) {
+		b = append([]byte(sessionId), key...)
+	} else {
+		b = key
+	}
+	return b
+}
 
 // ToKey creates a DbKey within the current session context.
 //
@@ -178,16 +187,12 @@ func(bd *DbBase) CheckPut() bool {
 func(bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	var ln *lang.Language
 	var lk LookupKey
-	var b []byte
+	//var b []byte
 	db := bd.baseDb
 	if db.pfx == DATATYPE_UNKNOWN {
 		return lk, errors.New("datatype prefix cannot be UNKNOWN")
 	}
-	if (db.pfx > datatype_sessioned_threshold) {
-		b = append(db.sid, key...)
-	} else {
-		b = key
-	}
+	b := ToSessionKey(db.pfx, db.sid, key)
 	lk.Default = ToDbKey(db.pfx, b, nil)
 	if db.pfx & (DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD) > 0 {
 		if db.lang != nil {
