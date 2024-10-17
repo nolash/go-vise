@@ -1,3 +1,6 @@
+- 0.2.1
+	* Fix wrong key usage in postgres.
+	* Add date updated field in postgres.
 - 0.2.0
 	* Remove Init from engine interface, allowing input to be passed in all parts of engine execution.
 	* Rename engine interface WriteResult to Flush.
