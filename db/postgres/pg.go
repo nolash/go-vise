@@ -53,61 +53,83 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !pdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
 	}
-	k, err := pdb.ToKey(ctx, key)
+
+	lk, err := pdb.ToKey(ctx, key)
 	if err != nil {
 		return err
 	}
+
 	tx, err := pdb.conn.Begin(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
+
 	query := fmt.Sprintf("INSERT INTO %s.kv_vise (key, value) VALUES ($1, $2) ON CONFLICT(key) DO UPDATE SET value = $2;", pdb.schema)
-	_, err = tx.Exec(ctx, query, k, val)
+
+	// Use lk.Default if Translation is nil, otherwise use Translation
+	actualKey := lk.Default
+	if lk.Translation != nil {
+		actualKey = lk.Translation
+	}
+
+	_, err = tx.Exec(ctx, query, actualKey, val)
 	if err != nil {
-		tx.Rollback(ctx)
 		return err
 	}
-	tx.Commit(ctx)
-	return nil
+
+	return tx.Commit(ctx)
 }
 
 // Get implements Db.
-func(pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	lk, err := pdb.ToKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
+
+	query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
+
+	// Try Translation key if it exists
 	if lk.Translation != nil {
 		tx, err := pdb.conn.Begin(ctx)
 		if err != nil {
 			return nil, err
 		}
-		query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
+		defer tx.Rollback(ctx)
+
 		rs, err := tx.Query(ctx, query, lk.Translation)
 		if err != nil {
 			return nil, err
 		}
 		defer rs.Close()
+
 		if rs.Next() {
 			r := rs.RawValues()
+			tx.Commit(ctx)
 			return r[0], nil
 		}
 	}
 
+	// If Translation key doesn't exist or we didn't find a value, try Default key
 	tx, err := pdb.conn.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
-	rs, err := tx.Query(ctx, query, lk.Translation)
+	defer tx.Rollback(ctx)
+
+	rs, err := tx.Query(ctx, query, lk.Default)
 	if err != nil {
 		return nil, err
 	}
 	defer rs.Close()
+
 	if !rs.Next() {
 		return nil, db.NewErrNotFound(key)
 	}
+
 	r := rs.RawValues()
+	tx.Commit(ctx)
 	return r[0], nil
 }
 

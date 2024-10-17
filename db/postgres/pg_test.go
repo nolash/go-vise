@@ -12,10 +12,10 @@ import (
 func TestCasesPg(t *testing.T) {
 	ctx := context.Background()
 
-	store := NewPgDb().WithSchema("vvise")
-	t.Skip("need postgresql mock")
+	store := NewPgDb().WithSchema("public")
+	//t.Skip("need postgresql mock")
 
-	err := store.Connect(ctx, "postgres://vise:esiv@localhost:5432/visedb")
+	err := store.Connect(ctx, "postgres://postgres:rooter@localhost:5432/visedb")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestCasesPg(t *testing.T) {
 func TestPutGetPg(t *testing.T) {
 	var dbi db.Db
 	ses := "xyzzy"
-	store := NewPgDb().WithSchema("vvise")
+	store := NewPgDb().WithSchema("public")
 	store.SetPrefix(db.DATATYPE_USERDATA)
 	store.SetSession(ses)
 	ctx := context.Background()
@@ -37,8 +37,8 @@ func TestPutGetPg(t *testing.T) {
 	dbi = store 
 	_ = dbi
 
-	t.Skip("need postgresql mock")
-	err := store.Connect(ctx, "postgres://vise:esiv@localhost:5432/visedb")
+	// t.Skip("need postgresql mock")
+	err := store.Connect(ctx, "postgres://postgres:rooter@localhost:5432/visedb")
 	if err != nil {
 		t.Fatal(err)
 	}
