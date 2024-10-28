@@ -1,4 +1,5 @@
 - 0.2.1
+	* Add lateral navigation indicator in State
 	* Fix wrong key usage in postgres.
 	* Add date updated field in postgres.
 - 0.2.0

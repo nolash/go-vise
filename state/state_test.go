@@ -481,3 +481,31 @@ func TestStateLanguage(t *testing.T) {
 		t.Fatal("expected language set")
 	}
 }
+
+func TestStateLateral(t *testing.T) {
+	st := NewState(0)
+	if st.Lateral() {
+		t.Fatal("expected not lateral")
+	}
+	st.Down("foo")
+	if st.Lateral() {
+		t.Fatal("expected not lateral")
+	}
+	st.Next()
+	if !st.Lateral() {
+		t.Fatal("expected lateral")
+	}
+	st.Down("bar")
+	if st.Lateral() {
+		t.Fatal("expected not lateral")
+	}
+	st.Next()
+	st.Previous()
+	if !st.Lateral() {
+		t.Fatal("expected lateral")
+	}
+	st.Restart()
+	if st.Lateral() {
+		t.Fatal("expected not lateral")
+	}
+}
