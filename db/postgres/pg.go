@@ -6,16 +6,26 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	pgx "github.com/jackc/pgx/v5"
 
 	"git.defalsify.org/vise.git/db"
 )
 
+var (
+	defaultTxOptions pgx.TxOptions
+)
+
+type PgInterface interface {
+	BeginTx(context.Context, pgx.TxOptions) (pgx.Tx, error)
+}
+
 // pgDb is a Postgres backend implementation of the Db interface.
 type pgDb struct {
 	*db.DbBase
-	conn *pgxpool.Pool
+	conn PgInterface 
 	schema string
 	prefix uint8
+	prepd bool
 }
 
 // NewpgDb creates a new Postgres backed Db implementation.
@@ -33,6 +43,11 @@ func(pdb *pgDb) WithSchema(schema string) *pgDb {
 	return pdb
 }
 
+func(pdb *pgDb) WithConnection(pi PgInterface) *pgDb {
+	pdb.conn = pi
+	return pdb
+}
+
 // Connect implements Db.
 func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 	if pdb.conn != nil {
@@ -45,7 +60,7 @@ func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 		return err
 	}
 	pdb.conn = conn
-	return pdb.prepare(ctx)
+	return pdb.Prepare(ctx)
 }
 
 // Put implements Db.
@@ -53,61 +68,74 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !pdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
 	}
-	k, err := pdb.ToKey(ctx, key)
+
+	lk, err := pdb.ToKey(ctx, key)
 	if err != nil {
 		return err
 	}
-	tx, err := pdb.conn.Begin(ctx)
+
+	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
 	if err != nil {
 		return err
 	}
-	query := fmt.Sprintf("INSERT INTO %s.kv_vise (key, value) VALUES ($1, $2) ON CONFLICT(key) DO UPDATE SET value = $2;", pdb.schema)
-	_, err = tx.Exec(ctx, query, k, val)
+	query := fmt.Sprintf("INSERT INTO %s.kv_vise (key, value, updated) VALUES ($1, $2, 'now') ON CONFLICT(key) DO UPDATE SET value = $2, updated = 'now';", pdb.schema)
+	actualKey := lk.Default
+	if lk.Translation != nil {
+		actualKey = lk.Translation
+	}
+
+	_, err = tx.Exec(ctx, query, actualKey, val)
 	if err != nil {
-		tx.Rollback(ctx)
 		return err
 	}
-	tx.Commit(ctx)
-	return nil
+
+	return tx.Commit(ctx)
 }
 
 // Get implements Db.
-func(pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	lk, err := pdb.ToKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
+
+	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
+	if err != nil {
+		return nil, err
+	}
+
 	if lk.Translation != nil {
-		tx, err := pdb.conn.Begin(ctx)
-		if err != nil {
-			return nil, err
-		}
 		query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
 		rs, err := tx.Query(ctx, query, lk.Translation)
 		if err != nil {
+			tx.Rollback(ctx)
 			return nil, err
 		}
 		defer rs.Close()
+
 		if rs.Next() {
 			r := rs.RawValues()
+			tx.Commit(ctx)
+			tx.Rollback(ctx)
 			return r[0], nil
 		}
 	}
 
-	tx, err := pdb.conn.Begin(ctx)
-	if err != nil {
-		return nil, err
-	}
 	query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
-	rs, err := tx.Query(ctx, query, lk.Translation)
+	rs, err := tx.Query(ctx, query, lk.Default)
 	if err != nil {
+		tx.Rollback(ctx)
 		return nil, err
 	}
 	defer rs.Close()
+
 	if !rs.Next() {
+		tx.Rollback(ctx)
 		return nil, db.NewErrNotFound(key)
 	}
+
 	r := rs.RawValues()
+	tx.Commit(ctx)
 	return r[0], nil
 }
 
@@ -118,8 +146,13 @@ func(pdb *pgDb) Close() error {
 }
 
 // set up table
-func(pdb *pgDb) prepare(ctx context.Context) error {
-	tx, err := pdb.conn.Begin(ctx)
+func(pdb *pgDb) Prepare(ctx context.Context) error {
+	if pdb.prepd {
+		logg.WarnCtxf(ctx, "Prepare called more than once")
+		return nil
+	}
+	pdb.prepd = true
+	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
 	if err != nil {
 		tx.Rollback(ctx)
 		return err
@@ -127,7 +160,8 @@ func(pdb *pgDb) prepare(ctx context.Context) error {
 	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.kv_vise (
 		id SERIAL NOT NULL,
 		key BYTEA NOT NULL UNIQUE,
-		value BYTEA NOT NULL
+		value BYTEA NOT NULL,
+		updated TIMESTAMP NOT NULL
 	);
 `, pdb.schema)
 	_, err = tx.Exec(ctx, query)
