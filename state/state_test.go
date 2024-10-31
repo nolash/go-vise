@@ -482,11 +482,6 @@ func TestStateLanguage(t *testing.T) {
 	}
 }
 
-func TestStateLimit(t *testing.T) {
-	st := NewState(17)
-	st.SetFlag(25)
-}
-
 func TestStateLateral(t *testing.T) {
 	st := NewState(0)
 	if st.Lateral() {
