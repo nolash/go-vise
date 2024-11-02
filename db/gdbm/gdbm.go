@@ -17,6 +17,8 @@ type gdbmDb struct {
 	conn *gdbm.Database
 	readOnly bool
 	prefix uint8
+	it gdbm.DatabaseIterator
+	itBase []byte
 }
 
 // Creates a new gdbm backed Db implementation.
@@ -118,6 +120,7 @@ func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 		return v, nil
 	}
 	v, err = gdb.conn.Fetch(lk.Default)
+	logg.TraceCtxf(ctx, "gdbm get", "key", key, "lk", lk.Default)
 	if err != nil {
 		if errors.Is(gdbm.ErrItemNotFound, err) {
 			return nil, db.NewErrNotFound(key)

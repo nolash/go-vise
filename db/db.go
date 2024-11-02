@@ -75,6 +75,7 @@ type Db interface {
 	SetLanguage(*lang.Language)
 	// Prefix returns the current active datatype prefix
 	Prefix() uint8
+	Dump(context.Context, []byte) (*Dumper, error)
 }
 
 type LookupKey struct {
