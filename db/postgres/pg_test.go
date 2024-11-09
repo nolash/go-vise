@@ -55,7 +55,7 @@ func TestPutGetPg(t *testing.T) {
 	typMap := pgtype.NewMap()
 
 	k := []byte("foo")
-	ks := append([]byte{db.DATATYPE_USERDATA}, []byte("xyzzy.foo")...)
+	ks := append([]byte{db.DATATYPE_USERDATA}, []byte("foo")...)
 	v := []byte("bar")
 	resInsert := pgxmock.NewResult("UPDATE", 1)
 	mock.ExpectBegin()

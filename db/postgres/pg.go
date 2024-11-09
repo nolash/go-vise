@@ -26,6 +26,8 @@ type pgDb struct {
 	schema string
 	prefix uint8
 	prepd bool
+	it pgx.Rows
+	itBase []byte
 }
 
 // NewpgDb creates a new Postgres backed Db implementation.
