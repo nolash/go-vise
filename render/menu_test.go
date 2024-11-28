@@ -86,3 +86,26 @@ func TestMenuBrowse(t *testing.T) {
 		t.Fatalf("expected render fail")
 	}
 }
+
+func TestMenuSep(t *testing.T) {
+	m := NewMenu().WithSeparator("//")
+	err := m.Put("1", "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = m.Put("2", "bar")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := context.TODO()
+	r, err := m.Render(ctx, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect := `1//foo
+2//bar`
+	if r != expect {
+		t.Fatalf("expected:\n\t%s\ngot:\n\t%s\n", expect, r)
+	}
+}

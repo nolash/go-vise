@@ -61,6 +61,7 @@ type Menu struct {
 	//outputSize uint16 // maximum size constraint for the menu.
 	sink bool
 	keep bool
+	sep string
 }
 
 // String implements the String interface.
@@ -74,7 +75,14 @@ func(m Menu) String() string {
 func NewMenu() *Menu {
 	return &Menu{
 		keep: true,
+		sep: ":",
 	}
+}
+
+// WithPageCount is a chainable function that defines the number of allowed pages for browsing.
+func(m *Menu) WithSeparator(sep string) *Menu {
+	m.sep = sep
+	return m
 }
 
 // WithPageCount is a chainable function that defines the number of allowed pages for browsing.
@@ -222,7 +230,7 @@ func(m *Menu) Render(ctx context.Context, idx uint16) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		r += fmt.Sprintf("%s:%s", choice, title)
+		r += fmt.Sprintf("%s%s%s", choice, m.sep, title)
 	}
 	if m.keep {
 		m.menu = menuCopy
