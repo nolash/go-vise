@@ -25,6 +25,7 @@ func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		if !bytes.HasPrefix(k[1:], key) {
 			continue
 		}
+		gdb.SetPrefix(k[0])
 		v, err := gdb.Get(ctx, k[1:])
 		if err != nil {
 			gdb.it = nil
