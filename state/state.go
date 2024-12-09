@@ -42,7 +42,7 @@ type State struct {
 	input []byte // Last input
 	debug bool // Make string representation more human friendly
 	invalid bool
-	lateral bool
+	lastMove uint8
 }
 
 // number of bytes necessary to represent a bitfield of the given size.
@@ -214,7 +214,12 @@ func(st *State) Where() (string, uint16) {
 
 // Lateral returns true if the last state move was Next() or Previous()
 func(st *State) Lateral() bool {
-	return st.lateral
+	return st.lastMove & 6 > 0
+}
+
+// Back returns true if the last state move was Up()
+func(st *State) Back() bool {
+	return st.lastMove & 1 > 0
 }
 
 // Next moves to the next sink page index.
@@ -226,7 +231,7 @@ func(st *State) Next() (uint16, error) {
 	s, idx := st.Where()
 	logg.Debugf("next page", "location", s, "index", idx)
 	st.Moves += 1
-	st.lateral = true
+	st.lastMove = 2
 	return st.SizeIdx, nil
 }
 
@@ -248,7 +253,7 @@ func(st *State) Previous() (uint16, error) {
 	s, idx := st.Where()
 	logg.Debugf("previous page", "location", s, "index", idx)
 	st.Moves += 1
-	st.lateral = true
+	st.lastMove = 4
 	return st.SizeIdx, nil
 }
 
@@ -296,7 +301,7 @@ func(st *State) Down(input string) error {
 	st.ExecPath = append(st.ExecPath, input)
 	st.SizeIdx = 0
 	st.Moves += 1
-	st.lateral = false
+	st.lastMove = 0
 	return nil
 }
 
@@ -321,7 +326,7 @@ func(st *State) Up() (string, error) {
 	st.SizeIdx = 0
 	logg.Tracef("execpath after", "path", st.ExecPath)
 	st.Moves += 1
-	st.lateral = false
+	st.lastMove = 1
 	return sym, nil
 }
 
@@ -379,7 +384,7 @@ func(st *State) Restart() error {
 	st.SizeIdx = 0
 	st.input = []byte{}
 	st.ExecPath = st.ExecPath[:1]
-	st.lateral = false
+	st.lastMove = 0
 	return err
 }
 
