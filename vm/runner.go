@@ -45,7 +45,8 @@ type Vm struct {
 	ca cache.Memory // Loaded content.
 	mn *render.Menu // Menu component of page.
 	sizer *render.Sizer // Apply size constraints to output.
-	pg *render.Page // Render outputs with menues to size constraints.
+	pg *render.Page // Render outputs with menues to size constraints
+	menuSeparator string // Passed to Menu.WithSeparator if not empty
 }
 
 // NewVm creates a new Vm.
@@ -62,9 +63,19 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 	return vmi
 }
 
+// WithMenuSeparator is a chainable function that sets the separator string to use
+// in the menu renderer.
+func(vmi *Vm) WithMenuSeparator(sep string) *Vm {
+	vmi.menuSeparator = sep
+	return vmi
+}
+
 // Reset re-initializes sub-components for output rendering.
 func(vmi *Vm) Reset() {
 	vmi.mn = render.NewMenu()
+	if vmi.menuSeparator != "" {
+		vmi.mn = vmi.mn.WithSeparator(vmi.menuSeparator)
+	}
 	vmi.pg.Reset()
 	vmi.pg = vmi.pg.WithMenu(vmi.mn)
 	if vmi.sizer != nil {

@@ -269,6 +269,9 @@ func(en *DefaultEngine) setupVm() {
 		szr = render.NewSizer(en.cfg.OutputSize)
 	}
 	en.vm = vm.NewVm(en.st, en.rs, en.ca, szr)
+	if en.cfg.MenuSeparator != "" {
+		en.vm = en.vm.WithMenuSeparator(en.cfg.MenuSeparator)
+	}
 }
 
 func(en *DefaultEngine) empty(ctx context.Context) error {
