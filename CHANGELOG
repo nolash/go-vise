@@ -1,3 +1,8 @@
+- 0.2.2
+	* Customizable menu separator
+	* Make available node movement direction detection in state object.
+	* Add data dumper iterator for the db interface
+	* Implement data dumper for gdbm, postgres, fs db.
 - 0.2.1
 	* Add lateral navigation indicator in State
 	* Fix wrong key usage in postgres.
