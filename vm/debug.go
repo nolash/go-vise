@@ -43,8 +43,8 @@ func (ph *ParseHandler) WithDefaultHandlers() *ParseHandler {
 	ph.InCmp = ph.incmp
 	ph.MOut = ph.mout
 	ph.MSink = ph.msink
-//	ph.MNext = ph.mnext
-//	ph.MPrev = ph.mprev
+	ph.MNext = ph.mnext
+	ph.MPrev = ph.mprev
 	return ph
 }
 
@@ -133,6 +133,18 @@ func (ph *ParseHandler) msink() error {
 func (ph *ParseHandler) mout(sym string, sel string) error {
 	s := OpcodeString[MOUT]
 	ph.cur = fmt.Sprintf("%s %s %v\n", s, sym, sel)
+	return nil
+}
+
+func (ph *ParseHandler) mnext(sym string, sel string) error {
+	s := OpcodeString[MNEXT]
+	ph.cur = fmt.Sprintf("%s %s %s\n", s, sym, sel)
+	return nil
+}
+
+func (ph *ParseHandler) mprev(sym string, sel string) error {
+	s := OpcodeString[MPREV]
+	ph.cur = fmt.Sprintf("%s %s %s\n", s, sym, sel)
 	return nil
 }
 
@@ -228,24 +240,18 @@ func (ph *ParseHandler) ParseAll(b []byte) (int, error) {
 			if err == nil {
 				err = ph.MOut(r, v)
 			}
-//		case MNEXT:
-//			r, v, bb, err := ParseMNext(b)
-//			b = bb
-//			if err == nil {
-//				if w != nil {
-//					//rs = fmt.Sprintf("%s %s \"%s\"\n", s, r, v)
-//					rs = fmt.Sprintf("%s %s %s\n", s, r, v)
-//				}
-//			}
-//		case MPREV:
-//			r, v, bb, err := ParseMPrev(b)
-//			b = bb
-//			if err == nil {
-//				if w != nil {
-//					//rs = fmt.Sprintf("%s %s \"%s\"\n", s, r, v)
-//					rs = fmt.Sprintf("%s %s %s\n", s, r, v)
-//				}
-//			}
+		case MNEXT:
+			r, v, bb, err := ParseMNext(b)
+			b = bb
+			if err == nil {
+				err = ph.MNext(r, v)
+			}
+		case MPREV:
+			r, v, bb, err := ParseMPrev(b)
+			b = bb
+			if err == nil {
+				err = ph.MPrev(r, v)
+			}
 		}
 		if err != nil {
 			return ph.Length(), err
