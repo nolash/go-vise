@@ -70,5 +70,11 @@ func(nm *NodeMap) processNode(ctx context.Context, node *Node, rs resource.Resou
 }
 
 func (nm *NodeMap) String() string {
-	return strings.Join(nm.outs, "\n")
+	var s string
+	l := len(nm.outs)
+	for i := l; i > 0; i-- {
+		s += nm.outs[i-1]
+		s += "\n"
+	}
+	return s
 }
