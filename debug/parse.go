@@ -14,6 +14,7 @@ type NodeParseHandler struct {
 	node *Node
 	parentMoveFunc func(string) error
 	parentInCmpFunc func(string, string) error
+	parentCatchFunc func(string, uint32, bool) error
 }
 
 func NewNodeParseHandler(node *Node) *NodeParseHandler {
@@ -24,15 +25,17 @@ func NewNodeParseHandler(node *Node) *NodeParseHandler {
 	np.node.Name = node.Name
 	np.parentMoveFunc = np.ParseHandler.Move
 	np.parentInCmpFunc = np.ParseHandler.InCmp
+	np.parentCatchFunc = np.ParseHandler.Catch
 	np.Move = np.move
 	np.InCmp = np.incmp
+	np.Catch = np.catch
 	return np
 }
 
 func (np *NodeParseHandler) move(sym string) error {
 	var node Node
 
-	if (sym == "<" || sym == ">" || sym == "^" || sym == "_") {
+	if (sym == "<" || sym == ">" || sym == "^" || sym == "_" || sym == ".") {
 		logg.Debugf("skip lateral move")
 		return np.parentMoveFunc(sym)
 	}
@@ -46,9 +49,9 @@ func (np *NodeParseHandler) move(sym string) error {
 func (np *NodeParseHandler) incmp(sym string, sel string) error {
 	var node Node
 
-	if (sym == "<" || sym == ">" || sym == "^" || sym == "_") {
+	if (sym == "<" || sym == ">" || sym == "^" || sym == "_" || sym == ".") {
 		logg.Debugf("skip relative move")
-		return np.parentMoveFunc(sym)
+		return np.parentInCmpFunc(sym, sel)
 	}
 
 
@@ -56,4 +59,18 @@ func (np *NodeParseHandler) incmp(sym string, sel string) error {
 	np.node.Connect(node)
 	logg.Debugf("connect INCMP", "src", np.node.Name, "dst", node.Name)
 	return np.parentInCmpFunc(sym, sel)
+}
+
+func (np *NodeParseHandler) catch(sym string, flag uint32, inv bool) error {
+	var node Node
+
+	if (sym == "<" || sym == ">" || sym == "^" || sym == "_" || sym == ".") {
+		logg.Debugf("skip relative move")
+		return np.parentMoveFunc(sym)
+	}
+
+	node.Name = sym
+	np.node.Connect(node)
+	logg.Debugf("connect CATCH", "src", np.node.Name, "dst", node.Name)
+	return np.parentCatchFunc(sym, flag, inv)
 }

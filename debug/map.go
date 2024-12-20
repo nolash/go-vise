@@ -37,7 +37,14 @@ func(nm *NodeMap) Run(ctx context.Context, rs resource.Resource) error {
 }
 
 func(nm *NodeMap) processNode(ctx context.Context, node *Node, rs resource.Resource) error {
+	for i, v := range(nm.st.ExecPath) {
+		if v == node.Name {
+			logg.InfoCtxf(ctx, "loop detected", "pos", i, "node", node.Name, "path", nm.st.ExecPath)
+			return nil
+		}
+	}
 	nm.st.Down(node.Name)
+	logg.DebugCtxf(ctx, "processnode", "path", nm.st.ExecPath)
 	for true {
 		n := node.Next()
 		if n == nil {
@@ -46,7 +53,7 @@ func(nm *NodeMap) processNode(ctx context.Context, node *Node, rs resource.Resou
 		ph := NewNodeParseHandler(n)
 		b, err := rs.GetCode(ctx, n.Name)
 		if err != nil {
-			return err
+			continue
 		}
 		_, err = ph.ParseAll(b)
 		if err != nil {
