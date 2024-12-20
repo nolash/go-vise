@@ -35,19 +35,12 @@ func main() {
 	}
 
 	rs := resource.NewDbResource(rsStore)
-	//rs = rs.With(db.DATATYPE_STATICLOAD)
 
-	//ph := vm.NewParseHandler().WithDefaultHandlers().WithWriter(os.Stdout)
-	ph := debug.NewNodeParseHandler("root").WithWriter(os.Stdout)
-
-	b, err := rs.GetCode(ctx, root)
+	nm := debug.NewNodeMap(root)
+	err = nm.Run(ctx, rs)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "node tree process fail: %v", err)
+		os.Exit(1)
 	}
-
-	n, err := ph.ParseAll(b)
-	if err != nil {
-		panic(err)
-	}
-	_ = n
+	fmt.Printf("%s", nm)
 }

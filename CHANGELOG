@@ -1,3 +1,7 @@
+- 0.2.3
+	* Node navigation traversal module with pluggable code hooks.
+	* Developer tool to generate node navigation map.
+	* Expose code to manually trigger state rewind (asm: MOVE ^)
 - 0.2.2
 	* Customizable menu separator
 	* Make available node movement direction detection in state object.

@@ -36,3 +36,12 @@ func (n *Node) Connect(peer Node) bool {
 func (n *Node) String() string {
 	return n.Name
 }
+
+func (n *Node) Next() *Node {
+	if len(n.conn) == 0 {
+		return nil
+	}
+	r := NodeIndex[n.conn[0]]
+	n.conn = n.conn[1:]
+	return &r
+}
