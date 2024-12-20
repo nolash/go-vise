@@ -83,6 +83,27 @@ func(vmi *Vm) Reset() {
 	}
 }
 
+func Rewind(sym string, st *state.State, ca cache.Memory) (string, error) {
+	var err error
+	notTop := true
+	for notTop {
+		//notTop, err := st.Top()
+		notTop, err = st.Top()
+		if notTop {
+			break
+		}
+		sym, err = st.Up()
+		if err != nil {
+			break
+		}
+		err = ca.Pop()
+		if err != nil {
+			break
+		}
+	}
+	return sym, err
+}
+
 // Run extracts individual op codes and arguments and executes them.
 //
 // Each step may update the state.

@@ -32,3 +32,7 @@ func (n *Node) Connect(peer Node) bool {
 	n.conn = append(n.conn, peer.Name)
 	return true
 }
+
+func (n *Node) String() string {
+	return n.Name
+}

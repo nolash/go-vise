@@ -9,6 +9,7 @@ import (
 
 func TestMenuInterpreter(t *testing.T) {
 	m := NewMenuProcessor()
+	ph := vm.NewParseHandler().WithDefaultHandlers()
 	err := m.Add("DOWN", "0", "inky", "foo")
 	if err != nil {
 		t.Fatal(err)
@@ -30,7 +31,7 @@ func TestMenuInterpreter(t *testing.T) {
 		t.Errorf("expected error on invalid menu item 'BOGUS'")
 	}
 	b := m.ToLines()
-	r, err := vm.ToString(b)
+	r, err := ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}

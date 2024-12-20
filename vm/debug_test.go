@@ -11,8 +11,9 @@ func TestToString(t *testing.T) {
 	var expect string
 	var err error
 
+	ph := NewParseHandler().WithDefaultHandlers()
 	b = NewLine(nil, CATCH, []string{"xyzzy"}, []byte{0x0d}, []uint8{1})
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -22,7 +23,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, CROAK, nil, []byte{0x0d}, []uint8{1})
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +33,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, LOAD, []string{"foo"}, []byte{0x0a}, nil)
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +43,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, RELOAD, []string{"bar"}, nil, nil)
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +53,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, MAP, []string{"inky_pinky"}, nil, nil) 
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +63,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, MOVE, []string{"blinky_clyde"}, nil, nil) 
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +73,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, HALT, nil, nil, nil) 
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +83,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, INCMP, []string{"13", "baz"}, nil, nil) 
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +93,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, MNEXT, []string{"11", "nextmenu"}, nil, nil) 
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +104,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, MPREV, []string{"222", "previous menu item"}, nil, nil) 
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +115,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, MOUT, []string{"1", "foo"}, nil, nil) 
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,7 +126,7 @@ func TestToString(t *testing.T) {
 	}
 
 	b = NewLine(nil, MSINK, nil, nil, nil) //[]uint8{0x42, 0x2a}) 
-	r, err = ToString(b)
+	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,12 +138,13 @@ func TestToString(t *testing.T) {
 }
 
 func TestToStringMultiple(t *testing.T) {
+	ph := NewParseHandler().WithDefaultHandlers()
 	b := NewLine(nil, INCMP, []string{"1", "foo"}, nil, nil)
 	b = NewLine(b, INCMP, []string{"2", "bar"}, nil, nil)
 	b = NewLine(b, CATCH, []string{"aiee"}, []byte{0x02, 0x9a}, []uint8{0})
 	b = NewLine(b, LOAD, []string{"inky"}, []byte{0x2a}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	r, err := ToString(b)
+	r, err := ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -158,12 +160,13 @@ HALT
 }
 
 func TestVerifyMultiple(t *testing.T) {
+	ph := NewParseHandler().WithDefaultHandlers()
 	b := NewLine(nil, INCMP, []string{"1", "foo"}, nil, nil)
 	b = NewLine(b, INCMP, []string{"2", "bar"}, nil, nil)
 	b = NewLine(b, CATCH, []string{"aiee"}, []byte{0x02, 0x9a}, []uint8{0})
 	b = NewLine(b, LOAD, []string{"inky"}, []byte{0x2a}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
-	n, err := ParseAll(b, nil)
+	n, err := ph.ParseAll(b)
 	if err != nil {
 		t.Fatal(err)
 	}

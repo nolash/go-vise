@@ -18,7 +18,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "read error: %v", err)
 		os.Exit(1)
 	}
-	r, err := vm.ToString(v)
+	ph := vm.NewParseHandler().WithDefaultHandlers()
+	r, err := ph.ToString(v)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "parse error: %v", err)
 		os.Exit(1)

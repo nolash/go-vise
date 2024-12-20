@@ -163,20 +163,9 @@ func applyTarget(target []byte, st *state.State, ca cache.Memory, ctx context.Co
 			return sym, idx, err
 		}
 	case "^":
-		notTop := true
-		for notTop {
-			notTop, err := st.Top()
-			if notTop {
-				break
-			}
-			sym, err = st.Up()
-			if err != nil {
-				return sym, idx, err
-			}
-			err = ca.Pop()
-			if err != nil {
-				return sym, idx, err
-			}
+		sym, err = Rewind(sym, st, ca)
+		if err != nil {
+			return sym, idx, err
 		}
 	case ".":
 		st.Same()

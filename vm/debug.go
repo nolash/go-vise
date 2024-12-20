@@ -226,12 +226,12 @@ func (ph *ParseHandler) ParseAll(b []byte) (int, error) {
 			}
 		case HALT:
 			b, err = ParseHalt(b)
-			if err != nil {
+			if err == nil {
 				err = ph.Halt()
 			}
 		case MSINK:
 			b, err = ParseMSink(b)
-			if err != nil {
+			if err == nil {
 				err = ph.MSink()
 			}
 		case MOUT:

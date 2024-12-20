@@ -163,7 +163,8 @@ func TestParserInit(t *testing.T) {
 	b = vm.NewLine(b, vm.INCMP, []string{"pinky", "inky"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{42}, nil)
 	b = vm.NewLine(b, vm.MOUT, []string{"bar", "barbarbaz"}, nil, nil)
-	s, err := vm.ToString(b)
+	ph := vm.NewParseHandler().WithDefaultHandlers()
+	s, err := ph.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
 	n, err := Parse(s, nil)
@@ -178,7 +179,8 @@ func TestParserInit(t *testing.T) {
 func TestParserSized(t *testing.T) {
 	var b []byte
 	b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{42}, nil)
-	s, err := vm.ToString(b)
+	ph := vm.NewParseHandler().WithDefaultHandlers()
+	s, err := ph.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
 	r := bytes.NewBuffer(nil)
@@ -198,7 +200,8 @@ func TestParserSized(t *testing.T) {
 func TestParseDisplay(t *testing.T) {
 	var b []byte
 	b = vm.NewLine(b, vm.MOUT, []string{"foo", "baz_ba_zbaz"}, nil, nil)
-	s, err := vm.ToString(b)
+	ph := vm.NewParseHandler().WithDefaultHandlers()
+	s, err := ph.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
 	r := bytes.NewBuffer(nil)
@@ -220,7 +223,8 @@ func TestParseDouble(t *testing.T) {
 	t.Skip("foo")
 	var b []byte
 	b = vm.NewLine(b, vm.INCMP, []string{"foo", "bar"}, nil, nil)
-	s, err := vm.ToString(b)
+	ph := vm.NewParseHandler().WithDefaultHandlers()
+	s, err := ph.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
 	r := bytes.NewBuffer(nil)
@@ -286,7 +290,8 @@ func TestParseMenuZeroPrefix(t *testing.T) {
 func TestParseSingle(t *testing.T) {
 	var b []byte
 	b = vm.NewLine(b, vm.MAP, []string{"xyzzy"}, nil, nil)
-	s, err := vm.ToString(b)
+	ph := vm.NewParseHandler().WithDefaultHandlers()
+	s, err := ph.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
 	r := bytes.NewBuffer(nil)
@@ -306,7 +311,8 @@ func TestParseSingle(t *testing.T) {
 
 func TestParseSig(t *testing.T) {
 	b := vm.NewLine(nil, vm.CATCH, []string{"plugh"}, []byte{0x02, 0x9a}, []uint8{0x2a})
-	s, err := vm.ToString(b)
+	ph := vm.NewParseHandler().WithDefaultHandlers()
+	s, err := ph.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
 	r := bytes.NewBuffer(nil)
@@ -328,7 +334,7 @@ func TestParseSig(t *testing.T) {
 	}
 
 	b = vm.NewLine(nil, vm.CATCH, []string{"plugh"}, []byte{0x01}, []uint8{0x0})
-	s, err = vm.ToString(b)
+	s, err = ph.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
 	r = bytes.NewBuffer(nil)
@@ -362,8 +368,9 @@ func TestParseCroak(t *testing.T) {
 
 func TestParseNoarg(t *testing.T) {
 	var b []byte
+	ph := vm.NewParseHandler().WithDefaultHandlers()
 	b = vm.NewLine(b, vm.HALT, nil, nil, nil)
-	s, err := vm.ToString(b)
+	s, err := ph.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
 	r := bytes.NewBuffer(nil)
@@ -388,7 +395,8 @@ func TestParserWriteMultiple(t *testing.T) {
 	b = vm.NewLine(b, vm.INCMP, []string{"pinky", "inky"}, nil, nil)
 	b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{42}, nil)
 	b = vm.NewLine(b, vm.MOUT, []string{"bar", "bar_barb_az"}, nil, nil)
-	s, err := vm.ToString(b)
+	ph := vm.NewParseHandler().WithDefaultHandlers()
+	s, err := ph.ToString(b)
 	log.Printf("parsing:\n%s\n", s)
 
 	r := bytes.NewBuffer(nil)
@@ -413,7 +421,7 @@ func TestParserWriteMultiple(t *testing.T) {
 		t.Fatalf("expected result:\n\t%v, got:\n\t%x", r_expect_hex, rb)
 	}
 
-	_, err = vm.ParseAll(rb, nil)
+	_, err = ph.ParseAll(rb)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -425,7 +433,8 @@ func TestParserCapQuote(t *testing.T) {
 	b = vm.NewLine(b, vm.MOUT, []string{"b", "Bar"}, nil, nil) 
 	b = vm.NewLine(b, vm.MOUT, []string{"c", "baz"}, nil, nil) 
 	b = vm.NewLine(b, vm.MSINK, nil, nil, nil)
-	s, err := vm.ToString(b)
+	ph := vm.NewParseHandler().WithDefaultHandlers()
+	s, err := ph.ToString(b)
 	log.Printf("parsing:\n%s", s)
 
 	r := bytes.NewBuffer(nil)

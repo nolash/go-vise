@@ -6,10 +6,15 @@ import (
 	"fmt"
 	"os"
 
-	"git.defalsify.org/vise.git/vm"
+	"git.defalsify.org/vise.git/debug"
 	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/logging"
 	fsdb "git.defalsify.org/vise.git/db/fs"
 
+)
+
+var (
+	logg = logging.NewVanilla()
 )
 
 func main() {
@@ -32,7 +37,8 @@ func main() {
 	rs := resource.NewDbResource(rsStore)
 	//rs = rs.With(db.DATATYPE_STATICLOAD)
 
-	ph := vm.NewParseHandler().WithDefaultHandlers().WithWriter(os.Stdout)
+	//ph := vm.NewParseHandler().WithDefaultHandlers().WithWriter(os.Stdout)
+	ph := debug.NewNodeParseHandler("root").WithWriter(os.Stdout)
 
 	b, err := rs.GetCode(ctx, root)
 	if err != nil {
