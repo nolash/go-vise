@@ -78,3 +78,16 @@ func (nm *NodeMap) String() string {
 	}
 	return s
 }
+
+func (nm *NodeMap) Apply(nodeFunc func(*Node) error) error {
+	var err error
+	l := len(nm.outs)
+	for i := l; i > 0; i-- {
+		n := NodeIndex[nm.outs[i-1]]
+		err = nodeFunc(&n)
+		if err != nil {
+			break
+		}
+	}
+	return err
+}
