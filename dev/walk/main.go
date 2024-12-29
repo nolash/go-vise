@@ -57,7 +57,7 @@ func(tr *translator) Close() error {
 		if ok {
 			err = o.Close()
 			if err != nil {
-				s += fmt.Sprintf("\nclose error %s: %v", k, err)
+				s += fmt.Sprintf("\nclose error %d: %v", k, err)
 			}
 		}
 	}
@@ -67,9 +67,38 @@ func(tr *translator) Close() error {
 	return err
 }
 
+func(tr *translator) menuFunc(node *debug.Node, w io.Writer, ln lang.Language) error {
+	ctx := context.WithValue(tr.ctx, "Language", ln)
+	for true {
+		s := node.MenuNext()
+		if s == "" {
+			break
+		}
+		logg.TraceCtxf(tr.ctx, "menu process", "sym", s)
+		r, err := tr.rs.GetMenu(ctx, s)	
+		if err != nil {
+			continue
+		}
+		logg.DebugCtxf(tr.ctx, "menu resolved", "sym", s, "result", r)
+		r = fmt.Sprintf(`msgid ""
+	"%s"
+msgstr ""
+%s
+
+`, s, r)
+		_, err = w.Write([]byte(s))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func(tr *translator) nodeFunc(node *debug.Node) error {
 	var v string
-	fmt.Fprintf(os.Stderr, "processing node: %v\n", node)
+	var err error
+
+	logg.Tracef("processing node", "node", node)
 
 	for k, w := range(tr.w) {
 		var s string
@@ -85,6 +114,7 @@ msgstr ""
 %s
 
 `, node.Name, s)
+
 		if err == nil {
 			_, err = w.Write([]byte(s))
 			if err != nil {
@@ -93,8 +123,10 @@ msgstr ""
 		} else {
 			logg.DebugCtxf(tr.ctx, "no template found", "node", node.Name)
 		}
+
+		//err = tr.menuFunc(node, w, ln)
 	}
-	return nil
+	return err
 }
 
 func(tr *translator) AddLang(ln lang.Language) error {
@@ -177,9 +209,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "node tree process fail: %v", err)
 		os.Exit(1)
 	}
-	
+
 	for k, v := range(debug.NodeIndex) {
-		err = tr.nodeFunc(&v)
+		err = tr.nodeFunc(v)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "translate process error for node %s: %v", k, err)
 			os.Exit(1)

@@ -40,6 +40,7 @@ func(nm *NodeMap) processNode(ctx context.Context, node *Node, rs resource.Resou
 	for i, v := range(nm.st.ExecPath) {
 		if v == node.Name {
 			logg.InfoCtxf(ctx, "loop detected", "pos", i, "node", node.Name, "path", nm.st.ExecPath)
+			//_ = node.Next()
 			return nil
 		}
 	}
@@ -66,6 +67,7 @@ func(nm *NodeMap) processNode(ctx context.Context, node *Node, rs resource.Resou
 	}
 	nm.outs = append(nm.outs, strings.Join(nm.st.ExecPath, "/"))
 	nm.st.Up()
+	logg.Infof("up", "node", node.Name, "st", nm.st.ExecPath)
 	return nil
 }
 
@@ -78,16 +80,18 @@ func (nm *NodeMap) String() string {
 	}
 	return s
 }
-
-func (nm *NodeMap) Apply(nodeFunc func(*Node) error) error {
-	var err error
-	l := len(nm.outs)
-	for i := l; i > 0; i-- {
-		n := NodeIndex[nm.outs[i-1]]
-		err = nodeFunc(&n)
-		if err != nil {
-			break
-		}
-	}
-	return err
-}
+//
+////func (nm *NodeMap) Apply(nodeFunc func(*Node) error, menuFunc func(string) error) error {
+//func (nm *NodeMap) Apply(nodeFunc func(string) error) error {
+//	var err error
+//	l := len(nm.outs)
+//	for i := l; i > 0; i-- {
+//		//n := NodeIndex[nm.outs[i-1]]
+//		//err = nodeFunc(n)
+//		err = nodeFunc(nm.outs[i-1])
+//		if err != nil {
+//			break
+//		}
+//	}
+//	return err
+//}
