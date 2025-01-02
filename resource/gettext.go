@@ -14,6 +14,7 @@ const (
 )
 
 type PoResource struct {
+	*MenuResource
 	path string
 	defaultLanguage lang.Language
 	tr map[string]*gotext.Locale
@@ -21,6 +22,7 @@ type PoResource struct {
 
 func NewPoResource(defaultLanguage lang.Language, path string) *PoResource {
 	o := &PoResource {
+		MenuResource: NewMenuResource(),
 		path: path,
 		defaultLanguage: defaultLanguage,
 		tr: make(map[string]*gotext.Locale),
@@ -44,7 +46,6 @@ func(p *PoResource) get(ctx context.Context, sym string, domain string) (string,
 	}
 	o, ok := p.tr[ln.Code]
 	if ok {
-		logg.TraceCtxf(ctx, "poresource get", "sym", sym, "ln", ln, "path", p.path, "o", o)
 		s = o.GetD(domain, sym)
 	}
 	return s, nil

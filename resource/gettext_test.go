@@ -8,6 +8,32 @@ import (
 	"git.defalsify.org/vise.git/lang"
 )
 
+func TestPoGetNotExist(t *testing.T) {
+	ln, err := lang.LanguageFromCode("spa")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rs := NewPoResource(ln, testlocale.LocaleDir)
+	ctx := context.WithValue(context.Background(), "Language", ln)
+
+	s, err := rs.GetMenu(ctx, "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "foo" {
+		t.Fatalf("expected 'foo', got '%s'", s)
+	}
+
+	s, err = rs.GetTemplate(ctx, "bar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "bar" {
+		t.Fatalf("expected 'bar', got '%s'", s)
+	}
+}
+
 func TestPoGet(t *testing.T) {
 	ln, err := lang.LanguageFromCode("nor")
 	if err != nil {
