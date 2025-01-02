@@ -81,10 +81,45 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 			if err != nil {
 				return err
 			}
-			logg.DebugCtxf(tr.ctx, "wrote node", "sym", sym, "bytes", c)
+			logg.DebugCtxf(tr.ctx, "wrote node", "sym", sym, "lang", ln.Code, "bytes", c)
 		}
 	}
 	return nil
+}
+
+func(tr *translator) menuFunc(sym string) error {
+	for i, ln := range(tr.langs) {
+		s, err := tr.rs.GetTemplate(tr.ctx, sym)
+		if err != nil {
+			logg.DebugCtxf(tr.ctx, "template not found", "sym", s)
+			continue
+		}
+		if s != sym {
+			if !tr.madePath {
+				err := os.MkdirAll(tr.outPath, 0700)
+				if err != nil {
+					return err
+				}
+			}
+			// TODO: use menu sym generator func instead
+			fb := sym + "_menu"
+			if i > 0 {
+				fb += "_" + ln.Code
+			}
+			// TODO: use lang filename generator func instead
+			fp := path.Join(tr.outPath, fb)
+			w, err := os.OpenFile(fp, os.O_WRONLY | os.O_CREATE, 0644)
+			if err != nil {
+				return err
+			}
+			c, err := w.Write([]byte(s))
+			defer w.Close()
+			if err != nil {
+				return err
+			}
+			logg.DebugCtxf(tr.ctx, "wrote menu", "sym", sym, "lang", ln.Code, "bytes", c)
+		}
+	}
 }
 
 func(tr *translator) Close() error {
@@ -181,13 +216,13 @@ func main() {
 		}
 	}
 
-//	for k, _ := range(debug.MenuIndex) {
-//		logg.Tracef("processing menu", "sym", k)
-//		err = tr.menuFunc(k)
-//		if err != nil {
-//			fmt.Fprintf(os.Stderr, "translate process error for menu %s: %v", k, err)
-//			os.Exit(1)
-//		}
-//	}
+	for k, _ := range(debug.MenuIndex) {
+		logg.Tracef("processing menu", "sym", k)
+		err = tr.menuFunc(k)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "translate process error for menu %s: %v", k, err)
+			os.Exit(1)
+		}
+	}
 
 }
