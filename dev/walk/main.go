@@ -25,16 +25,18 @@ type translator struct {
 	langs []lang.Language
 	ctx context.Context
 	rs resource.Resource
+	newline bool
 	d string
 	w map[string]io.WriteCloser
 	mw map[string]io.WriteCloser
 }
 
-func newTranslator(ctx context.Context, rs resource.Resource, outPath string) *translator {
+func newTranslator(ctx context.Context, rs resource.Resource, outPath string, newline bool) *translator {
 	return &translator{
 		ctx: ctx,
 		rs: rs,
 		d: outPath,
+		newline: newline,
 		w: make(map[string]io.WriteCloser),
 		mw: make(map[string]io.WriteCloser),
 	}
@@ -114,6 +116,7 @@ msgstr ""
 	return nil
 }
 
+// TODO: DRY; merge with menuFunc
 func(tr *translator) nodeFunc(node *debug.Node) error {
 	for k, w := range(tr.w) {
 		var s string
@@ -121,15 +124,21 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 		ctx := context.WithValue(tr.ctx, "Language", ln)
 		r, err := tr.rs.GetTemplate(ctx, node.Name)
 		for i, v := range(strings.Split(r, "\n")) {
-			if i > 0 {
-				s += "\\n\"\n"
-			} else if len(s) > 0 {
+			if tr.newline {
+				if i > 0 {
+					s += "\\n\"\n"
+				} else if len(s) > 0 {
+					s += "\"\n"
+				}
+				s += fmt.Sprintf("\t\"%s", v)
+			} else {
+				s += fmt.Sprintf("\t\"%s\"\n", v)
+			}
+		}
+		if tr.newline {
+			if len(s) > 0 {
 				s += "\"\n"
 			}
-			s += fmt.Sprintf("\t\"%s", v)
-		}
-		if len(s) > 0 {
-			s += "\"\n"
 		}
 		s = fmt.Sprintf(`msgid ""
 	"%s"
@@ -205,11 +214,13 @@ func main() {
 	var dir string
 	var outDir string
 	var root string
+	var newline bool
 	var langs langVar
 
 	flag.StringVar(&dir, "d", ".", "resource dir to read from")
 	flag.StringVar(&outDir, "o", "locale", "output directory")
 	flag.StringVar(&root, "root", "root", "entry point symbol")
+	flag.BoolVar(&newline, "newline", false, "insert newlines in multiline strings")
 	flag.Var(&langs, "l", "process for language")
 	flag.Parse()
 
@@ -231,7 +242,7 @@ func main() {
 
 	rs := resource.NewDbResource(rsStore)
 
-	tr := newTranslator(ctx, rs, outDir)
+	tr := newTranslator(ctx, rs, outDir, newline)
 	defer tr.Close()
 	for _, ln := range(langs.Langs()) {
 		logg.DebugCtxf(ctx, "lang", "lang", ln)
