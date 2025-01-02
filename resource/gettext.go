@@ -9,8 +9,10 @@ import (
 )
 
 const (
-	TemplatePoDomain = "default"
+	TemplatePoDomain = "template"
 	MenuPoDomain = "menu"
+	TemplateKeyPoDomain = "default"
+	MenuKeyPoDomain = "default_menu"
 )
 
 type PoResource struct {

@@ -19,6 +19,13 @@ import (
 
 var (
 	logg = logging.NewVanilla()
+	writeDomains = []string{
+		resource.TemplatePoDomain,
+		resource.MenuPoDomain,
+		resource.TemplateKeyPoDomain,
+		resource.MenuKeyPoDomain,
+	}
+	writeDomainReady = make(map[string]bool)
 )
 
 type translator struct {
@@ -27,8 +34,6 @@ type translator struct {
 	rs resource.Resource
 	newline bool
 	d string
-	w map[string]io.WriteCloser
-	mw map[string]io.WriteCloser
 }
 
 func newTranslator(ctx context.Context, rs resource.Resource, outPath string, newline bool) *translator {
@@ -37,8 +42,6 @@ func newTranslator(ctx context.Context, rs resource.Resource, outPath string, ne
 		rs: rs,
 		d: outPath,
 		newline: newline,
-		w: make(map[string]io.WriteCloser),
-		mw: make(map[string]io.WriteCloser),
 	}
 }
 
@@ -52,76 +55,73 @@ func(tr *translator) ensureFileNameFor(ln lang.Language, domain string) (string,
 	return path.Join(p, fileName), nil
 }
 
-func(tr *translator) Close() error {
-	var s string
-	var err error
-	for _, v := range(tr.langs) {
-		o, ok := tr.w[v.Code]
-		if ok {
-			err = o.Close()
-			if err != nil {
-				s += fmt.Sprintf("\ntemplate writer close error %s: %v", v.Code, err)
-			}
+// skip default*.po for translations other than default
+func(tr *translator) writersFor(ln lang.Language) ([]io.WriteCloser, error) {
+	var r []io.WriteCloser
+	_, ready := writeDomainReady[ln.Code]
+	for _, v := range(writeDomains) {
+		fp, err := tr.ensureFileNameFor(ln, v)
+		if err != nil {
+			return r, err
 		}
-		o, ok = tr.mw[v.Code]
-		if ok {
-			err = o.Close()
+		if !ready {
+			w, err := os.OpenFile(fp, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0644)
 			if err != nil {
-				s += fmt.Sprintf("\nmenu writer close error %s: %v", v.Code, err)
+				return r, err
 			}
-		}
+			s := fmt.Sprintf(`msgid ""
+msgstr ""
+	"Content-Type: text/plain; charset=UTF-8\n"
+	"Language: %s\n"
 
+`, ln.Code)
+			_, err = w.Write([]byte(s))
+			if err != nil {
+				return r, err
+			}
+			w.Close()
+		}
+		w, err := os.OpenFile(fp, os.O_WRONLY | os.O_APPEND, 0644)
+		logg.DebugCtxf(tr.ctx, "writer", "fp", fp)
+		if err != nil {
+			return r, err
+		}
+		r = append(r, w)
 	}
-	if len(s) > 0 {
-		err = fmt.Errorf("%s", s)
-	}
-	return err
+	writeDomainReady[ln.Code] = true
+	return r, nil
 }
 
-func(tr *translator) menuFunc(sym string) error {
-	var v string
-	var def string
-
-	for _, ln := range(tr.langs) {
-		var s string
-		w := tr.mw[ln.Code]
-		ctx := context.WithValue(tr.ctx, "Language", ln)
-		r, err := tr.rs.GetMenu(ctx, sym)
-		for _, v = range(strings.Split(r, "\n")) {
-			s += fmt.Sprintf("\t\"%s\"\n", v)
-		}
-		if def == "" {
-			def = s
-			continue
-		}
-		s = fmt.Sprintf(`#: vise_menu.%s
+func(tr *translator) writeTranslation(w io.Writer, sym string, msgid string, msgstr string) error {
+	s := fmt.Sprintf(`#: vise_node.%s
 msgid ""
 %s
 msgstr ""
 %s
 
-`, sym, def, s)
-		if err == nil {
-			logg.TraceCtxf(tr.ctx, "menu translation found", "node", sym, "lang", ln)
-			_, err = w.Write([]byte(s))
-			if err != nil {
-				return err
-			}
-		} else {
-			logg.DebugCtxf(tr.ctx, "no menuitem translation found", "node", sym, "lang", ln)
-		}
+`, sym, msgid, msgstr)
+	_, err := w.Write([]byte(s))
+	if err != nil {
+		return err
 	}
 	return nil
+}
+
+func(tr *translator) closeWriters(writers []io.WriteCloser) {
+	for _, w := range(writers) {
+		w.Close()
+	}
 }
 
 // TODO: DRY; merge with menuFunc
 func(tr *translator) nodeFunc(node *debug.Node) error {
 	var def string
-	for _, ln := range(tr.langs) {
+	for i, ln := range(tr.langs) {
 		var s string
-		w, ok := tr.w[ln.Code]
-		if !ok {
-			return fmt.Errorf("missing writer for lang: %s", ln.Code)
+		ww, err := tr.writersFor(ln)
+		defer tr.closeWriters(ww)
+		if err != nil {
+			return fmt.Errorf("failed writers for lang '%s': %v", ln.Code, err)
 		}
 		ctx := context.WithValue(tr.ctx, "Language", ln)
 		r, err := tr.rs.GetTemplate(ctx, node.Name)
@@ -136,17 +136,13 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 				s += fmt.Sprintf("\t\"%s\"\n", v)
 			}
 			if def == "" {
-				def = s
-				continue
+				def = fmt.Sprintf("\t\"%s\"\n", node.Name)
+				err = tr.writeTranslation(ww[2], node.Name, def, s)
 			}
-			s = fmt.Sprintf(`#: vise_node.%s
-msgid ""
-%s
-msgstr ""
-%s
-
-`, node.Name, def, s)
-			_, err = w.Write([]byte(s))
+			if i == 0 {
+				def = s
+			}
+			err = tr.writeTranslation(ww[0], node.Name, def, s)
 			if err != nil {
 				return err
 			}
@@ -157,31 +153,49 @@ msgstr ""
 	return nil
 }
 
+// TODO: drop the multiline gen
+func(tr *translator) menuFunc(sym string) error {
+	var def string
+	for i, ln := range(tr.langs) {
+		var s string
+		ww, err := tr.writersFor(ln)
+		defer tr.closeWriters(ww)
+		if err != nil {
+			return fmt.Errorf("failed writers for lang '%s': %v", ln.Code, err)
+		}
+		ctx := context.WithValue(tr.ctx, "Language", ln)
+		r, err := tr.rs.GetMenu(ctx, sym)
+		if err == nil {
+			logg.TraceCtxf(tr.ctx, "menu found", "lang", ln, "menu", sym)
+			for i, v := range(strings.Split(r, "\n")) {
+				if i > 0 {
+					if tr.newline {
+						s += fmt.Sprintf("\t\"\\n\"\n")
+					}
+				}
+				s += fmt.Sprintf("\t\"%s\"\n", v)
+			}
+			if def == "" {
+				def = fmt.Sprintf("\t\"%s\"\n", sym)
+				err = tr.writeTranslation(ww[3], sym, def, s)
+			}
+			if i == 0 {
+				def = s
+			}
+			err = tr.writeTranslation(ww[1], sym, def, s)
+			if err != nil {
+				return err
+			}
+		} else {
+			logg.DebugCtxf(tr.ctx, "no menu found", "menu", sym, "lang", ln)
+		}
+	}
+	return nil
+}
+
 func(tr *translator) AddLang(ln lang.Language) error {
+	var err error
 	tr.langs = append(tr.langs, ln)
-	s := fmt.Sprintf(`msgid ""
-msgstr ""
-	"Content-Type: text/plain; charset=UTF-8\n"
-	"Language: %s\n"
-
-`, ln.Code)
-
-	filePath, err := tr.ensureFileNameFor(ln, resource.TemplatePoDomain)
-	if err != nil {
-		return err
-	}
-	w, err := os.OpenFile(filePath, os.O_WRONLY | os.O_CREATE, 0644)
-	w.Write([]byte(s))
-	tr.w[ln.Code] = w
-
-	filePath, err = tr.ensureFileNameFor(ln, resource.MenuPoDomain)
-	if err != nil {
-		return err
-	}
-	w, err = os.OpenFile(filePath, os.O_WRONLY | os.O_CREATE, 0644)
-	w.Write([]byte(s))
-	tr.mw[ln.Code] = w
-
 	return err
 }
 
@@ -243,7 +257,6 @@ func main() {
 	rs := resource.NewDbResource(rsStore)
 
 	tr := newTranslator(ctx, rs, outDir, newline)
-	defer tr.Close()
 	for _, ln := range(langs.Langs()) {
 		logg.DebugCtxf(ctx, "lang", "lang", ln)
 		err = tr.AddLang(ln)
