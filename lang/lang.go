@@ -1,6 +1,7 @@
 package lang
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/barbashov/iso639-3"
@@ -36,4 +37,19 @@ func LanguageFromCode(code string) (Language, error) {
 // Returns a representation of the Language fit for debugging.
 func(l Language) String() string {
 	return fmt.Sprintf("%s (%s)", l.Code, l.Name)
+}
+
+// LanguageFromContext scans the given context for a valid language
+// specification, and if found returns a corresponding language
+// object.
+func LanguageFromContext(ctx context.Context) (Language, bool) {
+	//var code string
+	var lang Language
+	var ok bool
+	if ctx.Value("Language") != nil {
+		lang = ctx.Value("Language").(Language)
+		ok = true
+		//code = lang.Code
+	}
+	return lang, ok
 }

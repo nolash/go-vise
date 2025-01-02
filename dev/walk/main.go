@@ -19,6 +19,7 @@ import (
 
 var (
 	logg = logging.NewVanilla()
+	poFilebase = "default"
 )
 
 type translator struct {
@@ -30,13 +31,13 @@ type translator struct {
 	w map[string]io.WriteCloser
 }
 
-func newTranslator(ctx context.Context, rs resource.Resource, outPath string) *translator {
+func newTranslator(ctx context.Context, rs resource.Resource, outPath string, filebase string) *translator {
 	return &translator{
 		ctx: ctx,
 		rs: rs,
 		d: outPath,
 		w: make(map[string]io.WriteCloser),
-		fileBase: "visedata",
+		fileBase: filebase,
 	}
 }
 
@@ -44,9 +45,14 @@ func(tr *translator) applyLanguage(node *debug.Node) {
 
 }
 
-func(tr *translator) fileNameFor(ln lang.Language) string {
-	fileName := tr.fileBase + "." + ln.Code + ".po"
-	return path.Join(tr.d, fileName)
+func(tr *translator) ensureFileNameFor(ln lang.Language) (string, error) {
+	fileName := tr.fileBase + ".po"
+	p := path.Join(tr.d, ln.Code)
+	err := os.MkdirAll(p, 0700)
+	if err != nil {
+		return "", err
+	}
+	return path.Join(p, fileName), nil
 }
 
 func(tr *translator) Close() error {
@@ -131,7 +137,10 @@ msgstr ""
 }
 
 func(tr *translator) AddLang(ln lang.Language) error {
-	filePath := tr.fileNameFor(ln)
+	filePath, err := tr.ensureFileNameFor(ln)
+	if err != nil {
+		return err
+	}
 	w, err := os.OpenFile(filePath, os.O_WRONLY | os.O_CREATE, 0644)
 	s := fmt.Sprintf(`msgid ""
 msgstr ""
@@ -176,16 +185,22 @@ func main() {
 	var langs langVar
 
 	flag.StringVar(&dir, "d", ".", "resource dir to read from")
-	flag.StringVar(&outDir, "o", ".", "output directory")
+	flag.StringVar(&outDir, "o", "locale", "output directory")
 	flag.StringVar(&root, "root", "root", "entry point symbol")
 	flag.Var(&langs, "l", "process for language")
 	flag.Parse()
 
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
 
+	err := os.MkdirAll(outDir, 0700)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "output dir create error: %v", err)
+		os.Exit(1)
+	}
+
 	ctx := context.Background()
 	rsStore := fsdb.NewFsDb()
-	err := rsStore.Connect(ctx, dir)
+	err = rsStore.Connect(ctx, dir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "resource db connect error: %v", err)
 		os.Exit(1)
@@ -193,7 +208,7 @@ func main() {
 
 	rs := resource.NewDbResource(rsStore)
 
-	tr := newTranslator(ctx, rs, outDir)
+	tr := newTranslator(ctx, rs, outDir, poFilebase)
 	defer tr.Close()
 	for _, ln := range(langs.Langs()) {
 		logg.DebugCtxf(ctx, "lang", "lang", ln)

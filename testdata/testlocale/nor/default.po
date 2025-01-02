@@ -1,0 +1,9 @@
+msgid ""
+msgstr ""
+	"Content-Type: text/plain; charset=UTF-8\n"
+	"Language: nor\n"
+
+msgid ""
+	"foo"
+msgstr ""
+	"fu"
