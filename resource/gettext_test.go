@@ -35,18 +35,18 @@ func TestPoGetNotExist(t *testing.T) {
 }
 
 func TestPoGet(t *testing.T) {
-	ln, err := lang.LanguageFromCode("nor")
+	ln, err := lang.LanguageFromCode("eng")
 	if err != nil {
 		t.Fatal(err)
 	}
 	rs := NewPoResource(ln, testlocale.LocaleDir)
-	ctx := context.WithValue(context.Background(), "Language", ln)
 
-	ln, err = lang.LanguageFromCode("eng")
+	lnn, err := lang.LanguageFromCode("nor")
 	if err != nil {
 		t.Fatal(err)
 	}
-	rs = rs.WithLanguage(ln)
+	rs = rs.WithLanguage(lnn)
+	ctx := context.WithValue(context.Background(), "Language", lnn)
 
 	s, err := rs.GetMenu(ctx, "foo")
 	if err != nil {

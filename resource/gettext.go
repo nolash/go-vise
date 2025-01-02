@@ -36,6 +36,10 @@ func(p *PoResource) WithLanguage(ln lang.Language) *PoResource {
 	o := gotext.NewLocale(p.path, ln.Code)
 	o.AddDomain(MenuPoDomain)
 	o.AddDomain(TemplatePoDomain)
+	if ln.Code == p.defaultLanguage.Code {
+		o.AddDomain(TemplateKeyPoDomain)
+		o.AddDomain(MenuKeyPoDomain)
+	}
 	p.tr[ln.Code] = o
 	return p
 }
@@ -46,9 +50,17 @@ func(p *PoResource) get(ctx context.Context, sym string, domain string) (string,
 	if !ok {
 		ln = p.defaultLanguage
 	}
-	o, ok := p.tr[ln.Code]
+	o, ok := p.tr[p.defaultLanguage.Code]
 	if ok {
-		s = o.GetD(domain, sym)
+		keyDomain := TemplateKeyPoDomain
+		if domain == MenuPoDomain {
+			keyDomain = MenuKeyPoDomain
+		}
+		s = o.GetD(keyDomain, sym)
+		o, ok := p.tr[ln.Code]
+		if ok {
+			s = o.GetD(domain, s)
+		}
 	}
 	return s, nil
 }
