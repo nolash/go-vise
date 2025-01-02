@@ -4,6 +4,6 @@ msgstr ""
 	"Language: eng\n"
 
 msgid ""
-	"bar"
+	"baz"
 msgstr ""
 	"baz"

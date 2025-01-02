@@ -72,8 +72,8 @@ func TestPoGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s != "foo" {
-		t.Fatalf("expected 'foo', got '%s'", s)
+	if s != "foobar" {
+		t.Fatalf("expected 'foobar', got '%s'", s)
 	}
 
 	s, err = rs.GetMenu(ctx, "bar")
