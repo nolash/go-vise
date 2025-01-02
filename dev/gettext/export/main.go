@@ -55,9 +55,10 @@ func(tr *translator) AddLang(ln lang.Language) error {
 func(tr *translator) nodeFunc(node *debug.Node) error {
 	sym := node.Name
 	for i, ln := range(tr.langs) {
-		s, err := tr.rs.GetTemplate(tr.ctx, sym)
+		ctx := context.WithValue(tr.ctx, "Language", ln)
+		s, err := tr.rs.GetTemplate(ctx, sym)
 		if err != nil {
-			logg.DebugCtxf(tr.ctx, "template not found", "sym", s)
+			logg.DebugCtxf(ctx, "template not found", "sym", s)
 			continue
 		}
 		if s != sym {
@@ -81,7 +82,7 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 			if err != nil {
 				return err
 			}
-			logg.DebugCtxf(tr.ctx, "wrote node", "sym", sym, "lang", ln.Code, "bytes", c)
+			logg.DebugCtxf(ctx, "wrote node", "sym", sym, "lang", ln.Code, "bytes", c)
 		}
 	}
 	return nil
@@ -89,9 +90,10 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 
 func(tr *translator) menuFunc(sym string) error {
 	for i, ln := range(tr.langs) {
-		s, err := tr.rs.GetTemplate(tr.ctx, sym)
+		ctx := context.WithValue(tr.ctx, "Language", ln)
+		s, err := tr.rs.GetMenu(ctx, sym)
 		if err != nil {
-			logg.DebugCtxf(tr.ctx, "template not found", "sym", s)
+			logg.DebugCtxf(ctx, "template not found", "sym", s)
 			continue
 		}
 		if s != sym {
@@ -117,9 +119,10 @@ func(tr *translator) menuFunc(sym string) error {
 			if err != nil {
 				return err
 			}
-			logg.DebugCtxf(tr.ctx, "wrote menu", "sym", sym, "lang", ln.Code, "bytes", c)
+			logg.DebugCtxf(ctx, "wrote menu", "sym", sym, "lang", ln.Code, "bytes", c)
 		}
 	}
+	return nil
 }
 
 func(tr *translator) Close() error {
