@@ -93,7 +93,7 @@ func(tr *translator) menuFunc(sym string) error {
 		ctx := context.WithValue(tr.ctx, "Language", ln)
 		s, err := tr.rs.GetMenu(ctx, sym)
 		if err != nil {
-			logg.DebugCtxf(ctx, "template not found", "sym", s)
+			logg.DebugCtxf(ctx, "menu not found", "sym", s)
 			continue
 		}
 		if s != sym {
@@ -212,6 +212,7 @@ func main() {
 	}
 	
 	for k, v := range(debug.NodeIndex) {
+		logg.Tracef("processing node", "sym", k)
 		err = tr.nodeFunc(&v)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "translate process error for node %s: %v", k, err)

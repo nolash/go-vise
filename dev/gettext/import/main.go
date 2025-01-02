@@ -42,10 +42,6 @@ func newTranslator(ctx context.Context, rs resource.Resource, outPath string, ne
 	}
 }
 
-func(tr *translator) applyLanguage(node *debug.Node) {
-
-}
-
 func(tr *translator) ensureFileNameFor(ln lang.Language, domain string) (string, error) {
 	fileName := domain + ".po"
 	p := path.Join(tr.d, ln.Code)
@@ -82,35 +78,37 @@ func(tr *translator) Close() error {
 	return err
 }
 
-func(tr *translator) process(s string) error {
-	return nil
-}
-
 func(tr *translator) menuFunc(sym string) error {
 	var v string
+	var def string
 
-	for k, w := range(tr.mw) {
+	for _, ln := range(tr.langs) {
 		var s string
-		ln, err := lang.LanguageFromCode(k)
+		w := tr.mw[ln.Code]
 		ctx := context.WithValue(tr.ctx, "Language", ln)
 		r, err := tr.rs.GetMenu(ctx, sym)
 		for _, v = range(strings.Split(r, "\n")) {
 			s += fmt.Sprintf("\t\"%s\"\n", v)
 		}
-		s = fmt.Sprintf(`msgid ""
-	"%s"
+		if def == "" {
+			def = s
+			continue
+		}
+		s = fmt.Sprintf(`#: vise_menu.%s
+msgid ""
+%s
 msgstr ""
 %s
 
-`, sym, s)
+`, sym, def, s)
 		if err == nil {
-			logg.DebugCtxf(tr.ctx, "menu translation found", "node", sym)
+			logg.TraceCtxf(tr.ctx, "menu translation found", "node", sym, "lang", ln)
 			_, err = w.Write([]byte(s))
 			if err != nil {
 				return err
 			}
 		} else {
-			logg.DebugCtxf(tr.ctx, "no menuitem translation found", "node", sym)
+			logg.DebugCtxf(tr.ctx, "no menuitem translation found", "node", sym, "lang", ln)
 		}
 	}
 	return nil
@@ -118,47 +116,49 @@ msgstr ""
 
 // TODO: DRY; merge with menuFunc
 func(tr *translator) nodeFunc(node *debug.Node) error {
-	for k, w := range(tr.w) {
+	var def string
+	for _, ln := range(tr.langs) {
 		var s string
-		ln, err := lang.LanguageFromCode(k)
+		w, ok := tr.w[ln.Code]
+		if !ok {
+			return fmt.Errorf("missing writer for lang: %s", ln.Code)
+		}
 		ctx := context.WithValue(tr.ctx, "Language", ln)
 		r, err := tr.rs.GetTemplate(ctx, node.Name)
-		for i, v := range(strings.Split(r, "\n")) {
-			if tr.newline {
+		if err == nil {
+			logg.TraceCtxf(tr.ctx, "template found", "lang", ln, "node", node.Name)
+			for i, v := range(strings.Split(r, "\n")) {
 				if i > 0 {
-					s += "\\n\"\n"
-				} else if len(s) > 0 {
-					s += "\"\n"
+					if tr.newline {
+						s += fmt.Sprintf("\t\"\\n\"\n")
+					}
 				}
-				s += fmt.Sprintf("\t\"%s", v)
-			} else {
 				s += fmt.Sprintf("\t\"%s\"\n", v)
 			}
-		}
-		if tr.newline {
-			if len(s) > 0 {
-				s += "\"\n"
+			if def == "" {
+				def = s
+				continue
 			}
-		}
-		s = fmt.Sprintf(`msgid ""
-	"%s"
+			s = fmt.Sprintf(`#: vise_node.%s
+msgid ""
+%s
 msgstr ""
 %s
 
-`, node.Name, s)
-		if err == nil {
+`, node.Name, def, s)
 			_, err = w.Write([]byte(s))
 			if err != nil {
 				return err
 			}
 		} else {
-			logg.DebugCtxf(tr.ctx, "no template found", "node", node.Name)
+			logg.DebugCtxf(tr.ctx, "no template found", "node", node.Name, "lang", ln)
 		}
 	}
 	return nil
 }
 
 func(tr *translator) AddLang(ln lang.Language) error {
+	tr.langs = append(tr.langs, ln)
 	s := fmt.Sprintf(`msgid ""
 msgstr ""
 	"Content-Type: text/plain; charset=UTF-8\n"
