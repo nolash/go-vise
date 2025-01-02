@@ -2,6 +2,7 @@
 	* Node navigation traversal module with pluggable code hooks.
 	* Developer tool to generate node navigation map.
 	* Expose code to manually trigger state rewind (asm: MOVE ^)
+	* Add gettext resource handler for menu and template.
 - 0.2.2
 	* Customizable menu separator
 	* Make available node movement direction detection in state object.
