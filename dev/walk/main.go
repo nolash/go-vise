@@ -67,9 +67,42 @@ func(tr *translator) Close() error {
 	return err
 }
 
+func(tr *translator) process(s string) error {
+	return nil
+}
+
+func(tr *translator) menuFunc(sym string) error {
+	var v string
+
+	for k, w := range(tr.w) {
+		var s string
+		ln, err := lang.LanguageFromCode(k)
+		ctx := context.WithValue(tr.ctx, "Language", ln)
+		r, err := tr.rs.GetMenu(ctx, sym)
+		for _, v = range(strings.Split(r, "\n")) {
+			s += fmt.Sprintf("\t\"%s\"\n", v)
+		}
+		s = fmt.Sprintf(`msgid ""
+	"%s"
+msgstr ""
+%s
+
+`, sym, s)
+		if err == nil {
+			logg.DebugCtxf(tr.ctx, "menu translation found", "node", sym)
+			_, err = w.Write([]byte(s))
+			if err != nil {
+				return err
+			}
+		} else {
+			logg.DebugCtxf(tr.ctx, "no menuitem translation found", "node", sym)
+		}
+	}
+	return nil
+}
+
 func(tr *translator) nodeFunc(node *debug.Node) error {
 	var v string
-	fmt.Fprintf(os.Stderr, "processing node: %v\n", node)
 
 	for k, w := range(tr.w) {
 		var s string
@@ -185,4 +218,14 @@ func main() {
 			os.Exit(1)
 		}
 	}
+
+	for k, _ := range(debug.MenuIndex) {
+		logg.Tracef("processing menu", "sym", k)
+		err = tr.menuFunc(k)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "translate process error for menu %s: %v", k, err)
+			os.Exit(1)
+		}
+	}
+
 }

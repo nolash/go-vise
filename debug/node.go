@@ -8,6 +8,7 @@ type Node struct {
 
 var (
 	NodeIndex = make(map[string]Node)
+	MenuIndex = make(map[string]int)
 )
 
 func (n *Node) haveConn(peer string) bool {
@@ -44,4 +45,14 @@ func (n *Node) Next() *Node {
 	r := NodeIndex[n.conn[0]]
 	n.conn = n.conn[1:]
 	return &r
+}
+
+func AddMenu(s string) int {
+	var ok bool
+	_, ok = MenuIndex[s]
+	if !ok {
+		MenuIndex[s] = 0
+	}
+	MenuIndex[s] += 1
+	return MenuIndex[s]
 }
