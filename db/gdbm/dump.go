@@ -22,8 +22,8 @@ func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 			gdb.it = nil
 			return nil, err
 		}
-		logg.TraceCtxf(ctx, "dump trace", "k", k)
-		if !bytes.HasPrefix(k[1:], key) {
+		logg.TraceCtxf(ctx, "dump trace", "k", k, "key", key)
+		if !bytes.HasPrefix(k, key) {
 			continue
 		}
 		gdb.SetPrefix(k[0])
@@ -50,7 +50,8 @@ func(gdb *gdbmDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 			gdb.it = nil
 			return nil, nil
 		}
-		if bytes.HasPrefix(k[1:], gdb.itBase) {
+		//if bytes.HasPrefix(k[1:], gdb.itBase) {
+		if bytes.HasPrefix(k, gdb.itBase) {
 			match = true
 			break
 		}

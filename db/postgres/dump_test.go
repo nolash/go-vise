@@ -65,7 +65,7 @@ func TestDumpPg(t *testing.T) {
 	//rows = rows.AddRow([]byte("xyzzy"), []byte("clyde"))
 
 	mock.ExpectBegin()
-	mock.ExpectQuery("SELECT key, value FROM vvise.kv_vise").WithArgs(k, k[0]).WillReturnRows(rows)
+	mock.ExpectQuery("SELECT key, value FROM vvise.kv_vise").WithArgs(append([]byte{db.DATATYPE_USERDATA}, k...)).WillReturnRows(rows)
 	mock.ExpectCommit()
 
 	o, err := store.Dump(ctx, []byte("foo"))
