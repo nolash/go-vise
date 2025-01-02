@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	templateDomain = "default"
-	menuDomain = "menu"
+	TemplatePoDomain = "default"
+	MenuPoDomain = "menu"
 )
 
 type PoResource struct {
@@ -30,8 +30,8 @@ func NewPoResource(defaultLanguage lang.Language, path string) *PoResource {
 
 func(p *PoResource) WithLanguage(ln lang.Language) *PoResource {
 	o := gotext.NewLocale(p.path, ln.Code)
-	o.AddDomain(menuDomain)
-	o.AddDomain(templateDomain)
+	o.AddDomain(MenuPoDomain)
+	o.AddDomain(TemplatePoDomain)
 	p.tr[ln.Code] = o
 	return p
 }
@@ -51,9 +51,9 @@ func(p *PoResource) get(ctx context.Context, sym string, domain string) (string,
 }
 
 func(p *PoResource) GetMenu(ctx context.Context, sym string) (string, error) {
-	return p.get(ctx, sym, menuDomain)
+	return p.get(ctx, sym, MenuPoDomain)
 }
 
 func(p *PoResource) GetTemplate(ctx context.Context, sym string) (string, error) {
-	return p.get(ctx, sym, templateDomain)
+	return p.get(ctx, sym, TemplatePoDomain)
 }

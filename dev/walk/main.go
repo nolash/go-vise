@@ -19,25 +19,24 @@ import (
 
 var (
 	logg = logging.NewVanilla()
-	poFilebase = "default"
 )
 
 type translator struct {
 	langs []lang.Language
 	ctx context.Context
 	rs resource.Resource
-	fileBase string
 	d string
 	w map[string]io.WriteCloser
+	mw map[string]io.WriteCloser
 }
 
-func newTranslator(ctx context.Context, rs resource.Resource, outPath string, filebase string) *translator {
+func newTranslator(ctx context.Context, rs resource.Resource, outPath string) *translator {
 	return &translator{
 		ctx: ctx,
 		rs: rs,
 		d: outPath,
 		w: make(map[string]io.WriteCloser),
-		fileBase: filebase,
+		mw: make(map[string]io.WriteCloser),
 	}
 }
 
@@ -45,8 +44,8 @@ func(tr *translator) applyLanguage(node *debug.Node) {
 
 }
 
-func(tr *translator) ensureFileNameFor(ln lang.Language) (string, error) {
-	fileName := tr.fileBase + ".po"
+func(tr *translator) ensureFileNameFor(ln lang.Language, domain string) (string, error) {
+	fileName := domain + ".po"
 	p := path.Join(tr.d, ln.Code)
 	err := os.MkdirAll(p, 0700)
 	if err != nil {
@@ -63,9 +62,17 @@ func(tr *translator) Close() error {
 		if ok {
 			err = o.Close()
 			if err != nil {
-				s += fmt.Sprintf("\nclose error %s: %v", v.Code, err)
+				s += fmt.Sprintf("\ntemplate writer close error %s: %v", v.Code, err)
 			}
 		}
+		o, ok = tr.mw[v.Code]
+		if ok {
+			err = o.Close()
+			if err != nil {
+				s += fmt.Sprintf("\nmenu writer close error %s: %v", v.Code, err)
+			}
+		}
+
 	}
 	if len(s) > 0 {
 		err = fmt.Errorf("%s", s)
@@ -80,7 +87,7 @@ func(tr *translator) process(s string) error {
 func(tr *translator) menuFunc(sym string) error {
 	var v string
 
-	for k, w := range(tr.w) {
+	for k, w := range(tr.mw) {
 		var s string
 		ln, err := lang.LanguageFromCode(k)
 		ctx := context.WithValue(tr.ctx, "Language", ln)
@@ -137,19 +144,29 @@ msgstr ""
 }
 
 func(tr *translator) AddLang(ln lang.Language) error {
-	filePath, err := tr.ensureFileNameFor(ln)
-	if err != nil {
-		return err
-	}
-	w, err := os.OpenFile(filePath, os.O_WRONLY | os.O_CREATE, 0644)
 	s := fmt.Sprintf(`msgid ""
 msgstr ""
 	"Content-Type: text/plain; charset=UTF-8\n"
 	"Language: %s\n"
 
 `, ln.Code)
+
+	filePath, err := tr.ensureFileNameFor(ln, resource.TemplatePoDomain)
+	if err != nil {
+		return err
+	}
+	w, err := os.OpenFile(filePath, os.O_WRONLY | os.O_CREATE, 0644)
 	w.Write([]byte(s))
 	tr.w[ln.Code] = w
+
+	filePath, err = tr.ensureFileNameFor(ln, resource.MenuPoDomain)
+	if err != nil {
+		return err
+	}
+	w, err = os.OpenFile(filePath, os.O_WRONLY | os.O_CREATE, 0644)
+	w.Write([]byte(s))
+	tr.mw[ln.Code] = w
+
 	return err
 }
 
@@ -208,7 +225,7 @@ func main() {
 
 	rs := resource.NewDbResource(rsStore)
 
-	tr := newTranslator(ctx, rs, outDir, poFilebase)
+	tr := newTranslator(ctx, rs, outDir)
 	defer tr.Close()
 	for _, ln := range(langs.Langs()) {
 		logg.DebugCtxf(ctx, "lang", "lang", ln)
