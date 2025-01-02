@@ -85,10 +85,8 @@ func(vmi *Vm) Reset() {
 
 func Rewind(sym string, st *state.State, ca cache.Memory) (string, error) {
 	var err error
-	notTop := true
-	for notTop {
-		//notTop, err := st.Top()
-		notTop, err = st.Top()
+	for true {
+		notTop, err := st.Top()
 		if notTop {
 			break
 		}

@@ -11,6 +11,7 @@ import (
 )
 
 func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
+	key = append([]byte{db.DATATYPE_USERDATA}, key...)
 	gdb.it = gdb.conn.Iterator()
 	for true {
 		k, err := gdb.it()
