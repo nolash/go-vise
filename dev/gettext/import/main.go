@@ -217,7 +217,7 @@ func main() {
 	var newline bool
 	var langs langVar
 
-	flag.StringVar(&dir, "d", ".", "resource dir to read from")
+	flag.StringVar(&dir, "i", ".", "resource dir to read from")
 	flag.StringVar(&outDir, "o", "locale", "output directory")
 	flag.StringVar(&root, "root", "root", "entry point symbol")
 	flag.BoolVar(&newline, "newline", false, "insert newlines in multiline strings")
