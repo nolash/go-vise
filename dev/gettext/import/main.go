@@ -20,8 +20,7 @@ import (
 var (
 	logg = logging.NewVanilla()
 	writeDomains = []string{
-		resource.TemplatePoDomain,
-		resource.MenuPoDomain,
+		resource.PoDomain,
 		resource.TemplateKeyPoDomain,
 		resource.MenuKeyPoDomain,
 	}
@@ -137,7 +136,7 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 			}
 			if def == "" {
 				def = fmt.Sprintf("\t\"%s\"\n", node.Name)
-				err = tr.writeTranslation(ww[2], node.Name, def, s)
+				err = tr.writeTranslation(ww[1], node.Name, def, s)
 			}
 			if i == 0 {
 				def = s
@@ -177,12 +176,12 @@ func(tr *translator) menuFunc(sym string) error {
 			}
 			if def == "" {
 				def = fmt.Sprintf("\t\"%s\"\n", sym)
-				err = tr.writeTranslation(ww[3], sym, def, s)
+				err = tr.writeTranslation(ww[2], sym, def, s)
 			}
 			if i == 0 {
 				def = s
 			}
-			err = tr.writeTranslation(ww[1], sym, def, s)
+			err = tr.writeTranslation(ww[0], sym, def, s)
 			if err != nil {
 				return err
 			}

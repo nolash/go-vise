@@ -9,10 +9,9 @@ import (
 )
 
 const (
-	TemplatePoDomain = "template"
-	MenuPoDomain = "menu"
-	TemplateKeyPoDomain = "default"
-	MenuKeyPoDomain = "default_menu"
+	PoDomain = "default"
+	TemplateKeyPoDomain = "x-vise"
+	MenuKeyPoDomain = "x-vise_menu"
 )
 
 type PoResource struct {
@@ -34,8 +33,7 @@ func NewPoResource(defaultLanguage lang.Language, path string) *PoResource {
 
 func(p *PoResource) WithLanguage(ln lang.Language) *PoResource {
 	o := gotext.NewLocale(p.path, ln.Code)
-	o.AddDomain(MenuPoDomain)
-	o.AddDomain(TemplatePoDomain)
+	o.AddDomain(PoDomain)
 	if ln.Code == p.defaultLanguage.Code {
 		o.AddDomain(TemplateKeyPoDomain)
 		o.AddDomain(MenuKeyPoDomain)
@@ -44,7 +42,7 @@ func(p *PoResource) WithLanguage(ln lang.Language) *PoResource {
 	return p
 }
 
-func(p *PoResource) get(ctx context.Context, sym string, domain string) (string, error) {
+func(p *PoResource) get(ctx context.Context, sym string, domain string, menu bool) (string, error) {
 	s := sym
 	ln, ok := lang.LanguageFromContext(ctx)
 	if !ok {
@@ -53,7 +51,7 @@ func(p *PoResource) get(ctx context.Context, sym string, domain string) (string,
 	o, ok := p.tr[p.defaultLanguage.Code]
 	if ok {
 		keyDomain := TemplateKeyPoDomain
-		if domain == MenuPoDomain {
+		if menu {
 			keyDomain = MenuKeyPoDomain
 		}
 		s = o.GetD(keyDomain, sym)
@@ -66,9 +64,9 @@ func(p *PoResource) get(ctx context.Context, sym string, domain string) (string,
 }
 
 func(p *PoResource) GetMenu(ctx context.Context, sym string) (string, error) {
-	return p.get(ctx, sym, MenuPoDomain)
+	return p.get(ctx, sym, PoDomain, true)
 }
 
 func(p *PoResource) GetTemplate(ctx context.Context, sym string) (string, error) {
-	return p.get(ctx, sym, TemplatePoDomain)
+	return p.get(ctx, sym, PoDomain, false)
 }
