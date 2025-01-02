@@ -13,7 +13,7 @@ func TestPoGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rs := NewPoResource(ln, testlocale.LocaleDir, "default")	
+	rs := NewPoResource(ln, testlocale.LocaleDir)
 	ctx := context.WithValue(context.Background(), "Language", ln)
 
 	ln, err = lang.LanguageFromCode("eng")
@@ -26,10 +26,18 @@ func TestPoGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 	if s != "fu" {
 		t.Fatalf("expected 'fu', got '%s'", s)
 	}
+
+	s, err = rs.GetTemplate(ctx, "foo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "foo" {
+		t.Fatalf("expected 'foo', got '%s'", s)
+	}
+
 
 	// eng now
 	ctx = context.WithValue(context.Background(), "Language", ln)
@@ -43,6 +51,22 @@ func TestPoGet(t *testing.T) {
 	}
 
 	s, err = rs.GetMenu(ctx, "bar")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "bar" {
+		t.Fatalf("expected 'bar', got '%s'", s)
+	}
+
+	s, err = rs.GetMenu(ctx, "inky")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s != "pinky" {
+		t.Fatalf("expected 'pinky', got '%s'", s)
+	}
+
+	s, err = rs.GetTemplate(ctx, "bar")
 	if err != nil {
 		t.Fatal(err)
 	}

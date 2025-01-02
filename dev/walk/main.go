@@ -58,12 +58,12 @@ func(tr *translator) ensureFileNameFor(ln lang.Language) (string, error) {
 func(tr *translator) Close() error {
 	var s string
 	var err error
-	for k, v := range(tr.langs) {
+	for _, v := range(tr.langs) {
 		o, ok := tr.w[v.Code]
 		if ok {
 			err = o.Close()
 			if err != nil {
-				s += fmt.Sprintf("\nclose error %s: %v", k, err)
+				s += fmt.Sprintf("\nclose error %s: %v", v.Code, err)
 			}
 		}
 	}
