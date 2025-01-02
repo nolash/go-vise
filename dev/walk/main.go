@@ -115,15 +115,21 @@ msgstr ""
 }
 
 func(tr *translator) nodeFunc(node *debug.Node) error {
-	var v string
-
 	for k, w := range(tr.w) {
 		var s string
 		ln, err := lang.LanguageFromCode(k)
 		ctx := context.WithValue(tr.ctx, "Language", ln)
 		r, err := tr.rs.GetTemplate(ctx, node.Name)
-		for _, v = range(strings.Split(r, "\n")) {
-			s += fmt.Sprintf("\t\"%s\"\n", v)
+		for i, v := range(strings.Split(r, "\n")) {
+			if i > 0 {
+				s += "\\n\"\n"
+			} else if len(s) > 0 {
+				s += "\"\n"
+			}
+			s += fmt.Sprintf("\t\"%s", v)
+		}
+		if len(s) > 0 {
+			s += "\"\n"
 		}
 		s = fmt.Sprintf(`msgid ""
 	"%s"
