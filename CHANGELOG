@@ -5,6 +5,7 @@
 	* Add gettext resource handler for menu and template.
 	* Fix premature close of postgres data dumper
 	* Expose session id in structured logger when using context
+	* Enable custom key-value pairs in context for structured logging
 - 0.2.2
 	* Customizable menu separator
 	* Make available node movement direction detection in state object.
