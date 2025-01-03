@@ -163,17 +163,13 @@ func (v Vanilla) argsToString(ctx context.Context, args []any) string {
 	var s string
 
 	if ctx != nil {
-		sessionId, ok := ctx.Value("SessionId").(string)
-		if ok {
-			args = append(args, "session-id", sessionId)
-		}
-	}
-	for _, k := range(v.ctxkey) {
-		v := ctx.Value(k)
-		if v != nil {
-			v, ok := v.(string)
-			if ok {
-				args = append(args, "x-" + k, v)
+		for _, k := range(v.ctxkey) {
+			v := ctx.Value(k)
+			if v != nil {
+				v, ok := v.(string)
+				if ok {
+					args = append(args, "x-" + k, v)
+				}
 			}
 		}
 	}
