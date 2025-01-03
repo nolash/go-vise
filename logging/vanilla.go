@@ -11,13 +11,14 @@ import (
 
 var (
 	// LogWriter is used as io.Writer the Vanilla Logger implementation.
-	LogWriter = os.Stderr
+	LogWriter io.Writer = os.Stderr
 )
 
 // Vanilla is a basic single-line structured output logger for terminal output.
 type Vanilla struct {
 	domain      string
 	levelFilter int
+	ctxkey	[]string
 }
 
 // NewVanilla creates a new Vanilla logger.
@@ -40,6 +41,11 @@ func (v Vanilla) WithLevel(level int) Vanilla {
 	return v
 }
 
+func (v Vanilla) WithContextKey(k string) Vanilla {
+	v.ctxkey = append(v.ctxkey, k)
+	return v
+}
+
 // Printf logs to the global writer.
 func (v Vanilla) Printf(level int, msg string, args ...any) {
 	v.Writef(LogWriter, level, msg, args...)
@@ -52,9 +58,9 @@ func (v Vanilla) writef(ctx context.Context, w io.Writer, file string, line int,
 		return
 	}
 	if ctx == nil {
-		argsStr = argsToString(nil, args)
+		argsStr = v.argsToString(nil, args)
 	} else {
-		argsStr = argsToString(ctx, args)
+		argsStr = v.argsToString(ctx, args)
 	}
 
 	if len(msg) > 0 {
@@ -153,13 +159,22 @@ func getCaller(depth int) (string, int) {
 }
 
 // string representation of the given structured log args.
-func argsToString(ctx context.Context, args []any) string {
+func (v Vanilla) argsToString(ctx context.Context, args []any) string {
 	var s string
 
 	if ctx != nil {
 		sessionId, ok := ctx.Value("SessionId").(string)
 		if ok {
 			args = append(args, "session-id", sessionId)
+		}
+	}
+	for _, k := range(v.ctxkey) {
+		v := ctx.Value(k)
+		if v != nil {
+			v, ok := v.(string)
+			if ok {
+				args = append(args, "x-" + k, v)
+			}
 		}
 	}
 	c := len(args)
