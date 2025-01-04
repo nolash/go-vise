@@ -42,6 +42,8 @@ type Db interface {
 	//
 	// MUST be called before termination after a Connect().
 	Close() error
+	Acquire() (int, error)
+	Release(int) error
 	// Get retrieves the value belonging to a key.
 	//
 	// Errors if the key does not exist, or if the retrieval otherwise fails.
@@ -210,4 +212,21 @@ func(bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 		}
 	}
 	return lk, nil
+}
+
+// Acquire reserves a database connection and/or transaction for
+// thread safe operation.
+// 
+// A positive integer descriptor is returned that can be
+// used with intermediate MGet and MPut operations.
+//
+// If 0 is returned, the db interface implementer does not
+// support transactions, and using MGet and MPut with the descriptor
+// will be the same as using Get and Put.
+func(bd *DbBase) Acquire() (int, error) {
+	return 0, nil
+}
+
+func(bd *DbBase) Release(reservation int) error {
+	return nil
 }
