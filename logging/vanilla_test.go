@@ -35,4 +35,7 @@ func TestVanillaCtx(t *testing.T) {
 	if !strings.Contains(s, "foo=bar") {
 		t.Errorf("expected 'foo=bar' in output, output was: %s", s)
 	}
+	if !strings.Contains(s, "test") {
+		t.Errorf("expected 'test' in output, output was: %s", s)
+	}
 }
