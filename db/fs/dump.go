@@ -24,15 +24,21 @@ func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 			s := v.Name()
 			k := []byte(s)
 			k[0] -= 0x30
-			vv, err := fdb.Get(ctx, k)
+			kk, err := fdb.DecodeKey(ctx, k)
 			if err != nil {
 				return nil, err
 			}
-			return db.NewDumper(fdb.dumpFunc).WithFirst(k, vv), nil
+			vv, err := fdb.Get(ctx, kk)
+			if err != nil {
+				return nil, err
+			}
+			kk = append([]byte{k[0]}, kk...)
+			return db.NewDumper(fdb.dumpFunc).WithFirst(kk, vv), nil
 		}
 	}
 	for len(fdb.elements) > 0 {
 		v := fdb.elements[0]
+		logg.TraceCtxf(ctx, "el", "v", v)
 		fdb.elements = fdb.elements[1:]
 		s := v.Name()
 		k := []byte(s)
@@ -40,12 +46,18 @@ func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 			continue
 		}
 		k[0] -= 0x30
-		if bytes.HasPrefix(k, key) {
-			vv, err := fdb.Get(ctx, k[1:])
+		kk, err := fdb.DecodeKey(ctx, k)
+		if err != nil {
+			return nil, err
+		}
+		kkk := append([]byte{k[0]}, kk...)
+		if bytes.HasPrefix(kkk, key) {
+			vv, err := fdb.Get(ctx, kk)
 			if err != nil {
 				return nil, err
 			}
-			return db.NewDumper(fdb.dumpFunc).WithFirst(k, vv), nil
+			kk = append([]byte{k[0]}, kk...)
+			return db.NewDumper(fdb.dumpFunc).WithFirst(kk, vv), nil
 		}
 	}
 	return nil, db.NewErrNotFound(key)
@@ -60,13 +72,17 @@ func(fdb *fsDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 	s := v.Name()
 	k := []byte(s)
 	k[0] -= 0x30
-	if bytes.HasPrefix(k, fdb.matchPrefix) {
-		vv, err := fdb.Get(ctx, k[1:])
+	kk, err := fdb.DecodeKey(ctx, k)
+	if err != nil {
+		return nil, nil
+	}
+	kkk := append([]byte{k[0]}, kk...)
+	if bytes.HasPrefix(kkk, fdb.matchPrefix) {
+		vv, err := fdb.Get(ctx, kk)
 		if err != nil {
-			logg.ErrorCtxf(ctx, "failed to get entry", "key", k)
 			return nil, nil
 		}
-		return k, vv
+		return kkk, vv
 	}
 	return nil, nil
 }

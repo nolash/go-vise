@@ -1,8 +1,10 @@
 package db
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 
 	"git.defalsify.org/vise.git/lang"
 )
@@ -97,6 +99,22 @@ func ToDbKey(typ uint8, b []byte, l *lang.Language) []byte {
 	return append(k, b...)
 }
 
+func FromDbKey(b []byte) ([]byte, error) {
+	if len(b) < 2 {
+		return nil, fmt.Errorf("invalid db key")
+	}
+	typ := b[0]
+	b = b[1:]
+	if typ & (DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD) > 0 {
+		if len(b) > 6 {
+			if b[len(b)-4] == '_' {
+				b = b[:len(b)-4]
+			}
+		}
+	}
+	return b, nil
+}
+
 // baseDb is a base class for all Db implementations.
 type baseDb struct {
 	pfx uint8
@@ -180,6 +198,16 @@ func ToSessionKey(pfx uint8, sessionId []byte, key []byte) []byte {
 		b = key
 	}
 	return b
+}
+
+func(bd *DbBase) FromSessionKey(key []byte) ([]byte, error) {
+	if len(bd.baseDb.sid) == 0 {
+		return key, nil
+	}
+	if !bytes.HasPrefix(key, bd.baseDb.sid) {
+		return nil, fmt.Errorf("session id prefix %s does not match key", string(bd.baseDb.sid))
+	}
+	return bytes.TrimPrefix(key, bd.baseDb.sid), nil
 }
 
 // ToKey creates a DbKey within the current session context.

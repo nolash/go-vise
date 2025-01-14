@@ -3,6 +3,7 @@ package fs
 import (
 	"context"
 	"errors"
+	"encoding/base64"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -23,6 +24,7 @@ type fsDb struct {
 	dir string
 	elements []os.DirEntry
 	matchPrefix []byte
+	binary bool
 }
 
 
@@ -32,6 +34,11 @@ func NewFsDb() *fsDb {
 		DbBase: db.NewDbBase(),
 	}
 	return db
+}
+
+func(fdb *fsDb) WithBinary() *fsDb {
+	fdb.binary = true
+	return fdb
 }
 
 // String implements the string interface.
@@ -51,6 +58,38 @@ func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 	}
 	fdb.dir = connStr
 	return nil
+}
+
+// ToKey overrides the BaseDb implementation, creating a base64 string
+// if binary keys have been enabled
+func(fdb *fsDb) ToKey(ctx context.Context, key []byte) (db.LookupKey, error) {
+	if fdb.binary {
+		s := base64.StdEncoding.EncodeToString(key)
+		key = []byte(s)
+	}
+	return fdb.DbBase.ToKey(ctx, key)
+}
+
+func(fdb *fsDb) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
+	var err error
+	key, err = db.FromDbKey(key)
+	if err != nil {
+		return []byte{}, err
+	}
+	if !fdb.binary {
+		return key, nil
+	}
+	key, err = fdb.DbBase.FromSessionKey(key)
+	if err != nil {
+		return []byte{}, err
+	}
+	oldKey := key
+	key, err = base64.StdEncoding.DecodeString(string(key))
+	if err != nil {
+		return []byte{}, err
+	}
+	logg.TraceCtxf(ctx, "decoding base64 key", "base64", oldKey, "bin", key)
+	return key, nil
 }
 
 // Get implements the Db interface.
