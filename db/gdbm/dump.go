@@ -10,6 +10,7 @@ import (
 	"git.defalsify.org/vise.git/db"
 )
 
+// TODO: userdata is hardcoded here, should not be
 func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	key = append([]byte{db.DATATYPE_USERDATA}, key...)
 	gdb.it = gdb.conn.Iterator()

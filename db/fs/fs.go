@@ -21,6 +21,8 @@ type fsLookupKey struct {
 type fsDb struct {
 	*db.DbBase
 	dir string
+	elements []os.DirEntry
+	matchPrefix []byte
 }
 
 
