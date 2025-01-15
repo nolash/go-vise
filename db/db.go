@@ -164,7 +164,11 @@ func(bd *DbBase) SetLanguage(ln *lang.Language) {
 }
 // SetSession implements the Db interface.
 func(bd *DbBase) SetSession(sessionId string) {
-	bd.baseDb.sid = append([]byte(sessionId), 0x2E)
+	if sessionId == "" {
+		bd.baseDb.sid = []byte{}
+	} else {
+		bd.baseDb.sid = append([]byte(sessionId), 0x2E)
+	}
 }
 
 // SetLock implements the Db interface.

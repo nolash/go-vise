@@ -45,14 +45,14 @@ func TestDumpFs(t *testing.T) {
 		t.Fatal(err)
 	}
 	k, v := o.Next(ctx)
-	if !bytes.Equal(k, append([]byte{db.DATATYPE_USERDATA}, []byte("foobar")...)) {
+	if !bytes.Equal(k, []byte("foobar")) {
 		t.Fatalf("expected key 'foobar', got %s", k)
 	}
 	if !bytes.Equal(v, []byte("pinky")) {
 		t.Fatalf("expected val 'pinky', got %s", v)
 	}
 	k, v = o.Next(ctx)
-	if !bytes.Equal(k, append([]byte{db.DATATYPE_USERDATA}, []byte("foobarbaz")...)) {
+	if !bytes.Equal(k, []byte("foobarbaz")) {
 		t.Fatalf("expected key 'foobarbaz', got %s", k)
 	}
 	if !bytes.Equal(v, []byte("blinky")) {
@@ -96,14 +96,14 @@ func TestDumpBinary(t *testing.T) {
 		t.Fatal(err)
 	}
 	k, v := o.Next(ctx)
-	if !bytes.Equal(k, append([]byte{db.DATATYPE_USERDATA}, []byte{0x01, 0x02, 0x03}...)) {
+	if !bytes.Equal(k, []byte{0x01, 0x02, 0x03}) {
 		t.Fatalf("expected key '0x010203', got %x", k)
 	}
 	if !bytes.Equal(v, []byte("inky")) {
 		t.Fatalf("expected val 'inky', got %s", v)
 	}
 	k, v = o.Next(ctx)
-	if !bytes.Equal(k, append([]byte{db.DATATYPE_USERDATA}, []byte{0x01, 0x02, 0x04}...)) {
+	if !bytes.Equal(k, []byte{0x01, 0x02, 0x04}) {
 		t.Fatalf("expected key '0x010204', got %x", k)
 	}
 	if !bytes.Equal(v, []byte("pinky")) {
@@ -148,14 +148,14 @@ func TestDumpSessionBinary(t *testing.T) {
 		t.Fatal(err)
 	}
 	k, v := o.Next(ctx)
-	if !bytes.Equal(k, append([]byte{db.DATATYPE_USERDATA}, []byte{0x01, 0x02, 0x03}...)) {
+	if !bytes.Equal(k, []byte{0x01, 0x02, 0x03}) {
 		t.Fatalf("expected key '0x010203', got %x", k)
 	}
 	if !bytes.Equal(v, []byte("inky")) {
 		t.Fatalf("expected val 'inky', got %s", v)
 	}
 	k, v = o.Next(ctx)
-	if !bytes.Equal(k, append([]byte{db.DATATYPE_USERDATA}, []byte{0x01, 0x02, 0x04}...)) {
+	if !bytes.Equal(k, []byte{0x01, 0x02, 0x04}) {
 		t.Fatalf("expected key '0x010204', got %x", k)
 	}
 	if !bytes.Equal(v, []byte("pinky")) {

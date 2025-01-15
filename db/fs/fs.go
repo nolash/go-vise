@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"encoding/base64"
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -86,7 +87,7 @@ func(fdb *fsDb) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
 	oldKey := key
 	key, err = base64.StdEncoding.DecodeString(string(key))
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, fmt.Errorf("base64 decode error '%s': %v", oldKey, err)
 	}
 	logg.TraceCtxf(ctx, "decoding base64 key", "base64", oldKey, "bin", key)
 	return key, nil

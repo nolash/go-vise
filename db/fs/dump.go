@@ -32,13 +32,11 @@ func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 			if err != nil {
 				return nil, err
 			}
-			kk = append([]byte{k[0]}, kk...)
 			return db.NewDumper(fdb.dumpFunc).WithFirst(kk, vv), nil
 		}
 	}
 	for len(fdb.elements) > 0 {
 		v := fdb.elements[0]
-		logg.TraceCtxf(ctx, "el", "v", v)
 		fdb.elements = fdb.elements[1:]
 		s := v.Name()
 		k := []byte(s)
@@ -48,7 +46,7 @@ func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		k[0] -= 0x30
 		kk, err := fdb.DecodeKey(ctx, k)
 		if err != nil {
-			return nil, err
+			continue
 		}
 		kkk := append([]byte{k[0]}, kk...)
 		if bytes.HasPrefix(kkk, key) {
@@ -56,7 +54,6 @@ func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 			if err != nil {
 				return nil, err
 			}
-			kk = append([]byte{k[0]}, kk...)
 			return db.NewDumper(fdb.dumpFunc).WithFirst(kk, vv), nil
 		}
 	}
@@ -82,7 +79,7 @@ func(fdb *fsDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 		if err != nil {
 			return nil, nil
 		}
-		return kkk, vv
+		return kk, vv
 	}
 	return nil, nil
 }
