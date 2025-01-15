@@ -31,7 +31,7 @@ func(pdb *pgDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		tx.Commit(ctx)
 		pdb.it = rs
 		pdb.itBase = k
-		return db.NewDumper(pdb.dumpFunc).WithClose(pdb.closeFunc).WithFirst(r[0], r[1]), nil
+		return db.NewDumper(pdb.dumpFunc).WithClose(pdb.closeFunc).WithFirst(r[0][1:], r[1]), nil
 	}
 
 	return nil, db.NewErrNotFound(k)
@@ -45,7 +45,7 @@ func(pdb *pgDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 		return nil, nil
 	}
 	r := pdb.it.RawValues()
-	return r[0], r[1]
+	return r[0][1:], r[1]
 }
 
 func(pdb *pgDb) closeFunc() error {

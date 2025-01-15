@@ -241,6 +241,6 @@ func(bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 			lk.Translation = ToDbKey(db.pfx, b, ln)
 		}
 	}
-	logg.TraceCtxf(ctx, "made key", "lk", lk.Default, "pfx", db.pfx)
+	logg.TraceCtxf(ctx, "made db lookup key", "lk", lk.Default, "pfx", db.pfx)
 	return lk, nil
 }
