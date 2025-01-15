@@ -34,7 +34,7 @@ func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 			return nil, err
 		}
 		gdb.itBase = key
-		return db.NewDumper(gdb.dumpFunc).WithFirst(k, v), nil
+		return db.NewDumper(gdb.dumpFunc).WithFirst(k[1:], v), nil
 	}
 	gdb.it = nil
 	return nil, db.NewErrNotFound(key)
@@ -61,11 +61,12 @@ func(gdb *gdbmDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 		gdb.it = nil
 		return nil, nil
 	}
+	gdb.SetPrefix(k[0])
 	v, err := gdb.Get(ctx, k[1:])
 	if err != nil {
 		return nil, nil
 	}
-	return k, v
+	return k[1:], v
 }
 
 //func(gdb *gdbmDb) After(ctx context.Context, keyPart []byte) ([]byte, []byte) {
