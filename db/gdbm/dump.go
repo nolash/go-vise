@@ -10,7 +10,6 @@ import (
 	"git.defalsify.org/vise.git/db"
 )
 
-// TODO: userdata is hardcoded here, should not be
 func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	gdb.SetLanguage(nil)
 	lk, err := gdb.ToKey(ctx, key)
@@ -32,7 +31,6 @@ func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		if !bytes.HasPrefix(k, key) {
 			continue
 		}
-		logg.TraceCtxf(ctx, "dump trace", "k", k, "key", key)
 		kk, err := gdb.DecodeKey(ctx, k)
 		if err != nil {
 			return nil, err
@@ -69,7 +67,6 @@ func(gdb *gdbmDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 		gdb.it = nil
 		return nil, nil
 	}
-	logg.TraceCtxf(ctx, "gdbm dump func", "key", k)
 	kk, err := gdb.DecodeKey(ctx, k)
 	if err != nil {
 		return nil, nil
@@ -80,22 +77,3 @@ func(gdb *gdbmDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 	}
 	return kk, v
 }
-
-//func(gdb *gdbmDb) After(ctx context.Context, keyPart []byte) ([]byte, []byte) {
-//	if keyPart == nil {
-//		gdb.it = gdb.conn.Iterator()
-//		return nil, nil
-//	}
-//	k, err := gdb.it()
-//	if err != nil {
-//		if !errors.Is(err, gdbm.ErrItemNotFound) {
-//			panic(err)
-//		}
-//		gdb.it = gdb.conn.Iterator()
-//	}
-//	v, err := gdb.Get(ctx, k)
-//	if err != nil {
-//		panic(err)
-//	}
-//	return k, v
-//}

@@ -8,6 +8,15 @@ import (
 	"git.defalsify.org/vise.git/db"
 )
 
+func(fdb *fsDb) nextElement() []byte {
+	v := fdb.elements[0]
+	fdb.elements = fdb.elements[1:]
+	s := v.Name()
+	k := []byte(s)
+	k[0] -= 0x30
+	return k
+}
+
 func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	var err error
 	key = append([]byte{fdb.Prefix()}, key...)
@@ -19,11 +28,7 @@ func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 
 	if len(fdb.elements) > 0 {
 		if len(key) == 0 {
-			v := fdb.elements[0]
-			fdb.elements = fdb.elements[1:]
-			s := v.Name()
-			k := []byte(s)
-			k[0] -= 0x30
+			k := fdb.nextElement()
 			kk, err := fdb.DecodeKey(ctx, k)
 			if err != nil {
 				return nil, err
@@ -36,14 +41,10 @@ func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		}
 	}
 	for len(fdb.elements) > 0 {
-		v := fdb.elements[0]
-		fdb.elements = fdb.elements[1:]
-		s := v.Name()
-		k := []byte(s)
+		k := fdb.nextElement()
 		if len(key) > len(k) {
 			continue
 		}
-		k[0] -= 0x30
 		kk, err := fdb.DecodeKey(ctx, k)
 		if err != nil {
 			continue
@@ -64,11 +65,7 @@ func(fdb *fsDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 	if len(fdb.elements) == 0 {
 		return nil, nil
 	}
-	v := fdb.elements[0]
-	fdb.elements = fdb.elements[1:]
-	s := v.Name()
-	k := []byte(s)
-	k[0] -= 0x30
+	k := fdb.nextElement()
 	kk, err := fdb.DecodeKey(ctx, k)
 	if err != nil {
 		return nil, nil
