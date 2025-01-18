@@ -12,7 +12,6 @@ import (
 
 // TODO: userdata is hardcoded here, should not be
 func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
-	//gdb.SetPrefix(db.DATATYPE_USERDATA)
 	gdb.SetLanguage(nil)
 	lk, err := gdb.ToKey(ctx, key)
 	if err != nil {
@@ -33,7 +32,6 @@ func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		if !bytes.HasPrefix(k, key) {
 			continue
 		}
-		//gdb.SetPrefix(k[0])
 		logg.TraceCtxf(ctx, "dump trace", "k", k, "key", key)
 		kk, err := gdb.DecodeKey(ctx, k)
 		if err != nil {
@@ -62,7 +60,6 @@ func(gdb *gdbmDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 			gdb.it = nil
 			return nil, nil
 		}
-		//if bytes.HasPrefix(k[1:], gdb.itBase) {
 		if bytes.HasPrefix(k, gdb.itBase) {
 			match = true
 			break
@@ -72,7 +69,6 @@ func(gdb *gdbmDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 		gdb.it = nil
 		return nil, nil
 	}
-	//gdb.SetPrefix(k[0])
 	logg.TraceCtxf(ctx, "gdbm dump func", "key", k)
 	kk, err := gdb.DecodeKey(ctx, k)
 	if err != nil {

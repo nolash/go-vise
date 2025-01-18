@@ -13,7 +13,6 @@ func(pdb *pgDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		return nil, err
 	}
 
-	//pdb.SetPrefix(db.DATATYPE_USERDATA)
 	pdb.SetLanguage(nil)
 	lk, err := pdb.ToKey(ctx, key)
 	if err != nil {
@@ -22,7 +21,6 @@ func(pdb *pgDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	k := lk.Default
 
 	query := fmt.Sprintf("SELECT key, value FROM %s.kv_vise WHERE key >= $1", pdb.schema)
-	logg.TraceCtxf(ctx, "getkey", "q", query, "key", k)
 	rs, err := tx.Query(ctx, query, k)
 	if err != nil {
 		logg.Debugf("query fail", "err", err)
@@ -30,25 +28,17 @@ func(pdb *pgDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		return nil, err
 	}
 	defer tx.Commit(ctx)
-	//defer rs.Close()
 
 	if rs.Next() {
 		var kk []byte
 		var vv []byte
-//		r, err := rs.Values()
-//		if err != nil {
-//			return nil, err
-//		}
 		err = rs.Scan(&kk, &vv)
 		if err != nil {
 			return nil, err
 		}
-		//tx.Rollback(ctx)
-		//tx.Commit(ctx)
 		pdb.it = rs
 		pdb.itBase = k
 		kk, err = pdb.DecodeKey(ctx, kk)
-		logg.Debugf("pg decode", "k", kk, "o", k, "err", err, "vv", vv)
 		if err != nil {
 			return nil, err
 		}
@@ -71,13 +61,10 @@ func(pdb *pgDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 	if err != nil {
 		return nil, nil
 	}
-	//r := pdb.it.RawValues()
-	//k, err := pdb.DecodeKey(ctx, r[0])
 	k, err := pdb.DecodeKey(ctx, kk)
 	if err != nil {
 		return nil, nil
 	}
-	logg.Debugf("pg decode dump", "k", kk, "o", k, "err", err, "vv", vv)
 	return k, vv
 }
 
