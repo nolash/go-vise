@@ -72,17 +72,12 @@ func(fdb *fsDb) ToKey(ctx context.Context, key []byte) (db.LookupKey, error) {
 }
 
 func(fdb *fsDb) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
-	var err error
-	key, err = db.FromDbKey(key)
+	key, err := fdb.DbBase.DecodeKey(ctx, key)
 	if err != nil {
-		return []byte{}, err
+		return nil, err
 	}
 	if !fdb.binary {
 		return key, nil
-	}
-	key, err = fdb.DbBase.FromSessionKey(key)
-	if err != nil {
-		return []byte{}, err
 	}
 	oldKey := key
 	key, err = base64.StdEncoding.DecodeString(string(key))

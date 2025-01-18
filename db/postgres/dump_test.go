@@ -3,8 +3,6 @@ package postgres
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
-	"strings"
 	"testing"
 
 	pgxmock "github.com/pashagolub/pgxmock/v4"
@@ -47,7 +45,7 @@ func TestDumpPg(t *testing.T) {
 //	}
 
 	typMap := pgtype.NewMap()
-	k := []byte("foo")
+	k := []byte("xyzzy.foo")
 	mockVfd := pgconn.FieldDescription{
 		Name: "value",
 		DataTypeOID: pgtype.ByteaOID,
@@ -60,8 +58,8 @@ func TestDumpPg(t *testing.T) {
 	}
 	rows := pgxmock.NewRowsWithColumnDefinition(mockKfd, mockVfd)
 	//rows = rows.AddRow([]byte("bar"), []byte("inky"))
-	rows = rows.AddRow([]byte("foobar"), []byte("pinky"))
-	rows = rows.AddRow([]byte("foobarbaz"), []byte("blinky"))
+	rows = rows.AddRow(append([]byte{db.DATATYPE_USERDATA}, []byte("xyzzy.foobar")...), []byte("pinky"))
+	rows = rows.AddRow(append([]byte{db.DATATYPE_USERDATA}, []byte("xyzzy.foobarbaz")...), []byte("blinky"))
 	//rows = rows.AddRow([]byte("xyzzy"), []byte("clyde"))
 
 	mock.ExpectBegin()
@@ -73,15 +71,15 @@ func TestDumpPg(t *testing.T) {
 		t.Fatal(err)
 	}
 	k, _ = o.Next(ctx)
-	br, err := base64.StdEncoding.DecodeString(strings.Trim(string(k), "\""))
-	if !bytes.Equal(br, []byte("foobar")) {
-		t.Fatalf("expected key 'foobar', got %s", br)
+	//br, err := base64.StdEncoding.DecodeString(strings.Trim(string(k), "\""))
+	if !bytes.Equal(k, []byte("foobar")) {
+		t.Fatalf("expected key 'foobar', got %x", k)
 	}
 
 	k, _ = o.Next(ctx)
-	br, err = base64.StdEncoding.DecodeString(strings.Trim(string(k), "\""))
-	if !bytes.Equal(br, []byte("foobarbaz")) {
-		t.Fatalf("expected key 'foobarbaz', got %s", br)
+	//br, err = base64.StdEncoding.DecodeString(strings.Trim(string(k), "\""))
+	if !bytes.Equal(k, []byte("foobarbaz")) {
+		t.Fatalf("expected key 'foobarbaz', got %x", k)
 	}
 
 	k, _ = o.Next(ctx)

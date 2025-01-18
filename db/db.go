@@ -78,6 +78,7 @@ type Db interface {
 	// Prefix returns the current active datatype prefix
 	Prefix() uint8
 	Dump(context.Context, []byte) (*Dumper, error)
+	DecodeKey(ctx context.Context, key []byte) ([]byte, error)
 }
 
 type LookupKey struct {
@@ -194,10 +195,10 @@ func(bd *DbBase) CheckPut() bool {
 	return bd.baseDb.pfx & bd.baseDb.lock == 0
 }
 
-func ToSessionKey(pfx uint8, sessionId []byte, key []byte) []byte {
+func (bd *DbBase) ToSessionKey(pfx uint8, key []byte) []byte {
 	var b []byte
 	if (pfx > datatype_sessioned_threshold) {
-		b = append([]byte(sessionId), key...)
+		b = append([]byte(bd.sid), key...)
 	} else {
 		b = key
 	}
@@ -209,7 +210,7 @@ func(bd *DbBase) FromSessionKey(key []byte) ([]byte, error) {
 		return key, nil
 	}
 	if !bytes.HasPrefix(key, bd.baseDb.sid) {
-		return nil, fmt.Errorf("session id prefix %s does not match key", string(bd.baseDb.sid))
+		return nil, fmt.Errorf("session id prefix %s does not match key %x", string(bd.baseDb.sid), key)
 	}
 	return bytes.TrimPrefix(key, bd.baseDb.sid), nil
 }
@@ -225,7 +226,8 @@ func(bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	if db.pfx == DATATYPE_UNKNOWN {
 		return lk, errors.New("datatype prefix cannot be UNKNOWN")
 	}
-	b := ToSessionKey(db.pfx, db.sid, key)
+	//b := ToSessionKey(db.pfx, db.sid, key)
+	b := bd.ToSessionKey(db.pfx, key)
 	lk.Default = ToDbKey(db.pfx, b, nil)
 	if db.pfx & (DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD) > 0 {
 		if db.lang != nil {
@@ -243,4 +245,19 @@ func(bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	}
 	logg.TraceCtxf(ctx, "made db lookup key", "lk", lk.Default, "pfx", db.pfx)
 	return lk, nil
+}
+
+func(bd *DbBase) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
+	var err error
+	oldKey := key
+	key, err = FromDbKey(key)
+	if err != nil {
+		return []byte{}, err
+	}
+	key, err = bd.FromSessionKey(key)
+	if err != nil {
+		return []byte{}, err
+	}
+	logg.DebugCtxf(ctx, "decoded key", "key", key, "fromkey", oldKey)
+	return key, nil
 }

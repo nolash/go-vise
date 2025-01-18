@@ -12,7 +12,14 @@ import (
 
 // TODO: userdata is hardcoded here, should not be
 func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
-	key = append([]byte{db.DATATYPE_USERDATA}, key...)
+	gdb.SetPrefix(db.DATATYPE_USERDATA)
+	gdb.SetLanguage(nil)
+	lk, err := gdb.ToKey(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	key = lk.Default
+	
 	gdb.it = gdb.conn.Iterator()
 	for true {
 		k, err := gdb.it()
@@ -23,18 +30,22 @@ func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 			gdb.it = nil
 			return nil, err
 		}
-		logg.TraceCtxf(ctx, "dump trace", "k", k, "key", key)
 		if !bytes.HasPrefix(k, key) {
 			continue
 		}
-		gdb.SetPrefix(k[0])
-		v, err := gdb.Get(ctx, k[1:])
+		//gdb.SetPrefix(k[0])
+		logg.TraceCtxf(ctx, "dump trace", "k", k, "key", key)
+		kk, err := gdb.DecodeKey(ctx, k)
+		if err != nil {
+			return nil, err
+		}
+		v, err := gdb.Get(ctx, kk)
 		if err != nil {
 			gdb.it = nil
 			return nil, err
 		}
 		gdb.itBase = key
-		return db.NewDumper(gdb.dumpFunc).WithFirst(k[1:], v), nil
+		return db.NewDumper(gdb.dumpFunc).WithFirst(kk, v), nil
 	}
 	gdb.it = nil
 	return nil, db.NewErrNotFound(key)
@@ -61,12 +72,17 @@ func(gdb *gdbmDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 		gdb.it = nil
 		return nil, nil
 	}
-	gdb.SetPrefix(k[0])
-	v, err := gdb.Get(ctx, k[1:])
+	//gdb.SetPrefix(k[0])
+	logg.TraceCtxf(ctx, "gdbm dump func", "key", k)
+	kk, err := gdb.DecodeKey(ctx, k)
 	if err != nil {
 		return nil, nil
 	}
-	return k[1:], v
+	v, err := gdb.Get(ctx, kk)
+	if err != nil {
+		return nil, nil
+	}
+	return kk, v
 }
 
 //func(gdb *gdbmDb) After(ctx context.Context, keyPart []byte) ([]byte, []byte) {
