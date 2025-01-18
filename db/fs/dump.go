@@ -10,7 +10,8 @@ import (
 
 func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	var err error
-	key = append([]byte{db.DATATYPE_USERDATA}, key...)
+	//key = append([]byte{db.DATATYPE_USERDATA}, key...)
+	key = append([]byte{fdb.Prefix()}, key...)
 	fdb.matchPrefix = key
 	fdb.elements, err = os.ReadDir(fdb.dir)
 	if err != nil {

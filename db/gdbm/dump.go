@@ -12,7 +12,7 @@ import (
 
 // TODO: userdata is hardcoded here, should not be
 func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
-	gdb.SetPrefix(db.DATATYPE_USERDATA)
+	//gdb.SetPrefix(db.DATATYPE_USERDATA)
 	gdb.SetLanguage(nil)
 	lk, err := gdb.ToKey(ctx, key)
 	if err != nil {

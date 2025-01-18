@@ -13,7 +13,7 @@ func(pdb *pgDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		return nil, err
 	}
 
-	pdb.SetPrefix(db.DATATYPE_USERDATA)
+	//pdb.SetPrefix(db.DATATYPE_USERDATA)
 	pdb.SetLanguage(nil)
 	lk, err := pdb.ToKey(ctx, key)
 	if err != nil {
