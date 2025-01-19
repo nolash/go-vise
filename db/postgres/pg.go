@@ -85,6 +85,9 @@ func (pdb *pgDb) Start(ctx context.Context) error {
 }
 
 func (pdb *pgDb) start(ctx context.Context) error {
+	if pdb.tx != nil {
+		return nil
+	}
 	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
 	logg.TraceCtxf(ctx, "begin single tx", "err", err)
 	if err != nil {
@@ -121,7 +124,8 @@ func (pdb *pgDb) stop(ctx context.Context) error {
 	return err
 }
 
-func (pdb *pgDb) abort(ctx context.Context) {
+func (pdb *pgDb) Abort(ctx context.Context) {
+	logg.InfoCtxf(ctx, "aborting tx", "tx", pdb.tx)
 	pdb.tx.Rollback(ctx)
 }
 
@@ -171,7 +175,7 @@ func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 		query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
 		rs, err := pdb.tx.Query(ctx, query, lk.Translation)
 		if err != nil {
-			pdb.abort(ctx)
+			pdb.Abort(ctx)
 			return nil, err
 		}
 		defer rs.Close()
@@ -189,13 +193,13 @@ func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
 	rs, err := pdb.tx.Query(ctx, query, lk.Default)
 	if err != nil {
-		pdb.abort(ctx)
+		pdb.Abort(ctx)
 		return nil, err
 	}
 	defer rs.Close()
 
 	if !rs.Next() {
-		pdb.abort(ctx)
+		pdb.Abort(ctx)
 		return nil, db.NewErrNotFound(key)
 	}
 

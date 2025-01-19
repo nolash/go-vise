@@ -79,6 +79,7 @@ type Db interface {
 	DecodeKey(ctx context.Context, key []byte) ([]byte, error)
 	Start(context.Context) error
 	Stop(context.Context) error
+	Abort(context.Context)
 }
 
 type LookupKey struct {
@@ -268,4 +269,7 @@ func (bd *DbBase) Start(ctx context.Context) error {
 
 func (bd *DbBase) Stop(ctx context.Context) error {
 	return nil
+}
+
+func (bd *DbBase) Abort(ctx context.Context) {
 }
