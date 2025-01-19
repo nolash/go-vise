@@ -145,6 +145,7 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if err != nil {
 		return err
 	}
+	logg.TraceCtxf(ctx, "put", "key", key, "val", val)
 	query := fmt.Sprintf("INSERT INTO %s.kv_vise (key, value, updated) VALUES ($1, $2, 'now') ON CONFLICT(key) DO UPDATE SET value = $2, updated = 'now';", pdb.schema)
 	actualKey := lk.Default
 	if lk.Translation != nil {
@@ -161,16 +162,17 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 
 // Get implements Db.
 func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+	var rr []byte
 	lk, err := pdb.ToKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 
-	//tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
 	err = pdb.start(ctx)
 	if err != nil {
 		return nil, err
 	}
+	logg.TraceCtxf(ctx, "get", "key", key)
 
 	if lk.Translation != nil {
 		query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
@@ -179,15 +181,17 @@ func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 			pdb.Abort(ctx)
 			return nil, err
 		}
-		defer rs.Close()
 
 		if rs.Next() {
-			// TODO: encode non raw
-			r := rs.RawValues()
-			//tx.Commit(ctx)
-			//tx.Rollback(ctx)
+			err = rs.Scan(&rr)
+			if err != nil {
+				pdb.Abort(ctx)
+				return nil, err
+			}
+
+			rs.Close()
 			err = pdb.stopSingle(ctx)
-			return r[0], err
+			return rr, err
 		}
 	}
 
@@ -197,16 +201,22 @@ func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 		pdb.Abort(ctx)
 		return nil, err
 	}
-	defer rs.Close()
 
 	if !rs.Next() {
+		rs.Close()
 		pdb.Abort(ctx)
 		return nil, db.NewErrNotFound(key)
 	}
 
-	r := rs.RawValues()
+	err = rs.Scan(&rr)
+	if err != nil {
+		rs.Close()
+		pdb.Abort(ctx)
+		return nil, err
+	}
+	rs.Close()
 	err = pdb.stopSingle(ctx)
-	return r[0], err
+	return rr, err
 }
 
 // Close implements Db.

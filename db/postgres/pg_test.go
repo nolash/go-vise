@@ -3,8 +3,6 @@ package postgres
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
-	"strings"
 	"testing"
 
 	pgxmock "github.com/pashagolub/pgxmock/v4"
@@ -87,11 +85,7 @@ func TestPutGetPg(t *testing.T) {
 	}
 
 	// TODO: implement as pgtype map instead, and btw also ask why getting base64 here
-	br, err := base64.StdEncoding.DecodeString(strings.Trim(string(b), "\""))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(br, v) {
+	if !bytes.Equal(b, v) {
 		t.Fatalf("expected 'bar', got %x", b)
 	}
 
@@ -122,12 +116,8 @@ func TestPutGetPg(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	br, err = base64.StdEncoding.DecodeString(strings.Trim(string(b), "\""))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(br, v) {
-		t.Fatalf("expected 'plugh', got %x", br)
+	if !bytes.Equal(b, v) {
+		t.Fatalf("expected 'plugh', got %x", b)
 	}
 
 }
