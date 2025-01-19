@@ -1,3 +1,5 @@
+- 0.3.0
+	* Remove db prefix from data dumper results
 - 0.2.3
 	* Node navigation traversal module with pluggable code hooks.
 	* Developer tool to generate node navigation map.
