@@ -32,7 +32,7 @@ func main() {
 		os.Exit(1)
 	}
 	rs := resource.NewDbResource(store)
-	defer rs.Close()
+	defer rs.Close(ctx)
 	cfg := engine.Config {
 		OutputSize: uint32(size),
 	}

@@ -152,7 +152,7 @@ func TestReopen(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = store.Close()
+	err = store.Close(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

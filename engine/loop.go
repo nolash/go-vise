@@ -21,7 +21,7 @@ import (
 // If initial is set, the value will be used for the first (initializing) execution
 // If nil, an empty byte value will be used.
 func Loop(ctx context.Context, en Engine, reader io.Reader, writer io.Writer, initial []byte) error {
-	defer en.Finish()
+	defer en.Finish(ctx)
 	if initial == nil {
 		initial = []byte{}
 	}

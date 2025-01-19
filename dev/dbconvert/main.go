@@ -47,7 +47,7 @@ func newScanner(ctx context.Context, db db.Db) (*scanner, error) {
 }
 
 func(sc *scanner) Close() error {
-	return sc.db.Close()
+	return sc.db.Close(sc.ctx)
 }
 
 func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error { 

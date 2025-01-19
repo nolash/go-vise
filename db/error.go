@@ -1,12 +1,19 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
 
 const (
 	notFoundPrefix = "key not found: "
+)
+
+var (
+	ErrTxExist = errors.New("tx already exists")
+	ErrNoTx = errors.New("tx does not exist")
+	ErrSingleTx = errors.New("not a multi-instruction tx")
 )
 
 // ErrNotFound is returned with a key was successfully queried, but did not match a stored key.

@@ -153,7 +153,7 @@ func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
 }
 
 // Close implements the Db interface.
-func(fdb *fsDb) Close() error {
+func(fdb *fsDb) Close(ctx context.Context) error {
 	return nil
 }
 

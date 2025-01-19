@@ -16,5 +16,5 @@ type Engine interface {
 	// VM execution.
 	Flush(ctx context.Context, w io.Writer) (int, error)
 	// Finish must be called after the last call to Exec.
-	Finish() error
+	Finish(ctx context.Context) error
 }

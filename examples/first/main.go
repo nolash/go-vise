@@ -180,7 +180,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = en.Finish()
+	err = en.Finish(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "engine finish fail: %v\n", err)
 		os.Exit(1)

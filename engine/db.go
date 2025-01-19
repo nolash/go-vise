@@ -367,7 +367,7 @@ func(en *DefaultEngine) runFirst(ctx context.Context) (bool, error) {
 // An error will be logged and returned if:
 // 	* persistence was attempted and failed (takes precedence)
 //	* resource backend did not close cleanly.
-func(en *DefaultEngine) Finish() error {
+func(en *DefaultEngine) Finish(ctx context.Context) error {
 	var perr error
 	if !en.initd {
 		return nil
@@ -375,7 +375,7 @@ func(en *DefaultEngine) Finish() error {
 	if en.pe != nil {
 		perr = en.pe.Save(en.cfg.SessionId)
 	}
-	err := en.rs.Close()
+	err := en.rs.Close(ctx)
 	if err != nil {
 		logg.Errorf("resource close failed!", "err", err)
 	}

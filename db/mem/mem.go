@@ -99,6 +99,6 @@ func(mdb *memDb) Put(ctx context.Context, key []byte, val []byte) error {
 }
 
 // Close implements Db
-func(mdb *memDb) Close() error {
+func(mdb *memDb) Close(ctx context.Context) error {
 	return nil
 }

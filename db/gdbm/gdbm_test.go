@@ -103,7 +103,7 @@ func TestConnect(t *testing.T) {
 	if !store.CheckPut() {
 		t.Fatal("expected checkput false")
 	}
-	err = store.Close()
+	err = store.Close(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestReopen(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = store.Close()
+	err = store.Close(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

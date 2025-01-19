@@ -64,7 +64,7 @@ func TestDbEngineMinimal(t *testing.T) {
 	if cont {
 		t.Fatalf("expected not continue")
 	}
-	err = en.Finish()
+	err = en.Finish(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -205,7 +205,7 @@ func TestDbEngineRoot(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected nocode")
 	}
-	err = en.Finish()
+	err = en.Finish(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -245,7 +245,7 @@ func TestDbEnginePersist(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = en.Finish()
+	err = en.Finish(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

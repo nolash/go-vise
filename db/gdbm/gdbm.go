@@ -132,7 +132,7 @@ func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Close implements Db
-func(gdb *gdbmDb) Close() error {
-	logg.Tracef("closing gdbm", "path", gdb.conn)
+func(gdb *gdbmDb) Close(ctx context.Context) error {
+	logg.TraceCtxf(ctx, "closing gdbm", "path", gdb.conn)
 	return gdb.conn.Close()
 }

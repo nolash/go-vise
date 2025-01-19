@@ -40,10 +40,8 @@ type Db interface {
 	// 
 	// If called more than once, consecutive calls should be ignored.
 	Connect(ctx context.Context, connStr string) error
-	// Close implements io.Closer.
-	//
 	// MUST be called before termination after a Connect().
-	Close() error
+	Close(context.Context) error
 	// Get retrieves the value belonging to a key.
 	//
 	// Errors if the key does not exist, or if the retrieval otherwise fails.
@@ -79,6 +77,8 @@ type Db interface {
 	Prefix() uint8
 	Dump(context.Context, []byte) (*Dumper, error)
 	DecodeKey(ctx context.Context, key []byte) ([]byte, error)
+	Start(context.Context) error
+	Stop(context.Context) error
 }
 
 type LookupKey struct {
@@ -260,4 +260,12 @@ func(bd *DbBase) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
 	}
 	logg.DebugCtxf(ctx, "decoded key", "key", key, "fromkey", oldKey)
 	return key, nil
+}
+
+func (bd *DbBase) Start(ctx context.Context) error {
+	return nil
+}
+
+func (bd *DbBase) Stop(ctx context.Context) error {
+	return nil
 }

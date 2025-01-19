@@ -167,7 +167,7 @@ func(f *DefaultSessionHandler) ServeHTTP(w http.ResponseWriter, req *http.Reques
 		f.writeError(w, 500, "Write result fail", err)
 		return
 	}
-	err = en.Finish()
+	err = en.Finish(ctx)
 	if err != nil {
 		f.writeError(w, 500, "Engine finish fail", err)
 		return

@@ -45,10 +45,8 @@ type Resource interface {
 	GetMenu(ctx context.Context, menuSym string) (string, error)
 	// FuncFor retrieves the external function (EntryFunc) associated with the given symbol.
 	FuncFor(ctx context.Context, loadSym string) (EntryFunc, error)
-	// Close implements the io.Closer interface.
-	//
 	// Safely shuts down retrieval backend.
-	Close() error
+	Close(ctx context.Context) error
 }
 
 // MenuResource contains the base definition for building Resource implementations.
@@ -144,6 +142,6 @@ func(m *MenuResource) FallbackFunc(ctx context.Context, sym string) (EntryFunc, 
 }
 
 // Close implements the Resource interface.
-func(m *MenuResource) Close() error {
+func(m *MenuResource) Close(ctx context.Context) error {
 	return nil
 }

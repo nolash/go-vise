@@ -29,6 +29,8 @@ type pgDb struct {
 	prepd bool
 	it pgx.Rows
 	itBase []byte
+	tx pgx.Tx
+	multi bool
 }
 
 // NewpgDb creates a new Postgres backed Db implementation.
@@ -67,7 +69,60 @@ func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 	}
 
 	pdb.conn = conn
-	return pdb.Prepare(ctx)
+	return pdb.ensureTable(ctx)
+}
+
+func (pdb *pgDb) Start(ctx context.Context) error {
+	if pdb.tx != nil {
+		return db.ErrTxExist
+	}
+	err := pdb.start(ctx)
+	if err != nil {
+		return err
+	}
+	pdb.multi = true
+	return nil
+}
+
+func (pdb *pgDb) start(ctx context.Context) error {
+	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
+	logg.TraceCtxf(ctx, "begin single tx", "err", err)
+	if err != nil {
+		return err
+	}
+	pdb.tx = tx
+	return nil
+}
+
+func (pdb *pgDb) Stop(ctx context.Context) error {
+	if !pdb.multi {
+		return db.ErrSingleTx
+	}
+	return pdb.stop(ctx)
+}
+
+func (pdb *pgDb) stopSingle(ctx context.Context) error {
+	if pdb.multi {
+		return nil
+	}
+	err := pdb.tx.Commit(ctx)
+	logg.TraceCtxf(ctx, "stop single tx", "err", err)
+	pdb.tx = nil
+	return err
+}
+
+func (pdb *pgDb) stop(ctx context.Context) error {
+	if pdb.tx == nil {
+		return db.ErrNoTx
+	}
+	err := pdb.tx.Commit(ctx)
+	logg.TraceCtxf(ctx, "stop multi tx", "err", err)
+	pdb.tx = nil
+	return err
+}
+
+func (pdb *pgDb) abort(ctx context.Context) {
+	pdb.tx.Rollback(ctx)
 }
 
 // Put implements Db.
@@ -81,7 +136,7 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 		return err
 	}
 
-	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
+	err = pdb.start(ctx)
 	if err != nil {
 		return err
 	}
@@ -91,12 +146,12 @@ func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 		actualKey = lk.Translation
 	}
 
-	_, err = tx.Exec(ctx, query, actualKey, val)
+	_, err = pdb.tx.Exec(ctx, query, actualKey, val)
 	if err != nil {
 		return err
 	}
 
-	return tx.Commit(ctx)
+	return pdb.stopSingle(ctx)
 }
 
 // Get implements Db.
@@ -106,56 +161,63 @@ func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
+	//tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
+	err = pdb.start(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	if lk.Translation != nil {
 		query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
-		rs, err := tx.Query(ctx, query, lk.Translation)
+		rs, err := pdb.tx.Query(ctx, query, lk.Translation)
 		if err != nil {
-			tx.Rollback(ctx)
+			pdb.abort(ctx)
 			return nil, err
 		}
 		defer rs.Close()
 
 		if rs.Next() {
+			// TODO: encode non raw
 			r := rs.RawValues()
-			tx.Commit(ctx)
-			tx.Rollback(ctx)
-			return r[0], nil
+			//tx.Commit(ctx)
+			//tx.Rollback(ctx)
+			err = pdb.stopSingle(ctx)
+			return r[0], err
 		}
 	}
 
 	query := fmt.Sprintf("SELECT value FROM %s.kv_vise WHERE key = $1", pdb.schema)
-	rs, err := tx.Query(ctx, query, lk.Default)
+	rs, err := pdb.tx.Query(ctx, query, lk.Default)
 	if err != nil {
-		tx.Rollback(ctx)
+		pdb.abort(ctx)
 		return nil, err
 	}
 	defer rs.Close()
 
 	if !rs.Next() {
-		tx.Rollback(ctx)
+		pdb.abort(ctx)
 		return nil, db.NewErrNotFound(key)
 	}
 
 	r := rs.RawValues()
-	tx.Commit(ctx)
-	return r[0], nil
+	err = pdb.stopSingle(ctx)
+	return r[0], err
 }
 
 // Close implements Db.
-func(pdb *pgDb) Close() error {
+func(pdb *pgDb) Close(ctx context.Context) error {
+	err := pdb.Stop(ctx)
+	if err == db.ErrNoTx {
+		err = nil
+	}
 	pdb.conn.Close()
-	return nil
+	return err
 }
 
 // set up table
-func(pdb *pgDb) Prepare(ctx context.Context) error {
+func(pdb *pgDb) ensureTable(ctx context.Context) error {
 	if pdb.prepd {
-		logg.WarnCtxf(ctx, "Prepare called more than once")
+		logg.WarnCtxf(ctx, "ensureTable called more than once")
 		return nil
 	}
 	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)

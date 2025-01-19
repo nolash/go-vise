@@ -54,7 +54,7 @@ func TestPersistNewAcrossEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = en.Finish()
+	err = en.Finish(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestPersistSameAcrossEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = en.Finish()
+	err = en.Finish(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
