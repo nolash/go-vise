@@ -127,6 +127,7 @@ func (pdb *pgDb) stop(ctx context.Context) error {
 func (pdb *pgDb) Abort(ctx context.Context) {
 	logg.InfoCtxf(ctx, "aborting tx", "tx", pdb.tx)
 	pdb.tx.Rollback(ctx)
+	pdb.tx = nil
 }
 
 // Put implements Db.
