@@ -69,8 +69,8 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 			return fmt.Errorf("Cache capacity exceeded %v of %v", ca.CacheUseSize + sz, ca.CacheSize)
 		}
 	}
-	logg.Infof("Cache add", "key", key, "size", sz, "limit", sizeLimit)
-	logg.Tracef("", "Cache add data", value)
+	logg.Debugf("Cache add", "key", key, "size", sz, "limit", sizeLimit)
+	logg.Tracef("Cache add data", "value", value)
 	ca.Cache[len(ca.Cache)-1][key] = value
 	ca.CacheUseSize += sz
 	ca.Sizes[key] = sizeLimit

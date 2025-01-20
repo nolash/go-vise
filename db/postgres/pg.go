@@ -69,6 +69,7 @@ func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 	}
 
 	pdb.conn = conn
+	pdb.DbBase.Connect(ctx, connStr)
 	return pdb.ensureTable(ctx)
 }
 

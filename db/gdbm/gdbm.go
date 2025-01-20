@@ -84,6 +84,7 @@ func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 	}
 	logg.DebugCtxf(ctx, "gdbm connected", "connstr", connStr)
 	gdb.conn = db
+	gdb.DbBase.Connect(ctx, connStr)
 	return nil
 }
 

@@ -80,6 +80,7 @@ type Db interface {
 	Start(context.Context) error
 	Stop(context.Context) error
 	Abort(context.Context)
+	Connection() string
 }
 
 type LookupKey struct {
@@ -124,6 +125,7 @@ type baseDb struct {
 	lock uint8
 	lang *lang.Language
 	seal bool
+	connStr string
 }
 
 // DbBase is a base class that must be extended by all db.Db implementers.
@@ -272,4 +274,13 @@ func (bd *DbBase) Stop(ctx context.Context) error {
 }
 
 func (bd *DbBase) Abort(ctx context.Context) {
+}
+
+func (bd *DbBase) Connect(ctx context.Context, connStr string) error {
+	bd.connStr = connStr
+	return nil
+}
+
+func (bd *DbBase) Connection() string {
+	return bd.connStr
 }

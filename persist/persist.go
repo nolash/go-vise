@@ -98,7 +98,7 @@ func(p *Persister) Save(key string) error {
 		return err
 	}
 	p.db.SetPrefix(db.DATATYPE_STATE)
-	logg.Debugf("saving state and cache", "self", p, "key", key, "state", p.State)
+	logg.Infof("saving state and cache", "self", p, "key", key, "state", p.State)
 	logg.Tracef("saving bytecode", "code", p.State.Code)
 	err = p.db.Put(p.ctx, []byte(key), b)
 	if err != nil {
@@ -124,7 +124,7 @@ func(p *Persister) Load(key string) error {
 	if err != nil {
 		return err
 	}
-	logg.Debugf("loaded state and cache", "self", p, "key", key, "state", p.State)
+	logg.Infof("loaded state and cache", "self", p, "key", key, "state", p.State)
 	logg.Tracef("loaded bytecode", "code", p.State.Code)
 	return nil
 }

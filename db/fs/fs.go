@@ -57,7 +57,8 @@ func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 	if err != nil {
 		return err
 	}
-	fdb.dir = connStr
+	fdb.DbBase.Connect(ctx, connStr)
+	fdb.dir = fdb.Connection()
 	return nil
 }
 
