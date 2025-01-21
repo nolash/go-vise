@@ -27,6 +27,6 @@ type Config struct {
 }
 
 // String implements the string interface.
-func(c Config) String() string {
+func (c Config) String() string {
 	return fmt.Sprintf("sessionid '%s', rootpath '%s', flagcount %d, language '%s'", c.SessionId, c.Root, c.FlagCount, c.Language)
 }

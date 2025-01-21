@@ -9,7 +9,6 @@ import (
 	"git.defalsify.org/vise.git/internal/resourcetest"
 )
 
-
 func TestPageCurrentSize(t *testing.T) {
 	t.Skip("usage is not in use, and it is unclear how it should be calculated")
 	ca := cache.NewCache()
@@ -145,4 +144,3 @@ bar
 		t.Fatalf("expected:\n\t%s\ngot:\n\t%s", expect, r)
 	}
 }
-

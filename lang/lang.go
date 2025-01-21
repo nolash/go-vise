@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/barbashov/iso639-3"
+	iso639_3 "github.com/barbashov/iso639-3"
 )
 
 var (
@@ -35,7 +35,7 @@ func LanguageFromCode(code string) (Language, error) {
 // String implements the String interface.
 //
 // Returns a representation of the Language fit for debugging.
-func(l Language) String() string {
+func (l Language) String() string {
 	return fmt.Sprintf("%s (%s)", l.Code, l.Name)
 }
 

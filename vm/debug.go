@@ -7,21 +7,21 @@ import (
 )
 
 type ParseHandler struct {
-	Catch func(string, uint32, bool) error
-	Croak func(uint32, bool) error
-	Load func(string, uint32) error
+	Catch  func(string, uint32, bool) error
+	Croak  func(uint32, bool) error
+	Load   func(string, uint32) error
 	Reload func(string) error
-	Map func(string) error
-	Move func(string) error
-	Halt func() error
-	InCmp func(string, string) error
-	MOut func(string, string) error
-	MSink func() error
-	MNext func(string, string) error
-	MPrev func(string, string) error
-	cur string
-	n int
-	w io.Writer
+	Map    func(string) error
+	Move   func(string) error
+	Halt   func() error
+	InCmp  func(string, string) error
+	MOut   func(string, string) error
+	MSink  func() error
+	MNext  func(string, string) error
+	MPrev  func(string, string) error
+	cur    string
+	n      int
+	w      io.Writer
 }
 
 func NewParseHandler() *ParseHandler {

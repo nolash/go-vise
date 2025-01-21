@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Check creation 
+// Check creation
 func TestNewState(t *testing.T) {
 	st := NewState(5)
 	if len(st.Flags) != 2 {
@@ -20,7 +20,7 @@ func TestNewState(t *testing.T) {
 		t.Fatalf("invalid state flag length: %v", len(st.Flags))
 	}
 	v := st.FlagBitSize()
-	x := uint32(17+8)
+	x := uint32(17 + 8)
 	if v != x {
 		t.Fatalf("expected %d, get %d", x, v)
 	}
@@ -406,8 +406,8 @@ func TestStateMovement(t *testing.T) {
 func TestStateMaxMovement(t *testing.T) {
 	MaxLevel = 3
 	st := NewState(0)
-	st.Down("inky")	
-	st.Down("pinky")	
+	st.Down("inky")
+	st.Down("pinky")
 	st.Down("blinky")
 	st.Down("clyde")
 	defer func() {

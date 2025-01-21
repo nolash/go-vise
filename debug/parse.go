@@ -1,8 +1,8 @@
 package debug
 
 import (
-	"git.defalsify.org/vise.git/vm"
 	"git.defalsify.org/vise.git/logging"
+	"git.defalsify.org/vise.git/vm"
 )
 
 var (
@@ -11,9 +11,9 @@ var (
 
 type NodeParseHandler struct {
 	*vm.ParseHandler
-	node *Node
-	parentMOutFunc func(string, string) error
-	parentMoveFunc func(string) error
+	node            *Node
+	parentMOutFunc  func(string, string) error
+	parentMoveFunc  func(string) error
 	parentInCmpFunc func(string, string) error
 	parentCatchFunc func(string, uint32, bool) error
 }
@@ -44,7 +44,7 @@ func (np *NodeParseHandler) mout(sym string, sel string) error {
 func (np *NodeParseHandler) move(sym string) error {
 	var node Node
 
-	if (sym == "<" || sym == ">" || sym == "^" || sym == "_" || sym == ".") {
+	if sym == "<" || sym == ">" || sym == "^" || sym == "_" || sym == "." {
 		logg.Debugf("skip lateral move")
 		return np.parentMoveFunc(sym)
 	}
@@ -58,11 +58,10 @@ func (np *NodeParseHandler) move(sym string) error {
 func (np *NodeParseHandler) incmp(sym string, sel string) error {
 	var node Node
 
-	if (sym == "<" || sym == ">" || sym == "^" || sym == "_" || sym == ".") {
+	if sym == "<" || sym == ">" || sym == "^" || sym == "_" || sym == "." {
 		logg.Debugf("skip relative move")
 		return np.parentInCmpFunc(sym, sel)
 	}
-
 
 	node.Name = sym
 	np.node.Connect(node)
@@ -73,7 +72,7 @@ func (np *NodeParseHandler) incmp(sym string, sel string) error {
 func (np *NodeParseHandler) catch(sym string, flag uint32, inv bool) error {
 	var node Node
 
-	if (sym == "<" || sym == ">" || sym == "^" || sym == "_" || sym == ".") {
+	if sym == "<" || sym == ">" || sym == "^" || sym == "_" || sym == "." {
 		logg.Debugf("skip relative move")
 		return np.parentMoveFunc(sym)
 	}

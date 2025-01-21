@@ -10,35 +10,35 @@ import (
 type BatchCode uint16
 
 const (
-	_MENU_OFFSET = 256
-	_MENU_DOWN = _MENU_OFFSET
-	_MENU_UP = _MENU_OFFSET + 1
-	_MENU_NEXT = _MENU_OFFSET + 2
+	_MENU_OFFSET   = 256
+	_MENU_DOWN     = _MENU_OFFSET
+	_MENU_UP       = _MENU_OFFSET + 1
+	_MENU_NEXT     = _MENU_OFFSET + 2
 	_MENU_PREVIOUS = _MENU_OFFSET + 3
 )
 
 var (
 	batchCode = map[string]BatchCode{
-		"DOWN": _MENU_DOWN,
-		"UP": _MENU_UP,
-		"NEXT": _MENU_NEXT,
+		"DOWN":     _MENU_DOWN,
+		"UP":       _MENU_UP,
+		"NEXT":     _MENU_NEXT,
 		"PREVIOUS": _MENU_PREVIOUS,
 	}
 )
 
 type menuItem struct {
-	code BatchCode
-	choice string
+	code    BatchCode
+	choice  string
 	display string
-	target string
+	target  string
 }
 
 // MenuProcessor handles code lines with BatchCode quasi-opcodes that control menu generation.
-// 
+//
 // It creates vm instructions for display of menu and handling of input on either size of a vm.HALT instruction.
 type MenuProcessor struct {
 	items []menuItem
-	size uint32
+	size  uint32
 }
 
 // NewMenuProcessor creates a new MenuProcessor object.
@@ -49,7 +49,7 @@ func NewMenuProcessor() MenuProcessor {
 // Add a menu batch instruction to be processed.
 //
 // Instructions will be rendered in the order in which they have been added.
-func(mp *MenuProcessor) Add(bop string, choice string, display string, target string) error {
+func (mp *MenuProcessor) Add(bop string, choice string, display string, target string) error {
 	bopCode := batchCode[bop]
 	if bopCode == 0 {
 		return fmt.Errorf("unknown menu instruction: %v", bop)
@@ -58,10 +58,10 @@ func(mp *MenuProcessor) Add(bop string, choice string, display string, target st
 		return fmt.Errorf("target is only valid for DOWN")
 	}
 	m := menuItem{
-		code: bopCode,
-		choice: choice,
+		code:    bopCode,
+		choice:  choice,
 		display: display,
-		target: target,
+		target:  target,
 	}
 	mp.items = append(mp.items, m)
 	return nil

@@ -15,6 +15,7 @@ func bookmark(values []string) []uint32 {
 	}
 	return bookmarks
 }
+
 //
 //func paginate(bookmarks []uint32, capacity uint32) ([][]uint32, error) {
 //	if len(bookmarks) == 0 {
@@ -23,7 +24,7 @@ func bookmark(values []string) []uint32 {
 //	var c uint32
 //	var pages [][]uint32
 //	var prev uint32
-//	
+//
 //	pages = append(pages, []uint32{})
 //	currentPage := 0
 //	lookAhead := bookmarks[1:]
@@ -79,7 +80,7 @@ func paginate(bookmarks []uint32, capacity uint32, nextSize uint32, prevSize uin
 			remaining -= int(prevSize)
 		}
 		if remaining < 0 {
-			return nil, fmt.Errorf("underrun in item %v:%v (%v) index %v prevsize %v remain %v cap %v", bookmarks[i], lookAhead[i], lookAhead[i] - bookmarks[i], i, prevSize, remaining, capacity)
+			return nil, fmt.Errorf("underrun in item %v:%v (%v) index %v prevsize %v remain %v cap %v", bookmarks[i], lookAhead[i], lookAhead[i]-bookmarks[i], i, prevSize, remaining, capacity)
 		}
 		if isLast(c, last, uint32(remaining)) {
 			haveMore = false
@@ -87,13 +88,13 @@ func paginate(bookmarks []uint32, capacity uint32, nextSize uint32, prevSize uin
 			remaining -= int(nextSize)
 		}
 		if remaining < 0 {
-			return nil, fmt.Errorf("underrun in item %v:%v (%v) index %v prevsize %v nextsize %v remain %v cap %v", bookmarks[i], lookAhead[i], lookAhead[i] - bookmarks[i], i, prevSize, nextSize, remaining, capacity)
+			return nil, fmt.Errorf("underrun in item %v:%v (%v) index %v prevsize %v nextsize %v remain %v cap %v", bookmarks[i], lookAhead[i], lookAhead[i]-bookmarks[i], i, prevSize, nextSize, remaining, capacity)
 		}
 
 		var z int
 		currentPage := len(pages) - 1
 		for i < lastIndex {
-			logg.Tracef("have render", "bookmark", bookmarks[i], "lookahead", lookAhead[i], "diff", lookAhead[i] - bookmarks[i], "index", i, "prevsize", prevSize, "nextsize", nextSize, "remain", remaining, "capacity", capacity)
+			logg.Tracef("have render", "bookmark", bookmarks[i], "lookahead", lookAhead[i], "diff", lookAhead[i]-bookmarks[i], "index", i, "prevsize", prevSize, "nextsize", nextSize, "remain", remaining, "capacity", capacity)
 
 			v := lookAhead[i]
 			delta := int((v - c) + 1)
@@ -117,7 +118,7 @@ func paginate(bookmarks []uint32, capacity uint32, nextSize uint32, prevSize uin
 		}
 	}
 
-	l := len(pages)-1
+	l := len(pages) - 1
 	pages[l] = append(pages[l], last)
 	return pages, nil
 }
@@ -160,7 +161,7 @@ func explode(values []string, pages [][]uint32) string {
 //		return pages, nil
 //	}
 //
-//	var flatPages [][]uint32 
+//	var flatPages [][]uint32
 //
 //	pages = append(pages, []uint32{})
 //	for _, v := range bookmarks {
@@ -171,7 +172,7 @@ func explode(values []string, pages [][]uint32) string {
 //
 //	var c uint32
 //	var prev uint32
-//	currentPage := 0 
+//	currentPage := 0
 //
 //	for i, page := range pages {
 //		var delta uint32

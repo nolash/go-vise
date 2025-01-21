@@ -1,3 +1,4 @@
+//go:build loginfo
 // +build loginfo
 
 package logging

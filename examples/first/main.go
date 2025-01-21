@@ -3,24 +3,24 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"path"
-	"crypto/rand"
-	"crypto/sha256"
 
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/logging"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/logging"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 const (
@@ -30,19 +30,19 @@ const (
 )
 
 var (
-	logg = logging.NewVanilla()
-	baseDir = testdataloader.GetBasePath()
-	scriptDir = path.Join(baseDir, "examples", "first")
-	storeDir = path.Join(scriptDir, ".state")
+	logg         = logging.NewVanilla()
+	baseDir      = testdataloader.GetBasePath()
+	scriptDir    = path.Join(baseDir, "examples", "first")
+	storeDir     = path.Join(scriptDir, ".state")
 	authStoreDir = path.Join(scriptDir, ".auth")
 )
 
 type firstAuthResource struct {
-	st *state.State
+	st    *state.State
 	store db.Db
 }
 
-func(f *firstAuthResource) challenge(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (f *firstAuthResource) challenge(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var err error
 	var r resource.Result
 
@@ -62,7 +62,7 @@ func(f *firstAuthResource) challenge(ctx context.Context, sym string, input []by
 		succeed := f.st.GetFlag(USER_SUCCEEDED)
 		failed := f.st.GetFlag(USER_FAILED)
 		if succeed {
-			return r, nil	
+			return r, nil
 		} else {
 			if failed {
 				r.FlagReset = append(r.FlagReset, USER_FAILED)
@@ -106,7 +106,7 @@ func(f *firstAuthResource) challenge(ctx context.Context, sym string, input []by
 	}
 	return r, nil
 }
-	     
+
 func main() {
 	var cont bool
 	var sessionId string
@@ -141,12 +141,12 @@ func main() {
 
 	rs := resource.NewDbResource(store)
 	cfg := engine.Config{
-		Root: "root",
+		Root:      "root",
 		SessionId: sessionId,
 	}
 
 	aux := &firstAuthResource{
-		st: st,
+		st:    st,
 		store: authStore,
 	}
 

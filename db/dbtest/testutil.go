@@ -9,19 +9,18 @@ import (
 	"path"
 	"testing"
 
-	"git.defalsify.org/vise.git/lang"
 	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/lang"
 )
-
 
 type testCase struct {
 	typ uint8
-	s string
-	k []byte
-	v []byte
-	x []byte
-	l *lang.Language
-	t string
+	s   string
+	k   []byte
+	v   []byte
+	x   []byte
+	l   *lang.Language
+	t   string
 }
 
 type testVector struct {
@@ -42,47 +41,47 @@ var (
 		generateSessionLanguageTestVectors,
 	}
 	dataTypeDebug = map[uint8]string{
-		db.DATATYPE_BIN: "bytecode",
-		db.DATATYPE_TEMPLATE: "template",
-		db.DATATYPE_MENU: "menu",
+		db.DATATYPE_BIN:        "bytecode",
+		db.DATATYPE_TEMPLATE:   "template",
+		db.DATATYPE_MENU:       "menu",
 		db.DATATYPE_STATICLOAD: "staticload",
-		db.DATATYPE_STATE: "state",
-		db.DATATYPE_USERDATA: "udata",
+		db.DATATYPE_STATE:      "state",
+		db.DATATYPE_USERDATA:   "udata",
 	}
 )
 
-func(tc *testCase) Key() []byte {
+func (tc *testCase) Key() []byte {
 	return tc.k
 }
 
-func(tc *testCase) Val() []byte {
+func (tc *testCase) Val() []byte {
 	return tc.v
 }
 
-func(tc *testCase) Typ() uint8 {
+func (tc *testCase) Typ() uint8 {
 	return tc.typ
 }
 
-func(tc *testCase) Session() string {
+func (tc *testCase) Session() string {
 	return tc.s
 }
 
-func(tc *testCase) Lang() string {
+func (tc *testCase) Lang() string {
 	if tc.l == nil {
 		return ""
 	}
 	return tc.l.Code
 }
 
-func(tc *testCase) Expect() []byte {
+func (tc *testCase) Expect() []byte {
 	return tc.x
 }
 
-func(tc *testCase) Label() string {
+func (tc *testCase) Label() string {
 	return tc.t
 }
 
-func(tv *testVector) add(typ uint8, k string, v string, session string, expect string, language string)  {
+func (tv *testVector) add(typ uint8, k string, v string, session string, expect string, language string) {
 	var b []byte
 	var x []byte
 	var err error
@@ -101,7 +100,7 @@ func(tv *testVector) add(typ uint8, k string, v string, session string, expect s
 		b = []byte(v)
 		x = []byte(expect)
 	}
-	
+
 	if language != "" {
 		lo, err := lang.LanguageFromCode(language)
 		if err != nil {
@@ -115,14 +114,14 @@ func(tv *testVector) add(typ uint8, k string, v string, session string, expect s
 	if ln != nil {
 		s = path.Join(s, language)
 	}
-	o := &testCase {
+	o := &testCase{
 		typ: typ,
-		k: []byte(k),
-		v: b,
-		s: session,
-		x: x,
-		l: ln,
-		t: s,
+		k:   []byte(k),
+		v:   b,
+		s:   session,
+		x:   x,
+		l:   ln,
+		t:   s,
 	}
 	tv.c[s] = o
 	i := len(tv.v)
@@ -130,7 +129,7 @@ func(tv *testVector) add(typ uint8, k string, v string, session string, expect s
 	logg.Tracef("add testcase", "i", i, "s", s, "k", o.k)
 }
 
-func(tv *testVector) next() (int, *testCase) {
+func (tv *testVector) next() (int, *testCase) {
 	i := tv.i
 	if i == len(tv.v) {
 		return -1, nil
@@ -139,11 +138,11 @@ func(tv *testVector) next() (int, *testCase) {
 	return i, tv.c[tv.v[i]]
 }
 
-func(tv *testVector) rewind() {
+func (tv *testVector) rewind() {
 	tv.i = 0
 }
 
-func(tv *testVector) put(ctx context.Context, db db.Db) error {
+func (tv *testVector) put(ctx context.Context, db db.Db) error {
 	var i int
 	var tc *testCase
 	defer tv.rewind()
@@ -174,7 +173,7 @@ func(tv *testVector) put(ctx context.Context, db db.Db) error {
 	return nil
 }
 
-func(tv *testVector) label() string {
+func (tv *testVector) label() string {
 	return tv.s
 }
 
@@ -292,7 +291,6 @@ func runTest(t *testing.T, ctx context.Context, db db.Db, vs testVector) error {
 
 }
 
-
 func runTests(t *testing.T, ctx context.Context, db db.Db) error {
 	for _, fn := range tests {
 		err := runTest(t, ctx, db, fn())
@@ -300,7 +298,7 @@ func runTests(t *testing.T, ctx context.Context, db db.Db) error {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 

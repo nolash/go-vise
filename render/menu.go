@@ -16,7 +16,7 @@ type BrowseError struct {
 }
 
 // Error implements the Error interface.
-func(err *BrowseError) Error() string {
+func (err *BrowseError) Error() string {
 	return fmt.Sprintf("index is out of bounds: %v", err.Idx)
 }
 
@@ -39,12 +39,12 @@ type BrowseConfig struct {
 // Create a BrowseConfig with default values.
 func DefaultBrowseConfig() BrowseConfig {
 	return BrowseConfig{
-		NextAvailable: true,
-		NextSelector: "11",
-		NextTitle: "next",
+		NextAvailable:     true,
+		NextSelector:      "11",
+		NextTitle:         "next",
 		PreviousAvailable: true,
-		PreviousSelector: "22",
-		PreviousTitle: "previous",
+		PreviousSelector:  "22",
+		PreviousTitle:     "previous",
 	}
 }
 
@@ -52,22 +52,22 @@ func DefaultBrowseConfig() BrowseConfig {
 //
 // May be included in a Page object to render menus for pages.
 type Menu struct {
-	rs resource.Resource
-	menu [][2]string // selector and title for menu items.
-	browse BrowseConfig // browse definitions.
-	pageCount uint16 // number of pages the menu should represent.
-	canNext bool // availability flag for the "next" browse option.
-	canPrevious bool // availability flag for the "previous" browse option.
+	rs          resource.Resource
+	menu        [][2]string  // selector and title for menu items.
+	browse      BrowseConfig // browse definitions.
+	pageCount   uint16       // number of pages the menu should represent.
+	canNext     bool         // availability flag for the "next" browse option.
+	canPrevious bool         // availability flag for the "previous" browse option.
 	//outputSize uint16 // maximum size constraint for the menu.
 	sink bool
 	keep bool
-	sep string
+	sep  string
 }
 
 // String implements the String interface.
 //
 // It returns debug representation of menu.
-func(m Menu) String() string {
+func (m Menu) String() string {
 	return fmt.Sprintf("pagecount: %v menusink: %v next: %v prev: %v", m.pageCount, m.sink, m.canNext, m.canPrevious)
 }
 
@@ -75,18 +75,18 @@ func(m Menu) String() string {
 func NewMenu() *Menu {
 	return &Menu{
 		keep: true,
-		sep: ":",
+		sep:  ":",
 	}
 }
 
 // WithPageCount is a chainable function that defines the number of allowed pages for browsing.
-func(m *Menu) WithSeparator(sep string) *Menu {
+func (m *Menu) WithSeparator(sep string) *Menu {
 	m.sep = sep
 	return m
 }
 
 // WithPageCount is a chainable function that defines the number of allowed pages for browsing.
-func(m *Menu) WithPageCount(pageCount uint16) *Menu {
+func (m *Menu) WithPageCount(pageCount uint16) *Menu {
 	m.pageCount = pageCount
 	return m
 }
@@ -94,7 +94,7 @@ func(m *Menu) WithPageCount(pageCount uint16) *Menu {
 // WithPages is a chainable function which activates pagination in the menu.
 //
 // It is equivalent to WithPageCount(1)
-func(m *Menu) WithPages() *Menu {
+func (m *Menu) WithPages() *Menu {
 	if m.pageCount == 0 {
 		m.pageCount = 1
 	}
@@ -104,7 +104,7 @@ func(m *Menu) WithPages() *Menu {
 // WithSink is a chainable function that informs the menu that a content sink exists in the render.
 //
 // A content sink receives priority to consume all remaining space after all non-sink items have been rendered.
-func(m *Menu) WithSink() *Menu {
+func (m *Menu) WithSink() *Menu {
 	m.sink = true
 	return m
 }
@@ -112,17 +112,17 @@ func(m *Menu) WithSink() *Menu {
 // WithDispose is a chainable function that preserves the menu after render is complete.
 //
 // It is used for multi-page content.
-func(m *Menu) WithDispose() *Menu {
+func (m *Menu) WithDispose() *Menu {
 	m.keep = false
 	return m
 }
 
-func(m *Menu) WithResource(rs resource.Resource) *Menu {
+func (m *Menu) WithResource(rs resource.Resource) *Menu {
 	m.rs = rs
 	return m
 }
 
-func(m Menu) IsSink() bool {
+func (m Menu) IsSink() bool {
 	return m.sink
 }
 
@@ -138,18 +138,18 @@ func(m Menu) IsSink() bool {
 //}
 
 // WithBrowseConfig defines the criteria for page browsing.
-func(m *Menu) WithBrowseConfig(cfg BrowseConfig) *Menu {
+func (m *Menu) WithBrowseConfig(cfg BrowseConfig) *Menu {
 	m.browse = cfg
 	return m
 }
 
 // GetBrowseConfig returns a copy of the current state of the browse configuration.
-func(m *Menu) GetBrowseConfig() BrowseConfig {
+func (m *Menu) GetBrowseConfig() BrowseConfig {
 	return m.browse
 }
 
 // Put adds a menu option to the menu rendering.
-func(m *Menu) Put(selector string, title string) error {
+func (m *Menu) Put(selector string, title string) error {
 	m.menu = append(m.menu, [2]string{selector, title})
 	return nil
 }
@@ -160,11 +160,11 @@ func(m *Menu) Put(selector string, title string) error {
 //}
 
 // Sizes returns the size limitations for each part of the render, as a four-element array:
-// 	1. mainSize
-//	2. prevsize
-//	3. nextsize
-//	4. nextsize + prevsize
-func(m *Menu) Sizes(ctx context.Context) ([4]uint32, error) {
+//  1. mainSize
+//  2. prevsize
+//  3. nextsize
+//  4. nextsize + prevsize
+func (m *Menu) Sizes(ctx context.Context) ([4]uint32, error) {
 	var menuSizes [4]uint32
 	cfg := m.GetBrowseConfig()
 	tmpm := NewMenu().WithBrowseConfig(cfg)
@@ -189,7 +189,7 @@ func(m *Menu) Sizes(ctx context.Context) ([4]uint32, error) {
 }
 
 // title corresponding to the menu symbol.
-func(m *Menu) titleFor(ctx context.Context, title string) (string, error) {
+func (m *Menu) titleFor(ctx context.Context, title string) (string, error) {
 	if m.rs == nil {
 		return title, nil
 	}
@@ -203,7 +203,7 @@ func(m *Menu) titleFor(ctx context.Context, title string) (string, error) {
 // Render returns the full current state of the menu as a string.
 //
 // After this has been executed, the state of the menu will be empty.
-func(m *Menu) Render(ctx context.Context, idx uint16) (string, error) {
+func (m *Menu) Render(ctx context.Context, idx uint16) (string, error) {
 	var menuCopy [][2]string
 	if m.keep {
 		for _, v := range m.menu {
@@ -239,7 +239,7 @@ func(m *Menu) Render(ctx context.Context, idx uint16) (string, error) {
 }
 
 // add available browse options.
-func(m *Menu) applyPage(idx uint16) error {
+func (m *Menu) applyPage(idx uint16) error {
 	if m.pageCount == 0 {
 		if idx > 0 {
 			return fmt.Errorf("index %v > 0 for non-paged menu", idx)
@@ -249,10 +249,10 @@ func(m *Menu) applyPage(idx uint16) error {
 		return &BrowseError{Idx: idx, PageCount: m.pageCount}
 		//return fmt.Errorf("index %v out of bounds (%v)", idx, m.pageCount)
 	}
-	
+
 	m.reset()
 
-	if idx == m.pageCount - 1 {
+	if idx == m.pageCount-1 {
 		m.canNext = false
 	}
 	if idx == 0 {
@@ -277,7 +277,7 @@ func(m *Menu) applyPage(idx uint16) error {
 
 // removes and returns the first of remaining menu options.
 // fails if menu is empty.
-func(m *Menu) shiftMenu() (string, string, error) {
+func (m *Menu) shiftMenu() (string, string, error) {
 	if len(m.menu) == 0 {
 		return "", "", fmt.Errorf("menu is empty")
 	}
@@ -287,7 +287,7 @@ func(m *Menu) shiftMenu() (string, string, error) {
 }
 
 // prepare menu object for re-use.
-func(m *Menu) reset() {
+func (m *Menu) reset() {
 	if m.browse.NextAvailable {
 		m.canNext = true
 	}
@@ -297,7 +297,7 @@ func(m *Menu) reset() {
 }
 
 // Reset clears all current state from the menu object, making it ready for re-use in a new render.
-func(m *Menu) Reset() {
+func (m *Menu) Reset() {
 	m.menu = [][2]string{}
 	m.sink = false
 	m.reset()

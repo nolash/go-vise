@@ -23,7 +23,7 @@ func TestVanilla(t *testing.T) {
 
 func TestVanillaCtx(t *testing.T) {
 	logg := NewVanilla().WithDomain("test").WithLevel(LVL_DEBUG).WithContextKey("foo")
-	ctx := context.WithValue(context.Background(), "foo", "bar") 
+	ctx := context.WithValue(context.Background(), "foo", "bar")
 	w := bytes.NewBuffer(nil)
 	LogWriter = w
 

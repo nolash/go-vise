@@ -8,22 +8,22 @@ import (
 
 	"git.defalsify.org/vise.git/db"
 	fsdb "git.defalsify.org/vise.git/db/fs"
-	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/logging"
+	"git.defalsify.org/vise.git/resource"
 )
 
 var (
-	ctx = context.Background()
+	ctx   = context.Background()
 	store = fsdb.NewFsDb()
-	out = outNew
-	logg = logging.NewVanilla().WithDomain("testdata")
+	out   = outNew
+	logg  = logging.NewVanilla().WithDomain("testdata")
 )
 
 type echoFunc struct {
 	v string
 }
 
-func(e *echoFunc) get(ctx context.Context, nodeSym string, input []byte) (resource.Result, error) {
+func (e *echoFunc) get(ctx context.Context, nodeSym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: e.v,
 	}, nil
@@ -87,7 +87,6 @@ func Generate() (string, error) {
 	err = generate()
 	return dir, err
 }
-
 
 // Generate outputs bytecode, templates and content symbols to a specified directory.
 //

@@ -2,8 +2,8 @@ package fs
 
 import (
 	"context"
-	"errors"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -15,19 +15,18 @@ import (
 
 // holds string (filepath) versions of LookupKey
 type fsLookupKey struct {
-	Default string
+	Default     string
 	Translation string
 }
 
 // pure filesystem backend implementation if the Db interface.
 type fsDb struct {
 	*db.DbBase
-	dir string
-	elements []os.DirEntry
+	dir         string
+	elements    []os.DirEntry
 	matchPrefix []byte
-	binary bool
+	binary      bool
 }
-
 
 // NewFsDb creates a filesystem backed Db implementation.
 func NewFsDb() *fsDb {
@@ -37,18 +36,18 @@ func NewFsDb() *fsDb {
 	return db
 }
 
-func(fdb *fsDb) WithBinary() *fsDb {
+func (fdb *fsDb) WithBinary() *fsDb {
 	fdb.binary = true
 	return fdb
 }
 
 // String implements the string interface.
-func(fdb *fsDb) String() string {
+func (fdb *fsDb) String() string {
 	return "fsdb: " + fdb.dir
 }
 
 // Connect implements the Db interface.
-func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
+func (fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 	if fdb.dir != "" {
 		logg.WarnCtxf(ctx, "already connected", "conn", fdb.dir)
 		return nil
@@ -64,7 +63,7 @@ func(fdb *fsDb) Connect(ctx context.Context, connStr string) error {
 
 // ToKey overrides the BaseDb implementation, creating a base64 string
 // if binary keys have been enabled
-func(fdb *fsDb) ToKey(ctx context.Context, key []byte) (db.LookupKey, error) {
+func (fdb *fsDb) ToKey(ctx context.Context, key []byte) (db.LookupKey, error) {
 	if fdb.binary {
 		s := base64.StdEncoding.EncodeToString(key)
 		key = []byte(s)
@@ -72,7 +71,7 @@ func(fdb *fsDb) ToKey(ctx context.Context, key []byte) (db.LookupKey, error) {
 	return fdb.DbBase.ToKey(ctx, key)
 }
 
-func(fdb *fsDb) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
+func (fdb *fsDb) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
 	key, err := fdb.DbBase.DecodeKey(ctx, key)
 	if err != nil {
 		return nil, err
@@ -90,7 +89,7 @@ func(fdb *fsDb) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Get implements the Db interface.
-func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+func (fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	var f *os.File
 	lk, err := fdb.ToKey(ctx, key)
 	if err != nil {
@@ -104,7 +103,7 @@ func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	for i, fp := range([]string{flk.Translation, flka.Translation, flk.Default, flka.Default}) {
+	for i, fp := range []string{flk.Translation, flka.Translation, flk.Default, flka.Default} {
 		if fp == "" {
 			logg.TraceCtxf(ctx, "fs get skip missing", "i", i)
 			continue
@@ -130,7 +129,7 @@ func(fdb *fsDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Put implements the Db interface.
-func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
+func (fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !fdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
 	}
@@ -154,12 +153,12 @@ func(fdb *fsDb) Put(ctx context.Context, key []byte, val []byte) error {
 }
 
 // Close implements the Db interface.
-func(fdb *fsDb) Close(ctx context.Context) error {
+func (fdb *fsDb) Close(ctx context.Context) error {
 	return nil
 }
 
 // create a key safe for the filesystem.
-func(fdb *fsDb) pathFor(ctx context.Context, lk *db.LookupKey) (fsLookupKey, error) {
+func (fdb *fsDb) pathFor(ctx context.Context, lk *db.LookupKey) (fsLookupKey, error) {
 	var flk fsLookupKey
 	lk.Default[0] += 0x30
 	flk.Default = path.Join(fdb.dir, string(lk.Default))
@@ -171,7 +170,7 @@ func(fdb *fsDb) pathFor(ctx context.Context, lk *db.LookupKey) (fsLookupKey, err
 }
 
 // create a key safe for the filesystem, matching legacy resource.FsResource name.
-func(fdb *fsDb) altPathFor(ctx context.Context, lk *db.LookupKey) (fsLookupKey, error) {
+func (fdb *fsDb) altPathFor(ctx context.Context, lk *db.LookupKey) (fsLookupKey, error) {
 	var flk fsLookupKey
 	fb := string(lk.Default[1:])
 	if fdb.Prefix() == db.DATATYPE_BIN {

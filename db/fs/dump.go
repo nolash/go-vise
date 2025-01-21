@@ -8,7 +8,7 @@ import (
 	"git.defalsify.org/vise.git/db"
 )
 
-func(fdb *fsDb) nextElement() []byte {
+func (fdb *fsDb) nextElement() []byte {
 	v := fdb.elements[0]
 	fdb.elements = fdb.elements[1:]
 	s := v.Name()
@@ -17,7 +17,7 @@ func(fdb *fsDb) nextElement() []byte {
 	return k
 }
 
-func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
+func (fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	var err error
 	key = append([]byte{fdb.Prefix()}, key...)
 	fdb.matchPrefix = key
@@ -61,7 +61,7 @@ func(fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	return nil, db.NewErrNotFound(key)
 }
 
-func(fdb *fsDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
+func (fdb *fsDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 	if len(fdb.elements) == 0 {
 		return nil, nil
 	}

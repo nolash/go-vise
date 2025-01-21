@@ -10,7 +10,7 @@ import (
 
 // holds string (hex) versions of lookupKey
 type memLookupKey struct {
-	Default string
+	Default     string
 	Translation string
 }
 
@@ -29,12 +29,12 @@ func NewMemDb() *memDb {
 }
 
 // String implements the string interface.
-func(mdb *memDb) String() string {
+func (mdb *memDb) String() string {
 	return "memdb"
 }
 
 // Connect implements Db
-func(mdb *memDb) Connect(ctx context.Context, connStr string) error {
+func (mdb *memDb) Connect(ctx context.Context, connStr string) error {
 	if mdb.store != nil {
 		logg.WarnCtxf(ctx, "already connected")
 		return nil
@@ -44,7 +44,7 @@ func(mdb *memDb) Connect(ctx context.Context, connStr string) error {
 }
 
 // convert to a supported map key type
-func(mdb *memDb) toHexKey(ctx context.Context, key []byte) (memLookupKey, error) {
+func (mdb *memDb) toHexKey(ctx context.Context, key []byte) (memLookupKey, error) {
 	var mk memLookupKey
 	lk, err := mdb.ToKey(ctx, key)
 	mk.Default = hex.EncodeToString(lk.Default)
@@ -56,7 +56,7 @@ func(mdb *memDb) toHexKey(ctx context.Context, key []byte) (memLookupKey, error)
 }
 
 // Get implements Db
-func(mdb *memDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+func (mdb *memDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	var v []byte
 	var ok bool
 	mk, err := mdb.toHexKey(ctx, key)
@@ -79,7 +79,7 @@ func(mdb *memDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Put implements Db
-func(mdb *memDb) Put(ctx context.Context, key []byte, val []byte) error {
+func (mdb *memDb) Put(ctx context.Context, key []byte, val []byte) error {
 	var k string
 	if !mdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
@@ -99,6 +99,6 @@ func(mdb *memDb) Put(ctx context.Context, key []byte, val []byte) error {
 }
 
 // Close implements Db
-func(mdb *memDb) Close(ctx context.Context) error {
+func (mdb *memDb) Close(ctx context.Context) error {
 	return nil
 }

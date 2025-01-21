@@ -13,21 +13,21 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/asm"
+	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/logging"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/db"
-	fsdb "git.defalsify.org/vise.git/db/fs"
-	"git.defalsify.org/vise.git/logging"
 )
 
 var (
-	logg = logging.NewVanilla()
-	baseDir = testdataloader.GetBasePath()
-	scriptDir = path.Join(baseDir, "examples", "db")
-	store = fsdb.NewFsDb()
-	pr = persist.NewPersister(store)
+	logg          = logging.NewVanilla()
+	baseDir       = testdataloader.GetBasePath()
+	scriptDir     = path.Join(baseDir, "examples", "db")
+	store         = fsdb.NewFsDb()
+	pr            = persist.NewPersister(store)
 	data_selector = []byte("my_data")
 )
 
@@ -109,7 +109,7 @@ func main() {
 		panic(err)
 	}
 	store.SetSession("xyzzy")
-	store.SetLock(db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN, false)
+	store.SetLock(db.DATATYPE_TEMPLATE|db.DATATYPE_MENU|db.DATATYPE_BIN, false)
 	err = genCode(ctx, store)
 	if err != nil {
 		panic(err)
@@ -124,7 +124,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	store.SetLock(db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN, true)
+	store.SetLock(db.DATATYPE_TEMPLATE|db.DATATYPE_MENU|db.DATATYPE_BIN, true)
 
 	tg := resource.NewDbResource(store)
 	rs := resource.NewMenuResource()
@@ -134,7 +134,7 @@ func main() {
 	rs.AddLocalFunc("say", say)
 
 	cfg := engine.Config{
-		Root: "root",
+		Root:      "root",
 		FlagCount: 1,
 	}
 

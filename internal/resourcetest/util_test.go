@@ -8,7 +8,6 @@ package resourcetest
 //	"git.defalsify.org/vise.git/resource"
 //)
 
-
 //type TestSizeResource struct {
 //	*DbResource
 //}

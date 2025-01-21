@@ -1,3 +1,4 @@
+//go:build logtrace
 // +build logtrace
 
 package logging

@@ -1,4 +1,5 @@
 //go:build testlive
+
 package postgres
 
 import (
@@ -34,7 +35,7 @@ func TestLivePutGetPg(t *testing.T) {
 	store.SetSession(ses)
 	ctx := context.Background()
 
-	dbi = store 
+	dbi = store
 	_ = dbi
 
 	err := store.Connect(ctx, "postgres://vise:esiv@localhost:5432/visedb")

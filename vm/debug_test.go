@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-
 func TestToString(t *testing.T) {
 	var b []byte
 	var r string
@@ -52,7 +51,7 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, MAP, []string{"inky_pinky"}, nil, nil) 
+	b = NewLine(nil, MAP, []string{"inky_pinky"}, nil, nil)
 	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
@@ -62,7 +61,7 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, MOVE, []string{"blinky_clyde"}, nil, nil) 
+	b = NewLine(nil, MOVE, []string{"blinky_clyde"}, nil, nil)
 	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
@@ -72,7 +71,7 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, HALT, nil, nil, nil) 
+	b = NewLine(nil, HALT, nil, nil, nil)
 	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
@@ -82,7 +81,7 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, INCMP, []string{"13", "baz"}, nil, nil) 
+	b = NewLine(nil, INCMP, []string{"13", "baz"}, nil, nil)
 	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
@@ -92,7 +91,7 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, MNEXT, []string{"11", "nextmenu"}, nil, nil) 
+	b = NewLine(nil, MNEXT, []string{"11", "nextmenu"}, nil, nil)
 	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
@@ -103,7 +102,7 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, MPREV, []string{"222", "previous menu item"}, nil, nil) 
+	b = NewLine(nil, MPREV, []string{"222", "previous menu item"}, nil, nil)
 	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
@@ -114,7 +113,7 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, MOUT, []string{"1", "foo"}, nil, nil) 
+	b = NewLine(nil, MOUT, []string{"1", "foo"}, nil, nil)
 	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)
@@ -125,7 +124,7 @@ func TestToString(t *testing.T) {
 		t.Fatalf("expected:\n\t%v\ngot:\n\t%v", expect, r)
 	}
 
-	b = NewLine(nil, MSINK, nil, nil, nil) //[]uint8{0x42, 0x2a}) 
+	b = NewLine(nil, MSINK, nil, nil, nil) //[]uint8{0x42, 0x2a})
 	r, err = ph.ToString(b)
 	if err != nil {
 		t.Fatal(err)

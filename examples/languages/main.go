@@ -10,13 +10,13 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 	gotext "gopkg.in/leonelquinteros/gotext.v1"
 
-	"git.defalsify.org/vise.git/lang"
-	"git.defalsify.org/vise.git/persist"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/lang"
+	"git.defalsify.org/vise.git/logging"
+	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	fsdb "git.defalsify.org/vise.git/db/fs"
-	"git.defalsify.org/vise.git/logging"
 )
 
 const (
@@ -24,9 +24,9 @@ const (
 )
 
 var (
-	logg = logging.NewVanilla()
-	baseDir = testdataloader.GetBasePath()
-	scriptDir = path.Join(baseDir, "examples", "languages")
+	logg           = logging.NewVanilla()
+	baseDir        = testdataloader.GetBasePath()
+	scriptDir      = path.Join(baseDir, "examples", "languages")
 	translationDir = path.Join(scriptDir, "locale")
 )
 
@@ -42,10 +42,10 @@ func codeFromCtx(ctx context.Context) string {
 
 type langController struct {
 	translations map[string]gotext.Locale
-	State *state.State
+	State        *state.State
 }
 
-func(l *langController) lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (l *langController) lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	lang := "nor"
 	var rs resource.Result
 	if l.State.MatchFlag(USERFLAG_FLIP, true) {
@@ -61,7 +61,7 @@ func(l *langController) lang(ctx context.Context, sym string, input []byte) (res
 
 func msg(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
-	switch codeFromCtx(ctx)	{
+	switch codeFromCtx(ctx) {
 	case "nor":
 		r.Content = "Denne meldingen er fra en ekstern funksjon"
 	default:
@@ -70,11 +70,11 @@ func msg(ctx context.Context, sym string, input []byte) (resource.Result, error)
 	return r, nil
 }
 
-func(l *langController) moMsg(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (l *langController) moMsg(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
 	code := codeFromCtx(ctx)
 	o := gotext.NewLocale(translationDir, code)
-	o.AddDomain("default")	
+	o.AddDomain("default")
 	r.Content = o.Get("This message is translated using gettext")
 	logg.DebugCtxf(ctx, "lang", "code", code, "translateor", o)
 	return r, nil
@@ -96,7 +96,7 @@ func main() {
 	rs := resource.NewDbResource(rsStore)
 
 	cfg := engine.Config{
-		Root: "root",
+		Root:      "root",
 		SessionId: "default",
 	}
 

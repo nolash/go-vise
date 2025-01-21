@@ -9,11 +9,11 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/logging"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/logging"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 const (
@@ -23,8 +23,8 @@ const (
 )
 
 var (
-	logg = logging.NewVanilla()
-	baseDir = testdataloader.GetBasePath()
+	logg      = logging.NewVanilla()
+	baseDir   = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "state")
 )
 
@@ -32,19 +32,18 @@ type flagResource struct {
 	st *state.State
 }
 
-func(f *flagResource) get(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (f *flagResource) get(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: state.FlagDebugger.AsString(f.st.Flags, 3),
-	}, nil		
+	}, nil
 }
 
-
-func(f *flagResource) do(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (f *flagResource) do(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
 
 	logg.DebugCtxf(ctx, "in do", "sym", sym)
 
-	switch(sym) {
+	switch sym {
 	case "do_foo":
 		if f.st.MatchFlag(USER_FOO, false) {
 			r.FlagSet = append(r.FlagSet, USER_FOO)
@@ -66,7 +65,7 @@ func(f *flagResource) do(ctx context.Context, sym string, input []byte) (resourc
 	}
 	return r, nil
 }
-	     
+
 func main() {
 	root := "root"
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, scriptDir)

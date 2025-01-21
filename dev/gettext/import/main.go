@@ -9,16 +9,15 @@ import (
 	"path"
 	"strings"
 
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/debug"
 	"git.defalsify.org/vise.git/lang"
-	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/logging"
-	fsdb "git.defalsify.org/vise.git/db/fs"
-
+	"git.defalsify.org/vise.git/resource"
 )
 
 var (
-	logg = logging.NewVanilla()
+	logg         = logging.NewVanilla()
 	writeDomains = []string{
 		resource.PoDomain,
 		resource.TemplateKeyPoDomain,
@@ -28,23 +27,23 @@ var (
 )
 
 type translator struct {
-	langs []lang.Language
-	ctx context.Context
-	rs resource.Resource
+	langs   []lang.Language
+	ctx     context.Context
+	rs      resource.Resource
 	newline bool
-	d string
+	d       string
 }
 
 func newTranslator(ctx context.Context, rs resource.Resource, outPath string, newline bool) *translator {
 	return &translator{
-		ctx: ctx,
-		rs: rs,
-		d: outPath,
+		ctx:     ctx,
+		rs:      rs,
+		d:       outPath,
 		newline: newline,
 	}
 }
 
-func(tr *translator) ensureFileNameFor(ln lang.Language, domain string) (string, error) {
+func (tr *translator) ensureFileNameFor(ln lang.Language, domain string) (string, error) {
 	fileName := domain + ".po"
 	p := path.Join(tr.d, ln.Code)
 	err := os.MkdirAll(p, 0700)
@@ -55,16 +54,16 @@ func(tr *translator) ensureFileNameFor(ln lang.Language, domain string) (string,
 }
 
 // skip default*.po for translations other than default
-func(tr *translator) writersFor(ln lang.Language) ([]io.WriteCloser, error) {
+func (tr *translator) writersFor(ln lang.Language) ([]io.WriteCloser, error) {
 	var r []io.WriteCloser
 	_, ready := writeDomainReady[ln.Code]
-	for _, v := range(writeDomains) {
+	for _, v := range writeDomains {
 		fp, err := tr.ensureFileNameFor(ln, v)
 		if err != nil {
 			return r, err
 		}
 		if !ready {
-			w, err := os.OpenFile(fp, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0644)
+			w, err := os.OpenFile(fp, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 			if err != nil {
 				return r, err
 			}
@@ -80,7 +79,7 @@ msgstr ""
 			}
 			w.Close()
 		}
-		w, err := os.OpenFile(fp, os.O_WRONLY | os.O_APPEND, 0644)
+		w, err := os.OpenFile(fp, os.O_WRONLY|os.O_APPEND, 0644)
 		logg.DebugCtxf(tr.ctx, "writer", "fp", fp)
 		if err != nil {
 			return r, err
@@ -91,7 +90,7 @@ msgstr ""
 	return r, nil
 }
 
-func(tr *translator) writeTranslation(w io.Writer, sym string, msgid string, msgstr string) error {
+func (tr *translator) writeTranslation(w io.Writer, sym string, msgid string, msgstr string) error {
 	s := fmt.Sprintf(`#: vise_node.%s
 msgid ""
 %s
@@ -106,16 +105,16 @@ msgstr ""
 	return nil
 }
 
-func(tr *translator) closeWriters(writers []io.WriteCloser) {
-	for _, w := range(writers) {
+func (tr *translator) closeWriters(writers []io.WriteCloser) {
+	for _, w := range writers {
 		w.Close()
 	}
 }
 
 // TODO: DRY; merge with menuFunc
-func(tr *translator) nodeFunc(node *debug.Node) error {
+func (tr *translator) nodeFunc(node *debug.Node) error {
 	var def string
-	for i, ln := range(tr.langs) {
+	for i, ln := range tr.langs {
 		var s string
 		ww, err := tr.writersFor(ln)
 		defer tr.closeWriters(ww)
@@ -126,7 +125,7 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 		r, err := tr.rs.GetTemplate(ctx, node.Name)
 		if err == nil {
 			logg.TraceCtxf(tr.ctx, "template found", "lang", ln, "node", node.Name)
-			for i, v := range(strings.Split(r, "\n")) {
+			for i, v := range strings.Split(r, "\n") {
 				if i > 0 {
 					if tr.newline {
 						s += fmt.Sprintf("\t\"\\n\"\n")
@@ -153,9 +152,9 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 }
 
 // TODO: drop the multiline gen
-func(tr *translator) menuFunc(sym string) error {
+func (tr *translator) menuFunc(sym string) error {
 	var def string
-	for i, ln := range(tr.langs) {
+	for i, ln := range tr.langs {
 		var s string
 		ww, err := tr.writersFor(ln)
 		defer tr.closeWriters(ww)
@@ -166,7 +165,7 @@ func(tr *translator) menuFunc(sym string) error {
 		r, err := tr.rs.GetMenu(ctx, sym)
 		if err == nil {
 			logg.TraceCtxf(tr.ctx, "menu found", "lang", ln, "menu", sym)
-			for i, v := range(strings.Split(r, "\n")) {
+			for i, v := range strings.Split(r, "\n") {
 				if i > 0 {
 					if tr.newline {
 						s += fmt.Sprintf("\t\"\\n\"\n")
@@ -192,7 +191,7 @@ func(tr *translator) menuFunc(sym string) error {
 	return nil
 }
 
-func(tr *translator) AddLang(ln lang.Language) error {
+func (tr *translator) AddLang(ln lang.Language) error {
 	var err error
 	tr.langs = append(tr.langs, ln)
 	return err
@@ -202,7 +201,7 @@ type langVar struct {
 	v []lang.Language
 }
 
-func(lv *langVar) Set(s string) error {
+func (lv *langVar) Set(s string) error {
 	v, err := lang.LanguageFromCode(s)
 	if err != nil {
 		return err
@@ -211,15 +210,15 @@ func(lv *langVar) Set(s string) error {
 	return err
 }
 
-func(lv *langVar) String() string {
+func (lv *langVar) String() string {
 	var s []string
-	for _, v := range(lv.v) {
+	for _, v := range lv.v {
 		s = append(s, v.Code)
 	}
 	return strings.Join(s, ",")
 }
 
-func(lv *langVar) Langs() []lang.Language {
+func (lv *langVar) Langs() []lang.Language {
 	return lv.v
 }
 
@@ -256,7 +255,7 @@ func main() {
 	rs := resource.NewDbResource(rsStore)
 
 	tr := newTranslator(ctx, rs, outDir, newline)
-	for _, ln := range(langs.Langs()) {
+	for _, ln := range langs.Langs() {
 		logg.DebugCtxf(ctx, "lang", "lang", ln)
 		err = tr.AddLang(ln)
 		if err != nil {
@@ -271,8 +270,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "node tree process fail: %v", err)
 		os.Exit(1)
 	}
-	
-	for k, v := range(debug.NodeIndex) {
+
+	for k, v := range debug.NodeIndex {
 		err = tr.nodeFunc(&v)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "translate process error for node %s: %v", k, err)
@@ -280,7 +279,7 @@ func main() {
 		}
 	}
 
-	for k, _ := range(debug.MenuIndex) {
+	for k, _ := range debug.MenuIndex {
 		logg.Tracef("processing menu", "sym", k)
 		err = tr.menuFunc(k)
 		if err != nil {

@@ -6,10 +6,10 @@ import (
 	"math/rand"
 	"testing"
 
-	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/internal/resourcetest"
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/internal/resourcetest"
+	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/state"
 )
 
 type testSizeResource struct {
@@ -150,7 +150,7 @@ func TestSizePages(t *testing.T) {
 	mn.Put("2", "go to bar")
 
 	ctx := context.Background()
-	r, err := pg.Render(ctx, "pages",  0)
+	r, err := pg.Render(ctx, "pages", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +162,6 @@ tinkywinky dipsy
 lala poo
 1:foo the foo
 2:go to bar`
-
 
 	if r != expect {
 		t.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, r)
@@ -188,11 +187,11 @@ func TestManySizes(t *testing.T) {
 	for i := 60; i < 160; i++ {
 		st := state.NewState(0)
 		ca := cache.NewCache()
-		mn := NewMenu() //.WithOutputSize(32)
+		mn := NewMenu()             //.WithOutputSize(32)
 		rs := newTestSizeResource() //.WithEntryFuncGetter(funcFor).WithTemplateGetter(getTemplate)
 		rs.Lock()
 		//rs := TestSizeResource{
-		//	mrs,	
+		//	mrs,
 		//}
 		szr := NewSizer(uint32(i))
 		pg := NewPage(ca, rs).WithSizer(szr).WithMenu(mn)
@@ -258,7 +257,7 @@ func TestMenuCollideSink(t *testing.T) {
 	ca.Add("inky", "pinky", 5)
 	ca.Add("blinky", "clyde", 0)
 	pg.Map("inky")
-	
+
 	mn := NewMenu().WithSink()
 	pg = pg.WithMenu(mn)
 
@@ -267,7 +266,7 @@ func TestMenuCollideSink(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	mn = NewMenu().WithSink()
 	pg = pg.WithMenu(mn)
 	pg.Map("blinky")
@@ -351,7 +350,6 @@ func TestMenuSink(t *testing.T) {
 	ca.Add("baz", "xyzzy", 5)
 	pg.Map("baz")
 
-
 	r, err = pg.Render(ctx, "foo", 2)
 	if err != nil {
 		t.Fatal(err)
@@ -372,7 +370,7 @@ func TestMiddlePage(t *testing.T) {
 	mn := NewMenu().WithBrowseConfig(DefaultBrowseConfig())
 	rs := newTestSizeResource()
 	rs.Lock()
-		content := ""
+	content := ""
 	for i := 0; i < 42; i++ {
 		v := rand.Intn(26)
 		b := make([]byte, 3+(v%3))
@@ -401,4 +399,3 @@ func TestMiddlePage(t *testing.T) {
 	}
 	fmt.Printf("%s\n", r)
 }
-

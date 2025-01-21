@@ -22,17 +22,17 @@ const (
 
 var (
 	levelStr = map[int]string{
-		LVL_ERROR: "E",	
-		LVL_WARN: "W",	
-		LVL_INFO: "I",	
-		LVL_DEBUG: "D",	
-		LVL_TRACE: "T",	
+		LVL_ERROR: "E",
+		LVL_WARN:  "W",
+		LVL_INFO:  "I",
+		LVL_DEBUG: "D",
+		LVL_TRACE: "T",
 	}
 )
 
 // AsString returns the string representation used in logging output for the given log level.
 func AsString(level int) string {
-	return levelStr[level]	
+	return levelStr[level]
 }
 
 type Logger interface {
@@ -65,4 +65,3 @@ type Logger interface {
 	// ErrorCtxf logs a line with context to the default writer the ERROR loglevel.
 	ErrorCtxf(ctx context.Context, msg string, args ...any)
 }
-

@@ -11,25 +11,24 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/db"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
-	baseDir = testdataloader.GetBasePath()
-	scriptDir = path.Join(baseDir, "examples", "static")
+	baseDir     = testdataloader.GetBasePath()
+	scriptDir   = path.Join(baseDir, "examples", "static")
 	emptyResult = resource.Result{}
 )
 
 func out(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
-		Content: "foo",	
+		Content: "foo",
 	}, nil
 }
-
 
 func main() {
 	var useInternal bool

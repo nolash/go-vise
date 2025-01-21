@@ -15,16 +15,15 @@ import (
 	"git.defalsify.org/vise.git/asm"
 )
 
-
 type arg struct {
-	One *string `(@Sym | @NumFirst)`
-	Two *string `((@Sym | @NumFirst) Whitespace?)?`
+	One   *string `(@Sym | @NumFirst)`
+	Two   *string `((@Sym | @NumFirst) Whitespace?)?`
 	Three *string `((@Sym | @NumFirst) Whitespace?)?`
 }
 
 type instruction struct {
-	OpCode string `@Ident`
-	OpArg arg `(Whitespace @@)?`
+	OpCode  string `@Ident`
+	OpArg   arg    `(Whitespace @@)?`
 	Comment string `Comment? EOL`
 }
 
@@ -34,8 +33,7 @@ type asmAsm struct {
 
 type processor struct {
 	*asm.FlagParser
-	
-} 
+}
 
 func newProcessor(fp string) (*processor, error) {
 	o := &processor{
@@ -45,8 +43,7 @@ func newProcessor(fp string) (*processor, error) {
 	return o, err
 }
 
-
-func(p *processor) processFlag(s []string, one *string, two *string) ([]string, error) {
+func (p *processor) processFlag(s []string, one *string, two *string) ([]string, error) {
 	_, err := strconv.Atoi(*one)
 	if err != nil {
 		r, err := p.GetAsString(*one)
@@ -61,7 +58,7 @@ func(p *processor) processFlag(s []string, one *string, two *string) ([]string, 
 	return append(s, *two), nil
 }
 
-func(p *processor) pass(s []string, a arg) []string {
+func (p *processor) pass(s []string, a arg) []string {
 	for _, r := range []*string{a.One, a.Two, a.Three} {
 		if r == nil {
 			break
@@ -71,7 +68,7 @@ func(p *processor) pass(s []string, a arg) []string {
 	return s
 }
 
-func(pp *processor) run(b []byte) ([]byte, error) {
+func (pp *processor) run(b []byte) ([]byte, error) {
 	asmLexer := lexer.MustSimple([]lexer.SimpleRule{
 		{"Comment", `(?:#)[^\n]*`},
 		{"Ident", `^[A-Z]+`},
@@ -89,25 +86,25 @@ func(pp *processor) run(b []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	b = []byte{}
 	for _, v := range ast.Instructions {
 		s := []string{v.OpCode}
 		if v.OpArg.One != nil {
 			switch v.OpCode {
-				case "CATCH":
-					s = append(s, *v.OpArg.One)
-					s, err = pp.processFlag(s, v.OpArg.Two, v.OpArg.Three)
-					if err != nil {
-						return nil, err
-					}
-				case "CROAK":
-					s, err = pp.processFlag(s, v.OpArg.One, v.OpArg.Two)
-					if err != nil {
-						return nil, err
-					}
-				default:
-					s = pp.pass(s, v.OpArg)
+			case "CATCH":
+				s = append(s, *v.OpArg.One)
+				s, err = pp.processFlag(s, v.OpArg.Two, v.OpArg.Three)
+				if err != nil {
+					return nil, err
+				}
+			case "CROAK":
+				s, err = pp.processFlag(s, v.OpArg.One, v.OpArg.Two)
+				if err != nil {
+					return nil, err
+				}
+			default:
+				s = pp.pass(s, v.OpArg)
 			}
 		}
 		b = append(b, []byte(strings.Join(s, " "))...)
@@ -121,7 +118,7 @@ func main() {
 	var ppfp string
 	flag.StringVar(&ppfp, "f", "", "preprocessor data to load")
 	flag.Parse()
-	if (len(flag.Args()) < 1) {
+	if len(flag.Args()) < 1 {
 		os.Exit(1)
 	}
 	fp := flag.Arg(0)

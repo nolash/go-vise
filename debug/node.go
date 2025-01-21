@@ -1,9 +1,9 @@
 package debug
 
 type Node struct {
-	Name string
+	Name        string
 	Description string
-	conn []string
+	conn        []string
 }
 
 var (
@@ -13,7 +13,7 @@ var (
 
 func (n *Node) haveConn(peer string) bool {
 	var v string
-	for _, v = range(n.conn) {
+	for _, v = range n.conn {
 		if peer == v {
 			return true
 		}

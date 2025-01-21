@@ -127,7 +127,7 @@ func TestDbGetterDirect(t *testing.T) {
 		t.Fatal(err)
 	}
 	r, err := fn(ctx, "", nil)
-if err != nil {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if r.Content != "blinky" {

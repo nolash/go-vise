@@ -14,11 +14,11 @@ import (
 // gdbmDb is a gdbm backend implementation of the Db interface.
 type gdbmDb struct {
 	*db.DbBase
-	conn *gdbm.Database
+	conn     *gdbm.Database
 	readOnly bool
-	prefix uint8
-	it gdbm.DatabaseIterator
-	itBase []byte
+	prefix   uint8
+	it       gdbm.DatabaseIterator
+	itBase   []byte
 }
 
 // Creates a new gdbm backed Db implementation.
@@ -36,13 +36,13 @@ func NewGdbmDb() *gdbmDb {
 // However, only one single write database.
 //
 // Readonly cannot be set when creating a new database.
-func(gdb *gdbmDb) WithReadOnly() *gdbmDb {
+func (gdb *gdbmDb) WithReadOnly() *gdbmDb {
 	gdb.readOnly = true
 	return gdb
 }
 
 // String implements the string interface.
-func(gdb *gdbmDb) String() string {
+func (gdb *gdbmDb) String() string {
 	fn, err := gdb.conn.FileName()
 	if err != nil {
 		fn = "??"
@@ -51,7 +51,7 @@ func(gdb *gdbmDb) String() string {
 }
 
 // Connect implements Db
-func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
+func (gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 	if gdb.conn != nil {
 		logg.WarnCtxf(ctx, "already connected", "conn", gdb.conn)
 		return nil
@@ -59,7 +59,7 @@ func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 	var db *gdbm.Database
 	cfg := gdbm.DatabaseConfig{
 		FileName: connStr,
-		Flags: gdbm.OF_NOLOCK | gdbm.OF_PREREAD,
+		Flags:    gdbm.OF_NOLOCK | gdbm.OF_PREREAD,
 		FileMode: 0600,
 	}
 
@@ -89,7 +89,7 @@ func(gdb *gdbmDb) Connect(ctx context.Context, connStr string) error {
 }
 
 // Put implements Db
-func(gdb *gdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
+func (gdb *gdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !gdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
 	}
@@ -105,7 +105,7 @@ func(gdb *gdbmDb) Put(ctx context.Context, key []byte, val []byte) error {
 }
 
 // Get implements Db
-func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
+func (gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 	var v []byte
 	lk, err := gdb.ToKey(ctx, key)
 	if err != nil {
@@ -133,7 +133,7 @@ func(gdb *gdbmDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Close implements Db
-func(gdb *gdbmDb) Close(ctx context.Context) error {
+func (gdb *gdbmDb) Close(ctx context.Context) error {
 	logg.TraceCtxf(ctx, "closing gdbm", "path", gdb.conn)
 	return gdb.conn.Close()
 }

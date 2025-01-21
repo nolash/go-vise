@@ -27,26 +27,26 @@ func newFlagDebugger() flagDebugger {
 	return fd
 }
 
-func(fd *flagDebugger) register(flag uint32, name string) {
+func (fd *flagDebugger) register(flag uint32, name string) {
 	fd.flagStrings[flag] = name
 }
 
-func(fd *flagDebugger) Register(flag uint32, name string) error {
-	if (flag < 8) {
+func (fd *flagDebugger) Register(flag uint32, name string) error {
+	if flag < 8 {
 		return fmt.Errorf("flag %v is not definable by user", flag)
 	}
 	fd.register(flag, name)
 	return nil
 }
 
-func(fd *flagDebugger) AsString(flags []byte, length uint32) string {
+func (fd *flagDebugger) AsString(flags []byte, length uint32) string {
 	return strings.Join(fd.AsList(flags, length), ",")
 }
 
-func(fd *flagDebugger) AsList(flags []byte, length uint32) []string {
+func (fd *flagDebugger) AsList(flags []byte, length uint32) []string {
 	var r []string
 	var i uint32
-	for i = 0; i < length + 8; i++ {
+	for i = 0; i < length+8; i++ {
 		if getFlag(i, flags) {
 			v, ok := fd.flagStrings[i]
 			if !ok {

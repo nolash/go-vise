@@ -28,7 +28,7 @@ func TestDebugFlagString(t *testing.T) {
 	}
 	flags := []byte{0x06, 0x19}
 	r := FlagDebugger.AsString(flags, 5)
-	expect := "INTERNAL_INMATCH(1),INTERNAL_WAIT(2),FOO(8),BAZ(11),?unreg?(12)" 
+	expect := "INTERNAL_INMATCH(1),INTERNAL_WAIT(2),FOO(8),BAZ(11),?unreg?(12)"
 	if r != expect {
 		t.Fatalf("expected '%s', got '%s'", expect, r)
 	}
@@ -51,4 +51,3 @@ func TestDebugState(t *testing.T) {
 		t.Fatalf("expected '%s', got '%s'", expect, r)
 	}
 }
-

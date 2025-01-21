@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/db/mem"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/vm"
-	"git.defalsify.org/vise.git/db/mem"
 )
 
 func TestSerializeState(t *testing.T) {
@@ -131,7 +131,7 @@ func TestSaveLoadFlags(t *testing.T) {
 	}
 
 	prnew := NewPersister(store)
-	
+
 	err = prnew.Load("xyzzy")
 	if err != nil {
 		t.Fatal(err)

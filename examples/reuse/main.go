@@ -9,14 +9,14 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
-	baseDir = testdataloader.GetBasePath()
-	scriptDir = path.Join(baseDir, "examples", "reuse")
+	baseDir     = testdataloader.GetBasePath()
+	scriptDir   = path.Join(baseDir, "examples", "reuse")
 	emptyResult = resource.Result{}
 )
 
@@ -37,7 +37,7 @@ func main() {
 		panic(err)
 	}
 	rs := resource.NewDbResource(store)
-	
+
 	rs.AddLocalFunc("do_foo", same)
 	rs.AddLocalFunc("do_bar", same)
 	cfg := engine.Config{

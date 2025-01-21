@@ -11,8 +11,8 @@ const (
 )
 
 var (
-	ErrTxExist = errors.New("tx already exists")
-	ErrNoTx = errors.New("tx does not exist")
+	ErrTxExist  = errors.New("tx already exists")
+	ErrNoTx     = errors.New("tx does not exist")
 	ErrSingleTx = errors.New("not a multi-instruction tx")
 )
 
@@ -27,7 +27,7 @@ func NewErrNotFound(k []byte) error {
 }
 
 // Error implements Error.
-func(e ErrNotFound) Error() string {
+func (e ErrNotFound) Error() string {
 	return fmt.Sprintf("%s%x", notFoundPrefix, e.k)
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 type NodeMap struct {
-	st *state.State
+	st   *state.State
 	root Node
 	outs []string
 }
@@ -22,7 +22,7 @@ func NewNodeMap(root string) *NodeMap {
 	return n
 }
 
-func(nm *NodeMap) Run(ctx context.Context, rs resource.Resource) error {
+func (nm *NodeMap) Run(ctx context.Context, rs resource.Resource) error {
 	ph := NewNodeParseHandler(&nm.root)
 	b, err := rs.GetCode(ctx, nm.root.Name)
 	if err != nil {
@@ -36,8 +36,8 @@ func(nm *NodeMap) Run(ctx context.Context, rs resource.Resource) error {
 	return nm.processNode(ctx, &nm.root, rs)
 }
 
-func(nm *NodeMap) processNode(ctx context.Context, node *Node, rs resource.Resource) error {
-	for i, v := range(nm.st.ExecPath) {
+func (nm *NodeMap) processNode(ctx context.Context, node *Node, rs resource.Resource) error {
+	for i, v := range nm.st.ExecPath {
 		if v == node.Name {
 			logg.InfoCtxf(ctx, "loop detected", "pos", i, "node", node.Name, "path", nm.st.ExecPath)
 			return nil

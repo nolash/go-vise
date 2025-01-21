@@ -4,24 +4,25 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-//	"io/ioutil"
+
+	//	"io/ioutil"
 	"log"
-//	"path"
+	//	"path"
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/lang"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/testdata"
 	"git.defalsify.org/vise.git/vm"
-	"git.defalsify.org/vise.git/db"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
-	dataGenerated bool = false
-	dataDir string = testdata.DataDir
+	dataGenerated bool   = false
+	dataDir       string = testdata.DataDir
 )
 
 type testWrapper struct {
@@ -33,11 +34,11 @@ type testWrapper struct {
 func newTestWrapper(path string, st *state.State) testWrapper {
 	ctx := context.Background()
 	store := fsdb.NewFsDb()
-	store.Connect(ctx, path) 
+	store.Connect(ctx, path)
 	rs := resource.NewDbResource(store)
 	rs.With(db.DATATYPE_STATICLOAD)
-	wr := testWrapper {
-		rs, 
+	wr := testWrapper{
+		rs,
 		st,
 		store,
 	}
@@ -50,30 +51,30 @@ func newTestWrapper(path string, st *state.State) testWrapper {
 	return wr
 }
 
-func(fs testWrapper) getStore() db.Db {
+func (fs testWrapper) getStore() db.Db {
 	return fs.db
 }
 
-func(fs testWrapper) one(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (fs testWrapper) one(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: "one",
 	}, nil
 }
 
-func(fs testWrapper) inky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (fs testWrapper) inky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: "tinkywinky",
 	}, nil
 }
 
-func(fs testWrapper) pinky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (fs testWrapper) pinky(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	r := fmt.Sprintf("xyzzy: %x", input)
 	return resource.Result{
 		Content: r,
 	}, nil
 }
 
-func(fs testWrapper) translate(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (fs testWrapper) translate(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	r := "cool"
 	v := ctx.Value("Language")
 	code := ""
@@ -89,7 +90,7 @@ func(fs testWrapper) translate(ctx context.Context, sym string, input []byte) (r
 	}, nil
 }
 
-func(fs testWrapper) set_lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (fs testWrapper) set_lang(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: string(input),
 		FlagSet: []uint32{state.FLAG_LANG},
@@ -191,7 +192,7 @@ func TestEngineExecInvalidInput(t *testing.T) {
 
 	cfg := Config{
 		Root: "root",
-	}	
+	}
 	en := NewEngine(cfg, &rs)
 	en = en.WithState(st)
 	en = en.WithMemory(ca)
@@ -213,7 +214,7 @@ func TestEngineResumeTerminated(t *testing.T) {
 	st := state.NewState(17)
 	rs := newTestWrapper(dataDir, st)
 	ca := cache.NewCache().WithCacheSize(1024)
-	
+
 	cfg := Config{
 		Root: "root",
 	}
@@ -284,7 +285,6 @@ func TestLanguageSet(t *testing.T) {
 		t.Fatalf("expected 'cool', got '%s'", r)
 	}
 
-
 	b = vm.NewLine(nil, vm.RELOAD, []string{"translate"}, nil, nil)
 	b = vm.NewLine(b, vm.MOVE, []string{"."}, nil, nil)
 	st.SetCode(b)
@@ -331,7 +331,7 @@ func TestLanguageRender(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	br := bytes.NewBuffer(nil)
 	_, err = en.Flush(ctx, br)
 	if err != nil {
@@ -353,7 +353,7 @@ func TestConfigLanguageRender(t *testing.T) {
 	ca := cache.NewCache()
 
 	cfg := Config{
-		Root: "root",
+		Root:     "root",
 		Language: "nor",
 	}
 	en := NewEngine(cfg, &rs)
@@ -380,7 +380,7 @@ func TestConfigLanguageRender(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	expect := `dette endrer med språket tinkywinky
 0:tilbake`
 	r := br.String()

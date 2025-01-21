@@ -9,8 +9,8 @@ import (
 	"io/fs"
 	"log"
 	"os"
-	"path/filepath"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"git.defalsify.org/vise.git/db"
@@ -20,37 +20,37 @@ import (
 )
 
 var (
-	binaryPrefix = ".bin"
-	menuPrefix = "menu"
+	binaryPrefix     = ".bin"
+	menuPrefix       = "menu"
 	staticloadPrefix = ".txt"
-	templatePrefix = ""
-	scan = make(map[string]string)
-	logg = logging.NewVanilla()
-	dbg = map[uint8]string{
-		db.DATATYPE_BIN: "BIN",
-		db.DATATYPE_TEMPLATE: "TEMPLATE",
-		db.DATATYPE_MENU: "MENU",
+	templatePrefix   = ""
+	scan             = make(map[string]string)
+	logg             = logging.NewVanilla()
+	dbg              = map[uint8]string{
+		db.DATATYPE_BIN:        "BIN",
+		db.DATATYPE_TEMPLATE:   "TEMPLATE",
+		db.DATATYPE_MENU:       "MENU",
 		db.DATATYPE_STATICLOAD: "STATICLOAD",
 	}
 )
 
 type scanner struct {
 	ctx context.Context
-	db db.Db
+	db  db.Db
 }
 
 func newScanner(ctx context.Context, db db.Db) (*scanner, error) {
 	return &scanner{
 		ctx: ctx,
-		db: db,
+		db:  db,
 	}, nil
 }
 
-func(sc *scanner) Close() error {
+func (sc *scanner) Close() error {
 	return sc.db.Close(sc.ctx)
 }
 
-func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error { 
+func (sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 	if err != nil {
 		return err
 	}
@@ -59,38 +59,38 @@ func(sc *scanner) Scan(fp string, d fs.DirEntry, err error) error {
 	}
 	fx := path.Ext(fp)
 	fb := path.Base(fp)
-	if (len(fb) == 0) {
+	if len(fb) == 0 {
 		return nil
 	}
-	if (fb[0] < 0x61 || fb[0] > 0x7A) {
+	if fb[0] < 0x61 || fb[0] > 0x7A {
 		return nil
 	}
 	sc.db.SetPrefix(db.DATATYPE_UNKNOWN)
 	switch fx {
-		case binaryPrefix:
-			sc.db.SetPrefix(db.DATATYPE_BIN)
-			//typ = db.DATATYPE_BIN
-		case templatePrefix:
-			if strings.Contains(fb, "_menu") {
-				sc.db.SetPrefix(db.DATATYPE_TEMPLATE)
-				//typ = db.DATATYPE_TEMPLATE
-			} else {
-				sc.db.SetPrefix(db.DATATYPE_MENU)
-				//typ = db.DATATYPE_MENU
-			}
-		case staticloadPrefix:
-			sc.db.SetPrefix(db.DATATYPE_STATICLOAD)
-		default:
-			log.Printf("skip foreign file: %s", fp)
-			return nil
+	case binaryPrefix:
+		sc.db.SetPrefix(db.DATATYPE_BIN)
+		//typ = db.DATATYPE_BIN
+	case templatePrefix:
+		if strings.Contains(fb, "_menu") {
+			sc.db.SetPrefix(db.DATATYPE_TEMPLATE)
+			//typ = db.DATATYPE_TEMPLATE
+		} else {
+			sc.db.SetPrefix(db.DATATYPE_MENU)
+			//typ = db.DATATYPE_MENU
+		}
+	case staticloadPrefix:
+		sc.db.SetPrefix(db.DATATYPE_STATICLOAD)
+	default:
+		log.Printf("skip foreign file: %s", fp)
+		return nil
 	}
 	f, err := os.Open(fp)
 	defer f.Close()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	v, err := io.ReadAll(f)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -151,7 +151,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to connect to output db: %s", err)
 		os.Exit(1)
 	}
-	
+
 	store.SetLock(db.DATATYPE_BIN, false)
 	store.SetLock(db.DATATYPE_TEMPLATE, false)
 	store.SetLock(db.DATATYPE_MENU, false)

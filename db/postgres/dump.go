@@ -1,13 +1,13 @@
 package postgres
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 
 	"git.defalsify.org/vise.git/db"
 )
 
-func(pdb *pgDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
+func (pdb *pgDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func(pdb *pgDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	return nil, db.NewErrNotFound(k)
 }
 
-func(pdb *pgDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
+func (pdb *pgDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 	var kk []byte
 	var vv []byte
 	if !pdb.it.Next() {
@@ -68,7 +68,7 @@ func(pdb *pgDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 	return k, vv
 }
 
-func(pdb *pgDb) closeFunc() error {
+func (pdb *pgDb) closeFunc() error {
 	if pdb.it != nil {
 		pdb.it.Close()
 		pdb.it = nil

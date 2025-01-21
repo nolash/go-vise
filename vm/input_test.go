@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/state"
 )
 
 func TestPhoneInput(t *testing.T) {

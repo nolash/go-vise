@@ -3,14 +3,14 @@ package resourcetest
 import (
 	"context"
 
-	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/db/mem"
 	"git.defalsify.org/vise.git/db"
+	"git.defalsify.org/vise.git/db/mem"
+	"git.defalsify.org/vise.git/resource"
 )
 
 type TestResource struct {
 	*resource.DbResource
-	db db.Db
+	db  db.Db
 	ctx context.Context
 }
 
@@ -47,36 +47,36 @@ func newTestResource(path string) *TestResource {
 	rsd := resource.NewDbResource(store)
 	rs := &TestResource{
 		DbResource: rsd,
-		ctx: ctx,
-		db: store,
+		ctx:        ctx,
+		db:         store,
 	}
 	return rs
 }
 
-func(tr *TestResource) AddTemplate(ctx context.Context, key string, val string) error {
+func (tr *TestResource) AddTemplate(ctx context.Context, key string, val string) error {
 	tr.db.SetPrefix(db.DATATYPE_TEMPLATE)
 	return tr.db.Put(ctx, []byte(key), []byte(val))
 }
 
-func(tr *TestResource) AddBytecode(ctx context.Context, key string, val []byte) error {
+func (tr *TestResource) AddBytecode(ctx context.Context, key string, val []byte) error {
 	tr.db.SetPrefix(db.DATATYPE_BIN)
 	return tr.db.Put(ctx, []byte(key), val)
 }
 
-func(tr *TestResource) AddMenu(ctx context.Context, key string, val string) error {
+func (tr *TestResource) AddMenu(ctx context.Context, key string, val string) error {
 	tr.db.SetPrefix(db.DATATYPE_MENU)
 	return tr.db.Put(ctx, []byte(key), []byte(val))
 }
 
-func(tr *TestResource) AddFunc(ctx context.Context, key string, fn resource.EntryFunc) {
+func (tr *TestResource) AddFunc(ctx context.Context, key string, fn resource.EntryFunc) {
 	tr.AddLocalFunc(key, fn)
 }
 
-func(tr *TestResource) AddStatic(ctx context.Context, key string, val string) error {
+func (tr *TestResource) AddStatic(ctx context.Context, key string, val string) error {
 	tr.db.SetPrefix(db.DATATYPE_STATICLOAD)
 	return tr.db.Put(ctx, []byte(key), []byte(val))
 }
 
-func(tr *TestResource) Lock() {
+func (tr *TestResource) Lock() {
 	tr.db.SetLock(0, true)
 }

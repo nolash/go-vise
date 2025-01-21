@@ -11,12 +11,12 @@ import (
 	"os"
 	"path"
 
+	fsdb "git.defalsify.org/vise.git/db/fs"
+	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/logging"
+	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/engine"
-	"git.defalsify.org/vise.git/persist"
-	"git.defalsify.org/vise.git/logging"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 const (
@@ -31,7 +31,7 @@ var (
 )
 
 type fsData struct {
-	path string
+	path      string
 	persister *persist.Persister
 }
 
@@ -67,7 +67,7 @@ func (fsd *fsData) poke(ctx context.Context, sym string, input []byte) (resource
 		if st.MatchFlag(v, true) {
 			logg.DebugCtxf(ctx, "match on flag", "flag", v)
 			res.FlagReset = append(res.FlagReset, v)
-			res.FlagSet = append(res.FlagSet, v + 1)
+			res.FlagSet = append(res.FlagSet, v+1)
 			break
 		}
 	}
@@ -97,7 +97,7 @@ func main() {
 	}
 	rs := resource.NewDbResource(rsStore)
 	cfg := engine.Config{
-		Root: "root",
+		Root:      "root",
 		SessionId: sessionId,
 		FlagCount: 4,
 	}
@@ -116,7 +116,7 @@ func main() {
 
 	fp := path.Join(dp, sessionId)
 	aux := &fsData{
-		path: fp,
+		path:      fp,
 		persister: pr,
 	}
 	rs.AddLocalFunc("poke", aux.poke)

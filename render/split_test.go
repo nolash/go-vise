@@ -1,8 +1,8 @@
 package render
 
 import (
-//	"bytes"
-//	"log"
+	//	"bytes"
+	//	"log"
 	"testing"
 )
 
@@ -52,7 +52,7 @@ func TestSplitPaginate(t *testing.T) {
 //	menu := NewMenu().WithBrowseConfig(menuCfg)
 //	menu.Put("0", "foo")
 //	menu.Put("1", "bar")
-//	
+//
 //	vals := []string{"inky", "pinky", "blinky", "clyde", "tinkywinky", "dipsy", "lala", "pu"}
 //	v := bookmark(vals)
 ////	vv, err := paginate(v, 15, 0, 0)
@@ -102,7 +102,7 @@ func TestSplitPaginate(t *testing.T) {
 //	expectBytes = append(expectBytes, []byte("lala")...)
 //	expectBytes = append(expectBytes, byte(0x00))
 //	expectBytes = append(expectBytes, []byte("pu")...)
-//	
+//
 //	if !bytes.Equal([]byte(s), expectBytes) {
 //		t.Fatalf("expected:\n\t%s\ngot:\n\t%x\n", expectBytes, s)
 //	}

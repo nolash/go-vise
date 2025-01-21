@@ -14,26 +14,26 @@ import (
 // Page executes output rendering into pages constrained by size.
 type Page struct {
 	cacheMap map[string]string // Mapped content symbols
-	cache cache.Memory // Content store.
+	cache    cache.Memory      // Content store.
 	resource resource.Resource // Symbol resolver.
-	menu *Menu // Menu rendererer.
-	sink *string // Content symbol rendered by dynamic size.
-	sizer *Sizer // Process size constraints.
-	err error // Error state to prepend to output.
-	extra string // Extra content to append to received template
+	menu     *Menu             // Menu rendererer.
+	sink     *string           // Content symbol rendered by dynamic size.
+	sizer    *Sizer            // Process size constraints.
+	err      error             // Error state to prepend to output.
+	extra    string            // Extra content to append to received template
 }
 
 // NewPage creates a new Page object.
 func NewPage(cache cache.Memory, rs resource.Resource) *Page {
 	return &Page{
-		cache: cache,
+		cache:    cache,
 		cacheMap: make(map[string]string),
 		resource: rs,
 	}
 }
 
 // WithMenu sets a menu renderer for the page.
-func(pg *Page) WithMenu(menu *Menu) *Page {
+func (pg *Page) WithMenu(menu *Menu) *Page {
 	pg.menu = menu.WithResource(pg.resource)
 	//if pg.sizer != nil {
 	//	pg.sizer = pg.sizer.WithMenuSize(pg.menu.ReservedSize())
@@ -42,22 +42,22 @@ func(pg *Page) WithMenu(menu *Menu) *Page {
 }
 
 // WithSizer sets a size constraints definition for the page.
-func(pg *Page) WithSizer(sizer *Sizer) *Page {
+func (pg *Page) WithSizer(sizer *Sizer) *Page {
 	pg.sizer = sizer
 	//if pg.menu != nil {
-		//pg.sizer = pg.sizer.WithMenuSize(pg.menu.ReservedSize())
+	//pg.sizer = pg.sizer.WithMenuSize(pg.menu.ReservedSize())
 	//}
 	return pg
 }
 
 // WithError adds an error to prepend to the page output.
-func(pg *Page) WithError(err error) *Page {
+func (pg *Page) WithError(err error) *Page {
 	pg.err = err
 	return pg
 }
 
 // Error implements the Error interface.
-func(pg *Page) Error() string {
+func (pg *Page) Error() string {
 	if pg.err != nil {
 		return pg.err.Error()
 	}
@@ -65,7 +65,7 @@ func(pg *Page) Error() string {
 }
 
 // Usage returns size used by values and menu, and remaining size available
-func(pg *Page) Usage() (uint32, uint32, error) {
+func (pg *Page) Usage() (uint32, uint32, error) {
 	var l int
 	var c uint16
 	for k, v := range pg.cacheMap {
@@ -79,7 +79,7 @@ func(pg *Page) Usage() (uint32, uint32, error) {
 	r := uint32(l)
 	rsv := uint32(0)
 	if uint32(c) > r {
-		rsv = uint32(c)-r
+		rsv = uint32(c) - r
 	}
 	//if pg.menu != nil {
 	//	r += uint32(pg.menu.ReservedSize())
@@ -92,7 +92,7 @@ func(pg *Page) Usage() (uint32, uint32, error) {
 // After this, Val() will return the value for the key, and Size() will include the value size and limitations in its calculations.
 //
 // Only one symbol with no size limitation may be mapped at the current level.
-func(pg *Page) Map(key string) error {
+func (pg *Page) Map(key string) error {
 	v, err := pg.cache.Get(key)
 	if err != nil {
 		return err
@@ -121,7 +121,7 @@ func(pg *Page) Map(key string) error {
 // Val gets the mapped content for the given symbol.
 //
 // Fails if key is not mapped.
-func(pg *Page) Val(key string) (string, error) {
+func (pg *Page) Val(key string) (string, error) {
 	r := pg.cacheMap[key]
 	if len(r) == 0 {
 		return "", fmt.Errorf("key %v not mapped", key)
@@ -130,7 +130,7 @@ func(pg *Page) Val(key string) (string, error) {
 }
 
 // Sizes returned the actual used bytes by each mapped symbol.
-func(pg *Page) Sizes() (map[string]uint16, error) {
+func (pg *Page) Sizes() (map[string]uint16, error) {
 	sizes := make(map[string]uint16)
 	var haveSink bool
 	for k, _ := range pg.cacheMap {
@@ -149,7 +149,7 @@ func(pg *Page) Sizes() (map[string]uint16, error) {
 }
 
 // RenderTemplate is an adapter to implement the builtin golang text template renderer as resource.RenderTemplate.
-func(pg *Page) RenderTemplate(ctx context.Context, sym string, values map[string]string, idx uint16) (string, error) {
+func (pg *Page) RenderTemplate(ctx context.Context, sym string, values map[string]string, idx uint16) (string, error) {
 	tpl, err := pg.resource.GetTemplate(ctx, sym)
 	if err != nil {
 		return "", err
@@ -173,7 +173,7 @@ func(pg *Page) RenderTemplate(ctx context.Context, sym string, values map[string
 		return "", fmt.Errorf("sizer needed for indexed render")
 	}
 	logg.Debugf("render for", "index", idx)
-	
+
 	tp, err := template.New("tester").Option("missingkey=error").Parse(tpl)
 	if err != nil {
 		return "", err
@@ -188,7 +188,7 @@ func(pg *Page) RenderTemplate(ctx context.Context, sym string, values map[string
 }
 
 // Render renders the current mapped content and menu state against the template associated with the symbol.
-func(pg *Page) Render(ctx context.Context, sym string, idx uint16) (string, error) {
+func (pg *Page) Render(ctx context.Context, sym string, idx uint16) (string, error) {
 	var err error
 
 	values, err := pg.prepare(ctx, sym, pg.cacheMap, idx)
@@ -202,7 +202,7 @@ func(pg *Page) Render(ctx context.Context, sym string, idx uint16) (string, erro
 // Reset prepared the Page object for re-use.
 //
 // It clears mappings and removes the sink definition.
-func(pg *Page) Reset() {
+func (pg *Page) Reset() {
 	pg.sink = nil
 	pg.extra = ""
 	pg.cacheMap = make(map[string]string)
@@ -217,7 +217,7 @@ func(pg *Page) Reset() {
 // extract sink values to separate array, and set the content of sink in values map to zero-length string.
 //
 // this allows render of page with emptry content the sink symbol to discover remaining capacity.
-func(pg *Page) split(sym string, values map[string]string) (map[string]string, string, []string, error) {
+func (pg *Page) split(sym string, values map[string]string) (map[string]string, string, []string, error) {
 	var sink string
 	var sinkValues []string
 	noSinkValues := make(map[string]string)
@@ -235,7 +235,7 @@ func(pg *Page) split(sym string, values map[string]string) (map[string]string, s
 		}
 		noSinkValues[k] = v
 	}
-	
+
 	if sink == "" {
 		logg.Tracef("no sink found", "sym", sym)
 		return values, "", nil, nil
@@ -248,7 +248,7 @@ func(pg *Page) split(sym string, values map[string]string) (map[string]string, s
 // newlines (within the same page) render are defined by NUL (0x00).
 //
 // pages are separated by LF (0x0a).
-func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint32) (string, uint16, error) {
+func (pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint32) (string, uint16, error) {
 	l := 0
 	var count uint16
 	tb := strings.Builder{}
@@ -265,7 +265,7 @@ func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint
 	for i, v := range sinkValues {
 		l += len(v)
 		logg.Tracef("processing sink", "idx", i, "value", v, "netremaining", netRemaining, "l", l)
-		if uint32(l) > netRemaining - 1 {
+		if uint32(l) > netRemaining-1 {
 			if tb.Len() == 0 {
 				return "", 0, fmt.Errorf("capacity insufficient for sink field %v", i)
 			}
@@ -297,7 +297,7 @@ func(pg *Page) joinSink(sinkValues []string, remaining uint32, menuSizes [4]uint
 	return r, count, nil
 }
 
-func(pg *Page) applyMenuSink(ctx context.Context) ([]string, error) {
+func (pg *Page) applyMenuSink(ctx context.Context) ([]string, error) {
 	s, err := pg.menu.WithDispose().WithPages().Render(ctx, 0)
 	if err != nil {
 		return nil, err
@@ -307,7 +307,7 @@ func(pg *Page) applyMenuSink(ctx context.Context) ([]string, error) {
 }
 
 // render menu and all syms except sink, split sink into display chunks
-func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string, idx uint16) (map[string]string, error) {
+func (pg *Page) prepare(ctx context.Context, sym string, values map[string]string, idx uint16) (map[string]string, error) {
 	if pg.sizer == nil {
 		return values, nil
 	}
@@ -381,7 +381,7 @@ func(pg *Page) prepare(ctx context.Context, sym string, values map[string]string
 }
 
 // render template, menu (if it exists), and audit size constraint (if it exists).
-func(pg *Page) render(ctx context.Context, sym string, values map[string]string, idx uint16) (string, error) {
+func (pg *Page) render(ctx context.Context, sym string, values map[string]string, idx uint16) (string, error) {
 	var ok bool
 	r := ""
 	s, err := pg.RenderTemplate(ctx, sym, values, idx)

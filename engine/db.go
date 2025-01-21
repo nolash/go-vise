@@ -10,8 +10,8 @@ import (
 
 	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/persist"
-	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/render"
+	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/vm"
 )
@@ -21,28 +21,28 @@ var (
 )
 
 type DefaultEngine struct {
-	st *state.State
-	ca cache.Memory
-	vm *vm.Vm
-	rs resource.Resource
-	pe *persist.Persister
-	cfg Config
-	dbg Debug
-	first resource.EntryFunc
-	initd bool
-	exit string
-	exiting bool
-	execd bool
+	st         *state.State
+	ca         cache.Memory
+	vm         *vm.Vm
+	rs         resource.Resource
+	pe         *persist.Persister
+	cfg        Config
+	dbg        Debug
+	first      resource.EntryFunc
+	initd      bool
+	exit       string
+	exiting    bool
+	execd      bool
 	regexCount int
 }
 
 // NewEngine instantiates the default Engine implementation.
 func NewEngine(cfg Config, rs resource.Resource) *DefaultEngine {
 	if rs == nil {
-		panic("resource cannot be nil")	
+		panic("resource cannot be nil")
 	}
 	en := &DefaultEngine{
-		rs: rs,
+		rs:  rs,
 		cfg: cfg,
 	}
 	if en.cfg.Root == "" {
@@ -58,7 +58,7 @@ func NewEngine(cfg Config, rs resource.Resource) *DefaultEngine {
 //
 // Note that engine.Init will fail if state is set both explicitly
 // and in a provided persist.Persister.
-func(en *DefaultEngine) WithState(st *state.State) *DefaultEngine {
+func (en *DefaultEngine) WithState(st *state.State) *DefaultEngine {
 	if en.st != nil {
 		panic("state already set")
 	}
@@ -76,7 +76,7 @@ func(en *DefaultEngine) WithState(st *state.State) *DefaultEngine {
 //
 // Note that engine.Init will fail if memory is set both explicitly
 // and in a provided persist.Persister.
-func(en *DefaultEngine) WithMemory(ca cache.Memory) *DefaultEngine {
+func (en *DefaultEngine) WithMemory(ca cache.Memory) *DefaultEngine {
 	if en.ca != nil {
 		panic("cache already set")
 	}
@@ -90,21 +90,21 @@ func(en *DefaultEngine) WithMemory(ca cache.Memory) *DefaultEngine {
 // WithPersister is a chainable method that sets the persister to use with the engine.
 //
 // If the persister is missing state, memory or both, it will inherit them from the engine.
-func(en *DefaultEngine) WithPersister(pe *persist.Persister) *DefaultEngine {
+func (en *DefaultEngine) WithPersister(pe *persist.Persister) *DefaultEngine {
 	if en.pe != nil {
 		panic("persister already set")
 	}
 	if pe == nil {
 		panic("persister argument is nil")
 	}
-	en.pe = pe 
+	en.pe = pe
 	return en
 }
 
 // WithDebug is a chainable method that sets the debugger to use for the engine.
 //
 // If the argument is nil, the default debugger will be used.
-func(en *DefaultEngine) WithDebug(dbg Debug) *DefaultEngine {
+func (en *DefaultEngine) WithDebug(dbg Debug) *DefaultEngine {
 	if en.dbg != nil {
 		panic("debugger already set")
 	}
@@ -120,7 +120,7 @@ func(en *DefaultEngine) WithDebug(dbg Debug) *DefaultEngine {
 // control is handed over to the VM bytecode from the current state.
 //
 // If this function returns an error, execution will be aborted in engine.Init.
-func(en *DefaultEngine) WithFirst(fn resource.EntryFunc) *DefaultEngine {
+func (en *DefaultEngine) WithFirst(fn resource.EntryFunc) *DefaultEngine {
 	if en.first != nil {
 		panic("firstfunc already set")
 	}
@@ -135,19 +135,19 @@ func(en *DefaultEngine) WithFirst(fn resource.EntryFunc) *DefaultEngine {
 //
 // The added regular expression will be evaluated after the builtin match (see
 // vm/input.go for the actual string details).
-// 
+//
 // The function may be called more than once. Input will be validated against each
 // in the sequence they were added.
 //
 // When a match is found, remaining regular expressions will be skipped.
-func(en *DefaultEngine) AddValidInput(re string) error {
+func (en *DefaultEngine) AddValidInput(re string) error {
 	err := vm.RegisterInputValidator(en.regexCount, re)
 	en.regexCount += 1
 	return err
 }
 
 // ensure state is present in engine.
-func(en *DefaultEngine) ensureState() {
+func (en *DefaultEngine) ensureState() {
 	if en.st == nil {
 		st := state.NewState(en.cfg.FlagCount)
 		en.st = st
@@ -157,19 +157,19 @@ func(en *DefaultEngine) ensureState() {
 		}
 		logg.Debugf("new engine state added", "state", en.st)
 	} else {
-		if (en.cfg.Language != "") {
+		if en.cfg.Language != "" {
 			if en.st.Language == nil {
 				en.st.SetLanguage(en.cfg.Language)
 				en.st.SetFlag(state.FLAG_LANG)
 			} else {
-				logg.Warnf("language '%s'set in config, but will be ignored because state language has already been set.", )
+				logg.Warnf("language '%s'set in config, but will be ignored because state language has already been set.")
 			}
 		}
 	}
 }
 
 // ensure memory is present in engine.
-func(en *DefaultEngine) ensureMemory() error {
+func (en *DefaultEngine) ensureMemory() error {
 	cac, ok := en.ca.(*cache.Cache)
 	if cac == nil {
 		ca := cache.NewCache()
@@ -186,7 +186,7 @@ func(en *DefaultEngine) ensureMemory() error {
 }
 
 // retrieve state and memory from perister if present.
-func(en *DefaultEngine) preparePersist() error {
+func (en *DefaultEngine) preparePersist() error {
 	if en.pe == nil {
 		return nil
 	}
@@ -222,7 +222,7 @@ func(en *DefaultEngine) preparePersist() error {
 }
 
 // synchronize state and memory between engine and persister.
-func(en *DefaultEngine) ensurePersist() error {
+func (en *DefaultEngine) ensurePersist() error {
 	if en.pe == nil {
 		return nil
 	}
@@ -263,7 +263,7 @@ func(en *DefaultEngine) ensurePersist() error {
 }
 
 // create vm instance.
-func(en *DefaultEngine) setupVm() {
+func (en *DefaultEngine) setupVm() {
 	var szr *render.Sizer
 	if en.cfg.OutputSize > 0 {
 		szr = render.NewSizer(en.cfg.OutputSize)
@@ -274,7 +274,7 @@ func(en *DefaultEngine) setupVm() {
 	}
 }
 
-func(en *DefaultEngine) empty(ctx context.Context) error {
+func (en *DefaultEngine) empty(ctx context.Context) error {
 	var err error
 	b := bytes.NewBuffer(nil)
 	_, err = en.Flush(ctx, b)
@@ -287,7 +287,7 @@ func(en *DefaultEngine) empty(ctx context.Context) error {
 }
 
 // prepare engine for Init run.
-func(en *DefaultEngine) prepare(ctx context.Context) error {
+func (en *DefaultEngine) prepare(ctx context.Context) error {
 	if en.execd {
 		err := en.empty(ctx)
 		if err != nil {
@@ -318,7 +318,7 @@ func(en *DefaultEngine) prepare(ctx context.Context) error {
 }
 
 // execute the first function, if set.
-func(en *DefaultEngine) runFirst(ctx context.Context) (bool, error) {
+func (en *DefaultEngine) runFirst(ctx context.Context) (bool, error) {
 	var err error
 	var r bool
 	if en.first == nil {
@@ -365,9 +365,9 @@ func(en *DefaultEngine) runFirst(ctx context.Context) (bool, error) {
 // If persister is set, this call will save the state and memory.
 //
 // An error will be logged and returned if:
-// 	* persistence was attempted and failed (takes precedence)
-//	* resource backend did not close cleanly.
-func(en *DefaultEngine) Finish(ctx context.Context) error {
+//   - persistence was attempted and failed (takes precedence)
+//   - resource backend did not close cleanly.
+func (en *DefaultEngine) Finish(ctx context.Context) error {
 	var perr error
 	if !en.initd {
 		return nil
@@ -381,7 +381,7 @@ func(en *DefaultEngine) Finish(ctx context.Context) error {
 	}
 	if perr != nil {
 		logg.Errorf("persistence failed!", "err", perr)
-		err = perr	
+		err = perr
 	}
 	if err == nil {
 		logg.Tracef("that's a wrap", "engine", en)
@@ -389,9 +389,9 @@ func(en *DefaultEngine) Finish(ctx context.Context) error {
 	return err
 }
 
-func(en *DefaultEngine) setCode(ctx context.Context, code []byte) (bool, error) {
+func (en *DefaultEngine) setCode(ctx context.Context, code []byte) (bool, error) {
 	var err error
-	
+
 	cont := true
 	en.st.SetCode(code)
 	if len(code) == 0 {
@@ -409,7 +409,7 @@ func(en *DefaultEngine) setCode(ctx context.Context, code []byte) (bool, error) 
 // Init implements the Engine interface.
 //
 // It loads and executes code for the start node.
-func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
+func (en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 	cont := true
 	err := en.prepare(ctx)
 	if err != nil {
@@ -425,7 +425,7 @@ func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 		logg.DebugCtxf(ctx, "already initialized")
 		return true, nil
 	}
-	
+
 	sym := en.cfg.Root
 	if sym == "" {
 		return false, fmt.Errorf("start sym empty")
@@ -466,13 +466,13 @@ func(en *DefaultEngine) init(ctx context.Context, input []byte) (bool, error) {
 // It processes user input against the current state of the virtual machine environment.
 //
 // If successfully executed, output of the last execution is available using the Flush call.
-// 
+//
 // A bool return valus of false indicates that execution should be terminated. Calling Exec again has undefined effects.
 //
 // Fails if:
-// 	* input is formally invalid (too long etc)
-// 	* no current bytecode is available
-// 	* input processing against bytcode failed
+//   - input is formally invalid (too long etc)
+//   - no current bytecode is available
+//   - input processing against bytcode failed
 func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 	var err error
 
@@ -506,7 +506,7 @@ func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 }
 
 // backend for Exec, after the input validity check
-func(en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
+func (en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
 	logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
 	code, err := en.st.GetCode()
 	if err != nil {
@@ -543,10 +543,10 @@ func(en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
 // The method writes the output of the last vm execution to the given writer.
 //
 // Fails if
-// 	* required data inputs to the template are not available.
-// 	* the template for the given node point is note available for retrieval using the resource.Resource implementer.
-// 	* the supplied writer fails to process the writes.
-func(en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
+//   - required data inputs to the template are not available.
+//   - the template for the given node point is note available for retrieval using the resource.Resource implementer.
+//   - the supplied writer fails to process the writes.
+func (en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 	var l int
 	if !en.execd {
 		return 0, ErrFlushNoExec
@@ -585,7 +585,7 @@ func(en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 }
 
 // start execution over at top node while keeping current state of client error flags.
-func(en *DefaultEngine) reset(ctx context.Context) (bool, error) {
+func (en *DefaultEngine) reset(ctx context.Context) (bool, error) {
 	var err error
 	var isTop bool
 	for !isTop {
@@ -604,4 +604,3 @@ func(en *DefaultEngine) reset(ctx context.Context) (bool, error) {
 	en.st.ResetFlag(state.FLAG_DIRTY)
 	return false, nil
 }
-

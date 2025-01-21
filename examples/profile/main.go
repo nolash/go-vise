@@ -13,28 +13,28 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/db"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 const (
 	USERFLAG_IDENTIFIED = iota + state.FLAG_USERSTART
-	USERFLAG_HAVENAME 
+	USERFLAG_HAVENAME
 	USERFLAG_HAVEEMAIL
 )
 
 var (
-	baseDir = testdataloader.GetBasePath()
-	scriptDir = path.Join(baseDir, "examples", "profile")
+	baseDir     = testdataloader.GetBasePath()
+	scriptDir   = path.Join(baseDir, "examples", "profile")
 	emptyResult = resource.Result{}
 )
 
 type profileResource struct {
 	*resource.DbResource
-	st *state.State
+	st          *state.State
 	haveEntered bool
 }
 
@@ -46,7 +46,7 @@ func newProfileResource(st *state.State, rs *resource.DbResource) resource.Resou
 	}
 }
 
-func(pr *profileResource) checkEntry() error {
+func (pr *profileResource) checkEntry() error {
 	log.Printf("%v %v", USERFLAG_IDENTIFIED, USERFLAG_HAVENAME)
 	if pr.haveEntered {
 		return nil
@@ -60,7 +60,7 @@ func(pr *profileResource) checkEntry() error {
 	return nil
 }
 
-func(pr profileResource) nameSave(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (pr profileResource) nameSave(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	log.Printf("writing name to file")
 	fp := path.Join(scriptDir, "myname.txt")
 	err := ioutil.WriteFile(fp, input, 0600)
@@ -74,7 +74,7 @@ func(pr profileResource) nameSave(ctx context.Context, sym string, input []byte)
 	return emptyResult, err
 }
 
-func(pr profileResource) emailSave(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (pr profileResource) emailSave(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	log.Printf("writing email to file")
 	fp := path.Join(scriptDir, "myemail.txt")
 	err := ioutil.WriteFile(fp, input, 0600)
@@ -116,8 +116,8 @@ func main() {
 	rs.AddLocalFunc("do_email_save", rs.emailSave)
 	ca := cache.NewCache()
 	cfg := engine.Config{
-		Root: "root",
-		SessionId: sessionId,
+		Root:       "root",
+		SessionId:  sessionId,
 		OutputSize: uint32(size),
 	}
 	en := engine.NewEngine(cfg, rs)

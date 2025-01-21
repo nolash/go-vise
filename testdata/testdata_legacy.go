@@ -16,7 +16,7 @@ type genFunc func() error
 var (
 	BaseDir = testdataloader.GetBasePath()
 	DataDir = ""
-	dirLock = false	
+	dirLock = false
 )
 
 func outLegacy(sym string, b []byte, tpl string, data map[string]string) error {
@@ -222,7 +222,6 @@ func GenerateLegacy() (string, error) {
 	err = generateLegacy()
 	return dir, err
 }
-
 
 // Generate outputs bytecode, templates and content symbols to a specified directory.
 //

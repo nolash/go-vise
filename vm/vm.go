@@ -88,13 +88,14 @@ func ParseMNext(b []byte) (string, string, []byte, error) {
 // ParseMSink parses and extracts the expected argument portion of a MSINK instruction
 func ParseMSink(b []byte) ([]byte, error) {
 	return parseNoArg(b)
-//	if len(b) < 2 {
-//		return 0, 0, b, fmt.Errorf("argument too short")
-//	}
-//	r := uint32(b[0])
-//	rr := uint32(b[1])
-//	b = b[2:]
-//	return b, nil
+	//	if len(b) < 2 {
+	//		return 0, 0, b, fmt.Errorf("argument too short")
+	//	}
+	//
+	// r := uint32(b[0])
+	// rr := uint32(b[1])
+	// b = b[2:]
+	// return b, nil
 }
 
 // ParseMOut parses and extracts the expected argument portion of a MOUT instruction
@@ -157,7 +158,7 @@ func parseSymSig(b []byte) (string, uint32, bool, []byte, error) {
 	}
 	matchmode := b[0] > 0
 	b = b[1:]
-	
+
 	return sym, sig, matchmode, b, nil
 }
 
@@ -172,7 +173,7 @@ func parseSig(b []byte) (uint32, bool, []byte, error) {
 	}
 	matchmode := b[0] > 0
 	b = b[1:]
-	
+
 	return sig, matchmode, b, nil
 }
 
@@ -211,7 +212,7 @@ func instructionSplit(b []byte) (string, []byte, error) {
 	if bSz < int(sz) {
 		return "", nil, fmt.Errorf("corrupt instruction, len %v less than symbol length: %v", bSz, sz)
 	}
-	r := string(b[1:1+sz])
+	r := string(b[1 : 1+sz])
 	return r, b[1+sz:], nil
 }
 

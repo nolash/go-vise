@@ -1,3 +1,4 @@
+//go:build logwarn
 // +build logwarn
 
 package logging

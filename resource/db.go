@@ -19,7 +19,7 @@ const (
 type DbResource struct {
 	*MenuResource
 	typs uint8
-	db db.Db
+	db   db.Db
 }
 
 // NewDbResource instantiates a new DbResource
@@ -31,8 +31,8 @@ func NewDbResource(store db.Db) *DbResource {
 	}
 	rs := &DbResource{
 		MenuResource: NewMenuResource(),
-		db: store,
-		typs: db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN,
+		db:           store,
+		typs:         db.DATATYPE_TEMPLATE | db.DATATYPE_MENU | db.DATATYPE_BIN,
 	}
 	rs.WithMenuGetter(rs.DbGetMenu)
 	rs.WithCodeGetter(rs.DbGetCode)
@@ -42,37 +42,37 @@ func NewDbResource(store db.Db) *DbResource {
 }
 
 // Without is a chainable function that disables handling of the given data type.
-func(g *DbResource) Without(typ uint8) *DbResource {
+func (g *DbResource) Without(typ uint8) *DbResource {
 	g.typs &= ^typ
 	return g
 }
 
 // Without is a chainable function that enables handling of the given data type.
-func(g *DbResource) With(typ uint8) *DbResource {
+func (g *DbResource) With(typ uint8) *DbResource {
 	g.typs |= typ
 	return g
 }
 
 // WithOnly is a chainable convenience function that disables handling of all except the given data type.
-func(g *DbResource) WithOnly(typ uint8) *DbResource {
+func (g *DbResource) WithOnly(typ uint8) *DbResource {
 	g.typs = typ
 	return g
 }
 
-func(g *DbResource) mustSafe() {
+func (g *DbResource) mustSafe() {
 	if !g.db.Safe() {
 		panic("db unsafe for resource (db.Db.Safe() == false)")
 	}
 }
 
 // retrieve from underlying db.
-func(g *DbResource) fn(ctx context.Context, sym string) ([]byte, error) {
+func (g *DbResource) fn(ctx context.Context, sym string) ([]byte, error) {
 	g.mustSafe()
 	return g.db.Get(ctx, []byte(sym))
 }
 
 // retrieve from underlying db using a string key.
-func(g *DbResource) sfn(ctx context.Context, sym string) (string, error) {
+func (g *DbResource) sfn(ctx context.Context, sym string) (string, error) {
 	b, err := g.fn(ctx, sym)
 	if err != nil {
 		return "", err
@@ -83,8 +83,8 @@ func(g *DbResource) sfn(ctx context.Context, sym string) (string, error) {
 // Will fail if support for db.DATATYPE_TEMPLATE has been disabled.
 //
 // By default bound to GetTemplate. Can be replaced with WithTemplateGetter.
-func(g *DbResource) DbGetTemplate(ctx context.Context, sym string) (string, error) {
-	if g.typs & db.DATATYPE_TEMPLATE == 0 {
+func (g *DbResource) DbGetTemplate(ctx context.Context, sym string) (string, error) {
+	if g.typs&db.DATATYPE_TEMPLATE == 0 {
 		return "", errors.New("not a template getter")
 	}
 	g.db.SetPrefix(db.DATATYPE_TEMPLATE)
@@ -94,8 +94,8 @@ func(g *DbResource) DbGetTemplate(ctx context.Context, sym string) (string, erro
 // Will fail if support for db.DATATYPE_MENU has been disabled.
 //
 // By default bound to GetMenu. Can be replaced with WithMenuGetter.
-func(g *DbResource) DbGetMenu(ctx context.Context, sym string) (string, error) {
-	if g.typs & db.DATATYPE_MENU == 0{
+func (g *DbResource) DbGetMenu(ctx context.Context, sym string) (string, error) {
+	if g.typs&db.DATATYPE_MENU == 0 {
 		return "", errors.New("not a menu getter")
 	}
 	g.db.SetPrefix(db.DATATYPE_MENU)
@@ -113,9 +113,9 @@ func(g *DbResource) DbGetMenu(ctx context.Context, sym string) (string, error) {
 // Will fail if support for db.DATATYPE_BIN has been disabled.
 //
 // By default bound to GetCode. Can be replaced with WithCodeGetter.
-func(g *DbResource) DbGetCode(ctx context.Context, sym string) ([]byte, error) {
+func (g *DbResource) DbGetCode(ctx context.Context, sym string) ([]byte, error) {
 	logg.TraceCtxf(ctx, "getcode", "sym", sym)
-	if g.typs & db.DATATYPE_BIN == 0 {
+	if g.typs&db.DATATYPE_BIN == 0 {
 		return nil, errors.New("not a code getter")
 	}
 	g.db.SetPrefix(db.DATATYPE_BIN)
@@ -124,17 +124,17 @@ func(g *DbResource) DbGetCode(ctx context.Context, sym string) ([]byte, error) {
 
 // The method will first attempt to resolve using the function registered
 // with the MenuResource parent class.
-// 
+//
 // If no match is found, and if support for db.DATATYPE_STATICLOAD has been enabled,
 // an additional lookup will be performed using the underlying db.
 //
 // By default bound to FuncFor. Can be replaced with WithEntryFuncGetter.
-func(g *DbResource) DbFuncFor(ctx context.Context, sym string) (EntryFunc, error) {
+func (g *DbResource) DbFuncFor(ctx context.Context, sym string) (EntryFunc, error) {
 	fn, err := g.MenuResource.FallbackFunc(ctx, sym)
 	if err == nil {
 		return fn, nil
 	}
-	if g.typs & db.DATATYPE_STATICLOAD == 0 {
+	if g.typs&db.DATATYPE_STATICLOAD == 0 {
 		return nil, errors.New("not a staticload getter")
 	}
 	g.db.SetPrefix(db.DATATYPE_STATICLOAD)
@@ -143,7 +143,7 @@ func(g *DbResource) DbFuncFor(ctx context.Context, sym string) (EntryFunc, error
 		if !db.IsNotFound(err) {
 			return nil, err
 		}
-		b, err = g.fn(ctx, sym + ".txt")
+		b, err = g.fn(ctx, sym+".txt")
 		if err != nil {
 			return nil, err
 		}
@@ -156,6 +156,6 @@ func(g *DbResource) DbFuncFor(ctx context.Context, sym string) (EntryFunc, error
 }
 
 // Close implements the Resource interface.
-func(g *DbResource) Close(ctx context.Context) error {
+func (g *DbResource) Close(ctx context.Context) error {
 	return g.db.Close(ctx)
 }

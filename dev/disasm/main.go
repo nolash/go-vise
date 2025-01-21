@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"io/ioutil"
+	"os"
 
 	"git.defalsify.org/vise.git/vm"
 )
 
 func main() {
-	if (len(os.Args) < 2) {
+	if len(os.Args) < 2 {
 		os.Exit(1)
 	}
 	fp := os.Args[1]

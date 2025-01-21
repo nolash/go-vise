@@ -6,23 +6,23 @@ import (
 	"fmt"
 	"log"
 	"testing"
-	
+
 	"git.defalsify.org/vise.git/cache"
+	"git.defalsify.org/vise.git/internal/resourcetest"
 	"git.defalsify.org/vise.git/render"
 	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/internal/resourcetest"
 	"git.defalsify.org/vise.git/state"
 )
 
 var (
-	ctx = context.Background()
+	ctx    = context.Background()
 	dynVal = "three"
 )
 
 type testResource struct {
 	*resourcetest.TestResource
-	state *state.State
-	RootCode []byte
+	state        *state.State
+	RootCode     []byte
 	CatchContent string
 }
 
@@ -30,7 +30,7 @@ func newTestResource(st *state.State) testResource {
 	rs := resourcetest.NewTestResource()
 	tr := testResource{
 		TestResource: rs,
-		state: st,
+		state:        st,
 	}
 	rs.AddTemplate(ctx, "foo", "inky pinky blinky clyde")
 	rs.AddTemplate(ctx, "bar", "inky pinky {{.one}} blinky {{.two}} clyde")
@@ -66,7 +66,7 @@ func newTestResource(st *state.State) testResource {
 	b = NewLine(nil, MOUT, []string{"oo", "1"}, nil, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	rs.AddBytecode(ctx, "ouf", b)
-	
+
 	rs.AddBytecode(ctx, "root", tr.RootCode)
 
 	return tr
@@ -97,7 +97,6 @@ func getEcho(ctx context.Context, sym string, input []byte) (resource.Result, er
 	}, nil
 }
 
-
 func uhOh(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{}, fmt.Errorf("uh-oh spaghetti'ohs")
 }
@@ -114,7 +113,7 @@ func setFlag(ctx context.Context, sym string, input []byte) (resource.Result, er
 		r.FlagReset = append(r.FlagReset, uint32(input[1]))
 	}
 	log.Printf("setflag %v", r)
-	return r, nil 
+	return r, nil
 
 }
 
@@ -124,6 +123,7 @@ func set_lang(ctx context.Context, sym string, input []byte) (resource.Result, e
 		FlagSet: []uint32{state.FLAG_LANG},
 	}, nil
 }
+
 //
 //type TestStatefulResolver struct {
 //	state *state.State
@@ -151,14 +151,14 @@ func (r testResource) FuncFor(ctx context.Context, sym string) (resource.EntryFu
 	return nil, fmt.Errorf("invalid function: '%s'", sym)
 }
 
-func(r testResource) getInput(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (r testResource) getInput(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	v, err := r.state.GetInput()
 	return resource.Result{
 		Content: string(v),
 	}, err
 }
 
-func(r testResource) getCode(sym string) ([]byte, error) {
+func (r testResource) getCode(sym string) ([]byte, error) {
 	var b []byte
 	switch sym {
 	case "_catch":
@@ -196,7 +196,7 @@ func TestRun(t *testing.T) {
 	b = []byte{0x01, 0x02}
 	_, err = vm.Run(ctx, b)
 	if err == nil {
-		t.Fatalf("no error on invalid opcode")	
+		t.Fatalf("no error on invalid opcode")
 	}
 }
 
@@ -398,14 +398,14 @@ func TestRunArgInvalid(t *testing.T) {
 	_ = st.SetInput([]byte("foo"))
 
 	var err error
-	
+
 	st.Down("root")
 	b := NewLine(nil, INCMP, []string{"baz", "bar"}, nil, nil)
 
 	ctx := context.Background()
 	b, err = vm.Run(ctx, b)
 	if err != nil {
-		t.Fatal(err)	
+		t.Fatal(err)
 	}
 	location, _ := st.Where()
 	if location != "_catch" {
@@ -414,7 +414,7 @@ func TestRunArgInvalid(t *testing.T) {
 
 	r, err := vm.Render(ctx)
 	if err != nil {
-		t.Fatal(err)	
+		t.Fatal(err)
 	}
 	expect := `invalid input: 'foo'
 0:repent`
@@ -442,13 +442,13 @@ func TestRunMenu(t *testing.T) {
 
 	b, err = vm.Run(ctx, b)
 	if err != nil {
-		t.Error(err)	
+		t.Error(err)
 	}
 	l := len(b)
 	if l != 0 {
 		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
-	
+
 	r, err := vm.Render(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -479,13 +479,13 @@ func TestRunMenuBrowse(t *testing.T) {
 
 	b, err = vm.Run(ctx, b)
 	if err != nil {
-		t.Error(err)	
+		t.Error(err)
 	}
 	l := len(b)
 	if l != 0 {
 		t.Errorf("expected empty remainder, got length %v: %v", l, b)
 	}
-	
+
 	r, err := vm.Render(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -531,7 +531,6 @@ func TestRunReturn(t *testing.T) {
 		t.Fatalf("expected location 'root', got '%s'", location)
 	}
 }
-
 
 func TestRunLoadInput(t *testing.T) {
 	st := state.NewState(5)

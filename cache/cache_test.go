@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"testing"
 	"slices"
+	"testing"
 )
 
 func TestNewCache(t *testing.T) {
@@ -141,7 +141,7 @@ func TestStateDownUp(t *testing.T) {
 	}
 	l = len(ca.Cache)
 	if l != 1 {
-		t.Fatalf("expected cache length 1, got %d", l) 
+		t.Fatalf("expected cache length 1, got %d", l)
 	}
 }
 

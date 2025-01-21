@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/persist"
-	"git.defalsify.org/vise.git/state"
 	"git.defalsify.org/vise.git/cache"
-	"git.defalsify.org/vise.git/vm"
 	memdb "git.defalsify.org/vise.git/db/mem"
+	"git.defalsify.org/vise.git/persist"
+	"git.defalsify.org/vise.git/resource"
+	"git.defalsify.org/vise.git/state"
+	"git.defalsify.org/vise.git/vm"
 )
 
 func getNull() io.WriteCloser {
@@ -29,17 +29,17 @@ func codeGet(ctx context.Context, s string) ([]byte, error) {
 	var b []byte
 	var err error
 	switch s {
-		case "root":
-			b = vm.NewLine(nil, vm.HALT, nil, nil, nil)
-			b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{0x0}, nil)
-		case "tinkywinky":
-			b = vm.NewLine(nil, vm.MOVE, []string{"dipsy"}, nil, nil)
-			b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{0x0}, nil)
-		case "dipsy":
-			b = vm.NewLine(nil, vm.HALT, nil, nil, nil)
-			b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{0x0}, nil)
-		default:
-			err = fmt.Errorf("unknown code symbol '%s'", s)
+	case "root":
+		b = vm.NewLine(nil, vm.HALT, nil, nil, nil)
+		b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{0x0}, nil)
+	case "tinkywinky":
+		b = vm.NewLine(nil, vm.MOVE, []string{"dipsy"}, nil, nil)
+		b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{0x0}, nil)
+	case "dipsy":
+		b = vm.NewLine(nil, vm.HALT, nil, nil, nil)
+		b = vm.NewLine(b, vm.LOAD, []string{"foo"}, []byte{0x0}, nil)
+	default:
+		err = fmt.Errorf("unknown code symbol '%s'", s)
 	}
 	return b, err
 }
@@ -136,7 +136,6 @@ func TestDbEngineStateDup(t *testing.T) {
 	}()
 	en.WithState(st)
 }
-
 
 func TestDbEngineCacheDup(t *testing.T) {
 	cfg := Config{}
@@ -241,7 +240,7 @@ func TestDbEnginePersist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = en.Flush(ctx, nul) 
+	_, err = en.Flush(ctx, nul)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -268,7 +267,7 @@ func TestDbEngineDebug(t *testing.T) {
 	w := bytes.NewBuffer(nil)
 	ctx := context.Background()
 	cfg := Config{
-		Root: "tinkywinky",
+		Root:      "tinkywinky",
 		FlagCount: 1,
 	}
 	rs := resource.NewMenuResource()
@@ -403,4 +402,3 @@ func TestDbFirst(t *testing.T) {
 		t.Fatal("expected flag set")
 	}
 }
-

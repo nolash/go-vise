@@ -10,15 +10,15 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
-	baseDir = testdataloader.GetBasePath()
-	scriptDir = path.Join(baseDir, "examples", "validate")
+	baseDir     = testdataloader.GetBasePath()
+	scriptDir   = path.Join(baseDir, "examples", "validate")
 	emptyResult = resource.Result{}
 )
 
@@ -31,7 +31,7 @@ type verifyResource struct {
 	st *state.State
 }
 
-func(vr *verifyResource) verify(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (vr *verifyResource) verify(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var err error
 	if string(input) == "something" {
 		vr.st.SetFlag(USERFLAG_HAVESOMETHING)
@@ -41,7 +41,7 @@ func(vr *verifyResource) verify(ctx context.Context, sym string, input []byte) (
 	}, err
 }
 
-func(vr *verifyResource) again(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (vr *verifyResource) again(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	vr.st.ResetFlag(USERFLAG_HAVESOMETHING)
 	return resource.Result{}, nil
 }
@@ -70,8 +70,8 @@ func main() {
 	rs.AddLocalFunc("again", rs.again)
 
 	cfg := engine.Config{
-		Root: "root",
-		SessionId: sessionId,
+		Root:       "root",
+		SessionId:  sessionId,
 		OutputSize: uint32(size),
 	}
 

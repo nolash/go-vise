@@ -8,7 +8,7 @@ func TestLang(t *testing.T) {
 	var err error
 	_, err = LanguageFromCode("xxx")
 	if err == nil {
-		t.Fatalf("expected error")	
+		t.Fatalf("expected error")
 	}
 	l, err := LanguageFromCode("en")
 	if err != nil {

@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"os"
 
+	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/db"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 	ctx := context.Background()
 	cfg := engine.Config{
 		OutputSize: uint32(size),
-		SessionId: sessionId,
+		SessionId:  sessionId,
 	}
 
 	rsStore := fsdb.NewFsDb()

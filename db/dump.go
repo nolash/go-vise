@@ -8,10 +8,10 @@ type DumperFunc func(ctx context.Context) ([]byte, []byte)
 type CloseFunc func() error
 
 type Dumper struct {
-	fn DumperFunc 
-	cfn CloseFunc
-	k []byte
-	v []byte
+	fn     DumperFunc
+	cfn    CloseFunc
+	k      []byte
+	v      []byte
 	nexted bool
 }
 
@@ -21,7 +21,7 @@ func NewDumper(fn DumperFunc) *Dumper {
 	}
 }
 
-func(d *Dumper) WithFirst(k []byte, v []byte) *Dumper {
+func (d *Dumper) WithFirst(k []byte, v []byte) *Dumper {
 	if d.nexted {
 		panic("already started")
 	}
@@ -31,12 +31,12 @@ func(d *Dumper) WithFirst(k []byte, v []byte) *Dumper {
 	return d
 }
 
-func(d *Dumper) WithClose(fn func() error) *Dumper {
+func (d *Dumper) WithClose(fn func() error) *Dumper {
 	d.cfn = fn
 	return d
 }
 
-func(d *Dumper) Next(ctx context.Context) ([]byte, []byte) {
+func (d *Dumper) Next(ctx context.Context) ([]byte, []byte) {
 	d.nexted = true
 	k := d.k
 	v := d.v
@@ -48,7 +48,7 @@ func(d *Dumper) Next(ctx context.Context) ([]byte, []byte) {
 	return k, v
 }
 
-func(d *Dumper) Close() error {
+func (d *Dumper) Close() error {
 	if d.cfn != nil {
 		return d.cfn()
 	}

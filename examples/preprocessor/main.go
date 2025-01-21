@@ -12,21 +12,20 @@ import (
 
 	"git.defalsify.org/vise.git/asm"
 	"git.defalsify.org/vise.git/cache"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
-
 var (
-	baseDir = testdataloader.GetBasePath()
+	baseDir   = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "preprocessor")
 )
 
 type countResource struct {
 	parser *asm.FlagParser
-	count int
+	count  int
 }
 
 func newCountResource(fp string) (*countResource, error) {
@@ -38,12 +37,12 @@ func newCountResource(fp string) (*countResource, error) {
 		return nil, err
 	}
 	return &countResource{
-		count: 0,
+		count:  0,
 		parser: parser,
 	}, nil
 }
 
-func(rsc* countResource) poke(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (rsc *countResource) poke(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
 
 	ss := strings.Split(sym, "_")
@@ -58,7 +57,7 @@ func(rsc* countResource) poke(ctx context.Context, sym string, input []byte) (re
 	r.FlagSet = []uint32{uint32(v)}
 	s, err := rsc.parser.GetDescription(v)
 	if err == nil {
-		r.Content = s 
+		r.Content = s
 	}
 
 	rsc.count++

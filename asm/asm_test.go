@@ -15,7 +15,7 @@ func TestParserRoute(t *testing.T) {
 	Parse(s, b)
 	expect := vm.NewLine(nil, vm.HALT, nil, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
-		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
@@ -31,7 +31,7 @@ func TestParserRoute(t *testing.T) {
 	Parse(s, b)
 	expect = vm.NewLine(nil, vm.MAP, []string{"tinkywinky"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
-		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)	
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
@@ -39,7 +39,7 @@ func TestParserRoute(t *testing.T) {
 	Parse(s, b)
 	expect = vm.NewLine(nil, vm.MOVE, []string{"dipsy"}, nil, nil)
 	if !bytes.Equal(b.Bytes(), expect) {
-			log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
+		log.Fatalf("expected:\n\t%x\ngot:\n\t%x\n", expect, b)
 	}
 
 	b = bytes.NewBuffer(nil)
@@ -415,7 +415,7 @@ func TestParserWriteMultiple(t *testing.T) {
 	if n != n_expect {
 		t.Fatalf("expected total %v bytes output, got %v", n_expect, n)
 	}
-	
+
 	rb := r.Bytes()
 	if !bytes.Equal(rb, r_expect) {
 		t.Fatalf("expected result:\n\t%v, got:\n\t%x", r_expect_hex, rb)
@@ -429,9 +429,9 @@ func TestParserWriteMultiple(t *testing.T) {
 
 func TestParserCapQuote(t *testing.T) {
 	t.Skip("please fix mysterious ignore of initial cap in display sym match")
-	b := vm.NewLine(nil, vm.MOUT, []string{"a", "foo"}, nil, nil) 
-	b = vm.NewLine(b, vm.MOUT, []string{"b", "Bar"}, nil, nil) 
-	b = vm.NewLine(b, vm.MOUT, []string{"c", "baz"}, nil, nil) 
+	b := vm.NewLine(nil, vm.MOUT, []string{"a", "foo"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"b", "Bar"}, nil, nil)
+	b = vm.NewLine(b, vm.MOUT, []string{"c", "baz"}, nil, nil)
 	b = vm.NewLine(b, vm.MSINK, nil, nil, nil)
 	ph := vm.NewParseHandler().WithDefaultHandlers()
 	s, err := ph.ToString(b)

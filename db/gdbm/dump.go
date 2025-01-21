@@ -6,18 +6,18 @@ import (
 	"errors"
 
 	gdbm "github.com/graygnuorg/go-gdbm"
-	
+
 	"git.defalsify.org/vise.git/db"
 )
 
-func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
+func (gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	gdb.SetLanguage(nil)
 	lk, err := gdb.ToKey(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 	key = lk.Default
-	
+
 	gdb.it = gdb.conn.Iterator()
 	for true {
 		k, err := gdb.it()
@@ -47,7 +47,7 @@ func(gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	return nil, db.NewErrNotFound(key)
 }
 
-func(gdb *gdbmDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
+func (gdb *gdbmDb) dumpFunc(ctx context.Context) ([]byte, []byte) {
 	var k []byte
 	var match bool
 	var err error

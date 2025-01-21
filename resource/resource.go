@@ -5,7 +5,6 @@ import (
 	"fmt"
 )
 
-
 // Result contains the results of an external code operation.
 type Result struct {
 	// content value for symbol after execution.
@@ -24,12 +23,16 @@ type Result struct {
 //
 // The implementer MUST NOT modify state flags or cache inside the function. The resource.Result object MUST be used instead.
 type EntryFunc func(ctx context.Context, nodeSym string, input []byte) (Result, error)
+
 // CodeFunc is the function signature for retrieving bytecode for a given symbol.
 type CodeFunc func(ctx context.Context, nodeSym string) ([]byte, error)
+
 // MenuFunc is the function signature for retrieving menu symbol resolution.
 type MenuFunc func(ctx context.Context, menuSym string) (string, error)
+
 // TemplateFunc is the function signature for retrieving a render template for a given symbol.
 type TemplateFunc func(ctx context.Context, nodeSym string) (string, error)
+
 // FuncForFunc is a function that returns an EntryFunc associated with a LOAD instruction symbol.
 type FuncForFunc func(ctx context.Context, loadSym string) (EntryFunc, error)
 
@@ -51,12 +54,12 @@ type Resource interface {
 
 // MenuResource contains the base definition for building Resource implementations.
 type MenuResource struct {
-	sinkValues []string
-	codeFunc CodeFunc
+	sinkValues   []string
+	codeFunc     CodeFunc
 	templateFunc TemplateFunc
-	menuFunc MenuFunc
-	funcFunc FuncForFunc
-	fns map[string]EntryFunc
+	menuFunc     MenuFunc
+	funcFunc     FuncForFunc
+	fns          map[string]EntryFunc
 }
 
 var (
@@ -81,51 +84,51 @@ func NewMenuResource() *MenuResource {
 }
 
 // WithCodeGetter sets the code symbol resolver method.
-func(m *MenuResource) WithCodeGetter(codeGetter CodeFunc) *MenuResource {
+func (m *MenuResource) WithCodeGetter(codeGetter CodeFunc) *MenuResource {
 	m.codeFunc = codeGetter
 	return m
 }
 
 // WithEntryGetter sets the content symbol resolver getter method.
-func(m *MenuResource) WithEntryFuncGetter(entryFuncGetter FuncForFunc) *MenuResource {
+func (m *MenuResource) WithEntryFuncGetter(entryFuncGetter FuncForFunc) *MenuResource {
 	m.funcFunc = entryFuncGetter
 	return m
 }
 
 // WithTemplateGetter sets the template symbol resolver method.
-func(m *MenuResource) WithTemplateGetter(templateGetter TemplateFunc) *MenuResource {
+func (m *MenuResource) WithTemplateGetter(templateGetter TemplateFunc) *MenuResource {
 	m.templateFunc = templateGetter
 	return m
 }
 
 // WithMenuGetter sets the menu symbol resolver method.
-func(m *MenuResource) WithMenuGetter(menuGetter MenuFunc) *MenuResource {
+func (m *MenuResource) WithMenuGetter(menuGetter MenuFunc) *MenuResource {
 	m.menuFunc = menuGetter
 	return m
 }
 
 // FuncFor implements Resource interface.
-func(m *MenuResource) FuncFor(ctx context.Context, sym string) (EntryFunc, error) {
+func (m *MenuResource) FuncFor(ctx context.Context, sym string) (EntryFunc, error) {
 	return m.funcFunc(ctx, sym)
 }
 
 // GetCode implements Resource interface.
-func(m *MenuResource) GetCode(ctx context.Context, sym string) ([]byte, error) {
+func (m *MenuResource) GetCode(ctx context.Context, sym string) ([]byte, error) {
 	return m.codeFunc(ctx, sym)
 }
 
 // GetTemplate implements Resource interface.
-func(m *MenuResource) GetTemplate(ctx context.Context, sym string) (string, error) {
+func (m *MenuResource) GetTemplate(ctx context.Context, sym string) (string, error) {
 	return m.templateFunc(ctx, sym)
 }
 
 // GetMenu implements Resource interface.
-func(m *MenuResource) GetMenu(ctx context.Context, sym string) (string, error) {
+func (m *MenuResource) GetMenu(ctx context.Context, sym string) (string, error) {
 	return m.menuFunc(ctx, sym)
 }
 
 // AddLocalFunc associates a handler function with a external function symbol to be returned by FallbackFunc.
-func(m *MenuResource) AddLocalFunc(sym string, fn EntryFunc) {
+func (m *MenuResource) AddLocalFunc(sym string, fn EntryFunc) {
 	if m.fns == nil {
 		m.fns = make(map[string]EntryFunc)
 	}
@@ -133,7 +136,7 @@ func(m *MenuResource) AddLocalFunc(sym string, fn EntryFunc) {
 }
 
 // FallbackFunc returns the default handler function for a given external function symbol.
-func(m *MenuResource) FallbackFunc(ctx context.Context, sym string) (EntryFunc, error) {
+func (m *MenuResource) FallbackFunc(ctx context.Context, sym string) (EntryFunc, error) {
 	fn, ok := m.fns[sym]
 	if !ok {
 		return nil, fmt.Errorf("unknown function: %s", sym)
@@ -142,6 +145,6 @@ func(m *MenuResource) FallbackFunc(ctx context.Context, sym string) (EntryFunc, 
 }
 
 // Close implements the Resource interface.
-func(m *MenuResource) Close(ctx context.Context) error {
+func (m *MenuResource) Close(ctx context.Context) error {
 	return nil
 }

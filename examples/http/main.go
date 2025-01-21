@@ -10,11 +10,11 @@ import (
 	"os"
 	"path"
 
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/logging"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/logging"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
@@ -23,7 +23,7 @@ var (
 
 type LocalHandler struct {
 	sessionId string
-}	
+}
 
 func NewLocalHandler() *LocalHandler {
 	return &LocalHandler{
@@ -31,11 +31,11 @@ func NewLocalHandler() *LocalHandler {
 	}
 }
 
-func(h* LocalHandler) SetSession(sessionId string) {
+func (h *LocalHandler) SetSession(sessionId string) {
 	h.sessionId = sessionId
 }
 
-func(h* LocalHandler) AddSession(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (h *LocalHandler) AddSession(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	return resource.Result{
 		Content: h.sessionId + ":" + string(input),
 	}, nil
@@ -49,7 +49,7 @@ type RequestParser interface {
 type DefaultRequestParser struct {
 }
 
-func(rp *DefaultRequestParser) GetSessionId(rq *http.Request) (string, error) {
+func (rp *DefaultRequestParser) GetSessionId(rq *http.Request) (string, error) {
 	v := rq.Header.Get("X-Vise-Session")
 	if v == "" {
 		return "", fmt.Errorf("no session found")
@@ -57,7 +57,7 @@ func(rp *DefaultRequestParser) GetSessionId(rq *http.Request) (string, error) {
 	return v, nil
 }
 
-func(rp *DefaultRequestParser) GetInput(rq *http.Request) ([]byte, error) {
+func (rp *DefaultRequestParser) GetInput(rq *http.Request) ([]byte, error) {
 	defer rq.Body.Close()
 	v, err := ioutil.ReadAll(rq.Body)
 	if err != nil {
@@ -68,10 +68,10 @@ func(rp *DefaultRequestParser) GetInput(rq *http.Request) ([]byte, error) {
 
 type DefaultSessionHandler struct {
 	cfgTemplate engine.Config
-	rp RequestParser
-	rs resource.Resource
-	rh *LocalHandler
-	peBase string
+	rp          RequestParser
+	rs          resource.Resource
+	rh          *LocalHandler
+	peBase      string
 }
 
 func NewDefaultSessionHandler(ctx context.Context, persistBase string, resourceBase string, rp RequestParser, outputSize uint32, cacheSize uint32, flagCount uint32) *DefaultSessionHandler {
@@ -86,9 +86,9 @@ func NewDefaultSessionHandler(ctx context.Context, persistBase string, resourceB
 	return &DefaultSessionHandler{
 		cfgTemplate: engine.Config{
 			OutputSize: outputSize,
-			Root: "root",
-			FlagCount: flagCount,
-			CacheSize: cacheSize,
+			Root:       "root",
+			FlagCount:  flagCount,
+			CacheSize:  cacheSize,
 		},
 		rs: rs,
 		rh: rh,
@@ -96,10 +96,10 @@ func NewDefaultSessionHandler(ctx context.Context, persistBase string, resourceB
 	}
 }
 
-func(f *DefaultSessionHandler) GetEngine(ctx context.Context, sessionId string) (engine.Engine, error) {
+func (f *DefaultSessionHandler) GetEngine(ctx context.Context, sessionId string) (engine.Engine, error) {
 	cfg := f.cfgTemplate
 	cfg.SessionId = sessionId
-	
+
 	//persistPath := path.Join(f.peBase, sessionId)
 	persistPath := path.Join(f.peBase)
 	if persistPath == "" {
@@ -120,8 +120,8 @@ func(f *DefaultSessionHandler) GetEngine(ctx context.Context, sessionId string) 
 	return en, err
 }
 
-func(f *DefaultSessionHandler) writeError(w http.ResponseWriter, code int, msg string, err error) {
-	w.Header().Set("X-Vise", msg + ": " + err.Error())
+func (f *DefaultSessionHandler) writeError(w http.ResponseWriter, code int, msg string, err error) {
+	w.Header().Set("X-Vise", msg+": "+err.Error())
 	w.Header().Set("Content-Length", "0")
 	w.WriteHeader(code)
 	_, err = w.Write([]byte{})
@@ -129,10 +129,10 @@ func(f *DefaultSessionHandler) writeError(w http.ResponseWriter, code int, msg s
 		w.WriteHeader(500)
 		w.Header().Set("X-Vise", err.Error())
 	}
-	return 
+	return
 }
 
-func(f *DefaultSessionHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (f *DefaultSessionHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var r bool
 	sessionId, err := f.rp.GetSessionId(req)
 	if err != nil {
@@ -188,7 +188,7 @@ func main() {
 	flag.StringVar(&port, "p", "7123", "http port")
 	flag.StringVar(&peDir, "d", ".state", "persistance dir")
 	flag.UintVar(&flagCount, "f", 0, "flag count")
-	flag.UintVar(&cacheSize, "c", 1024 * 1024, "cache size")
+	flag.UintVar(&cacheSize, "c", 1024*1024, "cache size")
 	flag.UintVar(&outSize, "s", 160, "max size of output")
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting server:\n\tpersistence dir: %s\n\tresource dir: %s\n", rsDir, peDir)
@@ -197,7 +197,7 @@ func main() {
 	rp := &DefaultRequestParser{}
 	h := NewDefaultSessionHandler(ctx, peDir, rsDir, rp, uint32(outSize), uint32(cacheSize), uint32(flagCount))
 	s := &http.Server{
-		Addr: fmt.Sprintf("%s:%s", host, port),
+		Addr:    fmt.Sprintf("%s:%s", host, port),
 		Handler: h,
 	}
 	err := s.ListenAndServe()

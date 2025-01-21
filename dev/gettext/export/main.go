@@ -8,12 +8,11 @@ import (
 	"path"
 	"strings"
 
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/debug"
 	"git.defalsify.org/vise.git/lang"
-	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/logging"
-	fsdb "git.defalsify.org/vise.git/db/fs"
-
+	"git.defalsify.org/vise.git/resource"
 )
 
 var (
@@ -21,27 +20,27 @@ var (
 )
 
 type translator struct {
-	langs []lang.Language
+	langs    []lang.Language
 	haveLang map[string]bool
-	ctx context.Context
-	rs *resource.PoResource
-	outPath string
+	ctx      context.Context
+	rs       *resource.PoResource
+	outPath  string
 	madePath bool
 }
 
 func newTranslator(ctx context.Context, defaultLanguage lang.Language, inPath string, outPath string) *translator {
 	tr := &translator{
-		langs: []lang.Language{defaultLanguage},
+		langs:    []lang.Language{defaultLanguage},
 		haveLang: make(map[string]bool),
-		ctx: ctx,
-		rs: resource.NewPoResource(defaultLanguage, inPath),
-		outPath: outPath,
+		ctx:      ctx,
+		rs:       resource.NewPoResource(defaultLanguage, inPath),
+		outPath:  outPath,
 	}
 	tr.haveLang[defaultLanguage.Code] = true
 	return tr
 }
 
-func(tr *translator) AddLang(ln lang.Language) error {
+func (tr *translator) AddLang(ln lang.Language) error {
 	var ok bool
 	_, ok = tr.haveLang[ln.Code]
 	if !ok {
@@ -52,9 +51,9 @@ func(tr *translator) AddLang(ln lang.Language) error {
 	return nil
 }
 
-func(tr *translator) nodeFunc(node *debug.Node) error {
+func (tr *translator) nodeFunc(node *debug.Node) error {
 	sym := node.Name
-	for i, ln := range(tr.langs) {
+	for i, ln := range tr.langs {
 		ctx := context.WithValue(tr.ctx, "Language", ln)
 		s, err := tr.rs.GetTemplate(ctx, sym)
 		if err != nil {
@@ -73,7 +72,7 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 				fb += "_" + ln.Code
 			}
 			fp := path.Join(tr.outPath, fb)
-			w, err := os.OpenFile(fp, os.O_WRONLY | os.O_CREATE, 0644)
+			w, err := os.OpenFile(fp, os.O_WRONLY|os.O_CREATE, 0644)
 			if err != nil {
 				return err
 			}
@@ -88,8 +87,8 @@ func(tr *translator) nodeFunc(node *debug.Node) error {
 	return nil
 }
 
-func(tr *translator) menuFunc(sym string) error {
-	for i, ln := range(tr.langs) {
+func (tr *translator) menuFunc(sym string) error {
+	for i, ln := range tr.langs {
 		ctx := context.WithValue(tr.ctx, "Language", ln)
 		s, err := tr.rs.GetMenu(ctx, sym)
 		if err != nil {
@@ -110,7 +109,7 @@ func(tr *translator) menuFunc(sym string) error {
 			}
 			// TODO: use lang filename generator func instead
 			fp := path.Join(tr.outPath, fb)
-			w, err := os.OpenFile(fp, os.O_WRONLY | os.O_CREATE, 0644)
+			w, err := os.OpenFile(fp, os.O_WRONLY|os.O_CREATE, 0644)
 			if err != nil {
 				return err
 			}
@@ -125,7 +124,7 @@ func(tr *translator) menuFunc(sym string) error {
 	return nil
 }
 
-func(tr *translator) Close() error {
+func (tr *translator) Close() error {
 	return nil
 }
 
@@ -133,7 +132,7 @@ type langVar struct {
 	v []lang.Language
 }
 
-func(lv *langVar) Set(s string) error {
+func (lv *langVar) Set(s string) error {
 	v, err := lang.LanguageFromCode(s)
 	if err != nil {
 		return err
@@ -142,15 +141,15 @@ func(lv *langVar) Set(s string) error {
 	return err
 }
 
-func(lv *langVar) String() string {
+func (lv *langVar) String() string {
 	var s []string
-	for _, v := range(lv.v) {
+	for _, v := range lv.v {
 		s = append(s, v.Code)
 	}
 	return strings.Join(s, ",")
 }
 
-func(lv *langVar) Langs() []lang.Language {
+func (lv *langVar) Langs() []lang.Language {
 	return lv.v
 }
 
@@ -195,7 +194,7 @@ func main() {
 	}
 	tr := newTranslator(ctx, ln, inDir, outDir)
 	defer tr.Close()
-	for _, ln := range(langs.Langs()) {
+	for _, ln := range langs.Langs() {
 		logg.DebugCtxf(ctx, "lang", "lang", ln)
 		err = tr.AddLang(ln)
 		if err != nil {
@@ -210,8 +209,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "node tree process fail: %v", err)
 		os.Exit(1)
 	}
-	
-	for k, v := range(debug.NodeIndex) {
+
+	for k, v := range debug.NodeIndex {
 		logg.Tracef("processing node", "sym", k)
 		err = tr.nodeFunc(&v)
 		if err != nil {
@@ -220,7 +219,7 @@ func main() {
 		}
 	}
 
-	for k, _ := range(debug.MenuIndex) {
+	for k, _ := range debug.MenuIndex {
 		logg.Tracef("processing menu", "sym", k)
 		err = tr.menuFunc(k)
 		if err != nil {

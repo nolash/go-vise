@@ -18,7 +18,7 @@ var (
 type Vanilla struct {
 	domain      string
 	levelFilter int
-	ctxkey	[]string
+	ctxkey      []string
 }
 
 // NewVanilla creates a new Vanilla logger.
@@ -163,12 +163,12 @@ func (v Vanilla) argsToString(ctx context.Context, args []any) string {
 	var s string
 
 	if ctx != nil {
-		for _, k := range(v.ctxkey) {
+		for _, k := range v.ctxkey {
 			v := ctx.Value(k)
 			if v != nil {
 				v, ok := v.(string)
 				if ok {
-					args = append(args, "x-" + k, v)
+					args = append(args, "x-"+k, v)
 				}
 			}
 		}

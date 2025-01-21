@@ -9,13 +9,13 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
-	baseDir = testdataloader.GetBasePath()
+	baseDir   = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "quit")
 )
 

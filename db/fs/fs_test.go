@@ -91,7 +91,7 @@ func TestPutGetFsAlt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	v, err := store.Get(ctx, []byte("inky"))
 	if err != nil {
 		t.Fatal(err)

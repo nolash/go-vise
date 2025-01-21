@@ -12,11 +12,11 @@ import (
 
 var (
 	inputRegexStr = "^\\+?[a-zA-Z0-9].*$"
-	inputRegex = regexp.MustCompile(inputRegexStr)
-	ctrlRegexStr = "^[><_^.]$"
-	ctrlRegex = regexp.MustCompile(ctrlRegexStr)
-	symRegexStr = "^[a-zA-Z0-9][a-zA-Z0-9_]+$"
-	symRegex = regexp.MustCompile(symRegexStr)
+	inputRegex    = regexp.MustCompile(inputRegexStr)
+	ctrlRegexStr  = "^[><_^.]$"
+	ctrlRegex     = regexp.MustCompile(ctrlRegexStr)
+	symRegexStr   = "^[a-zA-Z0-9][a-zA-Z0-9_]+$"
+	symRegex      = regexp.MustCompile(symRegexStr)
 )
 
 var (
@@ -34,7 +34,7 @@ func NewInvalidInputError(input string) error {
 }
 
 // Error implements the Error interface.
-func(e InvalidInputError) Error() string {
+func (e InvalidInputError) Error() string {
 	return fmt.Sprintf("invalid input: '%s'", e.input)
 }
 
@@ -102,7 +102,7 @@ func valid(target []byte) bool {
 			ok = true
 		}
 	}
-	return ok 
+	return ok
 }
 
 // CheckTarget tests whether the navigation state transition is available in the current state.

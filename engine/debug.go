@@ -18,27 +18,27 @@ type Debug interface {
 // SimpleDebug is a vanilla implementation of the Debug interface.
 type SimpleDebug struct {
 	pfx string
-	w io.Writer
+	w   io.Writer
 }
 
 // NewSimpleDebug instantiates a new SimpleDebug object.
 func NewSimpleDebug(w io.Writer) Debug {
 	if w == nil {
-		w = os.Stderr	
-	} 
+		w = os.Stderr
+	}
 	return &SimpleDebug{
-		w: w,
+		w:   w,
 		pfx: "DUMP>",
 	}
 }
 
 // Break implements the Debug interface.
-func (dbg* SimpleDebug) Break(st *state.State, ca cache.Memory) {
+func (dbg *SimpleDebug) Break(st *state.State, ca cache.Memory) {
 	fmt.Fprintf(dbg.w, "%s State:\n", dbg.pfx)
 	node, lvl := st.Where()
 	fmt.Fprintf(dbg.w, "%s\tPath: %s (%d)\n", dbg.pfx, node, lvl)
 	fmt.Fprintf(dbg.w, "%s\tFlags:\n", dbg.pfx)
-	for _, s := range state.FlagDebugger.AsList(st.Flags, st.BitSize - 8) {
+	for _, s := range state.FlagDebugger.AsList(st.Flags, st.BitSize-8) {
 		fmt.Fprintf(dbg.w, "%s\t\t%s\n", dbg.pfx, s)
 	}
 	for i := uint32(0); i < ca.Levels(); i++ {

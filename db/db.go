@@ -37,7 +37,7 @@ const (
 // Db abstracts all data storage and retrieval as a key-value store
 type Db interface {
 	// Connect prepares the storage backend for use.
-	// 
+	//
 	// If called more than once, consecutive calls should be ignored.
 	Connect(ctx context.Context, connStr string) error
 	// MUST be called before termination after a Connect().
@@ -47,9 +47,9 @@ type Db interface {
 	// Errors if the key does not exist, or if the retrieval otherwise fails.
 	Get(ctx context.Context, key []byte) ([]byte, error)
 	// Put stores a value under a key.
-	// 
+	//
 	// Any existing value will be replaced.
-	// 
+	//
 	// Errors if the value could not be stored.
 	Put(ctx context.Context, key []byte, val []byte) error
 	// SetPrefix sets the storage context prefix to use for consecutive Get and Put operations.
@@ -84,7 +84,7 @@ type Db interface {
 }
 
 type LookupKey struct {
-	Default []byte
+	Default     []byte
 	Translation []byte
 }
 
@@ -95,8 +95,8 @@ type LookupKey struct {
 // If language is not nil, and the context does not support language, the language value will silently will be ignored.
 func ToDbKey(typ uint8, b []byte, l *lang.Language) []byte {
 	k := []byte{typ}
-	if l != nil && l.Code != "" && typ & (DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD) > 0 {
-		b = append(b, []byte("_" + l.Code)...)
+	if l != nil && l.Code != "" && typ&(DATATYPE_MENU|DATATYPE_TEMPLATE|DATATYPE_STATICLOAD) > 0 {
+		b = append(b, []byte("_"+l.Code)...)
 		//s += "_" + l.Code
 	}
 	return append(k, b...)
@@ -108,7 +108,7 @@ func FromDbKey(b []byte) ([]byte, error) {
 	}
 	typ := b[0]
 	b = b[1:]
-	if typ & (DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD) > 0 {
+	if typ&(DATATYPE_MENU|DATATYPE_TEMPLATE|DATATYPE_STATICLOAD) > 0 {
 		if len(b) > 6 {
 			if b[len(b)-4] == '_' {
 				b = b[:len(b)-4]
@@ -120,11 +120,11 @@ func FromDbKey(b []byte) ([]byte, error) {
 
 // baseDb is a base class for all Db implementations.
 type baseDb struct {
-	pfx uint8
-	sid []byte
-	lock uint8
-	lang *lang.Language
-	seal bool
+	pfx     uint8
+	sid     []byte
+	lock    uint8
+	lang    *lang.Language
+	seal    bool
 	connStr string
 }
 
@@ -145,29 +145,30 @@ func NewDbBase() *DbBase {
 }
 
 // ensures default locking of read-only entries
-func(db *baseDb) defaultLock() {
+func (db *baseDb) defaultLock() {
 	db.lock |= safeLock
 }
 
-func(bd *DbBase) Safe() bool {
-	return bd.baseDb.lock & safeLock == safeLock
+func (bd *DbBase) Safe() bool {
+	return bd.baseDb.lock&safeLock == safeLock
 }
 
-func(bd *DbBase) Prefix() uint8 {
+func (bd *DbBase) Prefix() uint8 {
 	return bd.baseDb.pfx
 }
 
 // SetPrefix implements the Db interface.
-func(bd *DbBase) SetPrefix(pfx uint8) {
+func (bd *DbBase) SetPrefix(pfx uint8) {
 	bd.baseDb.pfx = pfx
 }
 
 // SetLanguage implements the Db interface.
-func(bd *DbBase) SetLanguage(ln *lang.Language) {
+func (bd *DbBase) SetLanguage(ln *lang.Language) {
 	bd.baseDb.lang = ln
 }
+
 // SetSession implements the Db interface.
-func(bd *DbBase) SetSession(sessionId string) {
+func (bd *DbBase) SetSession(sessionId string) {
 	if sessionId == "" {
 		bd.baseDb.sid = []byte{}
 	} else {
@@ -176,7 +177,7 @@ func(bd *DbBase) SetSession(sessionId string) {
 }
 
 // SetLock implements the Db interface.
-func(bd *DbBase) SetLock(pfx uint8, lock bool) error {
+func (bd *DbBase) SetLock(pfx uint8, lock bool) error {
 	if bd.baseDb.seal {
 		return errors.New("SetLock on sealed db")
 	}
@@ -186,7 +187,7 @@ func(bd *DbBase) SetLock(pfx uint8, lock bool) error {
 		return nil
 	}
 	if lock {
-		bd.baseDb.lock	|= pfx
+		bd.baseDb.lock |= pfx
 	} else {
 		bd.baseDb.lock &= ^pfx
 	}
@@ -194,13 +195,13 @@ func(bd *DbBase) SetLock(pfx uint8, lock bool) error {
 }
 
 // CheckPut returns true if the current selected data type can be written to.
-func(bd *DbBase) CheckPut() bool {
-	return bd.baseDb.pfx & bd.baseDb.lock == 0
+func (bd *DbBase) CheckPut() bool {
+	return bd.baseDb.pfx&bd.baseDb.lock == 0
 }
 
 func (bd *DbBase) ToSessionKey(pfx uint8, key []byte) []byte {
 	var b []byte
-	if (pfx > datatype_sessioned_threshold) {
+	if pfx > datatype_sessioned_threshold {
 		b = append([]byte(bd.sid), key...)
 	} else {
 		b = key
@@ -208,7 +209,7 @@ func (bd *DbBase) ToSessionKey(pfx uint8, key []byte) []byte {
 	return b
 }
 
-func(bd *DbBase) FromSessionKey(key []byte) ([]byte, error) {
+func (bd *DbBase) FromSessionKey(key []byte) ([]byte, error) {
 	if len(bd.baseDb.sid) == 0 {
 		return key, nil
 	}
@@ -221,7 +222,7 @@ func(bd *DbBase) FromSessionKey(key []byte) ([]byte, error) {
 // ToKey creates a DbKey within the current session context.
 //
 // TODO: hard to read, clean up
-func(bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
+func (bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	var ln *lang.Language
 	var lk LookupKey
 	//var b []byte
@@ -232,7 +233,7 @@ func(bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	//b := ToSessionKey(db.pfx, db.sid, key)
 	b := bd.ToSessionKey(db.pfx, key)
 	lk.Default = ToDbKey(db.pfx, b, nil)
-	if db.pfx & (DATATYPE_MENU | DATATYPE_TEMPLATE | DATATYPE_STATICLOAD) > 0 {
+	if db.pfx&(DATATYPE_MENU|DATATYPE_TEMPLATE|DATATYPE_STATICLOAD) > 0 {
 		if db.lang != nil {
 			ln = db.lang
 		} else {
@@ -250,7 +251,7 @@ func(bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	return lk, nil
 }
 
-func(bd *DbBase) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
+func (bd *DbBase) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
 	var err error
 	oldKey := key
 	key, err = FromDbKey(key)

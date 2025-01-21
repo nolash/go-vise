@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"git.defalsify.org/vise.git/cache"
 	"git.defalsify.org/vise.git/db/mem"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/cache"
 )
 
 func TestCreateCache(t *testing.T) {
@@ -64,7 +64,7 @@ func TestInvalidateState(t *testing.T) {
 	st.Invalidate()
 	defer func() {
 		if r := recover(); r == nil {
-			t.Fatal("expected panic")	
+			t.Fatal("expected panic")
 		}
 	}()
 	_ = pr.Save("foo")
@@ -86,7 +86,7 @@ func TestInvalidateCache(t *testing.T) {
 	ca.Invalidate()
 	defer func() {
 		if r := recover(); r == nil {
-			t.Fatal("expected panic")	
+			t.Fatal("expected panic")
 		}
 	}()
 	_ = pr.Save("foo")
@@ -109,7 +109,7 @@ func TestInvalidateAll(t *testing.T) {
 	st.Invalidate()
 	defer func() {
 		if r := recover(); r == nil {
-			t.Fatal("expected panic")	
+			t.Fatal("expected panic")
 		}
 	}()
 	_ = pr.Save("foo")
@@ -128,7 +128,7 @@ func TestFlush(t *testing.T) {
 	ca.Push()
 	ca.Add("blinky", "clyde", 13)
 	ca.WithCacheSize(666)
-	
+
 	st.Down("xyzzy")
 	st.Down("plugh")
 	st.SetFlag(3)
@@ -145,7 +145,7 @@ func TestFlush(t *testing.T) {
 		t.Fatalf("expected bitsize %d, got %d", expectBitSize, st.FlagBitSize())
 	}
 	st = pe.GetState()
-	node,  lvl := st.Where()
+	node, lvl := st.Where()
 	if lvl != 0 {
 		t.Fatalf("expected level 0, got: %d", lvl)
 	}

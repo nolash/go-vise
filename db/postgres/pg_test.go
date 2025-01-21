@@ -5,9 +5,9 @@ import (
 	"context"
 	"testing"
 
-	pgxmock "github.com/pashagolub/pgxmock/v4"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
+	pgxmock "github.com/pashagolub/pgxmock/v4"
 
 	"git.defalsify.org/vise.git/db"
 	"git.defalsify.org/vise.git/db/dbtest"
@@ -17,9 +17,9 @@ var (
 	typMap = pgtype.NewMap()
 
 	mockVfd = pgconn.FieldDescription{
-		Name: "value",
+		Name:        "value",
 		DataTypeOID: pgtype.ByteaOID,
-		Format: typMap.FormatCodeForOID(pgtype.ByteaOID),
+		Format:      typMap.FormatCodeForOID(pgtype.ByteaOID),
 	}
 )
 
@@ -57,7 +57,7 @@ func TestPutGetPg(t *testing.T) {
 	store.SetSession(ses)
 	ctx := context.Background()
 
-	dbi = store 
+	dbi = store
 	_ = dbi
 
 	k := []byte("foo")
@@ -137,7 +137,7 @@ func TestPostgresTxAbort(t *testing.T) {
 	store.SetSession(ses)
 	ctx := context.Background()
 
-	dbi = store 
+	dbi = store
 	_ = dbi
 
 	resInsert := pgxmock.NewResult("UPDATE", 1)
@@ -176,7 +176,7 @@ func TestPostgresTxCommitOnClose(t *testing.T) {
 	store.SetSession(ses)
 	ctx := context.Background()
 
-	dbi = store 
+	dbi = store
 	_ = dbi
 
 	resInsert := pgxmock.NewResult("UPDATE", 1)
@@ -257,7 +257,7 @@ func TestPostgresTxStartStop(t *testing.T) {
 	store.SetSession(ses)
 	ctx := context.Background()
 
-	dbi = store 
+	dbi = store
 	_ = dbi
 
 	resInsert := pgxmock.NewResult("UPDATE", 1)

@@ -17,8 +17,8 @@ type Cache struct {
 	// Size limits for all loaded symbols.
 	Sizes map[string]uint16
 	// Last inserted value (regardless of scope)
-	LastValue string 
-	invalid bool
+	LastValue string
+	invalid   bool
 }
 
 // NewCache creates a new ready-to-use Cache object
@@ -31,23 +31,23 @@ func NewCache() *Cache {
 }
 
 // Invalidate implements the Memory interface.
-func(ca *Cache) Invalidate() {
+func (ca *Cache) Invalidate() {
 	ca.invalid = true
 }
 
 // Invalid implements the Memory interface.
-func(ca *Cache) Invalid() bool {
+func (ca *Cache) Invalid() bool {
 	return ca.invalid
 }
 
 // WithCacheSize is a chainable method that applies a cumulative cache size limitation for all cached items.
-func(ca *Cache) WithCacheSize(cacheSize uint32) *Cache {
+func (ca *Cache) WithCacheSize(cacheSize uint32) *Cache {
 	ca.CacheSize = cacheSize
 	return ca
 }
 
 // Add implements the Memory interface.
-func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
+func (ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	if sizeLimit > 0 {
 		l := uint16(len(value))
 		if l > sizeLimit {
@@ -66,7 +66,7 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 	if len(value) > 0 {
 		sz = ca.checkCapacity(value)
 		if sz == 0 {
-			return fmt.Errorf("Cache capacity exceeded %v of %v", ca.CacheUseSize + sz, ca.CacheSize)
+			return fmt.Errorf("Cache capacity exceeded %v of %v", ca.CacheUseSize+sz, ca.CacheSize)
 		}
 	}
 	logg.Debugf("Cache add", "key", key, "size", sz, "limit", sizeLimit)
@@ -79,7 +79,7 @@ func(ca *Cache) Add(key string, value string, sizeLimit uint16) error {
 }
 
 // ReservedSize implements the Memory interface.
-func(ca *Cache) ReservedSize(key string) (uint16, error) {
+func (ca *Cache) ReservedSize(key string) (uint16, error) {
 	v, ok := ca.Sizes[key]
 	if !ok {
 		return 0, fmt.Errorf("unknown symbol: %s", key)
@@ -88,7 +88,7 @@ func(ca *Cache) ReservedSize(key string) (uint16, error) {
 }
 
 // Update implements the Memory interface.
-func(ca *Cache) Update(key string, value string) error {
+func (ca *Cache) Update(key string, value string) error {
 	sizeLimit := ca.Sizes[key]
 	if ca.Sizes[key] > 0 {
 		l := uint16(len(value))
@@ -109,7 +109,7 @@ func(ca *Cache) Update(key string, value string) error {
 		baseUseSize := ca.CacheUseSize
 		ca.Cache[checkFrame][key] = r
 		ca.CacheUseSize += l
-		return fmt.Errorf("Cache capacity exceeded %v of %v", baseUseSize + sz, ca.CacheSize)
+		return fmt.Errorf("Cache capacity exceeded %v of %v", baseUseSize+sz, ca.CacheSize)
 	}
 	ca.Cache[checkFrame][key] = value
 	ca.CacheUseSize += uint32(len(value))
@@ -117,7 +117,7 @@ func(ca *Cache) Update(key string, value string) error {
 }
 
 // Get implements the Memory interface.
-func(ca *Cache) Get(key string) (string, error) {
+func (ca *Cache) Get(key string) (string, error) {
 	i := ca.frameOf(key)
 	if i == -1 {
 		return "", fmt.Errorf("key '%s' not found in any frame", key)
@@ -130,7 +130,7 @@ func(ca *Cache) Get(key string) (string, error) {
 }
 
 // Reset implements the Memory interface.
-func(ca *Cache) Reset() {
+func (ca *Cache) Reset() {
 	var v string
 	if len(ca.Cache) == 0 {
 		return
@@ -172,14 +172,14 @@ func (ca *Cache) Pop() error {
 }
 
 // Check returns true if a key already exists in the cache.
-func(ca *Cache) Check(key string) bool {
+func (ca *Cache) Check(key string) bool {
 	return ca.frameOf(key) == -1
 }
 
 // Last implements the Memory interface.
 //
 // TODO: needs to be invalidated when out of scope
-func(ca *Cache) Last() string {
+func (ca *Cache) Last() string {
 	s := ca.LastValue
 	ca.LastValue = ""
 	return s
@@ -187,19 +187,19 @@ func(ca *Cache) Last() string {
 
 // bytes that will be added to cache use size for string
 // returns 0 if capacity would be exceeded
-func(ca *Cache) checkCapacity(v string) uint32 {
+func (ca *Cache) checkCapacity(v string) uint32 {
 	sz := uint32(len(v))
 	if ca.CacheSize == 0 {
 		return sz
 	}
-	if ca.CacheUseSize + sz > ca.CacheSize {
-		return 0	
+	if ca.CacheUseSize+sz > ca.CacheSize {
+		return 0
 	}
 	return sz
 }
 
 // return 0-indexed frame number where key is defined. -1 if not defined
-func(ca *Cache) frameOf(key string) int {
+func (ca *Cache) frameOf(key string) int {
 	for i, m := range ca.Cache {
 		for k, _ := range m {
 			if k == key {
@@ -211,12 +211,12 @@ func(ca *Cache) frameOf(key string) int {
 }
 
 // Levels implements the Memory interface.
-func(ca *Cache) Levels() uint32 {
+func (ca *Cache) Levels() uint32 {
 	return uint32(len(ca.Cache))
 }
 
 // Keys implements the Memory interface.
-func(ca *Cache) Keys(level uint32) []string {
+func (ca *Cache) Keys(level uint32) []string {
 	var r []string
 	for k := range ca.Cache[level] {
 		r = append(r, k)

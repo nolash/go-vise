@@ -6,11 +6,10 @@ import (
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
+	memdb "git.defalsify.org/vise.git/db/mem"
 	"git.defalsify.org/vise.git/persist"
 	"git.defalsify.org/vise.git/state"
-	memdb "git.defalsify.org/vise.git/db/mem"
 )
-
 
 func TestPersistNewAcrossEngine(t *testing.T) {
 	var err error
@@ -72,7 +71,7 @@ func TestPersistNewAcrossEngine(t *testing.T) {
 	}
 	location, _ := st.Where()
 	if location != "foo" {
-		t.Errorf("expected location 'foo', got '%s", location)	
+		t.Errorf("expected location 'foo', got '%s", location)
 	}
 }
 
@@ -136,6 +135,6 @@ func TestPersistSameAcrossEngine(t *testing.T) {
 	}
 	location, _ := st.Where()
 	if location != "foo" {
-		t.Errorf("expected location 'foo', got '%s", location)	
+		t.Errorf("expected location 'foo', got '%s", location)
 	}
 }

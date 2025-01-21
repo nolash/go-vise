@@ -16,7 +16,6 @@ import (
 	"git.defalsify.org/vise.git/vm"
 )
 
-
 // Asm assembles bytecode from the vise assembly mini-language.
 //
 // TODO: Conceal from outside use
@@ -28,11 +27,11 @@ type Asm struct {
 //
 // TODO: Conceal from outside use
 type Arg struct {
-	Sym *string `(@Sym Whitespace?)?`
-	Size *uint32 `(@Size Whitespace?)?`
-	Flag *uint8 `(@Size Whitespace?)?`
+	Sym      *string `(@Sym Whitespace?)?`
+	Size     *uint32 `(@Size Whitespace?)?`
+	Flag     *uint8  `(@Size Whitespace?)?`
 	Selector *string `(@Sym Whitespace?)?`
-	Desc *string `(@Sym Whitespace?)?`
+	Desc     *string `(@Sym Whitespace?)?`
 	//Desc *string `(Quote ((@Sym | @Size) @Whitespace?)+ Quote Whitespace?)?`
 }
 
@@ -63,7 +62,6 @@ func parseTwoSym(b *bytes.Buffer, arg Arg) (int, error) {
 		}
 	}
 
-
 	n, err := writeSym(b, sym)
 	rn += n
 	if err != nil {
@@ -82,7 +80,7 @@ func parseTwoSymReverse(b *bytes.Buffer, arg Arg) (int, error) {
 	var rn int
 
 	sym := *arg.Selector
-	selector := *arg.Sym 
+	selector := *arg.Sym
 	n, err := writeSym(b, selector)
 	rn += n
 	if err != nil {
@@ -163,12 +161,12 @@ func parseOne(op vm.Opcode, instruction *Instruction, w io.Writer) (int, error) 
 	a := instruction.OpArg
 	var n_buf int
 	var n_out int
-	
+
 	b := bytes.NewBuffer(nil)
 
 	n, err := writeOpcode(b, op)
 	n_buf += n
-	if  err != nil {
+	if err != nil {
 		return n_out, err
 	}
 
@@ -259,8 +257,8 @@ func (a Arg) String() string {
 //
 // TODO: Conceal from outside use
 type Instruction struct {
-	OpCode string `@Ident`
-	OpArg Arg `(Whitespace @@)?`
+	OpCode  string `@Ident`
+	OpArg   Arg    `(Whitespace @@)?`
 	Comment string `Comment? EOL`
 }
 
@@ -287,7 +285,7 @@ var (
 
 func numSize(n uint32) int {
 	v := math.Log2(float64(n))
-	return int((v  / 8) + 1)
+	return int((v / 8) + 1)
 }
 
 func writeOpcode(w *bytes.Buffer, op vm.Opcode) (int, error) {
@@ -317,14 +315,14 @@ func writeSize(w *bytes.Buffer, n uint32) (int, error) {
 	}
 	w.Write([]byte{byte(sz)})
 	binary.BigEndian.PutUint32(bn[:], n)
-	c := 4-sz
+	c := 4 - sz
 	return w.Write(bn[c:])
 }
 
 // Batcher handles assembly commands that generates multiple instructions, such as menu navigation commands.
 type Batcher struct {
 	menuProcessor MenuProcessor
-	inMenu bool
+	inMenu        bool
 }
 
 // NewBatcher creates a new Batcher objcet.
@@ -335,7 +333,7 @@ func NewBatcher(mp MenuProcessor) Batcher {
 }
 
 // MenuExit generates the instructions for the batch and writes them to the given io.Writer.
-func(bt *Batcher) MenuExit(w io.Writer) (int, error) {
+func (bt *Batcher) MenuExit(w io.Writer) (int, error) {
 	if !bt.inMenu {
 		return 0, nil
 	}
@@ -345,7 +343,7 @@ func(bt *Batcher) MenuExit(w io.Writer) (int, error) {
 }
 
 // MenuAdd adds a new menu instruction to the batcher.
-func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
+func (bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 	bt.inMenu = true
 	var selector string
 	var sym string
@@ -370,7 +368,7 @@ func(bt *Batcher) MenuAdd(w io.Writer, code string, arg Arg) (int, error) {
 }
 
 // Exit is a synonym for MenuExit
-func(bt *Batcher) Exit(w io.Writer) (int, error) {
+func (bt *Batcher) Exit(w io.Writer) (int, error) {
 	return bt.MenuExit(w)
 }
 
@@ -382,9 +380,7 @@ func Parse(s string, w io.Writer) (int, error) {
 		return 0, err
 	}
 
-	batch := Batcher{
-		
-	}
+	batch := Batcher{}
 
 	var rn int
 	for _, v := range ast.Instructions {

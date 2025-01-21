@@ -4,7 +4,7 @@ const (
 	// Currently reading input. Set by first INCMP instruction encontered.
 	FLAG_READIN = iota
 	// Input matched a selector. Set by first INCMP matching input.
-	FLAG_INMATCH 
+	FLAG_INMATCH
 	// The instruction HALT has been encountered.
 	FLAG_WAIT
 	// The last LOAD or RELOAD executed returneded an error.
@@ -14,7 +14,7 @@ const (
 	// Not currently in use.
 	FLAG_RESERVED
 	// VM execution is blocked.
-	FLAG_TERMINATE 
+	FLAG_TERMINATE
 	// The return value from a LOAD or RELOAD is a new language selection.
 	FLAG_LANG
 	// User-defined flags start here.

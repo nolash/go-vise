@@ -11,16 +11,16 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
-	"git.defalsify.org/vise.git/engine"
-	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/logging"
 	fsdb "git.defalsify.org/vise.git/db/fs"
+	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/logging"
+	"git.defalsify.org/vise.git/resource"
 )
 
 var (
-	logg = logging.NewVanilla()
-	baseDir = testdataloader.GetBasePath()
-	scriptDir = path.Join(baseDir, "examples", "session")
+	logg        = logging.NewVanilla()
+	baseDir     = testdataloader.GetBasePath()
+	scriptDir   = path.Join(baseDir, "examples", "session")
 	emptyResult = resource.Result{}
 )
 
@@ -47,7 +47,7 @@ func save(ctx context.Context, sym string, input []byte) (resource.Result, error
 		}
 	}
 	return resource.Result{
-		Content: string(r),	
+		Content: string(r),
 	}, nil
 }
 
@@ -70,8 +70,8 @@ func main() {
 	rs := resource.NewDbResource(store)
 	rs.AddLocalFunc("do_save", save)
 	cfg := engine.Config{
-		Root: "root",
-		SessionId: sessionId,
+		Root:       "root",
+		SessionId:  sessionId,
 		OutputSize: uint32(size),
 		StateDebug: true,
 	}

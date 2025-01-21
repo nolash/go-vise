@@ -5,9 +5,9 @@ import (
 	"context"
 	"testing"
 
-	pgxmock "github.com/pashagolub/pgxmock/v4"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
+	pgxmock "github.com/pashagolub/pgxmock/v4"
 
 	"git.defalsify.org/vise.git/db"
 )
@@ -26,35 +26,35 @@ func TestDumpPg(t *testing.T) {
 	store.SetSession(ses)
 	ctx := context.Background()
 
-//	store.SetPrefix(db.DATATYPE_USERDATA)
-//	err = store.Put(ctx, []byte("bar"), []byte("inky"))
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	err = store.Put(ctx, []byte("foobar"), []byte("pinky"))
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	err = store.Put(ctx, []byte("foobarbaz"), []byte("blinky"))
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	err = store.Put(ctx, []byte("xyzzy"), []byte("clyde"))
-//	if err != nil {
-//		t.Fatal(err)
-//	}
+	//	store.SetPrefix(db.DATATYPE_USERDATA)
+	//	err = store.Put(ctx, []byte("bar"), []byte("inky"))
+	//	if err != nil {
+	//		t.Fatal(err)
+	//	}
+	//	err = store.Put(ctx, []byte("foobar"), []byte("pinky"))
+	//	if err != nil {
+	//		t.Fatal(err)
+	//	}
+	//	err = store.Put(ctx, []byte("foobarbaz"), []byte("blinky"))
+	//	if err != nil {
+	//		t.Fatal(err)
+	//	}
+	//	err = store.Put(ctx, []byte("xyzzy"), []byte("clyde"))
+	//	if err != nil {
+	//		t.Fatal(err)
+	//	}
 
 	typMap := pgtype.NewMap()
 	k := []byte("xyzzy.foo")
 	mockVfd := pgconn.FieldDescription{
-		Name: "value",
+		Name:        "value",
 		DataTypeOID: pgtype.ByteaOID,
-		Format: typMap.FormatCodeForOID(pgtype.ByteaOID),
+		Format:      typMap.FormatCodeForOID(pgtype.ByteaOID),
 	}
 	mockKfd := pgconn.FieldDescription{
-		Name: "key",
+		Name:        "key",
 		DataTypeOID: pgtype.ByteaOID,
-		Format: typMap.FormatCodeForOID(pgtype.ByteaOID),
+		Format:      typMap.FormatCodeForOID(pgtype.ByteaOID),
 	}
 	rows := pgxmock.NewRowsWithColumnDefinition(mockKfd, mockVfd)
 	//rows = rows.AddRow([]byte("bar"), []byte("inky"))

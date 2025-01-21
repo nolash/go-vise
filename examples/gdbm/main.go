@@ -9,17 +9,17 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
+	"git.defalsify.org/vise.git/db"
+	fsdb "git.defalsify.org/vise.git/db/fs"
+	gdbmdb "git.defalsify.org/vise.git/db/gdbm"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
-	"git.defalsify.org/vise.git/db"
-	gdbmdb "git.defalsify.org/vise.git/db/gdbm"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 var (
-	baseDir = testdataloader.GetBasePath()
+	baseDir   = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "gdbm")
-	dbFile = path.Join(scriptDir, "vise.gdbm")
+	dbFile    = path.Join(scriptDir, "vise.gdbm")
 )
 
 func do(ctx context.Context, sym string, input []byte) (resource.Result, error) {
@@ -27,7 +27,7 @@ func do(ctx context.Context, sym string, input []byte) (resource.Result, error) 
 		Content: "bye",
 	}, nil
 }
-	     
+
 func main() {
 	ctx := context.Background()
 	root := "root"
@@ -54,7 +54,7 @@ func main() {
 	rs.WithEntryFuncGetter(rsf.FuncFor)
 
 	cfg := engine.Config{
-		Root: "root",
+		Root:     "root",
 		Language: "nor",
 	}
 	en := engine.NewEngine(cfg, rs)

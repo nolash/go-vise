@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"git.defalsify.org/vise.git/testdata/testlocale"
 	"git.defalsify.org/vise.git/lang"
+	"git.defalsify.org/vise.git/testdata/testlocale"
 )
 
 func TestPoGetNotExist(t *testing.T) {
@@ -63,7 +63,6 @@ func TestPoGet(t *testing.T) {
 	if s != "foo" {
 		t.Fatalf("expected 'foo', got '%s'", s)
 	}
-
 
 	// eng now
 	ctx = context.WithValue(context.Background(), "Language", ln)

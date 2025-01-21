@@ -1,3 +1,4 @@
+//go:build logerror
 // +build logerror
 
 package logging

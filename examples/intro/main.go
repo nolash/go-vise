@@ -12,10 +12,10 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/cache"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	baseDir = testdataloader.GetBasePath()
+	baseDir   = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "intro")
 )
 
@@ -35,7 +35,7 @@ type introResource struct {
 
 func newintroResource(ctx context.Context) introResource {
 	store := fsdb.NewFsDb()
-	err := store.Connect(ctx, scriptDir) 
+	err := store.Connect(ctx, scriptDir)
 	if err != nil {
 		panic(err)
 	}
@@ -45,7 +45,7 @@ func newintroResource(ctx context.Context) introResource {
 
 // increment counter.
 // return a string representing the current value of the counter.
-func(c *introResource) count(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (c *introResource) count(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	s := "%v time"
 	if c.c != 1 {
 		s += "s"
@@ -53,13 +53,13 @@ func(c *introResource) count(ctx context.Context, sym string, input []byte) (res
 	r := resource.Result{
 		Content: fmt.Sprintf(s, c.c),
 	}
-	c.c += 1 
-	return  r, nil
+	c.c += 1
+	return r, nil
 }
 
 // if input is suppled, append it to the stored string vector and set the HAVESOMETHING flag.
 // return the stored string vector value, one string per line.
-func(c *introResource) something(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (c *introResource) something(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	c.v = append(c.v, string(input))
 	r := resource.Result{
 		Content: strings.Join(c.v, "\n"),
@@ -81,7 +81,7 @@ func main() {
 	flag.StringVar(&sessionId, "session-id", "default", "session id")
 	flag.Parse()
 	fmt.Fprintf(os.Stderr, "starting session at symbol '%s' using resource dir: %s\n", root, dir)
-	
+
 	ctx := context.Background()
 	st := state.NewState(3)
 	rs := newintroResource(ctx)
@@ -89,8 +89,8 @@ func main() {
 	rs.AddLocalFunc("something", rs.something)
 	ca := cache.NewCache()
 	cfg := engine.Config{
-		Root: "root",
-		SessionId: sessionId,
+		Root:       "root",
+		SessionId:  sessionId,
 		OutputSize: uint32(size),
 	}
 	en := engine.NewEngine(cfg, rs)

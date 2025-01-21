@@ -12,11 +12,11 @@ import (
 	testdataloader "github.com/peteole/testdata-loader"
 
 	"git.defalsify.org/vise.git/cache"
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
+	"git.defalsify.org/vise.git/logging"
 	"git.defalsify.org/vise.git/resource"
 	"git.defalsify.org/vise.git/state"
-	"git.defalsify.org/vise.git/logging"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
 
 const (
@@ -25,13 +25,13 @@ const (
 )
 
 var (
-	logg = logging.NewVanilla()
-	baseDir = testdataloader.GetBasePath()
+	logg      = logging.NewVanilla()
+	baseDir   = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "pincheck")
-	pin = []byte("1234")
+	pin       = []byte("1234")
 )
 
-type pinResource struct{
+type pinResource struct {
 	resource.Resource
 	st *state.State
 }
@@ -43,7 +43,7 @@ func newPinResource(resource resource.Resource, state *state.State) *pinResource
 	}
 }
 
-func(rs *pinResource) pinCheck(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (rs *pinResource) pinCheck(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
 
 	if rs.st.MatchFlag(USERFLAG_QUERYPIN, false) {
@@ -61,7 +61,7 @@ func(rs *pinResource) pinCheck(ctx context.Context, sym string, input []byte) (r
 	return r, nil
 }
 
-func(rs *pinResource) pinClear(ctx context.Context, sym string, input []byte) (resource.Result, error) {
+func (rs *pinResource) pinClear(ctx context.Context, sym string, input []byte) (resource.Result, error) {
 	var r resource.Result
 	r.FlagReset = []uint32{USERFLAG_VALIDPIN, USERFLAG_QUERYPIN}
 	return r, nil
@@ -88,7 +88,7 @@ func main() {
 	rsf.AddLocalFunc("pinclear", rs.pinClear)
 	ca := cache.NewCache()
 	cfg := engine.Config{
-		Root: "root",
+		Root:       "root",
 		StateDebug: true,
 	}
 	en := engine.NewEngine(cfg, rs)

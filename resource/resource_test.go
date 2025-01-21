@@ -8,16 +8,16 @@ import (
 
 func codeGet(ctx context.Context, nodeSym string) ([]byte, error) {
 	switch nodeSym {
-		case "bar":
-			return []byte("deafbeef"), nil
+	case "bar":
+		return []byte("deafbeef"), nil
 	}
 	return nil, errors.New("unknown code")
 }
 
 func menuGet(ctx context.Context, menuSym string) (string, error) {
 	switch menuSym {
-		case "baz":
-			return "xyzzy", nil
+	case "baz":
+		return "xyzzy", nil
 	}
 	return "", errors.New("unknown code")
 
@@ -25,8 +25,8 @@ func menuGet(ctx context.Context, menuSym string) (string, error) {
 
 func templateGet(ctx context.Context, nodeSym string) (string, error) {
 	switch nodeSym {
-		case "tinkywinky":
-			return "inky pinky {{.foo}} blinky clyde", nil
+	case "tinkywinky":
+		return "inky pinky {{.foo}} blinky clyde", nil
 	}
 	return "", errors.New("unknown code")
 }
@@ -39,13 +39,11 @@ func entryFunc(ctx context.Context, nodeSym string, input []byte) (Result, error
 
 func funcGet(ctx context.Context, loadSym string) (EntryFunc, error) {
 	switch loadSym {
-		case "dipsy":
-			return entryFunc, nil
+	case "dipsy":
+		return entryFunc, nil
 	}
 	return nil, errors.New("unknown code")
 }
-
-
 
 func TestMenuResourceSetters(t *testing.T) {
 	var err error

@@ -10,7 +10,7 @@ func TestParseOp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if (op != LOAD) {
+	if op != LOAD {
 		t.Fatalf("expected %d, got %d", LOAD, op)
 	}
 	x := append([]byte{0x03}, []byte("foo")...)

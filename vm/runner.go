@@ -13,9 +13,9 @@ import (
 
 // ExternalCodeError indicates an error that occurred when resolving an external code symbol (LOAD, RELOAD).
 type ExternalCodeError struct {
-	sym string
+	sym  string
 	code int
-	err error
+	err  error
 }
 
 // NewExternalCodeError creates a new ExternalCodeError.
@@ -26,13 +26,13 @@ func NewExternalCodeError(sym string, err error) *ExternalCodeError {
 	}
 }
 
-func(e *ExternalCodeError) WithCode(code int) *ExternalCodeError {
+func (e *ExternalCodeError) WithCode(code int) *ExternalCodeError {
 	e.code = code
 	return e
 }
 
 // Error implements the Error interface.
-func(e ExternalCodeError) Error() string {
+func (e ExternalCodeError) Error() string {
 	logg.Errorf("external code error: %v", e.err)
 	return fmt.Sprintf("error %v:%v", e.sym, e.code)
 }
@@ -40,22 +40,22 @@ func(e ExternalCodeError) Error() string {
 // Vm holds sub-components mutated by the vm execution.
 // TODO: Renderer should be passed to avoid proxy methods not strictly related to vm operation
 type Vm struct {
-	st *state.State // Navigation and error states.
-	rs resource.Resource // Retrieves content, code, and templates for symbols.
-	ca cache.Memory // Loaded content.
-	mn *render.Menu // Menu component of page.
-	sizer *render.Sizer // Apply size constraints to output.
-	pg *render.Page // Render outputs with menues to size constraints
-	menuSeparator string // Passed to Menu.WithSeparator if not empty
+	st            *state.State      // Navigation and error states.
+	rs            resource.Resource // Retrieves content, code, and templates for symbols.
+	ca            cache.Memory      // Loaded content.
+	mn            *render.Menu      // Menu component of page.
+	sizer         *render.Sizer     // Apply size constraints to output.
+	pg            *render.Page      // Render outputs with menues to size constraints
+	menuSeparator string            // Passed to Menu.WithSeparator if not empty
 }
 
 // NewVm creates a new Vm.
 func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render.Sizer) *Vm {
 	vmi := &Vm{
-		st: st,
-		rs: rs,
-		ca: ca,
-		pg: render.NewPage(ca, rs),
+		st:    st,
+		rs:    rs,
+		ca:    ca,
+		pg:    render.NewPage(ca, rs),
 		sizer: sizer,
 	}
 	vmi.Reset()
@@ -65,13 +65,13 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 
 // WithMenuSeparator is a chainable function that sets the separator string to use
 // in the menu renderer.
-func(vmi *Vm) WithMenuSeparator(sep string) *Vm {
+func (vmi *Vm) WithMenuSeparator(sep string) *Vm {
 	vmi.menuSeparator = sep
 	return vmi
 }
 
 // Reset re-initializes sub-components for output rendering.
-func(vmi *Vm) Reset() {
+func (vmi *Vm) Reset() {
 	vmi.mn = render.NewMenu()
 	if vmi.menuSeparator != "" {
 		vmi.mn = vmi.mn.WithSeparator(vmi.menuSeparator)
@@ -79,7 +79,7 @@ func(vmi *Vm) Reset() {
 	vmi.pg.Reset()
 	vmi.pg = vmi.pg.WithMenu(vmi.mn)
 	if vmi.sizer != nil {
-		vmi.pg = vmi.pg.WithSizer(vmi.sizer)	
+		vmi.pg = vmi.pg.WithSizer(vmi.sizer)
 	}
 }
 
@@ -107,7 +107,7 @@ func Rewind(sym string, st *state.State, ca cache.Memory) (string, error) {
 // Each step may update the state.
 //
 // On error, the remaining instructions will be returned. State will not be rolled back.
-func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
 	logg.Tracef("new vm run")
 	running := true
 	for running {
@@ -188,7 +188,7 @@ func(vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 // handles errors that should not be deferred to the client.
-func(vm *Vm) runErrCheck(ctx context.Context, b []byte, err error) ([]byte, error) {
+func (vm *Vm) runErrCheck(ctx context.Context, b []byte, err error) ([]byte, error) {
 	if err == nil {
 		return b, err
 	}
@@ -208,9 +208,9 @@ func(vm *Vm) runErrCheck(ctx context.Context, b []byte, err error) ([]byte, erro
 // If there is remaining bytecode, this method is a noop.
 //
 // If input has not been matched, a default invalid input page should be generated aswell as a possiblity of return to last screen (or exit).
-// 
+//
 // If the termination flag has been set but not yet handled, execution is allowed to terminate.
-func(vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
 	if len(b) > 0 {
 		return b, nil
 	}
@@ -245,14 +245,14 @@ func(vm *Vm) runDeadCheck(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 // executes the MAP opcode
-func(vm *Vm) runMap(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runMap(ctx context.Context, b []byte) ([]byte, error) {
 	sym, b, err := ParseMap(b)
 	err = vm.pg.Map(sym)
 	return b, err
 }
 
 // executes the CATCH opcode
-func(vm *Vm) runCatch(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runCatch(ctx context.Context, b []byte) ([]byte, error) {
 	sym, sig, mode, b, err := ParseCatch(b)
 	if err != nil {
 		return b, err
@@ -275,7 +275,7 @@ func(vm *Vm) runCatch(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 // executes the CROAK opcode
-func(vm *Vm) runCroak(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runCroak(ctx context.Context, b []byte) ([]byte, error) {
 	sig, mode, b, err := ParseCroak(b)
 	if err != nil {
 		return b, err
@@ -291,7 +291,7 @@ func(vm *Vm) runCroak(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 // executes the LOAD opcode
-func(vm *Vm) runLoad(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runLoad(ctx context.Context, b []byte) ([]byte, error) {
 	sym, sz, b, err := ParseLoad(b)
 	if err != nil {
 		return b, err
@@ -309,14 +309,14 @@ func(vm *Vm) runLoad(ctx context.Context, b []byte) ([]byte, error) {
 	if err != nil {
 		if err == cache.ErrDup {
 			logg.DebugCtxf(ctx, "Ignoring load request on frame that has symbol already loaded", "sym", sym)
-			err = nil	
+			err = nil
 		}
 	}
 	return b, err
 }
 
 // executes the RELOAD opcode
-func(vm *Vm) runReload(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runReload(ctx context.Context, b []byte) ([]byte, error) {
 	sym, b, err := ParseReload(b)
 	if err != nil {
 		return b, err
@@ -337,7 +337,7 @@ func(vm *Vm) runReload(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 // executes the MOVE opcode
-func(vm *Vm) runMove(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runMove(ctx context.Context, b []byte) ([]byte, error) {
 	sym, b, err := ParseMove(b)
 	if err != nil {
 		return b, err
@@ -358,7 +358,7 @@ func(vm *Vm) runMove(ctx context.Context, b []byte) ([]byte, error) {
 
 // executes the INCMP opcode
 // TODO: document state transition table and simplify flow
-func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 	sym, target, b, err := ParseInCmp(b)
 	if err != nil {
 		return b, err
@@ -388,7 +388,7 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 	} else {
 		if target != string(input) {
 			return b, nil
-		} 
+		}
 		logg.InfoCtxf(ctx, "input match", "input", input, "next", sym)
 	}
 	vm.st.SetFlag(state.FLAG_INMATCH)
@@ -419,20 +419,20 @@ func(vm *Vm) runInCmp(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 // executes the HALT opcode
-func(vm *Vm) runHalt(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runHalt(ctx context.Context, b []byte) ([]byte, error) {
 	var err error
 	b, err = ParseHalt(b)
 	if err != nil {
 		return b, err
 	}
 	logg.DebugCtxf(ctx, "found HALT, stopping")
-	
+
 	vm.st.SetFlag(state.FLAG_WAIT)
 	return b, nil
 }
 
 // executes the MSIZE opcode
-func(vm *Vm) runMSink(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runMSink(ctx context.Context, b []byte) ([]byte, error) {
 	b, err := ParseMSink(b)
 	mcfg := vm.mn.GetBrowseConfig()
 	vm.mn = vm.mn.WithSink().WithBrowseConfig(mcfg).WithPages()
@@ -441,7 +441,7 @@ func(vm *Vm) runMSink(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 // executes the MOUT opcode
-func(vm *Vm) runMOut(ctx context.Context, b []byte) ([]byte, error) {
+func (vm *Vm) runMOut(ctx context.Context, b []byte) ([]byte, error) {
 	title, choice, b, err := ParseMOut(b)
 	if err != nil {
 		return b, err
@@ -451,35 +451,35 @@ func(vm *Vm) runMOut(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 // executes the MNEXT opcode
-func(vm *Vm) runMNext(ctx context.Context, b []byte) ([]byte, error) {
-       display, selector, b, err := ParseMNext(b)
-       if err != nil {
-	       return b, err
-       }
-       cfg := vm.mn.GetBrowseConfig()
-       cfg.NextSelector = selector
-       cfg.NextTitle = display
-       cfg.NextAvailable = true
-       vm.mn = vm.mn.WithBrowseConfig(cfg)
-       return b, nil
+func (vm *Vm) runMNext(ctx context.Context, b []byte) ([]byte, error) {
+	display, selector, b, err := ParseMNext(b)
+	if err != nil {
+		return b, err
+	}
+	cfg := vm.mn.GetBrowseConfig()
+	cfg.NextSelector = selector
+	cfg.NextTitle = display
+	cfg.NextAvailable = true
+	vm.mn = vm.mn.WithBrowseConfig(cfg)
+	return b, nil
 }
-	
+
 // executes the MPREV opcode
-func(vm *Vm) runMPrev(ctx context.Context, b []byte) ([]byte, error) {
-       display, selector, b, err := ParseMPrev(b)
-       if err != nil {
-	       return b, err
-       }
-       cfg := vm.mn.GetBrowseConfig()
-       cfg.PreviousSelector = selector
-       cfg.PreviousTitle = display
-       cfg.PreviousAvailable = true
-       vm.mn = vm.mn.WithBrowseConfig(cfg)
-       return b, nil
+func (vm *Vm) runMPrev(ctx context.Context, b []byte) ([]byte, error) {
+	display, selector, b, err := ParseMPrev(b)
+	if err != nil {
+		return b, err
+	}
+	cfg := vm.mn.GetBrowseConfig()
+	cfg.PreviousSelector = selector
+	cfg.PreviousTitle = display
+	cfg.PreviousAvailable = true
+	vm.mn = vm.mn.WithBrowseConfig(cfg)
+	return b, nil
 }
 
 // Render wraps output rendering, and handles error when attempting to browse beyond the rendered page count.
-func(vm *Vm) Render(ctx context.Context) (string, error) {
+func (vm *Vm) Render(ctx context.Context) (string, error) {
 	changed := vm.st.ResetFlag(state.FLAG_DIRTY)
 	if !changed {
 		return "", nil
@@ -505,9 +505,9 @@ func(vm *Vm) Render(ctx context.Context) (string, error) {
 }
 
 // retrieve and cache data for key
-func(vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
+func (vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
 	var err error
-	
+
 	fn, err := rs.FuncFor(ctx, key)
 	if err != nil {
 		return "", err

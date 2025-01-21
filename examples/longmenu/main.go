@@ -10,12 +10,13 @@ import (
 
 	testdataloader "github.com/peteole/testdata-loader"
 
+	fsdb "git.defalsify.org/vise.git/db/fs"
 	"git.defalsify.org/vise.git/engine"
 	"git.defalsify.org/vise.git/resource"
-	fsdb "git.defalsify.org/vise.git/db/fs"
 )
+
 var (
-	baseDir = testdataloader.GetBasePath()
+	baseDir   = testdataloader.GetBasePath()
 	scriptDir = path.Join(baseDir, "examples", "longmenu")
 )
 
@@ -33,7 +34,7 @@ func main() {
 	}
 	rs := resource.NewDbResource(store)
 	defer rs.Close(ctx)
-	cfg := engine.Config {
+	cfg := engine.Config{
 		OutputSize: uint32(size),
 	}
 	en := engine.NewEngine(cfg, rs)

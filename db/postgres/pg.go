@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	pgx "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"git.defalsify.org/vise.git/db"
 )
@@ -23,14 +23,14 @@ type PgInterface interface {
 // pgDb is a Postgres backend implementation of the Db interface.
 type pgDb struct {
 	*db.DbBase
-	conn PgInterface 
+	conn   PgInterface
 	schema string
 	prefix uint8
-	prepd bool
-	it pgx.Rows
+	prepd  bool
+	it     pgx.Rows
 	itBase []byte
-	tx pgx.Tx
-	multi bool
+	tx     pgx.Tx
+	multi  bool
 }
 
 // NewpgDb creates a new Postgres backed Db implementation.
@@ -43,18 +43,18 @@ func NewPgDb() *pgDb {
 }
 
 // WithSchema sets the Postgres schema to use for the storage table.
-func(pdb *pgDb) WithSchema(schema string) *pgDb {
+func (pdb *pgDb) WithSchema(schema string) *pgDb {
 	pdb.schema = schema
 	return pdb
 }
 
-func(pdb *pgDb) WithConnection(pi PgInterface) *pgDb {
+func (pdb *pgDb) WithConnection(pi PgInterface) *pgDb {
 	pdb.conn = pi
 	return pdb
 }
 
 // Connect implements Db.
-func(pdb *pgDb) Connect(ctx context.Context, connStr string) error {
+func (pdb *pgDb) Connect(ctx context.Context, connStr string) error {
 	if pdb.conn != nil {
 		logg.WarnCtxf(ctx, "Pg already connected")
 		return nil
@@ -132,7 +132,7 @@ func (pdb *pgDb) Abort(ctx context.Context) {
 }
 
 // Put implements Db.
-func(pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
+func (pdb *pgDb) Put(ctx context.Context, key []byte, val []byte) error {
 	if !pdb.CheckPut() {
 		return errors.New("unsafe put and safety set")
 	}
@@ -221,7 +221,7 @@ func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Close implements Db.
-func(pdb *pgDb) Close(ctx context.Context) error {
+func (pdb *pgDb) Close(ctx context.Context) error {
 	err := pdb.Stop(ctx)
 	if err == db.ErrNoTx {
 		err = nil
@@ -231,7 +231,7 @@ func(pdb *pgDb) Close(ctx context.Context) error {
 }
 
 // set up table
-func(pdb *pgDb) ensureTable(ctx context.Context) error {
+func (pdb *pgDb) ensureTable(ctx context.Context) error {
 	if pdb.prepd {
 		logg.WarnCtxf(ctx, "ensureTable called more than once")
 		return nil

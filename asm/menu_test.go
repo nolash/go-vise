@@ -6,7 +6,6 @@ import (
 	"git.defalsify.org/vise.git/vm"
 )
 
-
 func TestMenuInterpreter(t *testing.T) {
 	m := NewMenuProcessor()
 	ph := vm.NewParseHandler().WithDefaultHandlers()
@@ -49,4 +48,3 @@ INCMP _ 99
 		t.Errorf("expected:\n\t%v\ngot:\n\t%v\n", expect, r)
 	}
 }
-

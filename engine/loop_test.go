@@ -37,7 +37,7 @@ func TestLoopTop(t *testing.T) {
 		"2",
 		"j",
 		"1",
-		}		
+	}
 	inputStr := strings.Join(input, "\n")
 	inputBuf := bytes.NewBuffer(append([]byte(inputStr), 0x0a))
 	outputBuf := bytes.NewBuffer(nil)
@@ -59,9 +59,9 @@ func TestLoopBackForth(t *testing.T) {
 	ctx := context.Background()
 	st := state.NewState(0)
 	rs := newTestWrapper(dataDir, st)
-	
+
 	cfg := Config{
-		Root: "root",
+		Root:      "root",
 		CacheSize: 1024,
 	}
 	en := NewEngine(cfg, rs)
@@ -78,7 +78,7 @@ func TestLoopBackForth(t *testing.T) {
 		"0",
 		"1",
 		"0",
-		}		
+	}
 	inputStr := strings.Join(input, "\n")
 	inputBuf := bytes.NewBuffer(append([]byte(inputStr), 0x0a))
 	outputBuf := bytes.NewBuffer(nil)
@@ -99,8 +99,8 @@ func TestLoopBrowse(t *testing.T) {
 
 	cfg := Config{
 		OutputSize: 68,
-		Root: "root",
-		CacheSize: 1024,
+		Root:       "root",
+		CacheSize:  1024,
 	}
 	en := NewEngine(cfg, rs)
 	en = en.WithState(st)
@@ -115,7 +115,7 @@ func TestLoopBrowse(t *testing.T) {
 		"00",
 		"11",
 		"00",
-		}
+	}
 	inputStr := strings.Join(input, "\n")
 	inputBuf := bytes.NewBuffer(append([]byte(inputStr), 0x0a))
 	outputBuf := bytes.NewBuffer(nil)
