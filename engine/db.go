@@ -281,7 +281,6 @@ func (en *DefaultEngine) empty(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	logg.WarnCtxf(ctx, "discarding rendered output")
 	logg.DebugCtxf(ctx, "discard", "output", b.Bytes())
 	return nil
 }
@@ -588,6 +587,7 @@ func (en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 func (en *DefaultEngine) reset(ctx context.Context) (bool, error) {
 	var err error
 	var isTop bool
+	logg.DebugCtxf(ctx, "entering engine reset", "state", en.st)
 	for !isTop {
 		isTop, err = en.st.Top()
 		if err != nil {
