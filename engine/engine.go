@@ -2,7 +2,12 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"io"
+)
+
+var (
+	ErrCodeRemaining = fmt.Errorf("bytecode remaining")
 )
 
 // EngineIsh defines the interface for execution engines that handle vm initialization and execution, and rendering outputs.
