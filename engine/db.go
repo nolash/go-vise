@@ -576,7 +576,7 @@ func (en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 		l += n
 	}
 	if en.exiting {
-		_, err = en.reset(ctx)
+		_, err = en.Reset(ctx)
 		en.exiting = false
 	}
 
@@ -584,7 +584,7 @@ func (en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 }
 
 // start execution over at top node while keeping current state of client error flags.
-func (en *DefaultEngine) reset(ctx context.Context) (bool, error) {
+func (en *DefaultEngine) Reset(ctx context.Context) (bool, error) {
 	var err error
 	var isTop bool
 	logg.DebugCtxf(ctx, "entering engine reset", "state", en.st)
