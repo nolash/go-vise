@@ -134,6 +134,7 @@ func (g *DbResource) DbFuncFor(ctx context.Context, sym string) (EntryFunc, erro
 	if err == nil {
 		return fn, nil
 	}
+	logg.TraceCtxf(ctx, "function handler not registered", "sym", sym)
 	if g.typs&db.DATATYPE_STATICLOAD == 0 {
 		return nil, errors.New("not a staticload getter")
 	}
