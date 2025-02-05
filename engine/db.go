@@ -491,6 +491,10 @@ func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}
 
+	if len(input) == 0 {
+		en.Reset(ctx, true)
+	}
+
 	if len(input) > 0 {
 		_, err = vm.ValidInput(input)
 		if err != nil {
@@ -585,12 +589,15 @@ func (en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 
 // start execution over at top node while keeping current state of client error flags.
 func (en *DefaultEngine) Reset(ctx context.Context, force bool) (bool, error) {
-	var err error
-	var b []byte
 	if force {
+		sym := en.cfg.Root
+		if sym == "" {
+			return false, fmt.Errorf("start sym empty")
+		}
+		b := vm.NewLine(nil, vm.MOVE, []string{sym}, nil, nil)
 		en.st.SetCode(b)
 	} else {
-		b, err = en.st.GetCode()
+		b, err := en.st.GetCode()
 		if err != nil {
 			return false, err
 		}
