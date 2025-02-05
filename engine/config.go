@@ -24,6 +24,8 @@ type Config struct {
 	EngineDebug bool
 	// MenuSeparator sets the string to use for separating menu selectors and menu descriptors in the renderer
 	MenuSeparator string
+	// ResetOnEmptyInput purges cache and restart state execution at root on empty input
+	ResetOnEmptyInput bool
 }
 
 // String implements the string interface.

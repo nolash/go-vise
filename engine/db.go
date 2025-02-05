@@ -491,8 +491,13 @@ func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 		ctx = context.WithValue(ctx, "Language", *en.st.Language)
 	}
 
-	if len(input) == 0 {
-		en.Reset(ctx, true)
+	if en.cfg.ResetOnEmptyInput {
+		if len(input) == 0 {
+			v, err := en.Reset(ctx, true)
+			if err != nil {
+				return v, err
+			}
+		}
 	}
 
 	if len(input) > 0 {
@@ -510,7 +515,7 @@ func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 
 // backend for Exec, after the input validity check
 func (en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
-	logg.InfoCtxf(ctx, "new VM execution with input", "input", string(input))
+	logg.InfoCtxf(ctx, "new VM execution with input", "input", input)
 	code, err := en.st.GetCode()
 	if err != nil {
 		return false, err
@@ -589,6 +594,13 @@ func (en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 
 // start execution over at top node while keeping current state of client error flags.
 func (en *DefaultEngine) Reset(ctx context.Context, force bool) (bool, error) {
+	if en.st.Depth() == -1 {
+		logg.TraceCtxf(ctx, "reset on pristine state is a noop")
+		return false, nil
+	}
+	if en.st == nil {
+		return false, fmt.Errorf("reset on engine with nil state")
+	}
 	if force {
 		sym := en.cfg.Root
 		if sym == "" {

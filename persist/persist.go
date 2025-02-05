@@ -84,7 +84,7 @@ func (p *Persister) Deserialize(b []byte) error {
 	return err
 }
 
-// Save perists the state and cache to the db.Db backend.
+// Save persists the state and cache to the db.Db backend.
 //
 // If save is successful and WithFlush() has been called, the state and memory
 // will be empty when the method returns.
@@ -130,5 +130,5 @@ func (p *Persister) Load(key string) error {
 
 // String implements the String interface
 func (p *Persister) String() string {
-	return fmt.Sprintf("perister @%p state:%p cache:%p", p, p.State, p.Memory)
+	return fmt.Sprintf("persister @%p state:%p cache:%p", p, p.State, p.Memory)
 }
