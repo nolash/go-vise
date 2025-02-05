@@ -584,13 +584,19 @@ func (en *DefaultEngine) Flush(ctx context.Context, w io.Writer) (int, error) {
 }
 
 // start execution over at top node while keeping current state of client error flags.
-func (en *DefaultEngine) Reset(ctx context.Context) (bool, error) {
-	b, err := en.st.GetCode()
-	if err != nil {
-		return false, err
-	}
-	if len(b) > 0 {
-		return false, ErrCodeRemaining
+func (en *DefaultEngine) Reset(ctx context.Context, force bool) (bool, error) {
+	var err error
+	var b []byte
+	if force {
+		en.st.SetCode(b)
+	} else {
+		b, err = en.st.GetCode()
+		if err != nil {
+			return false, err
+		}
+		if len(b) > 0 {
+			return false, ErrCodeRemaining
+		}
 	}
 	return en.reset(ctx)
 }
