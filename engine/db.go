@@ -48,6 +48,9 @@ func NewEngine(cfg Config, rs resource.Resource) *DefaultEngine {
 	if en.cfg.Root == "" {
 		en.cfg.Root = "root"
 	}
+	if en.cfg.EngineDebug {
+		en.cfg.StateDebug = true
+	}
 	return en
 }
 
