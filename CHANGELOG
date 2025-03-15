@@ -1,5 +1,5 @@
-- 0.4.0
-	* Add state debug output on loadfail.
+- 0.3.1
+	* Add state details to end vm run output
 	* Store last failed symbol in vm for debug.
 - 0.3.0
 	* Remove db prefix from data dumper results.
