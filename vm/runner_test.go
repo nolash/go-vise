@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"testing"
 
 	"git.defalsify.org/vise.git/cache"
@@ -832,4 +833,38 @@ func TestBatchRun(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestErrorOut(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	st := state.NewState(0)
+	ca := cache.NewCache()
+	rs := newTestResource(st)
+	rs.AddLocalFunc("foo", getTwo)
+	rs.AddLocalFunc("aiee", uhOh)
+	rs.Lock()
+	b := NewLine(nil, LOAD, []string{"two"}, []byte{0x01, 0x10}, nil)
+	vm := NewVm(st, rs, ca, nil)
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(vm.String(), " ok") {
+		t.Fatalf("expected ok, got %s", vm.String())
+	}
+
+	st = state.NewState(0)
+	ca = cache.NewCache()
+	b = NewLine(nil, LOAD, []string{"aiee"}, []byte{0x01, 0x10}, nil)
+	b = NewLine(b, HALT, nil, nil, nil)
+	vm = NewVm(st, rs, ca, nil)
+	b, err = vm.Run(ctx, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(vm.String(), ") error load: aiee") {
+		t.Fatalf("expected load fail aiee in vm string, got %s", vm.String())
+	}
+
 }

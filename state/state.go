@@ -41,8 +41,8 @@ type State struct {
 	Language *lang.Language // Language selector for rendering
 	input    []byte         // Last input
 	debug    bool           // Make string representation more human friendly
-	invalid  bool
-	lastMove uint8
+	invalid  bool           // True if state is corrupted and should not be persisted.
+	lastMove uint8          // Last menu move direction
 }
 
 // number of bytes necessary to represent a bitfield of the given size.

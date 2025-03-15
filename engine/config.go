@@ -20,8 +20,6 @@ type Config struct {
 	Language string
 	// StateDebug activates string translations of flags in output logs if set
 	StateDebug bool
-	// EngineDebug activates the engine debug output
-	EngineDebug bool
 	// MenuSeparator sets the string to use for separating menu selectors and menu descriptors in the renderer
 	MenuSeparator string
 	// ResetOnEmptyInput purges cache and restart state execution at root on empty input

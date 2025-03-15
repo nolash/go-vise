@@ -47,6 +47,7 @@ type Vm struct {
 	sizer         *render.Sizer     // Apply size constraints to output.
 	pg            *render.Page      // Render outputs with menues to size constraints
 	menuSeparator string            // Passed to Menu.WithSeparator if not empty
+	last          string            // Last failed LOAD/RELOAD attempt
 }
 
 // NewVm creates a new Vm.
@@ -61,6 +62,14 @@ func NewVm(st *state.State, rs resource.Resource, ca cache.Memory, sizer *render
 	vmi.Reset()
 	logg.Infof("vm created with state", "state", st, "renderer", vmi.pg)
 	return vmi
+}
+
+func (vmi *Vm) String() string {
+	s, _ := vmi.st.Where()
+	if s != "_catch" {
+		return fmt.Sprintf("vm (%p) ok", vmi)
+	}
+	return fmt.Sprintf("vm (%p) error load: %s", vmi, vmi.last)
 }
 
 // WithMenuSeparator is a chainable function that sets the separator string to use
@@ -110,6 +119,7 @@ func Rewind(sym string, st *state.State, ca cache.Memory) (string, error) {
 func (vm *Vm) Run(ctx context.Context, b []byte) ([]byte, error) {
 	logg.Tracef("new vm run")
 	running := true
+	vm.last = ""
 	for running {
 		r := vm.st.MatchFlag(state.FLAG_TERMINATE, true)
 		if r {
@@ -507,7 +517,7 @@ func (vm *Vm) Render(ctx context.Context) (string, error) {
 // retrieve and cache data for key
 func (vm *Vm) refresh(key string, rs resource.Resource, ctx context.Context) (string, error) {
 	var err error
-
+	vm.last = key
 	fn, err := rs.FuncFor(ctx, key)
 	if err != nil {
 		return "", err

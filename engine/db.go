@@ -524,13 +524,14 @@ func (en *DefaultEngine) exec(ctx context.Context, input []byte) (bool, error) {
 		return false, fmt.Errorf("no code to execute")
 	}
 
-	logg.Debugf("start new VM run", "code", code)
+	logg.Debugf("start VM run", "code", code)
 	code, err = en.vm.Run(ctx, code)
 	if err != nil {
+		logg.ErrorCtxf(ctx, "fail VM run with state", "code", en.st.Code, "state", en.st.String(), "vm", en.vm)
 		return false, err
 	}
 	en.execd = true
-	logg.Debugf("end new VM run", "code", code)
+	logg.Debugf("end VM run", "code", code, "state", en.st.String(), "vm", en.vm)
 
 	v := en.st.MatchFlag(state.FLAG_TERMINATE, true)
 	if v {

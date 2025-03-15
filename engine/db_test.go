@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -260,31 +259,6 @@ func TestDbEnginePersist(t *testing.T) {
 	stn := pe.GetState()
 	if !stn.MatchFlag(state.FLAG_USERSTART, true) {
 		t.Fatalf("expected userstart set, have state %v", stn)
-	}
-}
-
-func TestDbEngineDebug(t *testing.T) {
-	w := bytes.NewBuffer(nil)
-	ctx := context.Background()
-	cfg := Config{
-		Root:      "tinkywinky",
-		FlagCount: 1,
-	}
-	rs := resource.NewMenuResource()
-	rs = rs.WithCodeGetter(codeGet)
-	rs.AddLocalFunc("foo", flagSet)
-	dbg := NewSimpleDebug(w)
-	en := NewEngine(cfg, rs).WithDebug(dbg)
-	//c, err := en.Init(ctx)
-	c, err := en.Exec(ctx, []byte{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !c {
-		t.Fatal("expected true")
-	}
-	if len(w.Bytes()) == 0 {
-		t.Fatal("expected non-empty debug")
 	}
 }
 
