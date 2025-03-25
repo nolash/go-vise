@@ -855,7 +855,6 @@ func TestErrorOut(t *testing.T) {
 	}
 
 	st = state.NewState(0)
-	ca = cache.NewCache()
 	b = NewLine(nil, LOAD, []string{"aiee"}, []byte{0x01, 0x10}, nil)
 	b = NewLine(b, HALT, nil, nil, nil)
 	vm = NewVm(st, rs, ca, nil)
@@ -866,5 +865,12 @@ func TestErrorOut(t *testing.T) {
 	if !strings.Contains(vm.String(), ") error load: aiee") {
 		t.Fatalf("expected load fail aiee in vm string, got %s", vm.String())
 	}
-
+	_, err = ca.Get("two")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = ca.Get("aiee")
+	if err == nil {
+		t.Fatalf("expected error")
+	}
 }
