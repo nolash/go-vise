@@ -642,5 +642,6 @@ func (en *DefaultEngine) reset(ctx context.Context) (bool, error) {
 	en.st.Restart()
 	en.st.ResetFlag(state.FLAG_TERMINATE)
 	en.st.ResetFlag(state.FLAG_DIRTY)
+	en.st.ResetFlag(state.FLAG_LOADFAIL)
 	return false, nil
 }
