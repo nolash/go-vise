@@ -500,6 +500,9 @@ func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 			if err != nil {
 				return v, err
 			}
+
+			cache := en.pe.GetMemory()
+			cache.Pop()
 		}
 	}
 
