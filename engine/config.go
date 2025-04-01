@@ -26,6 +26,8 @@ type Config struct {
 	MenuSeparator string
 	// ResetOnEmptyInput purges cache and restart state execution at root on empty input
 	ResetOnEmptyInput bool
+	// ResetRoot purges cache for the root node on a engine reset.
+	ResetRoot bool
 }
 
 // String implements the string interface.

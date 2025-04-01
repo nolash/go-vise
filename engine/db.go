@@ -500,9 +500,6 @@ func (en *DefaultEngine) Exec(ctx context.Context, input []byte) (bool, error) {
 			if err != nil {
 				return v, err
 			}
-
-			cache := en.pe.GetMemory()
-			cache.Pop()
 		}
 	}
 
@@ -640,6 +637,9 @@ func (en *DefaultEngine) reset(ctx context.Context) (bool, error) {
 		if err != nil {
 			return false, err
 		}
+		en.ca.Pop()
+	}
+	if (en.cfg.ResetRoot) {
 		en.ca.Pop()
 	}
 	en.st.Restart()
