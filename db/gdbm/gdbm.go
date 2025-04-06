@@ -29,6 +29,11 @@ func NewGdbmDb() *gdbmDb {
 	return db
 }
 
+// Base implements Db
+func (gdb *gdbmDb) Base() *db.BaseDb {
+	return gdb.DbBase
+}
+
 // WithReadOnly sets database as read only.
 //
 // There may exist more than one instance of read-only

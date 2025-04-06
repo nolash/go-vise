@@ -36,6 +36,11 @@ func NewFsDb() *fsDb {
 	return db
 }
 
+// Base implements Db
+func (fdb *fsDb) Base() *db.BaseDb {
+	return fdb.DbBase
+}
+
 func (fdb *fsDb) WithBinary() *fsDb {
 	fdb.binary = true
 	return fdb

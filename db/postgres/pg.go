@@ -42,6 +42,11 @@ func NewPgDb() *pgDb {
 	return db
 }
 
+// Base implements Db
+func (pdb *pgDb) Base() *db.BaseDb {
+	return pdb.DbBase
+}
+
 // WithSchema sets the Postgres schema to use for the storage table.
 func (pdb *pgDb) WithSchema(schema string) *pgDb {
 	pdb.schema = schema

@@ -28,6 +28,11 @@ func NewMemDb() *memDb {
 	return db
 }
 
+// Base implements Db
+func (mdb *memDb) Base() *db.BaseDb {
+	return mdb.DbBase
+}
+
 // String implements the string interface.
 func (mdb *memDb) String() string {
 	return "memdb"

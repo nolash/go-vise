@@ -81,6 +81,7 @@ type Db interface {
 	Stop(context.Context) error
 	Abort(context.Context)
 	Connection() string
+	Base() *DbBase
 }
 
 type LookupKey struct {
@@ -126,6 +127,7 @@ type baseDb struct {
 	lang    *lang.Language
 	seal    bool
 	connStr string
+	logDb Db
 }
 
 // DbBase is a base class that must be extended by all db.Db implementers.
@@ -201,7 +203,7 @@ func (bd *DbBase) CheckPut() bool {
 
 func (bd *DbBase) ToSessionKey(pfx uint8, key []byte) []byte {
 	var b []byte
-	if pfx > datatype_sessioned_threshold {
+	if pfx > datatype_sessioned_threshold || pfx == DATATYPE_UNKNOWN {
 		b = append([]byte(bd.sid), key...)
 	} else {
 		b = key

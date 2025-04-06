@@ -26,6 +26,8 @@ func (fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 		return nil, err
 	}
 
+	logg.TraceCtxf(ctx, "have elements in dir", "n", len(fdb.elements))
+
 	if len(fdb.elements) > 0 {
 		if len(key) == 0 {
 			k := fdb.nextElement()
@@ -42,7 +44,9 @@ func (fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	}
 	for len(fdb.elements) > 0 {
 		k := fdb.nextElement()
+		logg.DebugCtxf(ctx, "processing element", "e", string(k))
 		if len(key) > len(k) {
+
 			continue
 		}
 		kk, err := fdb.DecodeKey(ctx, k)
