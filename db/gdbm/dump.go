@@ -10,6 +10,7 @@ import (
 	"git.defalsify.org/vise.git/db"
 )
 
+// Dump implements Db.
 func (gdb *gdbmDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	gdb.SetLanguage(nil)
 	lk, err := gdb.ToKey(ctx, key)

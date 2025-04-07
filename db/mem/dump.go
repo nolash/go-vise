@@ -11,6 +11,7 @@ import (
 	"git.defalsify.org/vise.git/db"
 )
 
+// Dump implements Db.
 func (mdb *memDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	mdb.dumpKeys = slices.Sorted(maps.Keys(mdb.store))
 	mdb.dumpIdx = -1

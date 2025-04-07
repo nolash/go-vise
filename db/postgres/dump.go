@@ -7,6 +7,7 @@ import (
 	"git.defalsify.org/vise.git/db"
 )
 
+// Dump implements Db.
 func (pdb *pgDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	tx, err := pdb.conn.BeginTx(ctx, defaultTxOptions)
 	if err != nil {

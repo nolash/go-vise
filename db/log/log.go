@@ -14,11 +14,25 @@ var (
 	logg logging.Logger = logging.NewVanilla().WithDomain("logdb")
 )
 
+// TODO: add a formatted dumper for the logdb
 type logDb struct {
 	db.Db
 	logDb db.Db
 }
 
+// NewLogDb creates a wrapper for the main Db in the first argument, which write an entry for every Put to the second database.
+//
+// All interface methods operate like normal on the main Db.
+//
+// Errors writing to the log database are ignored (but logged).
+// 
+// The Put is recorded in the second database under a chronologically sorted session key:
+//
+// `db.DATATYPE_UNKNOWN | sessionId | "_" | Big-endian uint64 representation of nanoseconds of time of put`
+// 
+// The value is stored as:
+//
+// `varint(length(key)) | key | value`
 func NewLogDb(mainDb db.Db, subDb db.Db) db.Db {
 	subDb.Base().AllowUnknownPrefix()
 	return &logDb{
@@ -27,6 +41,7 @@ func NewLogDb(mainDb db.Db, subDb db.Db) db.Db {
 	}
 }
 
+// Start implements Db
 func (ldb *logDb) Start(ctx context.Context) error {
 	err := ldb.Db.Start(ctx)
 	if err != nil {
@@ -39,6 +54,7 @@ func (ldb *logDb) Start(ctx context.Context) error {
 	return nil
 }
 
+// Stop implements Db
 func (ldb *logDb) Stop(ctx context.Context) error {
 	err := ldb.logDb.Stop(ctx)
 	if err != nil {
@@ -47,6 +63,7 @@ func (ldb *logDb) Stop(ctx context.Context) error {
 	return ldb.Db.Stop(ctx)
 }
 
+// Connect implements Db.
 func (ldb *logDb) Connect(ctx context.Context, connStr string) error {
 	err := ldb.Db.Connect(ctx, connStr)
 	if err != nil {
@@ -59,25 +76,24 @@ func (ldb *logDb) Connect(ctx context.Context, connStr string) error {
 	return err
 }
 
-func (ldb *logDb) SetPrefix(pfx uint8) {
-	ldb.Db.SetPrefix(pfx)	
-	ldb.logDb.SetPrefix(pfx)	
-}
-
+// SetLanguage implements Db.
 func (ldb *logDb) SetLanguage(ln *lang.Language) {
 	ldb.Db.SetLanguage(ln)
 	ldb.logDb.SetLanguage(ln)
 }
 
+// SetSession implements Db.
 func (ldb *logDb) SetSession(sessionId string) {
 	ldb.Db.SetSession(sessionId)	
 	ldb.logDb.SetSession(sessionId)	
 }
 
+// Base implement Db.
 func (ldb *logDb) Base() *db.DbBase {
 	return ldb.Db.Base()
 }
 
+// create the chronological logentry key to store the put under.
 func (ldb *logDb) toLogDbEntry(ctx context.Context, key []byte, val []byte) ([]byte, []byte) {
 	var innerKey []byte
 	var innerValKey []byte
@@ -105,6 +121,7 @@ func (ldb *logDb) toLogDbEntry(ctx context.Context, key []byte, val []byte) ([]b
 	return innerKey, append(innerValKey, innerValVal...)
 }
 
+// Put implements Db.
 func (ldb *logDb) Put(ctx context.Context, key []byte, val []byte) error {
 	ldb.logDb.SetPrefix(db.DATATYPE_UNKNOWN)
 	err := ldb.Db.Put(ctx, key, val)

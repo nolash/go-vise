@@ -17,6 +17,7 @@ func (fdb *fsDb) nextElement() []byte {
 	return k
 }
 
+// Dump implements Db.
 func (fdb *fsDb) Dump(ctx context.Context, key []byte) (*db.Dumper, error) {
 	var err error
 	key = append([]byte{fdb.Prefix()}, key...)
