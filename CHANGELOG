@@ -1,5 +1,8 @@
+- 0.3.2
+	* Enable optional clearing of root node cache on engine reset.
+	* Add a LogDb wrapper that enables recording of every Put.
 - 0.3.1
-	* Add state details to end vm run output
+	* Add state details to end vm run output.
 	* Store last failed symbol in vm for debug.
 - 0.3.0
 	* Remove db prefix from data dumper results.
