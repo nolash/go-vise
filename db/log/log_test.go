@@ -65,5 +65,44 @@ func TestLogDb(t *testing.T) {
 	if tn >= tExpect {
 		t.Fatalf("expected %v should be before %v", tn, tExpect)
 	}
+}
 
+func TestLogDbConvert(t *testing.T) {
+	sessionId := "xyzzy"
+	ctx := context.Background()
+	main := mem.NewMemDb()
+	sub := mem.NewMemDb()
+	store := NewLogDb(main, sub)
+	err := store.Connect(ctx, "main")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	k := []byte("foo")
+	v := []byte("bar")
+	store.SetPrefix(db.DATATYPE_USERDATA)
+	store.SetSession(sessionId)
+	err = store.Put(ctx, k, v)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dump, err := sub.Dump(ctx, []byte{db.DATATYPE_UNKNOWN})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rk, rv := dump.Next(ctx)
+	entry, err := store.ToLogDbEntry(ctx, rk, rv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(entry.Key, k) {
+		t.Fatalf("expected %x, got %x", k, entry.Key)
+	}
+	if !bytes.Equal(entry.Val, v) {
+		t.Fatalf("expected %x, got %x", v, entry.Val)
+	}
+	if entry.SessionId != sessionId {
+		t.Fatalf("expected %x, got %x", sessionId, entry.SessionId)
+	}
 }

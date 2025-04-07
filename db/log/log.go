@@ -20,6 +20,14 @@ type logDb struct {
 	logDb db.Db
 }
 
+type LogEntry struct {
+	Key []byte
+	Val []byte
+	SessionId string
+	When time.Time
+	Pfx uint8
+}
+
 // NewLogDb creates a wrapper for the main Db in the first argument, which write an entry for every Put to the second database.
 //
 // All interface methods operate like normal on the main Db.
@@ -33,7 +41,7 @@ type logDb struct {
 // The value is stored as:
 //
 // `varint(length(key)) | key | value`
-func NewLogDb(mainDb db.Db, subDb db.Db) db.Db {
+func NewLogDb(mainDb db.Db, subDb db.Db) *logDb {
 	subDb.Base().AllowUnknownPrefix()
 	return &logDb{
 		Db: mainDb,
@@ -111,14 +119,45 @@ func (ldb *logDb) toLogDbEntry(ctx context.Context, key []byte, val []byte) ([]b
 	}
 
 	l = make([]byte, 8)
-	binary.PutUvarint(l, uint64(len(innerValKey)))
-	innerValKey = append(l, innerValKey...)
+	c := binary.PutUvarint(l, uint64(len(innerValKey)))
+	innerValKey = append(l[:c], innerValKey...)
 	innerValKey = append(innerValKey, val...)
 
 	innerKey = make([]byte, 8)
 	t := time.Now().UnixNano()
 	binary.BigEndian.PutUint64(innerKey, uint64(t))
 	return innerKey, append(innerValKey, innerValVal...)
+}
+
+// ToLogDbEntry decodes a logdb entry to a structure containing the relevant metadata aswell as the original key and value pass by the client.
+func (ldb *logDb) ToLogDbEntry(ctx context.Context, key []byte, val []byte) (LogEntry, error) {
+	var err error
+
+	key = key[1:]
+	tb := key[len(key)-8:]
+	nsecs := binary.BigEndian.Uint64(tb[:8])
+	nsecPart := int64(nsecs % 1000000000)
+	secPart := int64(nsecs / 1000000000)
+	t := time.Unix(secPart, nsecPart)
+
+	sessionId := key[:len(key)-8]
+
+	l, c := binary.Uvarint(val)
+	lk := val[c:uint64(c)+l]
+	v := val[uint64(c)+l:]
+	pfx := lk[0]
+	k, err := ldb.Base().DecodeKey(ctx, lk)
+	if err != nil {
+		return LogEntry{}, err
+	}
+	sessionId = lk[1:len(lk)-len(k)-1]
+	return LogEntry{
+		Key: k,
+		Val: v,
+		SessionId: string(sessionId),
+		When: t,
+		Pfx: pfx,
+	}, nil
 }
 
 // Put implements Db.
