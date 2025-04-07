@@ -43,7 +43,7 @@ func NewPgDb() *pgDb {
 }
 
 // Base implements Db
-func (pdb *pgDb) Base() *db.BaseDb {
+func (pdb *pgDb) Base() *db.DbBase {
 	return pdb.DbBase
 }
 

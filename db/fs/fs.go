@@ -37,7 +37,7 @@ func NewFsDb() *fsDb {
 }
 
 // Base implements Db
-func (fdb *fsDb) Base() *db.BaseDb {
+func (fdb *fsDb) Base() *db.DbBase {
 	return fdb.DbBase
 }
 

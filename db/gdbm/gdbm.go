@@ -30,7 +30,7 @@ func NewGdbmDb() *gdbmDb {
 }
 
 // Base implements Db
-func (gdb *gdbmDb) Base() *db.BaseDb {
+func (gdb *gdbmDb) Base() *db.DbBase {
 	return gdb.DbBase
 }
 

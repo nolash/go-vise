@@ -18,18 +18,21 @@ type memLookupKey struct {
 type memDb struct {
 	*db.DbBase
 	store map[string][]byte
+	dumpIdx int
+	dumpKeys []string
 }
 
 // NewmemDb returns an in-process volatile Db implementation.
 func NewMemDb() *memDb {
 	db := &memDb{
 		DbBase: db.NewDbBase(),
+		dumpIdx: -1,
 	}
 	return db
 }
 
 // Base implements Db
-func (mdb *memDb) Base() *db.BaseDb {
+func (mdb *memDb) Base() *db.DbBase {
 	return mdb.DbBase
 }
 

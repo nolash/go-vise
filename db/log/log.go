@@ -19,10 +19,11 @@ type logDb struct {
 	logDb db.Db
 }
 
-func NewLogDb(mainDb db.Db, db db.Db) db.Db {
+func NewLogDb(mainDb db.Db, subDb db.Db) db.Db {
+	subDb.Base().AllowUnknownPrefix()
 	return &logDb{
 		Db: mainDb,
-		logDb: db,
+		logDb: subDb,
 	}
 }
 
@@ -92,17 +93,20 @@ func (ldb *logDb) toLogDbEntry(ctx context.Context, key []byte, val []byte) ([]b
 	} else {
 		innerValKey = lk.Translation
 	}
+
+	l = make([]byte, 8)
 	binary.PutUvarint(l, uint64(len(innerValKey)))
 	innerValKey = append(l, innerValKey...)
-	innerValKey = append(l, val...)
+	innerValKey = append(innerValKey, val...)
 
+	innerKey = make([]byte, 8)
 	t := time.Now().UnixNano()
 	binary.BigEndian.PutUint64(innerKey, uint64(t))
-	innerKey = ldb.Base().ToSessionKey(db.DATATYPE_UNKNOWN, innerKey)
 	return innerKey, append(innerValKey, innerValVal...)
 }
 
 func (ldb *logDb) Put(ctx context.Context, key []byte, val []byte) error {
+	ldb.logDb.SetPrefix(db.DATATYPE_UNKNOWN)
 	err := ldb.Db.Put(ctx, key, val)
 	if err != nil {
 		return err

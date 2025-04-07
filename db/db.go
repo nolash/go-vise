@@ -127,6 +127,7 @@ type baseDb struct {
 	lang    *lang.Language
 	seal    bool
 	connStr string
+	known bool
 	logDb Db
 }
 
@@ -140,10 +141,21 @@ type DbBase struct {
 // NewDbBase instantiates a new DbBase.
 func NewDbBase() *DbBase {
 	db := &DbBase{
-		baseDb: &baseDb{},
+		baseDb: &baseDb{
+			known: true,
+		},
 	}
 	db.baseDb.defaultLock()
 	return db
+}
+
+func (db *baseDb) AllowUnknownPrefix() bool {
+	known := db.known
+	if !known {
+		return false
+	}
+	db.known = false
+	return true
 }
 
 // ensures default locking of read-only entries
@@ -229,7 +241,7 @@ func (bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	var lk LookupKey
 	//var b []byte
 	db := bd.baseDb
-	if db.pfx == DATATYPE_UNKNOWN {
+	if db.known && db.pfx == DATATYPE_UNKNOWN {
 		return lk, errors.New("datatype prefix cannot be UNKNOWN")
 	}
 	//b := ToSessionKey(db.pfx, db.sid, key)
