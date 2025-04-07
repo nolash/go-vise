@@ -75,15 +75,23 @@ type Db interface {
 	SetLanguage(*lang.Language)
 	// Prefix returns the current active datatype prefix
 	Prefix() uint8
+	// Dump generates an iterable dump of all keys matching the given byte prefix.
 	Dump(context.Context, []byte) (*Dumper, error)
+	// DecodeKey decodes the database specific key used for internal storage to the original key given by the caller.
 	DecodeKey(ctx context.Context, key []byte) ([]byte, error)
+	// Start creates a new database transaction. Only relevant for transactional databases.
 	Start(context.Context) error
+	// Stop completes a database transaction. Only relevant for transactional databases.
 	Stop(context.Context) error
+	// Abort cancels a database transaction. Only relevant for transactional databases.
 	Abort(context.Context)
+	// Connection returns the complete connection string used by the database implementation to connect.
 	Connection() string
+	// Base returns the underlying DbBase
 	Base() *DbBase
 }
 
+// LookupKey encapsulates two keys for a database entry; one for the default language, the other for the language in the context at which the LookupKey was generated.
 type LookupKey struct {
 	Default     []byte
 	Translation []byte
@@ -103,6 +111,7 @@ func ToDbKey(typ uint8, b []byte, l *lang.Language) []byte {
 	return append(k, b...)
 }
 
+// FromDbKey parses the storage key as used in the database implementation to the original key bytes given by the client code.
 func FromDbKey(b []byte) ([]byte, error) {
 	if len(b) < 2 {
 		return nil, fmt.Errorf("invalid db key")
@@ -149,6 +158,7 @@ func NewDbBase() *DbBase {
 	return db
 }
 
+// AllowUnknownPrefix disables the error generated when the DATATYPE_UNKNOWN prefix is used for storage.
 func (db *baseDb) AllowUnknownPrefix() bool {
 	known := db.known
 	if !known {
@@ -163,10 +173,12 @@ func (db *baseDb) defaultLock() {
 	db.lock |= safeLock
 }
 
+// Safe returns true if the database has been set up to protect read-only data.
 func (bd *DbBase) Safe() bool {
 	return bd.baseDb.lock&safeLock == safeLock
 }
 
+// Prefix returns the current prefix (last set by SetPrefix)
 func (bd *DbBase) Prefix() uint8 {
 	return bd.baseDb.pfx
 }
@@ -213,6 +225,9 @@ func (bd *DbBase) CheckPut() bool {
 	return bd.baseDb.pfx&bd.baseDb.lock == 0
 }
 
+// ToSessionKey applies the currently set session id to the key.
+//
+// If the key in pfx does not use session, the key is returned unchanged.
 func (bd *DbBase) ToSessionKey(pfx uint8, key []byte) []byte {
 	var b []byte
 	if pfx > datatype_sessioned_threshold || pfx == DATATYPE_UNKNOWN {
@@ -223,6 +238,7 @@ func (bd *DbBase) ToSessionKey(pfx uint8, key []byte) []byte {
 	return b
 }
 
+// FromSessionKey reverses the effect of ToSessionKey.
 func (bd *DbBase) FromSessionKey(key []byte) ([]byte, error) {
 	if len(bd.baseDb.sid) == 0 {
 		return key, nil
@@ -265,6 +281,7 @@ func (bd *DbBase) ToKey(ctx context.Context, key []byte) (LookupKey, error) {
 	return lk, nil
 }
 
+// DecodeKey implements Db.
 func (bd *DbBase) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
 	var err error
 	oldKey := key
@@ -280,22 +297,27 @@ func (bd *DbBase) DecodeKey(ctx context.Context, key []byte) ([]byte, error) {
 	return key, nil
 }
 
+// Start implements Db.
 func (bd *DbBase) Start(ctx context.Context) error {
 	return nil
 }
 
+// Stop implements Db.
 func (bd *DbBase) Stop(ctx context.Context) error {
 	return nil
 }
 
+// Abort implements Db.
 func (bd *DbBase) Abort(ctx context.Context) {
 }
 
+// Connect implements Db.
 func (bd *DbBase) Connect(ctx context.Context, connStr string) error {
 	bd.connStr = connStr
 	return nil
 }
 
+// Connection implements Db.
 func (bd *DbBase) Connection() string {
 	return bd.connStr
 }
