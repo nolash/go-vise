@@ -210,7 +210,6 @@ func (pdb *pgDb) Get(ctx context.Context, key []byte) ([]byte, error) {
 
 	if !rs.Next() {
 		rs.Close()
-		pdb.Abort(ctx)
 		return nil, db.NewErrNotFound(key)
 	}
 
