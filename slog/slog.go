@@ -5,6 +5,8 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"runtime"
+	"time"
 
 	"git.defalsify.org/vise.git/logging"
 )
@@ -33,7 +35,6 @@ type (
 		// Add source location to each log line. Defaults to false.
 		// No effect when passing a custom handler.
 		IncludeSource bool
-		// TODO: Could this be a functional option?
 		// CtxKeys are the known keys to be used for logging context values.
 		CtxKeys []string
 	}
@@ -70,6 +71,45 @@ func buildDefaultHandler(w io.Writer, level slog.Level, includeSource bool) slog
 	})
 }
 
+func (s *Slog) logWithCaller(ctx context.Context, level slog.Level, msg string, args ...any) {
+	if !s.slogger.Enabled(ctx, level) {
+		return
+	}
+
+	var pcs [1]uintptr
+	runtime.Callers(3, pcs[:])
+
+	record := slog.NewRecord(time.Now(), level, msg, pcs[0])
+
+	if len(args) > 0 {
+		for i := 0; i < len(args)-1; i += 2 {
+			key, ok := args[i].(string)
+			if !ok {
+				continue
+			}
+			record.AddAttrs(slog.Any(key, args[i+1]))
+		}
+	}
+
+	_ = s.slogger.Handler().Handle(ctx, record)
+}
+
+func (s *Slog) logWithCallerCtx(ctx context.Context, level slog.Level, msg string, args ...any) {
+	if !s.slogger.Enabled(ctx, level) {
+		return
+	}
+
+	var pcs [1]uintptr
+	runtime.Callers(3, pcs[:])
+
+	record := slog.NewRecord(time.Now(), level, msg, pcs[0])
+
+	attrs := s.extractContextKeys(ctx, args...)
+	record.AddAttrs(attrs...)
+
+	_ = s.slogger.Handler().Handle(ctx, record)
+}
+
 func (s *Slog) Writef(w io.Writer, level int, msg string, args ...any) {
 	s.slogger.Warn("Writef not implemented")
 }
@@ -87,47 +127,47 @@ func (s *Slog) PrintCtxf(ctx context.Context, level int, msg string, args ...any
 }
 
 func (s *Slog) Tracef(msg string, args ...any) {
-	s.slogger.Log(nil, LevelTrace, msg, args...)
+	s.logWithCaller(context.Background(), LevelTrace, msg, args...)
 }
 
 func (s *Slog) TraceCtxf(ctx context.Context, msg string, args ...any) {
-	s.slogger.LogAttrs(ctx, LevelTrace, msg, s.extractContextKeys(ctx, args...)...)
+	s.logWithCallerCtx(ctx, LevelTrace, msg, args...)
 }
 
 func (s *Slog) Debugf(msg string, args ...any) {
-	s.slogger.Debug(msg, args...)
+	s.logWithCaller(context.Background(), slog.LevelDebug, msg, args...)
 }
 
 func (s *Slog) DebugCtxf(ctx context.Context, msg string, args ...any) {
-	s.slogger.LogAttrs(ctx, slog.LevelDebug, msg, s.extractContextKeys(ctx, args...)...)
+	s.logWithCallerCtx(ctx, slog.LevelDebug, msg, args...)
 }
 
 func (s *Slog) Infof(msg string, args ...any) {
-	s.slogger.Info(msg, args...)
+	s.logWithCaller(context.Background(), slog.LevelInfo, msg, args...)
 }
 
 func (s *Slog) InfoCtxf(ctx context.Context, msg string, args ...any) {
-	s.slogger.LogAttrs(ctx, slog.LevelInfo, msg, s.extractContextKeys(ctx, args...)...)
+	s.logWithCallerCtx(ctx, slog.LevelInfo, msg, args...)
 }
 
 func (s *Slog) Warnf(msg string, args ...any) {
-	s.slogger.Warn(msg, args...)
+	s.logWithCaller(context.Background(), slog.LevelWarn, msg, args...)
 }
 
 func (s *Slog) WarnCtxf(ctx context.Context, msg string, args ...any) {
-	s.slogger.LogAttrs(ctx, slog.LevelWarn, msg, s.extractContextKeys(ctx, args...)...)
+	s.logWithCallerCtx(ctx, slog.LevelWarn, msg, args...)
 }
 
 func (s *Slog) Errorf(msg string, args ...any) {
-	s.slogger.Error(msg, args...)
+	s.logWithCaller(context.Background(), slog.LevelError, msg, args...)
 }
 
 func (s *Slog) ErrorCtxf(ctx context.Context, msg string, args ...any) {
-	s.slogger.LogAttrs(ctx, slog.LevelError, msg, s.extractContextKeys(ctx, args...)...)
+	s.logWithCallerCtx(ctx, slog.LevelError, msg, args...)
 }
 
 func (s *Slog) extractContextKeys(ctx context.Context, args ...any) []slog.Attr {
-	attrs := make([]slog.Attr, 0, len(s.ctxKeys)+len(args))
+	attrs := make([]slog.Attr, 0, len(s.ctxKeys)+len(args)/2)
 
 	for i := 0; i < len(args)-1; i += 2 {
 		key, ok := args[i].(string)

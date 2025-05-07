@@ -35,7 +35,7 @@ func TestNewSlogOutput(t *testing.T) {
 	logger := NewSlog(SlogOpts{
 		Handler: newTestHandler(&buf, SlogOpts{
 			LogLevel:      LevelTrace,
-			IncludeSource: false,
+			IncludeSource: true,
 		}),
 	})
 
@@ -70,7 +70,7 @@ func TestNewSlogOutputWithCtx(t *testing.T) {
 	logger := NewSlog(SlogOpts{
 		Handler: newTestHandler(&buf, SlogOpts{
 			LogLevel:      LevelTrace,
-			IncludeSource: false,
+			IncludeSource: true,
 		}),
 		CtxKeys: []string{"y"},
 	})
